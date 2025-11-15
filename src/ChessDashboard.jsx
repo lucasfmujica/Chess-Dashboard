@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import ArgentinaMap from './components/charts/ArgentinaMap';
 import EloProgressionChart from './components/charts/EloProgressionChart';
 import OpeningsPieChart from './components/charts/OpeningsPieChart';
 import StatCard from './components/chess/StatCard';
@@ -895,6 +896,12 @@ const ChessDashboard = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Argentina Map */}
+            <div className="p-6 bg-white rounded-lg shadow-md">
+              <h3 className="mb-4 text-lg font-semibold">Games by Province</h3>
+              <ArgentinaMap games={ratedGames} />
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
