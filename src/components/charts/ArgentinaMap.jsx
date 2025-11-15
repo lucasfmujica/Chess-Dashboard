@@ -10,14 +10,14 @@ const ArgentinaMap = ({ games }) => {
       games: games.filter(g =>
         ['Club Argentino de Ajedrez', 'Torre Blanca', 'Masters Ciudad'].includes(g.tournament)
       ),
-      coords: { x: '65%', y: '62%' }
+      coords: { x: '67%', y: '64%' }
     },
     'Chubut': {
       tournaments: ['Abierto Madryn', 'Abierto Lago Puelo'],
       games: games.filter(g =>
         ['Abierto Madryn', 'Abierto Lago Puelo'].includes(g.tournament)
       ),
-      coords: { x: '48%', y: '82%' }
+      coords: { x: '45%', y: '84%' }
     }
   };
 
@@ -39,10 +39,10 @@ const ArgentinaMap = ({ games }) => {
     };
   };
 
-  // Map position percentages (relative to image dimensions)
+  // Map position percentages (relative to image dimensions - adjusted for new map)
   const provincePositions = {
-    'Buenos Aires': { x: '65%', y: '62%' },
-    'Chubut': { x: '48%', y: '82%' }
+    'Buenos Aires': { x: '67%', y: '64%' },
+    'Chubut': { x: '45%', y: '84%' }
   };
 
   return (
@@ -50,12 +50,11 @@ const ArgentinaMap = ({ games }) => {
       <h3 className="mb-4 text-xl font-bold text-gray-800">Partidas por Provincia</h3>
 
       <div className="relative w-full max-w-md mx-auto">
-        {/* Argentina map from Wikipedia */}
+        {/* Argentina location map from Wikimedia */}
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/4/43/Argentina_Map.png"
+          src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Argentina_location_map.svg"
           alt="Mapa de Argentina"
           className="w-full h-auto rounded-lg shadow-md"
-          crossOrigin="anonymous"
         />
 
         {/* Province markers overlay */}
