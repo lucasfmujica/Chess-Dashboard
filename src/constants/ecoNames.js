@@ -1,0 +1,28 @@
+// ECO code to opening name mapping
+export const ecoNames = {
+  "A05": "Reti Opening",
+  "A10": "English Opening",
+  "A13": "English: Agincourt Defense",
+  "A14": "English: Neo-Catalan",
+  "A15": "English: Anglo-Indian",
+  "A20": "English: King's English",
+  "A25": "English: Sicilian Reversed",
+  "A29": "English: Four Knights",
+  "A30": "English: Symmetrical",
+  "A37": "English Symmetrical",
+  "A45": "Indian Game",
+  "A46": "Indian: London System",
+  "A56": "Benoni Defense",
+  "A70": "Benoni: Modern",
+  "A76": "Benoni: Four Pawns Attack",
+  "B20": "Sicilian Defense",
+  "B21": "Sicilian: Smith-Morra",
+  "B23": "Sicilian: Closed",
+  "B26": "Sicilian: Closed",
+  "B30": "Sicilian: Old Sicilian",
+  "B31": "Sicilian: Nyezhmetdinov-Rossolimo",
+  "B32": "Sicilian: Open",
+  "B35": "Sicilian: Accelerated Dragon",
+  "B37": "Sicilian: Accelerated Dragon",
+  "E91": "King's Indian: Classical"
+};
