@@ -2,6 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { trainingActivities } from '../../../constants/trainingActivities';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
 
+const motivationalQuotes = [
+  { text: "The pawns are the soul of chess.", author: "Philidor" },
+  { text: "Chess is the struggle against error.", author: "Tarrasch" },
+  { text: "Help your pieces so they can help you.", author: "Morphy" },
+  { text: "When you see a good move, look for a better one.", author: "Lasker" },
+  { text: "Chess is 99% tactics.", author: "Teichmann" }
+];
+
 const TrainingTab = ({
   currentWeek,
   setCurrentWeek,
@@ -19,14 +27,6 @@ const TrainingTab = ({
 }) => {
   const [completedActivities, setCompletedActivities] = useState({});
   const [showMotivation, setShowMotivation] = useState(true);
-
-  const motivationalQuotes = [
-    { text: "The pawns are the soul of chess.", author: "Philidor" },
-    { text: "Chess is the struggle against error.", author: "Tarrasch" },
-    { text: "Help your pieces so they can help you.", author: "Morphy" },
-    { text: "When you see a good move, look for a better one.", author: "Lasker" },
-    { text: "Chess is 99% tactics.", author: "Teichmann" }
-  ];
 
   const randomQuote = useMemo(() => {
     return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
@@ -583,6 +583,163 @@ const TrainingTab = ({
           className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent placeholder-slate-400 transition-all"
           rows="6"
         />
+      </div>
+
+      {/* Monthly Training Stats */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Monthly Training Overview</h3>
+            <p className="text-sm text-slate-600">Aggregate stats across all your training</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(() => {
+            // Calculate monthly stats from all weekly plans
+            const monthlyData = {};
+
+            Object.entries(weeklyPlans).forEach(([weekKey, weekPlan]) => {
+              const weekDate = new Date(weekKey);
+              const monthKey = `${weekDate.getFullYear()}-${String(weekDate.getMonth() + 1).padStart(2, '0')}`;
+
+              if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = {
+                  totalMinutes: 0,
+                  weeksPlanned: 0,
+                  totalActivities: 0,
+                  monthName: weekDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+                };
+              }
+
+              const weekStats = getWeekStats({ [weekKey]: weekPlan }, weekKey);
+              monthlyData[monthKey].totalMinutes += weekStats.totalPlannedMinutes;
+              monthlyData[monthKey].weeksPlanned += 1;
+              monthlyData[monthKey].totalActivities += Object.values(weekPlan).flat().length;
+            });
+
+            const sortedMonths = Object.entries(monthlyData)
+              .sort(([a], [b]) => b.localeCompare(a))
+              .slice(0, 3);
+
+            if (sortedMonths.length === 0) {
+              return (
+                <div className="col-span-3 text-center py-12">
+                  <div className="p-4 bg-slate-100 rounded-full inline-block mb-3">
+                    <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-slate-600 font-medium">No training data yet</p>
+                  <p className="text-sm text-slate-400 mt-1">Start planning your weeks to see monthly stats</p>
+                </div>
+              );
+            }
+
+            return sortedMonths.map(([monthKey, data]) => (
+              <div key={monthKey} className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-5 border border-cyan-200">
+                <h4 className="font-bold text-slate-900 mb-4">{data.monthName}</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Total Training</span>
+                    <span className="text-lg font-bold text-cyan-600">{data.totalMinutes}m</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Weeks Planned</span>
+                    <span className="text-lg font-bold text-blue-600">{data.weeksPlanned}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Activities</span>
+                    <span className="text-lg font-bold text-indigo-600">{data.totalActivities}</span>
+                  </div>
+                  <div className="pt-3 border-t border-cyan-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-slate-500">Avg per week</span>
+                      <span className="text-sm font-semibold text-slate-700">
+                        {Math.round(data.totalMinutes / data.weeksPlanned)}m
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ));
+          })()}
+        </div>
+      </div>
+
+      {/* Reflection History */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-900">Reflection History</h3>
+            <p className="text-sm text-slate-600">Review your past weekly insights</p>
+          </div>
+        </div>
+
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {(() => {
+            const reflections = Object.entries(dailyNotes)
+              .filter(([key, value]) => key.includes('-summary') && value.trim())
+              .sort(([a], [b]) => b.localeCompare(a))
+              .slice(0, 10);
+
+            if (reflections.length === 0) {
+              return (
+                <div className="text-center py-12">
+                  <div className="p-4 bg-slate-100 rounded-full inline-block mb-3">
+                    <svg className="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-slate-600 font-medium">No reflections yet</p>
+                  <p className="text-sm text-slate-400 mt-1">Write your first weekly reflection above</p>
+                </div>
+              );
+            }
+
+            return reflections.map(([weekKey, reflection]) => {
+              const weekDate = new Date(weekKey.replace('-summary', ''));
+              const weekLabel = weekDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+
+              return (
+                <div key={weekKey} className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-violet-500 rounded-lg">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h4 className="font-bold text-slate-900">Week of {weekLabel}</h4>
+                    </div>
+                    {weekKey.replace('-summary', '') === currentWeek && (
+                      <span className="px-2 py-1 text-xs font-bold bg-violet-500 text-white rounded-full">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {reflection}
+                  </p>
+                </div>
+              );
+            });
+          })()}
+        </div>
       </div>
     </div>
   );
