@@ -8,8 +8,11 @@ import {
   PlusIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline';
+import { useModal } from '../../modals/ModalContext';
 
 const GameAnnotationTab = ({ games }) => {
+  const modal = useModal();
+
   const [annotatedGames, setAnnotatedGames] = useState(() => {
     const stored = localStorage.getItem('chessDashboard_annotatedGames');
     return stored ? JSON.parse(stored) : [];
@@ -60,8 +63,9 @@ const GameAnnotationTab = ({ games }) => {
     setSelectedGame(null);
   };
 
-  const deleteAnnotation = (id) => {
-    if (window.confirm('Delete this annotation?')) {
+  const deleteAnnotation = async (id) => {
+    const confirmed = await modal.confirm('Delete this annotation?');
+    if (confirmed) {
       const updated = annotatedGames.filter(a => a.id !== id);
       setAnnotatedGames(updated);
       localStorage.setItem('chessDashboard_annotatedGames', JSON.stringify(updated));

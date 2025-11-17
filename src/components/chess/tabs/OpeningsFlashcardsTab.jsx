@@ -7,6 +7,7 @@ import {
   ClockIcon,
   BookOpenIcon
 } from '@heroicons/react/24/outline';
+import { useModal } from '../../modals/ModalContext';
 
 // Sample opening positions - in a real app, this would come from a database
 const initialOpenings = [
@@ -91,6 +92,8 @@ const initialOpenings = [
 ];
 
 const OpeningsFlashcardsTab = () => {
+  const modal = useModal();
+
   const [openings, setOpenings] = useState(() => {
     const stored = localStorage.getItem('chessDashboard_openings');
     return stored ? JSON.parse(stored) : initialOpenings;
@@ -174,8 +177,9 @@ const OpeningsFlashcardsTab = () => {
     setCurrentIndex((currentIndex + 1) % filteredOpenings.length);
   };
 
-  const resetProgress = () => {
-    if (window.confirm('Reset all progress? This cannot be undone.')) {
+  const resetProgress = async () => {
+    const confirmed = await modal.confirm('Reset all progress? This cannot be undone.');
+    if (confirmed) {
       const reset = openings.map(o => ({
         ...o,
         reviewCount: 0,

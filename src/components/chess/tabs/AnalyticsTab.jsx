@@ -10,6 +10,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { useGameForm } from '../../../hooks/useGameForm';
+import { useModal } from '../../modals/ModalContext';
 
 const AnalyticsTab = ({
   showPgnImport,
@@ -26,6 +27,9 @@ const AnalyticsTab = ({
   games,
   setGames
 }) => {
+  // Modal functions
+  const modal = useModal();
+
   // Use custom hook for game form management
   const {
     showManualEntry,
@@ -35,12 +39,12 @@ const AnalyticsTab = ({
     handleInputChange,
     handleAddGame,
     resetForm,
-  } = useGameForm(games, setGames);
+  } = useGameForm(games, setGames, modal);
 
   // Handle add game with success message
-  const handleAddGameWithMessage = () => {
-    if (handleAddGame()) {
-      alert('Game added successfully!');
+  const handleAddGameWithMessage = async () => {
+    if (await handleAddGame()) {
+      await modal.alert('Game added successfully!');
     }
   };
 
