@@ -34,6 +34,7 @@ const ChessDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBracket, setSelectedBracket] = useState(null);
   const [gameFilter, setGameFilter] = useState('otb'); // 'all', 'otb', 'online'
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Repertoire State
   const [mainRepertoire, setMainRepertoire] = useState({
@@ -291,45 +292,135 @@ const ChessDashboard = () => {
     }
   };
 
+  // Navigation tabs configuration
+  const navigationTabs = [
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'rating', label: 'ELO Progress', icon: '📈' },
+    { id: 'trends', label: 'Trends', icon: '🔥' },
+    { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
+    { id: 'opponents', label: 'vs Opponents', icon: '⚔️' },
+    { id: 'opponent-strength', label: 'Opponent Strength', icon: '💪' },
+    { id: 'white', label: 'As White', icon: '⚪' },
+    { id: 'black', label: 'As Black', icon: '⚫' },
+    { id: 'openings', label: 'Openings', icon: '📚' },
+    { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
+    { id: 'annotations', label: 'Game Library', icon: '📝' },
+    { id: 'achievements', label: 'Achievements', icon: '🏅' },
+    { id: 'streaks', label: 'Streaks', icon: '🔥' },
+    { id: 'records', label: 'Records', icon: '⭐' },
+    { id: 'analytics', label: 'Analytics', icon: '🔬' },
+    { id: 'training', label: 'Training Plan', icon: '💡' },
+    { id: 'goals', label: 'Goals', icon: '🎖️' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 chess-pattern">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Header */}
-        <div className="mb-10 animate-fadeIn">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
-                    Lucas's Chess Performance
-                  </h1>
-                  <p className="mt-1 text-slate-600 font-medium flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                    </svg>
-                    Classical OTB Performance Analysis
-                  </p>
-                </div>
-              </div>
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-              {/* Quick Stats Bar */}
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/60">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-slate-600 font-medium">Current ELO:</span>
-                  <span className="font-bold text-slate-900">{playerInfo.current_elo}</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/60">
-                  <span className="text-slate-600 font-medium">Games:</span>
-                  <span className="font-bold text-slate-900">{filteredGames.length}</span>
-                </div>
+      {/* Sidebar Navigation */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Chess Analytics</h2>
+                <p className="text-xs text-slate-600">Lucas's Performance</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Quick Stats in Sidebar */}
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg">
+              <span className="text-xs font-medium text-slate-600">Current ELO</span>
+              <span className="text-sm font-bold text-emerald-600">{playerInfo.current_elo}</span>
+            </div>
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+              <span className="text-xs font-medium text-slate-600">Total Games</span>
+              <span className="text-sm font-bold text-slate-900">{filteredGames.length}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="p-4 space-y-1">
+          {navigationTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <span className="text-lg">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="lg:ml-72 min-h-screen">
+        {/* Mobile Header with Hamburger */}
+        <div className="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md shadow-md border-b border-slate-200">
+          <div className="flex items-center justify-between px-4 py-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+            >
+              <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-lg font-bold text-slate-900">Chess Dashboard</h1>
+            <div className="w-10" /> {/* Spacer for centering */}
+          </div>
+        </div>
+
+        <div className="px-4 sm:px-6 lg:px-8 py-8">
+        {/* Desktop Header - Hidden on mobile since we have mobile header */}
+        <div className="hidden lg:block mb-8 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+                Lucas's Chess Performance
+              </h1>
+              <p className="mt-1 text-slate-600 font-medium flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                </svg>
+                Classical OTB Performance Analysis
+              </p>
             </div>
 
             {/* Enhanced Game Source Filter */}
@@ -403,48 +494,6 @@ const ChessDashboard = () => {
                   </span>
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Tab Navigation */}
-        <div className="mb-8 animate-slideUp">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-2">
-            <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-              {[
-                { id: 'overview', label: 'Overview', icon: '📊' },
-                { id: 'rating', label: 'ELO Progress', icon: '📈' },
-                { id: 'trends', label: 'Trends', icon: '🔥' },
-                { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
-                { id: 'opponents', label: 'vs Opponents', icon: '⚔️' },
-                { id: 'opponent-strength', label: 'Opponent Strength', icon: '💪' },
-                { id: 'white', label: 'As White', icon: '⚪' },
-                { id: 'black', label: 'As Black', icon: '⚫' },
-                { id: 'openings', label: 'Openings', icon: '📚' },
-                { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
-                { id: 'annotations', label: 'Game Library', icon: '📝' },
-                { id: 'achievements', label: 'Achievements', icon: '🏅' },
-                { id: 'streaks', label: 'Streaks', icon: '🔥' },
-                { id: 'records', label: 'Records', icon: '⭐' },
-                { id: 'analytics', label: 'Analytics', icon: '🔬' },
-                { id: 'training', label: 'Training Plan', icon: '💡' },
-                { id: 'goals', label: 'Goals', icon: '🎖️' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-5 py-3 font-semibold text-sm whitespace-nowrap rounded-xl transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{tab.icon}</span>
-                    {tab.label}
-                  </span>
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -595,6 +644,7 @@ const ChessDashboard = () => {
         {activeTab === 'records' && (
           <RecordsTab games={filteredGames} eloHistory={eloHistory} />
         )}
+        </div>
       </div>
     </div>
   );
