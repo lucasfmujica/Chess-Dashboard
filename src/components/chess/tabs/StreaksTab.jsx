@@ -132,10 +132,18 @@ const StreaksTab = ({ games }) => {
     const activeWeeks = weeklyActivity.filter(w => w.active).length;
     const consistency = Math.round((activeWeeks / 12) * 100);
 
-    // Generate calendar data for last 90 days
+    // Generate calendar data for last 12 weeks (84 days)
     const calendar = [];
-    for (let i = 89; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const startDate = new Date(now);
+    startDate.setDate(startDate.getDate() - 83); // Go back 83 days (84 days total including today)
+
+    // Adjust to start from Sunday
+    const dayOfWeek = startDate.getDay();
+    startDate.setDate(startDate.getDate() - dayOfWeek);
+
+    for (let i = 0; i < 84; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
 
       const gamesOnDay = games.filter(g => {
@@ -271,12 +279,21 @@ const StreaksTab = ({ games }) => {
         <div className="p-8">
           <div className="mb-6">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Activity Calendar</h3>
-            <p className="text-gray-600">Your playing activity over the last 90 days</p>
+            <p className="text-gray-600">Your playing activity over the last 12 weeks</p>
           </div>
 
           {/* Calendar Grid */}
           <div className="space-y-2">
-            <div className="grid grid-cols-13 gap-1">
+            {/* Day labels */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-xs text-gray-500 text-center font-medium">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
               {streaksData.calendar.map((day, idx) => {
                 const levelColors = [
                   'bg-gray-100',
