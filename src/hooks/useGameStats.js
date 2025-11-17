@@ -18,39 +18,50 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
   // ELO history with expected vs actual performance
   const eloHistory = useMemo(() => {
     let currentElo = 1651; // Starting ELO
+    let ratedGameCount = 0; // Count of actual rated games (excluding unrated opponents)
 
-    return ratedGames.map((game, idx) => {
-      const gameNumber = idx + 1;
-      const kFactor = gameNumber <= 27 ? 40 : 20; // K=40 for games 1-27, K=20 for games 28+
+    return ratedGames
+      .filter(game => game.opp_elo > 0) // Only include games against rated opponents
+      .map((game, idx) => {
+        ratedGameCount++;
 
-      // Calculate expected score using ELO formula
-      const expectedScore = calculateExpectedScore(currentElo, game.opp_elo);
-      const actualScore = getActualScore(game.result);
+        // Use game's kFactor if available, otherwise determine by game count
+        const kFactor = game.kFactor || (ratedGameCount <= 27 ? 40 : 20);
 
-      // Calculate ELO change: ΔR = K · (S - E)
-      const eloChange = Math.round(kFactor * (actualScore - expectedScore));
+        // Calculate expected score using ELO formula
+        const expectedScore = calculateExpectedScore(currentElo, game.opp_elo);
+        const actualScore = getActualScore(game.result);
 
-      // Store the ELO before this game
-      const eloBefore = currentElo;
+        // Use actual ELO change from game data if available, otherwise calculate
+        let eloChange;
+        if (game.eloChange !== undefined) {
+          eloChange = game.eloChange;
+        } else {
+          // Calculate ELO change: ΔR = K · (S - E)
+          eloChange = Math.round(kFactor * (actualScore - expectedScore));
+        }
 
-      // Calculate new ELO: R_new = R_old + ΔR
-      currentElo = currentElo + eloChange;
+        // Store the ELO before this game
+        const eloBefore = currentElo;
 
-      return {
-        game: gameNumber,
-        eloBefore: eloBefore,
-        elo: currentElo,
-        eloChange: eloChange,
-        tournament: game.tournament,
-        opponent: game.opp,
-        eco: game.eco,
-        opening: ecoNames[game.eco] || game.eco,
-        expected: expectedScore,
-        actual: actualScore,
-        diff: actualScore - expectedScore,
-        kFactor: kFactor,
-      };
-    });
+        // Calculate new ELO: R_new = R_old + ΔR
+        currentElo = currentElo + eloChange;
+
+        return {
+          game: ratedGameCount,
+          eloBefore: eloBefore,
+          elo: currentElo,
+          eloChange: eloChange,
+          tournament: game.tournament,
+          opponent: game.opp,
+          eco: game.eco,
+          opening: ecoNames[game.eco] || game.eco,
+          expected: expectedScore,
+          actual: actualScore,
+          diff: actualScore - expectedScore,
+          kFactor: kFactor,
+        };
+      });
   }, [ratedGames]);
 
   // Tournament statistics with performance ratings
