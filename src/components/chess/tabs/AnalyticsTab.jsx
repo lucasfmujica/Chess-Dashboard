@@ -9,6 +9,7 @@ import {
   LightBulbIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import { useGameForm } from '../../../hooks/useGameForm';
 
 const AnalyticsTab = ({
   showPgnImport,
@@ -25,95 +26,24 @@ const AnalyticsTab = ({
   games,
   setGames
 }) => {
-  // Manual game entry state
-  const [showManualEntry, setShowManualEntry] = React.useState(false);
-  const [gameForm, setGameForm] = React.useState({
-    tournament: '',
-    elo: '',
-    opp: '',
-    opp_elo: '',
-    color: 'W',
-    result: 'W',
-    eco: '',
-    rated: true,
-  });
+  // Use custom hook for game form management
+  const {
+    showManualEntry,
+    setShowManualEntry,
+    gameForm,
+    uniqueTournaments,
+    handleInputChange,
+    handleAddGame,
+    resetForm,
+  } = useGameForm(games, setGames);
 
-  // Get unique tournament names for dropdown
-  const uniqueTournaments = React.useMemo(() => {
-    const tournaments = [...new Set(games.map(g => g.tournament))];
-    return tournaments.sort();
-  }, [games]);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setGameForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  // Handle add game with success message
+  const handleAddGameWithMessage = () => {
+    if (handleAddGame()) {
+      alert('Game added successfully!');
+    }
   };
 
-  const handleAddGame = () => {
-    // Validation
-    if (!gameForm.tournament.trim()) {
-      alert('Tournament name is required');
-      return;
-    }
-    if (!gameForm.elo || isNaN(parseInt(gameForm.elo))) {
-      alert('Valid player ELO is required');
-      return;
-    }
-    if (!gameForm.opp.trim()) {
-      alert('Opponent name is required');
-      return;
-    }
-    if (!gameForm.opp_elo || isNaN(parseInt(gameForm.opp_elo))) {
-      alert('Valid opponent ELO is required');
-      return;
-    }
-
-    const newGame = {
-      elo: parseInt(gameForm.elo),
-      color: gameForm.color,
-      result: gameForm.result,
-      opp: gameForm.opp.trim(),
-      opp_elo: parseInt(gameForm.opp_elo),
-      eco: gameForm.eco.trim() || 'Unknown',
-      tournament: gameForm.tournament.trim(),
-      rated: gameForm.rated,
-      source: 'otb',
-      time: '00:00',
-    };
-
-    setGames(prev => [...prev, newGame]);
-
-    // Reset form
-    setGameForm({
-      tournament: gameForm.tournament, // Keep tournament name
-      elo: gameForm.elo, // Keep ELO
-      opp: '',
-      opp_elo: '',
-      color: 'W',
-      result: 'W',
-      eco: '',
-      rated: true,
-    });
-
-    alert('Game added successfully!');
-  };
-
-  const resetForm = () => {
-    setGameForm({
-      tournament: '',
-      elo: '',
-      opp: '',
-      opp_elo: '',
-      color: 'W',
-      result: 'W',
-      eco: '',
-      rated: true,
-    });
-    setShowManualEntry(false);
-  };
   // Calculate insights
   const insights = useMemo(() => {
     // Best time of day
@@ -364,7 +294,7 @@ const AnalyticsTab = ({
               {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={handleAddGame}
+                  onClick={handleAddGameWithMessage}
                   className="px-6 py-2.5 text-sm font-medium text-white transition-all duration-300 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105"
                 >
                   ✓ Add Game
