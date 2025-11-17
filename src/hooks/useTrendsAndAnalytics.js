@@ -119,7 +119,8 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
       'Evening (18-20)': { games: [], wins: 0, draws: 0, losses: 0 },
     };
 
-    games.forEach(game => {
+    // Use ratedGames instead of all games for consistency and better performance
+    ratedGames.forEach(game => {
       if (!game.time) return;
 
       const hour = parseInt(game.time.split(':')[0]);
@@ -148,7 +149,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
         winRate: data.games.length > 0 ? ((data.wins / data.games.length) * 100).toFixed(1) : 0,
       }))
       .filter(slot => slot.total > 0);
-  }, [games]);
+  }, [ratedGames]);
 
   // Tournament comparison data
   const tournamentComparison = useMemo(() => {

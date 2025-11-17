@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartHeight } from '../../../utils/chartUtils';
 
@@ -366,6 +367,16 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       </div>
     </div>
   );
+};
+
+OpponentStrengthTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.shape({
+    rated: PropTypes.bool,
+    opp_elo: PropTypes.number,
+    result: PropTypes.string,
+    opp: PropTypes.string,
+  })).isRequired,
+  currentElo: PropTypes.number.isRequired,
 };
 
 export default OpponentStrengthTab;

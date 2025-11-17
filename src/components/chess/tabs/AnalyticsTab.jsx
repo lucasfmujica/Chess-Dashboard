@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Area } from 'recharts';
 import {
   ClockIcon,
@@ -727,6 +728,32 @@ const AnalyticsTab = ({
       </div>
     </div>
   );
+};
+
+
+
+AnalyticsTab.propTypes = {
+  showPgnImport: PropTypes.bool.isRequired,
+  setShowPgnImport: PropTypes.func.isRequired,
+  pgnText: PropTypes.string.isRequired,
+  setPgnText: PropTypes.func.isRequired,
+  handlePgnImport: PropTypes.func.isRequired,
+  timeOfDayStats: PropTypes.arrayOf(PropTypes.shape({
+    time: PropTypes.string,
+    total: PropTypes.number,
+    wins: PropTypes.number,
+    draws: PropTypes.number,
+    losses: PropTypes.number,
+    score: PropTypes.string,
+    winRate: PropTypes.string,
+  })).isRequired,
+  tournamentComparison: PropTypes.arrayOf(PropTypes.object).isRequired,
+  LichessSyncPanel: PropTypes.elementType.isRequired,
+  onLichessSync: PropTypes.func.isRequired,
+  onRemoveLichessGames: PropTypes.func.isRequired,
+  lichessGamesCount: PropTypes.number.isRequired,
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
+  setGames: PropTypes.func.isRequired,
 };
 
 export default AnalyticsTab;
