@@ -66,21 +66,21 @@ const OverviewTab = ({
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Results Distribution */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-slate-900">Results Distribution</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Results Distribution</h3>
             <div className="flex items-center gap-2 text-sm">
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span className="text-slate-600">Wins</span>
+                <span className="text-slate-600 dark:text-slate-300">Wins</span>
               </span>
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                <span className="text-slate-600">Draws</span>
+                <span className="text-slate-600 dark:text-slate-300">Draws</span>
               </span>
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
-                <span className="text-slate-600">Losses</span>
+                <span className="text-slate-600 dark:text-slate-300">Losses</span>
               </span>
             </div>
           </div>
@@ -110,56 +110,56 @@ const OverviewTab = ({
         </div>
 
         {/* Performance by Color */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
-          <h3 className="text-xl font-bold text-slate-900 mb-6">Performance by Color</h3>
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Performance by Color</h3>
           <div className="space-y-6">
             {/* White Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200">
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm">
                     <span className="text-2xl">⚪</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">White Pieces</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">White Pieces</span>
                 </div>
-                <span className="text-lg font-bold text-slate-900">{whiteScore}</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">{whiteScore}</span>
               </div>
-              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
                   className="h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000"
                   style={{ width: `${whiteStats.winRate}%` }}
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-slate-600">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                   {whiteStats.wins}W • {whiteStats.draws}D • {whiteStats.losses}L
                 </p>
-                <p className="text-sm font-bold text-blue-600">{whiteStats.winRate}% win rate</p>
+                <p className="text-sm font-bold text-blue-600 dark:text-blue-400">{whiteStats.winRate}% win rate</p>
               </div>
             </div>
 
             {/* Black Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl border border-slate-200">
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm">
                     <span className="text-2xl">⚫</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">Black Pieces</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Black Pieces</span>
                 </div>
-                <span className="text-lg font-bold text-slate-900">{blackScore}</span>
+                <span className="text-lg font-bold text-slate-900 dark:text-white">{blackScore}</span>
               </div>
-              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className="h-3 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full transition-all duration-1000"
+                  className="h-3 bg-gradient-to-r from-slate-600 to-slate-800 dark:from-slate-400 dark:to-slate-600 rounded-full transition-all duration-1000"
                   style={{ width: `${blackStats.winRate}%` }}
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-slate-600">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                   {blackStats.wins}W • {blackStats.draws}D • {blackStats.losses}L
                 </p>
-                <p className="text-sm font-bold text-slate-700">{blackStats.winRate}% win rate</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{blackStats.winRate}% win rate</p>
               </div>
             </div>
           </div>
@@ -168,14 +168,14 @@ const OverviewTab = ({
 
       {/* ELO Progress and Map */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900">ELO Progress Timeline</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">ELO Progress Timeline</h3>
           </div>
           {eloTimeline.length > 0 ? (
             <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
@@ -190,13 +190,13 @@ const OverviewTab = ({
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-slate-500">
+            <div className="flex items-center justify-center h-64 text-slate-500 dark:text-slate-400">
               <p>No tournament data available</p>
             </div>
           )}
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,7 +204,7 @@ const OverviewTab = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Tournament Locations</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Tournament Locations</h3>
           </div>
           <ArgentinaMap games={ratedGames} />
         </div>

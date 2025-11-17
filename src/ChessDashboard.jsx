@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTheme } from './contexts/ThemeContext';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
 import AnalyticsTab from './components/chess/tabs/AnalyticsTab';
 import BlackGamesTab from './components/chess/tabs/BlackGamesTab';
@@ -36,20 +37,20 @@ const ChessDashboard = () => {
   const [gameFilter, setGameFilter] = useState('otb'); // 'all', 'otb', 'online'
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Repertoire State
-  const [mainRepertoire, setMainRepertoire] = useState({
+  // Repertoire State (persisted)
+  const [mainRepertoire, setMainRepertoire] = useLocalStorage('chess-dashboard-main-repertoire', {
     white: ['A15', 'A20', 'A13', 'A10'],
     black: ['B35', 'B30', 'B23'],
   });
 
-  // Opening Heroes State - Track players to follow for each opening
-  const [openingHeroes, setOpeningHeroes] = useState({
+  // Opening Heroes State - Track players to follow for each opening (persisted)
+  const [openingHeroes, setOpeningHeroes] = useLocalStorage('chess-dashboard-opening-heroes', {
     // Example: 'A15': ['Magnus Carlsen', 'Fabiano Caruana']
   });
 
-  // Goals State
-  const [targetElo, setTargetElo] = useState(DEFAULTS.TARGET_ELO);
-  const [targetDate, setTargetDate] = useState(DEFAULTS.TARGET_DATE);
+  // Goals State (persisted)
+  const [targetElo, setTargetElo] = useLocalStorage('chess-dashboard-target-elo', DEFAULTS.TARGET_ELO);
+  const [targetDate, setTargetDate] = useLocalStorage('chess-dashboard-target-date', DEFAULTS.TARGET_DATE);
 
   // Training Plan State
   const [currentWeek, setCurrentWeek] = useState(() => {
@@ -65,10 +66,13 @@ const ChessDashboard = () => {
     return `${year}-${month}-${day}`;
   });
 
-  const [weeklyPlans, setWeeklyPlans] = useState({});
-  const [dailyNotes, setDailyNotes] = useState({});
+  const [weeklyPlans, setWeeklyPlans] = useLocalStorage('chess-dashboard-weekly-plans', {});
+  const [dailyNotes, setDailyNotes] = useLocalStorage('chess-dashboard-daily-notes', {});
   const [editingDay, setEditingDay] = useState(null);
-  const [weeklyHours, setWeeklyHours] = useState(DEFAULTS.WEEKLY_TRAINING_HOURS);
+  const [weeklyHours, setWeeklyHours] = useLocalStorage('chess-dashboard-weekly-hours', DEFAULTS.WEEKLY_TRAINING_HOURS);
+
+  // Upcoming Tournaments State (persisted)
+  const [upcomingTournaments, setUpcomingTournaments] = useLocalStorage('chess-dashboard-upcoming-tournaments', []);
 
   // Sorting State
   const [whiteSortBy, setWhiteSortBy] = useState('date');
@@ -80,8 +84,8 @@ const ChessDashboard = () => {
   const [showPgnImport, setShowPgnImport] = useState(false);
   const [pgnText, setPgnText] = useState('');
 
-  // Games State
-  const [games, setGames] = useState(initialGames);
+  // Games State (persisted - important for Lichess imports)
+  const [games, setGames] = useLocalStorage('chess-dashboard-games', initialGames);
   const playerInfo = initialPlayerInfo;
 
   // Handler for Lichess game sync
@@ -577,7 +581,11 @@ const ChessDashboard = () => {
         {activeTab === 'rating' && <RatingTab eloHistory={eloHistory} />}
 
         {activeTab === 'tournaments' && (
-          <TournamentsTab tournamentStats={tournamentStats} />
+          <TournamentsTab
+            tournamentStats={tournamentStats}
+            upcomingTournaments={upcomingTournaments}
+            setUpcomingTournaments={setUpcomingTournaments}
+          />
         )}
 
         {activeTab === 'opponent-analysis' && (
