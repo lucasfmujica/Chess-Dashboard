@@ -168,14 +168,32 @@ const RatingTab = ({ eloHistory }) => {
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
+                    const changeColor = data.eloChange > 0 ? 'text-emerald-600' : data.eloChange < 0 ? 'text-rose-600' : 'text-gray-600';
                     return (
                       <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
                         <p className="font-bold text-gray-900 text-lg mb-2">Game {data.game}</p>
                         <p className="text-sm text-indigo-600 font-medium mb-1">{data.tournament}</p>
                         <p className="text-sm text-gray-700 mb-1">vs {data.opponent}</p>
                         <p className="text-sm text-gray-500 mb-2">{data.opening}</p>
-                        <div className="pt-2 border-t border-gray-200">
-                          <p className="font-bold text-blue-600 text-xl">ELO: {data.elo}</p>
+                        <div className="pt-2 border-t border-gray-200 space-y-1">
+                          <div className="flex justify-between gap-6">
+                            <span className="text-sm text-gray-600">Before:</span>
+                            <span className="text-sm font-semibold text-gray-700">{data.eloBefore}</span>
+                          </div>
+                          <div className="flex justify-between gap-6">
+                            <span className="text-sm text-gray-600">After:</span>
+                            <span className="text-sm font-bold text-blue-600">{data.elo}</span>
+                          </div>
+                          <div className="flex justify-between gap-6">
+                            <span className="text-sm text-gray-600">Change:</span>
+                            <span className={`text-sm font-bold ${changeColor}`}>
+                              {data.eloChange > 0 ? '+' : ''}{data.eloChange}
+                            </span>
+                          </div>
+                          <div className="flex justify-between gap-6">
+                            <span className="text-sm text-gray-600">K-factor:</span>
+                            <span className="text-sm font-medium text-gray-700">{data.kFactor}</span>
+                          </div>
                         </div>
                       </div>
                     );

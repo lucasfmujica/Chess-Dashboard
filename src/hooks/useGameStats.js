@@ -17,13 +17,30 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
 
   // ELO history with expected vs actual performance
   const eloHistory = useMemo(() => {
+    let currentElo = 1651; // Starting ELO
+
     return ratedGames.map((game, idx) => {
-      const expectedScore = calculateExpectedScore(game.elo, game.opp_elo);
+      const gameNumber = idx + 1;
+      const kFactor = gameNumber <= 27 ? 40 : 20; // K=40 for games 1-27, K=20 for games 28+
+
+      // Calculate expected score using ELO formula
+      const expectedScore = calculateExpectedScore(currentElo, game.opp_elo);
       const actualScore = getActualScore(game.result);
 
+      // Calculate ELO change: ΔR = K · (S - E)
+      const eloChange = Math.round(kFactor * (actualScore - expectedScore));
+
+      // Store the ELO before this game
+      const eloBefore = currentElo;
+
+      // Calculate new ELO: R_new = R_old + ΔR
+      currentElo = currentElo + eloChange;
+
       return {
-        game: idx + 1,
-        elo: game.elo,
+        game: gameNumber,
+        eloBefore: eloBefore,
+        elo: currentElo,
+        eloChange: eloChange,
         tournament: game.tournament,
         opponent: game.opp,
         eco: game.eco,
@@ -31,6 +48,7 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
         expected: expectedScore,
         actual: actualScore,
         diff: actualScore - expectedScore,
+        kFactor: kFactor,
       };
     });
   }, [ratedGames]);
