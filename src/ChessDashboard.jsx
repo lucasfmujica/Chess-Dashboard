@@ -42,6 +42,11 @@ const ChessDashboard = () => {
     black: ['B35', 'B30', 'B23'],
   });
 
+  // Opening Heroes State - Track players to follow for each opening
+  const [openingHeroes, setOpeningHeroes] = useState({
+    // Example: 'A15': ['Magnus Carlsen', 'Fabiano Caruana']
+  });
+
   // Goals State
   const [targetElo, setTargetElo] = useState(DEFAULTS.TARGET_ELO);
   const [targetDate, setTargetDate] = useState(DEFAULTS.TARGET_DATE);
@@ -83,6 +88,20 @@ const ChessDashboard = () => {
   const handleLichessSync = (transformedGames) => {
     const merged = mergeGames(games, transformedGames);
     setGames(merged);
+  };
+
+  // Handler to remove all Lichess games
+  const handleRemoveLichessGames = () => {
+    const lichessCount = games.filter(g => g.source === 'lichess').length;
+    if (lichessCount === 0) {
+      alert('No Lichess games to remove');
+      return;
+    }
+    const confirmed = window.confirm(`Are you sure you want to remove all ${lichessCount} Lichess game${lichessCount !== 1 ? 's' : ''}? This action cannot be undone.`);
+    if (confirmed) {
+      const otbGames = games.filter(g => g.source !== 'lichess');
+      setGames(otbGames);
+    }
   };
 
   // Filter games based on source
@@ -582,6 +601,8 @@ const ChessDashboard = () => {
             openingRepertoireAnalysis={openingRepertoireAnalysis}
             mainRepertoire={mainRepertoire}
             setMainRepertoire={setMainRepertoire}
+            openingHeroes={openingHeroes}
+            setOpeningHeroes={setOpeningHeroes}
           />
         )}
 
@@ -596,6 +617,8 @@ const ChessDashboard = () => {
             tournamentComparison={tournamentComparison}
             LichessSyncPanel={LichessSyncPanel}
             onLichessSync={handleLichessSync}
+            onRemoveLichessGames={handleRemoveLichessGames}
+            lichessGamesCount={games.filter(g => g.source === 'lichess').length}
           />
         )}
 

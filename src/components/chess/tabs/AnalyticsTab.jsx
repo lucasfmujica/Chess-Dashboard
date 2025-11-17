@@ -19,7 +19,9 @@ const AnalyticsTab = ({
   timeOfDayStats,
   tournamentComparison,
   LichessSyncPanel,
-  onLichessSync
+  onLichessSync,
+  onRemoveLichessGames,
+  lichessGamesCount
 }) => {
   // Calculate insights
   const insights = useMemo(() => {
@@ -176,7 +178,29 @@ const AnalyticsTab = ({
 
       {/* Lichess Sync Panel */}
       {LichessSyncPanel && (
-        <LichessSyncPanel onSyncComplete={onLichessSync} />
+        <div className="space-y-4">
+          <LichessSyncPanel onSyncComplete={onLichessSync} />
+
+          {/* Remove Lichess Games Button */}
+          {lichessGamesCount > 0 && (
+            <div className="p-4 border-2 border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-pink-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-red-900">Remove Imported Games</h4>
+                  <p className="text-xs text-red-700 mt-1">
+                    You have {lichessGamesCount} Lichess game{lichessGamesCount !== 1 ? 's' : ''} imported
+                  </p>
+                </div>
+                <button
+                  onClick={onRemoveLichessGames}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  Remove All Lichess Games
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Time of Day Performance */}
