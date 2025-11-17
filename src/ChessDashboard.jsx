@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useModal } from './components/modals/ModalContext';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
 import AnalyticsTab from './components/chess/tabs/AnalyticsTab';
 import BlackGamesTab from './components/chess/tabs/BlackGamesTab';
@@ -27,6 +28,9 @@ import { useGoalsAndAchievements } from './hooks/useGoalsAndAchievements';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 
 const ChessDashboard = () => {
+  // Modal functions
+  const modal = useModal();
+
   // UI State
   const [activeTab, setActiveTab] = useState('overview');
   const [gameFilter, setGameFilter] = useState('otb'); // 'all', 'otb', 'online'
@@ -90,13 +94,13 @@ const ChessDashboard = () => {
   };
 
   // Handler to remove all Lichess games
-  const handleRemoveLichessGames = () => {
+  const handleRemoveLichessGames = async () => {
     const lichessCount = games.filter(g => g.source === 'lichess').length;
     if (lichessCount === 0) {
-      alert('No Lichess games to remove');
+      await modal.alert('No Lichess games to remove');
       return;
     }
-    const confirmed = window.confirm(`Are you sure you want to remove all ${lichessCount} Lichess game${lichessCount !== 1 ? 's' : ''}? This action cannot be undone.`);
+    const confirmed = await modal.confirm(`Are you sure you want to remove all ${lichessCount} Lichess game${lichessCount !== 1 ? 's' : ''}? This action cannot be undone.`);
     if (confirmed) {
       const otbGames = games.filter(g => g.source !== 'lichess');
       setGames(otbGames);
@@ -175,9 +179,9 @@ const ChessDashboard = () => {
   };
 
   // Google Calendar export function
-  const exportToGoogleCalendar = (date, dayPlan, note) => {
+  const exportToGoogleCalendar = async (date, dayPlan, note) => {
     if (dayPlan.length === 0) {
-      alert('No activities planned for this day');
+      await modal.alert('No activities planned for this day');
       return;
     }
 
@@ -229,22 +233,22 @@ const ChessDashboard = () => {
   };
 
   // PGN Import Handler
-  const handlePgnImport = () => {
+  const handlePgnImport = async () => {
     try {
       const parsedGames = parsePGN(pgnText);
       if (parsedGames.length === 0) {
-        alert('No valid games found in PGN');
+        await modal.alert('No valid games found in PGN');
         return;
       }
 
       // Ask for player's name to identify their games
-      const playerName = prompt(`Found ${parsedGames.length} games. Enter your name as it appears in the PGN (White or Black player name):`);
+      const playerName = await modal.prompt(`Found ${parsedGames.length} games. Enter your name as it appears in the PGN (White or Black player name):`);
       if (!playerName) return;
 
       // Ask for player's ELO at the time of this tournament
-      const playerElo = prompt('Enter your ELO rating at the time of this tournament:');
+      const playerElo = await modal.prompt('Enter your ELO rating at the time of this tournament:');
       if (!playerElo || isNaN(parseInt(playerElo))) {
-        alert('Valid ELO rating is required');
+        await modal.alert('Valid ELO rating is required');
         return;
       }
 
@@ -255,22 +259,22 @@ const ChessDashboard = () => {
       );
 
       if (formattedGames.length === 0) {
-        alert(`Could not match any games to player name "${playerName}". Please check the name and try again.`);
+        await modal.alert(`Could not match any games to player name "${playerName}". Please check the name and try again.`);
         return;
       }
 
-      const confirmImport = window.confirm(
+      const confirmImport = await modal.confirm(
         `Ready to import ${formattedGames.length} game(s)${skippedCount > 0 ? ` (${skippedCount} skipped)` : ''}. Continue?`
       );
 
       if (confirmImport) {
         setGames(prev => [...prev, ...formattedGames]);
-        alert(`Successfully imported ${formattedGames.length} game(s)!`);
+        await modal.alert(`Successfully imported ${formattedGames.length} game(s)!`);
         setPgnText('');
         setShowPgnImport(false);
       }
     } catch (error) {
-      alert(error.message);
+      await modal.alert(error.message);
     }
   };
 
@@ -330,8 +334,9 @@ const ChessDashboard = () => {
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label="Close mobile menu"
             >
-              <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -356,9 +361,10 @@ const ChessDashboard = () => {
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              <svg className={`w-5 h-5 text-slate-600 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`w-5 h-5 text-slate-600 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
               </svg>
             </button>
@@ -366,7 +372,7 @@ const ChessDashboard = () => {
         </div>
 
         {/* Navigation Items */}
-        <nav className={`p-4 space-y-1 ${isSidebarCollapsed ? 'lg:px-2' : ''}`}>
+        <nav className={`p-4 space-y-1 ${isSidebarCollapsed ? 'lg:px-2' : ''}`} aria-label="Main navigation">
           {navigationTabs.map(tab => (
             <button
               key={tab.id}
@@ -381,9 +387,11 @@ const ChessDashboard = () => {
               } ${
                 isSidebarCollapsed ? 'lg:justify-center lg:px-3' : ''
               }`}
+              aria-label={`Navigate to ${tab.label}`}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
               title={isSidebarCollapsed ? tab.label : ''}
             >
-              <span className="text-lg">{tab.icon}</span>
+              <span className="text-lg" aria-hidden="true">{tab.icon}</span>
               {!isSidebarCollapsed && <span>{tab.label}</span>}
             </button>
           ))}
@@ -398,8 +406,9 @@ const ChessDashboard = () => {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+              aria-label="Open mobile menu"
             >
-              <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -441,6 +450,8 @@ const ChessDashboard = () => {
                       ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
                       : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
                   }`}
+                  aria-label="Filter to show only over-the-board games"
+                  aria-pressed={gameFilter === 'otb'}
                 >
                   <span className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -461,6 +472,8 @@ const ChessDashboard = () => {
                       ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-105'
                       : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
                   }`}
+                  aria-label="Filter to show only online games"
+                  aria-pressed={gameFilter === 'online'}
                 >
                   <span className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -481,6 +494,8 @@ const ChessDashboard = () => {
                       ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
                       : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
                   }`}
+                  aria-label="Filter to show all games"
+                  aria-pressed={gameFilter === 'all'}
                 >
                   <span className="flex items-center gap-2">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

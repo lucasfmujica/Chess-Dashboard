@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { TrophyIcon, ChartBarIcon, StarIcon, UsersIcon, CalendarIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useModal } from '../../modals/ModalContext';
 
 const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments }) => {
+  const modal = useModal();
+
   // State for adding/editing upcoming tournaments
   const [isAddingTournament, setIsAddingTournament] = useState(false);
   const [editingTournamentId, setEditingTournamentId] = useState(null);
@@ -22,9 +25,9 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
   };
 
   // Add new tournament
-  const handleAddTournament = () => {
+  const handleAddTournament = async () => {
     if (!tournamentForm.name || !tournamentForm.startDate) {
-      alert('Tournament name and start date are required');
+      await modal.alert('Tournament name and start date are required');
       return;
     }
 
@@ -38,9 +41,9 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
   };
 
   // Update existing tournament
-  const handleUpdateTournament = () => {
+  const handleUpdateTournament = async () => {
     if (!tournamentForm.name || !tournamentForm.startDate) {
-      alert('Tournament name and start date are required');
+      await modal.alert('Tournament name and start date are required');
       return;
     }
 
