@@ -109,7 +109,7 @@ const TrainingTab = ({
 
             <div className="text-center">
               <h3 className="text-2xl font-bold text-slate-900">
-                {new Date(currentWeek).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                {weekDates[0]?.displayDate || ''} - {weekDates[6]?.displayDate || ''}, {new Date(currentWeek).getFullYear()}
               </h3>
               <p className="mt-1 text-sm text-slate-600 flex items-center gap-1.5 justify-center">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
