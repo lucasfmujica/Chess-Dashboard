@@ -78,25 +78,23 @@ const RepertoireTab = ({
           <div className="bg-white rounded-lg p-4 border border-purple-200">
             <h4 className="font-semibold text-sm mb-3 text-gray-800">⚪ White Openings</h4>
             <div className="space-y-3">
-              {mainRepertoire.white.map((eco) => {
-                const opening = openingRepertoireAnalysis.white.find(o => o.eco === eco);
-                if (!opening) return null;
+              {openingRepertoireAnalysis.white.map((opening) => {
                 return (
-                  <div key={eco} className="border border-gray-200 rounded-lg p-3">
+                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
                         <p className="font-medium text-xs text-gray-900">{opening.name}</p>
-                        <p className="text-xs text-gray-500">{eco}</p>
+                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
                       </div>
                       <button
-                        onClick={() => setSelectedOpening(selectedOpening === eco ? null : eco)}
+                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
                         className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
                       >
-                        {selectedOpening === eco ? 'Cancel' : '+ Add Hero'}
+                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
                       </button>
                     </div>
 
-                    {selectedOpening === eco && (
+                    {selectedOpening === opening.eco && (
                       <div className="flex gap-2 mb-2">
                         <input
                           type="text"
@@ -104,10 +102,10 @@ const RepertoireTab = ({
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
                           className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
-                          onKeyPress={(e) => e.key === 'Enter' && addHero(eco)}
+                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
-                          onClick={() => addHero(eco)}
+                          onClick={() => addHero(opening.eco)}
                           className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                         >
                           Add
@@ -115,16 +113,16 @@ const RepertoireTab = ({
                       </div>
                     )}
 
-                    {openingHeroes[eco] && openingHeroes[eco].length > 0 && (
+                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {openingHeroes[eco].map((hero, idx) => (
+                        {openingHeroes[opening.eco].map((hero, idx) => (
                           <span
                             key={idx}
                             className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
                           >
                             {hero}
                             <button
-                              onClick={() => removeHero(eco, hero)}
+                              onClick={() => removeHero(opening.eco, hero)}
                               className="hover:text-purple-900"
                               title="Remove"
                             >
@@ -144,25 +142,23 @@ const RepertoireTab = ({
           <div className="bg-white rounded-lg p-4 border border-purple-200">
             <h4 className="font-semibold text-sm mb-3 text-gray-800">⚫ Black Defenses</h4>
             <div className="space-y-3">
-              {mainRepertoire.black.map((eco) => {
-                const opening = openingRepertoireAnalysis.black.find(o => o.eco === eco);
-                if (!opening) return null;
+              {openingRepertoireAnalysis.black.map((opening) => {
                 return (
-                  <div key={eco} className="border border-gray-200 rounded-lg p-3">
+                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
                         <p className="font-medium text-xs text-gray-900">{opening.name}</p>
-                        <p className="text-xs text-gray-500">{eco}</p>
+                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
                       </div>
                       <button
-                        onClick={() => setSelectedOpening(selectedOpening === eco ? null : eco)}
+                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
                         className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
                       >
-                        {selectedOpening === eco ? 'Cancel' : '+ Add Hero'}
+                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
                       </button>
                     </div>
 
-                    {selectedOpening === eco && (
+                    {selectedOpening === opening.eco && (
                       <div className="flex gap-2 mb-2">
                         <input
                           type="text"
@@ -170,10 +166,10 @@ const RepertoireTab = ({
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
                           className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
-                          onKeyPress={(e) => e.key === 'Enter' && addHero(eco)}
+                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
-                          onClick={() => addHero(eco)}
+                          onClick={() => addHero(opening.eco)}
                           className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
                         >
                           Add
@@ -181,16 +177,16 @@ const RepertoireTab = ({
                       </div>
                     )}
 
-                    {openingHeroes[eco] && openingHeroes[eco].length > 0 && (
+                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {openingHeroes[eco].map((hero, idx) => (
+                        {openingHeroes[opening.eco].map((hero, idx) => (
                           <span
                             key={idx}
                             className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
                           >
                             {hero}
                             <button
-                              onClick={() => removeHero(eco, hero)}
+                              onClick={() => removeHero(opening.eco, hero)}
                               className="hover:text-purple-900"
                               title="Remove"
                             >

@@ -3,20 +3,16 @@ import LichessSyncPanel from './components/chess/LichessSyncPanel';
 import AnalyticsTab from './components/chess/tabs/AnalyticsTab';
 import BlackGamesTab from './components/chess/tabs/BlackGamesTab';
 import GoalsTab from './components/chess/tabs/GoalsTab';
-import OpeningsTab from './components/chess/tabs/OpeningsTab';
-import OpponentsTab from './components/chess/tabs/OpponentsTab';
 import OpponentStrengthTab from './components/chess/tabs/OpponentStrengthTab';
 import OverviewTab from './components/chess/tabs/OverviewTab';
 import RatingTab from './components/chess/tabs/RatingTab';
 import RepertoireTab from './components/chess/tabs/RepertoireTab';
 import TournamentsTab from './components/chess/tabs/TournamentsTab';
 import TrainingTab from './components/chess/tabs/TrainingTab';
-import TrendsTab from './components/chess/tabs/TrendsTab';
 import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
-import RecordsTab from './components/chess/tabs/RecordsTab';
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { trainingActivities } from './constants/trainingActivities';
@@ -311,22 +307,20 @@ const ChessDashboard = () => {
     }
   };
 
-  // Navigation tabs configuration
+  // Sidebar collapsed state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Navigation tabs configuration (streamlined from 17 to 12 tabs)
   const navigationTabs = [
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'rating', label: 'ELO Progress', icon: '📈' },
-    { id: 'trends', label: 'Trends', icon: '🔥' },
     { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
-    { id: 'opponents', label: 'vs Opponents', icon: '⚔️' },
-    { id: 'opponent-strength', label: 'Opponent Strength', icon: '💪' },
-    { id: 'white', label: 'As White', icon: '⚪' },
-    { id: 'black', label: 'As Black', icon: '⚫' },
-    { id: 'openings', label: 'Openings', icon: '📚' },
+    { id: 'opponent-analysis', label: 'Opponent Analysis', icon: '⚔️' },
+    { id: 'by-color', label: 'By Color', icon: '♟️' },
     { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
     { id: 'annotations', label: 'Game Library', icon: '📝' },
     { id: 'achievements', label: 'Achievements', icon: '🏅' },
     { id: 'streaks', label: 'Streaks', icon: '🔥' },
-    { id: 'records', label: 'Records', icon: '⭐' },
     { id: 'analytics', label: 'Analytics', icon: '🔬' },
     { id: 'training', label: 'Training Plan', icon: '💡' },
     { id: 'goals', label: 'Goals', icon: '🎖️' },
@@ -344,23 +338,27 @@ const ChessDashboard = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed top-0 left-0 h-full w-72 bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-transform duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${
+          isSidebarCollapsed ? 'lg:w-20' : 'w-72'
         }`}
       >
         {/* Sidebar Header */}
-        <div className="p-6 border-b border-slate-200">
+        <div className={`p-6 border-b border-slate-200 ${isSidebarCollapsed ? 'lg:px-4' : ''}`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 ${isSidebarCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
               <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg">
                 <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Chess Analytics</h2>
-                <p className="text-xs text-slate-600">Lucas's Performance</p>
-              </div>
+              {!isSidebarCollapsed && (
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">Chess Analytics</h2>
+                  <p className="text-xs text-slate-600">Lucas's Performance</p>
+                </div>
+              )}
             </div>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
@@ -373,20 +371,33 @@ const ChessDashboard = () => {
           </div>
 
           {/* Quick Stats in Sidebar */}
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg">
-              <span className="text-xs font-medium text-slate-600">Current ELO</span>
-              <span className="text-sm font-bold text-emerald-600">{playerInfo.current_elo}</span>
+          {!isSidebarCollapsed && (
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg">
+                <span className="text-xs font-medium text-slate-600">Current ELO</span>
+                <span className="text-sm font-bold text-emerald-600">{playerInfo.current_elo}</span>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+                <span className="text-xs font-medium text-slate-600">Total Games</span>
+                <span className="text-sm font-bold text-slate-900">{filteredGames.length}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
-              <span className="text-xs font-medium text-slate-600">Total Games</span>
-              <span className="text-sm font-bold text-slate-900">{filteredGames.length}</span>
-            </div>
-          </div>
+          )}
+
+          {/* Collapse/Expand Button (Desktop only) */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden lg:flex items-center justify-center w-full mt-4 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <svg className={`w-5 h-5 text-slate-600 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="p-4 space-y-1">
+        <nav className={`p-4 space-y-1 ${isSidebarCollapsed ? 'lg:px-2' : ''}`}>
           {navigationTabs.map(tab => (
             <button
               key={tab.id}
@@ -398,17 +409,20 @@ const ChessDashboard = () => {
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
                   : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+              } ${
+                isSidebarCollapsed ? 'lg:justify-center lg:px-3' : ''
               }`}
+              title={isSidebarCollapsed ? tab.label : ''}
             >
               <span className="text-lg">{tab.icon}</span>
-              <span>{tab.label}</span>
+              {!isSidebarCollapsed && <span>{tab.label}</span>}
             </button>
           ))}
         </nav>
       </aside>
 
       {/* Main Content Area */}
-      <div className="lg:ml-72 min-h-screen">
+      <div className={`min-h-screen transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
         {/* Mobile Header with Hamburger */}
         <div className="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md shadow-md border-b border-slate-200">
           <div className="flex items-center justify-between px-4 py-4">
@@ -538,61 +552,100 @@ const ChessDashboard = () => {
 
         {activeTab === 'rating' && <RatingTab eloHistory={eloHistory} />}
 
-        {activeTab === 'trends' && (
-          <TrendsTab
-            formStats={formStats}
-            streaks={streaks}
-            monthlyStats={monthlyStats}
-          />
-        )}
-
         {activeTab === 'tournaments' && (
           <TournamentsTab tournamentStats={tournamentStats} />
         )}
 
-        {activeTab === 'opponents' && (
-          <OpponentsTab
-            selectedBracket={selectedBracket}
-            setSelectedBracket={setSelectedBracket}
-            opponentBracketStats={opponentBracketStats}
-            bracketGames={bracketGames}
-            ecoNames={ecoNames}
-          />
-        )}
-
-        {activeTab === 'opponent-strength' && (
+        {activeTab === 'opponent-analysis' && (
           <OpponentStrengthTab
             games={games}
             currentElo={playerInfo.current_elo}
           />
         )}
 
-        {activeTab === 'white' && (
-          <WhiteGamesTab
-            whiteStats={whiteStats}
-            whiteSortBy={whiteSortBy}
-            setWhiteSortBy={setWhiteSortBy}
-            whiteSortOrder={whiteSortOrder}
-            setWhiteSortOrder={setWhiteSortOrder}
-            games={games}
-            ecoNames={ecoNames}
-          />
+        {activeTab === 'by-color' && (
+          <div className="space-y-6">
+            {/* Color Toggle */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <button
+                onClick={() => setActiveTab('by-color-white')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+              >
+                ⚪ White Games
+              </button>
+              <button
+                onClick={() => setActiveTab('by-color-black')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+              >
+                ⚫ Black Games
+              </button>
+            </div>
+            <WhiteGamesTab
+              whiteStats={whiteStats}
+              whiteSortBy={whiteSortBy}
+              setWhiteSortBy={setWhiteSortBy}
+              whiteSortOrder={whiteSortOrder}
+              setWhiteSortOrder={setWhiteSortOrder}
+              games={games}
+              ecoNames={ecoNames}
+            />
+          </div>
         )}
 
-        {activeTab === 'black' && (
-          <BlackGamesTab
-            blackStats={blackStats}
-            blackSortBy={blackSortBy}
-            setBlackSortBy={setBlackSortBy}
-            blackSortOrder={blackSortOrder}
-            setBlackSortOrder={setBlackSortOrder}
-            games={games}
-            ecoNames={ecoNames}
-          />
+        {activeTab === 'by-color-white' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <button
+                onClick={() => setActiveTab('by-color')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+              >
+                ⚪ White Games
+              </button>
+              <button
+                onClick={() => setActiveTab('by-color-black')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+              >
+                ⚫ Black Games
+              </button>
+            </div>
+            <WhiteGamesTab
+              whiteStats={whiteStats}
+              whiteSortBy={whiteSortBy}
+              setWhiteSortBy={setWhiteSortBy}
+              whiteSortOrder={whiteSortOrder}
+              setWhiteSortOrder={setWhiteSortOrder}
+              games={games}
+              ecoNames={ecoNames}
+            />
+          </div>
         )}
 
-        {activeTab === 'openings' && (
-          <OpeningsTab allOpeningsStats={allOpeningsStats} />
+        {activeTab === 'by-color-black' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <button
+                onClick={() => setActiveTab('by-color')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+              >
+                ⚪ White Games
+              </button>
+              <button
+                onClick={() => setActiveTab('by-color-black')}
+                className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-gray-700 to-gray-900 text-white shadow-lg"
+              >
+                ⚫ Black Games
+              </button>
+            </div>
+            <BlackGamesTab
+              blackStats={blackStats}
+              blackSortBy={blackSortBy}
+              setBlackSortBy={setBlackSortBy}
+              blackSortOrder={blackSortOrder}
+              setBlackSortOrder={setBlackSortOrder}
+              games={games}
+              ecoNames={ecoNames}
+            />
+          </div>
         )}
 
         {activeTab === 'repertoire' && (
@@ -662,10 +715,6 @@ const ChessDashboard = () => {
 
         {activeTab === 'streaks' && (
           <StreaksTab games={filteredGames} />
-        )}
-
-        {activeTab === 'records' && (
-          <RecordsTab games={filteredGames} eloHistory={eloHistory} />
         )}
         </div>
       </div>

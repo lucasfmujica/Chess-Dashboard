@@ -2,6 +2,7 @@ import React from 'react';
 import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import ArgentinaMap from '../../charts/ArgentinaMap';
 import StatCard from '../StatCard';
+import { getChartHeight } from '../../../utils/chartUtils';
 
 const OverviewTab = ({
   playerInfo,
@@ -83,7 +84,7 @@ const OverviewTab = ({
               </span>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={getChartHeight('small')}>
             <PieChart>
               <Pie
                 data={[
@@ -177,7 +178,7 @@ const OverviewTab = ({
             <h3 className="text-xl font-bold text-slate-900">ELO Progress Timeline</h3>
           </div>
           {eloTimeline.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
               <LineChart data={eloTimeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="#64748b" tick={{ fontSize: 11 }} />

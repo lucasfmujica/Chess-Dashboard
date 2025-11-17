@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getChartHeight } from '../../../utils/chartUtils';
 
 const OpponentStrengthTab = ({ games, currentElo }) => {
   const strengthAnalysis = useMemo(() => {
@@ -131,7 +132,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       {/* Performance vs Expected Chart */}
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h3 className="mb-4 text-lg font-semibold">Performance vs Expected Score by Opponent Strength</h3>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="bracket" angle={-20} textAnchor="end" height={80} />
@@ -222,7 +223,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       {/* Results vs Opponent Rating Scatter */}
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h3 className="mb-4 text-lg font-semibold">Results by Opponent Rating Difference</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={getChartHeight('small')}>
           <LineChart data={strengthTrend}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="game" label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }} />
