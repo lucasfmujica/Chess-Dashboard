@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import {
   DocumentTextIcon,
   PencilIcon,
@@ -491,6 +492,10 @@ const GameAnnotationTab = ({ games }) => {
       </div>
     </div>
   );
+};
+
+GameAnnotationTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default GameAnnotationTab;

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { TrophyIcon, ChartBarIcon, StarIcon, UsersIcon, CalendarIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
@@ -541,6 +542,10 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
       </div>
     </div>
   );
+};
+
+TournamentsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default TournamentsTab;

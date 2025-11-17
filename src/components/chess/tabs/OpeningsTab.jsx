@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const OpeningsTab = ({ allOpeningsStats }) => {
@@ -105,6 +106,11 @@ const OpeningsTab = ({ allOpeningsStats }) => {
       </div>
     </div>
   );
+};
+};
+
+OpeningsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default OpeningsTab;

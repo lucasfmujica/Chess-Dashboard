@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const GoalsTab = ({
   targetElo,
@@ -364,6 +365,26 @@ const GoalsTab = ({
       </div>
     </div>
   );
+};
+
+GoalsTab.propTypes = {
+  targetElo: PropTypes.number.isRequired,
+  setTargetElo: PropTypes.func.isRequired,
+  targetDate: PropTypes.string.isRequired,
+  setTargetDate: PropTypes.func.isRequired,
+  goalProjections: PropTypes.shape({
+    currentElo: PropTypes.number,
+    targetElo: PropTypes.number,
+    pointsToGain: PropTypes.number,
+    weeksRemaining: PropTypes.number,
+    gamesPerWeek: PropTypes.number,
+    estimatedDate: PropTypes.string,
+  }).isRequired,
+  achievements: PropTypes.shape({
+    totalPoints: PropTypes.number,
+    unlockedCount: PropTypes.number,
+  }).isRequired,
+  nextMilestones: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default GoalsTab;
