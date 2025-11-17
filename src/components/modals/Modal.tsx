@@ -40,30 +40,6 @@ const Modal: React.FC<ModalProps> = ({
     }
   }, [isOpen, type]);
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        handleCancel();
-      }
-    };
-
-    const handleEnter = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && isOpen && type === 'alert') {
-        handleConfirm();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    document.addEventListener('keydown', handleEnter);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('keydown', handleEnter);
-    };
-  });
-
-  if (!isOpen) return null;
-
   const handleConfirm = () => {
     if (type === 'prompt') {
       onConfirm?.(inputValue);
@@ -75,6 +51,32 @@ const Modal: React.FC<ModalProps> = ({
   const handleCancel = () => {
     onCancel?.();
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancel();
+      }
+    };
+
+    const handleEnter = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && type === 'alert') {
+        handleConfirm();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('keydown', handleEnter);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleEnter);
+    };
+  }, [isOpen, type, inputValue, onConfirm, onCancel]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

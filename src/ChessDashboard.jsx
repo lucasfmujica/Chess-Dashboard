@@ -187,7 +187,14 @@ const ChessDashboard = () => {
       }
 
       const playerName = await modal.prompt(`Found ${parsedGames.length} games. Enter your name as it appears in the PGN (White or Black player name):`);
-      if (!playerName) return;
+      if (!playerName?.trim()) {
+        await modal.alert('Player name is required');
+        return;
+      }
+      if (playerName.trim().length > 100) {
+        await modal.alert('Player name is too long (maximum 100 characters)');
+        return;
+      }
 
       const playerElo = await modal.prompt('Enter your ELO rating at the time of this tournament:');
       if (!playerElo || isNaN(parseInt(playerElo))) {
@@ -197,7 +204,7 @@ const ChessDashboard = () => {
 
       const { games: formattedGames, skippedCount } = convertPGNGamesToInternal(
         parsedGames,
-        playerName,
+        playerName.trim(),
         parseInt(playerElo)
       );
 

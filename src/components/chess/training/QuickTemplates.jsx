@@ -1,7 +1,10 @@
 import React from 'react';
 import { getWeekDates } from '../../../utils/chessHelpers';
+import { useModal } from '../../modals/ModalContext';
 
 const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPlans }) => {
+  const modal = useModal();
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h3 className="mb-4 text-lg font-semibold">Quick Templates</h3>
@@ -121,8 +124,9 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
 
       <div className="flex justify-end mt-4">
         <button
-          onClick={() => {
-            if (window.confirm('Clear this week\'s plan?')) {
+          onClick={async () => {
+            const confirmed = await modal.confirm('Clear this week\'s plan?', 'Clear Weekly Plan');
+            if (confirmed) {
               setWeeklyPlans(prev => {
                 const newPlans = { ...prev };
                 delete newPlans[currentWeek];

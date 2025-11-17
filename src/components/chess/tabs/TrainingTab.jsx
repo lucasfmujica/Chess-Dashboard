@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { trainingActivities } from '../../../constants/trainingActivities';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
+import { useModal } from '../../modals/ModalContext';
 
 const motivationalQuotes = [
   { text: "The pawns are the soul of chess.", author: "Philidor" },
@@ -40,6 +41,7 @@ const TrainingTab = ({
   updateDayPlan,
   exportToGoogleCalendar
 }) => {
+  const modal = useModal();
   const [completedActivities, setCompletedActivities] = useState({});
   const [showMotivation, setShowMotivation] = useState(true);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -591,8 +593,9 @@ const TrainingTab = ({
             <span className="font-semibold">Pro Tip:</span> Following the 1/3 rule - Tactics, Play+Analyze, Endgames/Openings
           </p>
           <button
-            onClick={() => {
-              if (window.confirm('Clear this week\'s entire plan?')) {
+            onClick={async () => {
+              const confirmed = await modal.confirm('Clear this week\'s entire plan?', 'Clear Weekly Plan');
+              if (confirmed) {
                 setWeeklyPlans(prev => {
                   const newPlans = { ...prev };
                   delete newPlans[currentWeek];

@@ -54,8 +54,9 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
   };
 
   // Delete tournament
-  const handleDeleteTournament = (id) => {
-    if (window.confirm('Are you sure you want to delete this tournament?')) {
+  const handleDeleteTournament = async (id) => {
+    const confirmed = await modal.confirm('Are you sure you want to delete this tournament?', 'Delete Tournament');
+    if (confirmed) {
       setUpcomingTournaments(prev => prev.filter(t => t.id !== id));
     }
   };
