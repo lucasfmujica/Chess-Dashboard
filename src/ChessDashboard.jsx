@@ -13,7 +13,6 @@ import TournamentsTab from './components/chess/tabs/TournamentsTab';
 import TrainingTab from './components/chess/tabs/TrainingTab';
 import TrendsTab from './components/chess/tabs/TrendsTab';
 import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
-import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
@@ -21,7 +20,7 @@ import RecordsTab from './components/chess/tabs/RecordsTab';
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { trainingActivities } from './constants/trainingActivities';
-import { DEFAULTS, DATE_CONFIG } from './constants/chessConstants';
+import { DEFAULTS } from './constants/chessConstants';
 import { mergeGames } from './utils/lichessApi';
 import { initialGames, playerInfo as initialPlayerInfo } from './data/initialGames';
 import { useGameStats } from './hooks/useGameStats';
@@ -48,7 +47,7 @@ const ChessDashboard = () => {
 
   // Training Plan State
   const [currentWeek, setCurrentWeek] = useState(() => {
-    const today = DATE_CONFIG.CURRENT_DATE;
+    const today = new Date(); // Use actual current date
     const dayOfWeek = today.getDay();
     const startOfWeek = new Date(today);
     const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -423,7 +422,6 @@ const ChessDashboard = () => {
                 { id: 'black', label: 'As Black', icon: '⚫' },
                 { id: 'openings', label: 'Openings', icon: '📚' },
                 { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
-                { id: 'flashcards', label: 'Opening Trainer', icon: '🎴' },
                 { id: 'annotations', label: 'Game Library', icon: '📝' },
                 { id: 'achievements', label: 'Achievements', icon: '🏅' },
                 { id: 'streaks', label: 'Streaks', icon: '🔥' },
@@ -580,10 +578,6 @@ const ChessDashboard = () => {
             achievements={achievements}
             nextMilestones={nextMilestones}
           />
-        )}
-
-        {activeTab === 'flashcards' && (
-          <OpeningsFlashcardsTab />
         )}
 
         {activeTab === 'annotations' && (
