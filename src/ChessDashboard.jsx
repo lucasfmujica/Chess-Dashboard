@@ -15,6 +15,9 @@ import TrendsTab from './components/chess/tabs/TrendsTab';
 import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
 import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
+import AchievementsTab from './components/chess/tabs/AchievementsTab';
+import StreaksTab from './components/chess/tabs/StreaksTab';
+import RecordsTab from './components/chess/tabs/RecordsTab';
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { trainingActivities } from './constants/trainingActivities';
@@ -422,6 +425,9 @@ const ChessDashboard = () => {
                 { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
                 { id: 'flashcards', label: 'Opening Trainer', icon: '🎴' },
                 { id: 'annotations', label: 'Game Library', icon: '📝' },
+                { id: 'achievements', label: 'Achievements', icon: '🏅' },
+                { id: 'streaks', label: 'Streaks', icon: '🔥' },
+                { id: 'records', label: 'Records', icon: '⭐' },
                 { id: 'analytics', label: 'Analytics', icon: '🔬' },
                 { id: 'training', label: 'Training Plan', icon: '💡' },
                 { id: 'goals', label: 'Goals', icon: '🎖️' },
@@ -582,6 +588,18 @@ const ChessDashboard = () => {
 
         {activeTab === 'annotations' && (
           <GameAnnotationTab games={filteredGames} />
+        )}
+
+        {activeTab === 'achievements' && (
+          <AchievementsTab games={filteredGames} />
+        )}
+
+        {activeTab === 'streaks' && (
+          <StreaksTab games={filteredGames} />
+        )}
+
+        {activeTab === 'records' && (
+          <RecordsTab games={filteredGames} eloHistory={eloHistory} />
         )}
       </div>
     </div>
