@@ -288,93 +288,156 @@ const ChessDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-slate-50">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="mb-2 text-4xl font-bold text-slate-900">
-                Lucas's Chess Performance Dashboard
-              </h1>
-              <p className="text-slate-600">Classical OTB Games Analysis</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 chess-pattern">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Enhanced Header */}
+        <div className="mb-10 animate-fadeIn">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-4xl lg:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">
+                    Lucas's Chess Performance
+                  </h1>
+                  <p className="mt-1 text-slate-600 font-medium flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                    </svg>
+                    Classical OTB Performance Analysis
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Stats Bar */}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/60">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-slate-600 font-medium">Current ELO:</span>
+                  <span className="font-bold text-slate-900">{playerInfo.current_elo}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/60">
+                  <span className="text-slate-600 font-medium">Games:</span>
+                  <span className="font-bold text-slate-900">{filteredGames.length}</span>
+                </div>
+              </div>
             </div>
 
-            {/* Game Source Filter */}
-            <div className="flex items-center gap-2 p-2 bg-white rounded-lg shadow-sm">
-              <span className="text-sm font-medium text-slate-600">Show:</span>
-              <button
-                onClick={() => setGameFilter('otb')}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
-                  gameFilter === 'otb'
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                OTB Only
-                {gameFilter === 'otb' && (
-                  <span className="ml-2 text-xs opacity-90">({filteredGames.length})</span>
-                )}
-              </button>
-              <button
-                onClick={() => setGameFilter('online')}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
-                  gameFilter === 'online'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                Online Only
-                {gameFilter === 'online' && (
-                  <span className="ml-2 text-xs opacity-90">({filteredGames.length})</span>
-                )}
-              </button>
-              <button
-                onClick={() => setGameFilter('all')}
-                className={`px-4 py-2 text-sm font-medium rounded transition-colors ${
-                  gameFilter === 'all'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                All Games
-                {gameFilter === 'all' && (
-                  <span className="ml-2 text-xs opacity-90">({filteredGames.length})</span>
-                )}
-              </button>
+            {/* Enhanced Game Source Filter */}
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/60 p-2">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-3 py-2">
+                  <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  <span className="text-sm font-semibold text-slate-700">Filter:</span>
+                </div>
+                <button
+                  onClick={() => setGameFilter('otb')}
+                  className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                    gameFilter === 'otb'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
+                      : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd"/>
+                    </svg>
+                    OTB
+                    {gameFilter === 'otb' && (
+                      <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+                        {filteredGames.length}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setGameFilter('online')}
+                  className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                    gameFilter === 'online'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-105'
+                      : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                    </svg>
+                    Online
+                    {gameFilter === 'online' && (
+                      <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+                        {filteredGames.length}
+                      </span>
+                    )}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setGameFilter('all')}
+                  className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                    gameFilter === 'all'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
+                      : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
+                    </svg>
+                    All
+                    {gameFilter === 'all' && (
+                      <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+                        {filteredGames.length}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="mb-6 border-b border-slate-200">
-          <div className="flex space-x-1 overflow-x-auto">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'rating', label: 'ELO Progress' },
-              { id: 'trends', label: 'Trends' },
-              { id: 'tournaments', label: 'Tournaments' },
-              { id: 'opponents', label: 'vs Opponents' },
-              { id: 'opponent-strength', label: 'Opponent Strength' },
-              { id: 'white', label: 'As White' },
-              { id: 'black', label: 'As Black' },
-              { id: 'openings', label: 'Openings' },
-              { id: 'repertoire', label: 'Repertoire' },
-              { id: 'analytics', label: 'Analytics' },
-              { id: 'training', label: 'Training Plan' },
-              { id: 'goals', label: 'Goals' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-b-2 border-emerald-600 text-emerald-700'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+        {/* Enhanced Tab Navigation */}
+        <div className="mb-8 animate-slideUp">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-2">
+            <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+              {[
+                { id: 'overview', label: 'Overview', icon: '📊' },
+                { id: 'rating', label: 'ELO Progress', icon: '📈' },
+                { id: 'trends', label: 'Trends', icon: '🔥' },
+                { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
+                { id: 'opponents', label: 'vs Opponents', icon: '⚔️' },
+                { id: 'opponent-strength', label: 'Opponent Strength', icon: '💪' },
+                { id: 'white', label: 'As White', icon: '⚪' },
+                { id: 'black', label: 'As Black', icon: '⚫' },
+                { id: 'openings', label: 'Openings', icon: '📚' },
+                { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
+                { id: 'analytics', label: 'Analytics', icon: '🔬' },
+                { id: 'training', label: 'Training Plan', icon: '💡' },
+                { id: 'goals', label: 'Goals', icon: '🎖️' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-5 py-3 font-semibold text-sm whitespace-nowrap rounded-xl transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{tab.icon}</span>
+                    {tab.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

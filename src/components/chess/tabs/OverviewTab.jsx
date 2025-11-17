@@ -30,8 +30,9 @@ const OverviewTab = ({
   const whiteScore = whiteStats.score || '0/0';
   const blackScore = blackStats.score || '0/0';
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+    <div className="space-y-8 animate-fadeIn">
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Current ELO"
           value={playerInfo.current_elo}
@@ -61,9 +62,27 @@ const OverviewTab = ({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">Results Distribution</h3>
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Results Distribution */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-slate-900">Results Distribution</h3>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                <span className="text-slate-600">Wins</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                <span className="text-slate-600">Draws</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
+                <span className="text-slate-600">Losses</span>
+              </span>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -76,7 +95,7 @@ const OverviewTab = ({
                 cy="50%"
                 labelLine={false}
                 label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                outerRadius={80}
+                outerRadius={90}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -89,52 +108,84 @@ const OverviewTab = ({
           </ResponsiveContainer>
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">Performance by Color</h3>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">White</span>
-                <span className="text-sm font-semibold text-gray-900">{whiteScore}</span>
+        {/* Performance by Color */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+          <h3 className="text-xl font-bold text-slate-900 mb-6">Performance by Color</h3>
+          <div className="space-y-6">
+            {/* White Pieces */}
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <span className="text-2xl">⚪</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">White Pieces</span>
+                </div>
+                <span className="text-lg font-bold text-slate-900">{whiteScore}</span>
               </div>
-              <div className="w-full h-4 bg-gray-200 rounded-full">
+              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                 <div
-                  className="h-4 bg-blue-600 rounded-full"
+                  className="h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000"
                   style={{ width: `${whiteStats.winRate}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">{whiteStats.winRate}% win rate • {whiteStats.wins}-{whiteStats.draws}-{whiteStats.losses}</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">Black</span>
-                <span className="text-sm font-semibold text-gray-900">{blackScore}</span>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs font-semibold text-slate-600">
+                  {whiteStats.wins}W • {whiteStats.draws}D • {whiteStats.losses}L
+                </p>
+                <p className="text-sm font-bold text-blue-600">{whiteStats.winRate}% win rate</p>
               </div>
-              <div className="w-full h-4 bg-gray-200 rounded-full">
+            </div>
+
+            {/* Black Pieces */}
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <span className="text-2xl">⚫</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">Black Pieces</span>
+                </div>
+                <span className="text-lg font-bold text-slate-900">{blackScore}</span>
+              </div>
+              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                 <div
-                  className="h-4 bg-gray-800 rounded-full"
+                  className="h-3 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full transition-all duration-1000"
                   style={{ width: `${blackStats.winRate}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">{blackStats.winRate}% win rate • {blackStats.wins}-{blackStats.draws}-{blackStats.losses}</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs font-semibold text-slate-600">
+                  {blackStats.wins}W • {blackStats.draws}D • {blackStats.losses}L
+                </p>
+                <p className="text-sm font-bold text-slate-700">{blackStats.winRate}% win rate</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">ELO Progress Timeline</h3>
+      {/* ELO Progress and Map */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">ELO Progress Timeline</h3>
+          </div>
           {eloTimeline.length > 0 ? (
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={eloTimeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="#64748b" tick={{ fontSize: 12 }} />
-                <YAxis domain={['auto', 'auto']} stroke="#64748b" />
-                <Tooltip />
+                <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="#64748b" tick={{ fontSize: 11 }} />
+                <YAxis domain={['auto', 'auto']} stroke="#64748b" tick={{ fontSize: 12 }} />
+                <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
                 <Legend />
-                <Line type="monotone" dataKey="elo" stroke="#3b82f6" strokeWidth={3} name="ELO Rating" dot={{ r: 5 }} />
-                <Line type="monotone" dataKey="performanceRating" stroke="#10b981" strokeWidth={2} name="Performance" dot={{ r: 4 }} strokeDasharray="5 5" />
+                <Line type="monotone" dataKey="elo" stroke="#3b82f6" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: '#3b82f6' }} activeDot={{ r: 7 }} />
+                <Line type="monotone" dataKey="performanceRating" stroke="#10b981" strokeWidth={2} name="Performance" dot={{ r: 4, fill: '#10b981' }} strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -144,8 +195,16 @@ const OverviewTab = ({
           )}
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">Tournament Locations</h3>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">Tournament Locations</h3>
+          </div>
           <ArgentinaMap games={ratedGames} />
         </div>
       </div>
