@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { TrophyIcon, StarIcon, FireIcon, UserGroupIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 const RecordsTab = ({ games, eloHistory }) => {
@@ -484,6 +485,11 @@ const RecordsTab = ({ games, eloHistory }) => {
       </div>
     </div>
   );
+};
+};
+
+RecordsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RecordsTab;

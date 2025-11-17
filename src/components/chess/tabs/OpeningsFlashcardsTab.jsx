@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import {
   SparklesIcon,
   ChartBarIcon,
@@ -463,6 +464,11 @@ const OpeningsFlashcardsTab = () => {
       )}
     </div>
   );
+};
+};
+
+OpeningsFlashcardsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default OpeningsFlashcardsTab;

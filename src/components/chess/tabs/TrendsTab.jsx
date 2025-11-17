@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { FireIcon, TrophyIcon, ChartBarSquareIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
@@ -299,6 +300,11 @@ const TrendsTab = ({ formStats, streaks, monthlyStats }) => {
       </div>
     </div>
   );
+};
+};
+
+TrendsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default TrendsTab;

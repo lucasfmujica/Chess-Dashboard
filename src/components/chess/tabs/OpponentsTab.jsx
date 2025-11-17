@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { UsersIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
@@ -309,6 +310,11 @@ const OpponentsTab = ({
       )}
     </div>
   );
+};
+};
+
+OpponentsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default OpponentsTab;

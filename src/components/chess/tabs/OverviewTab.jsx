@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import ArgentinaMap from '../../charts/ArgentinaMap';
 import StatCard from '../StatCard';
@@ -307,6 +308,25 @@ const OverviewTab = ({
       </div>
     </div>
   );
+};
+
+OverviewTab.propTypes = {
+  playerInfo: PropTypes.shape({
+    current_elo: PropTypes.number,
+    name: PropTypes.string,
+  }).isRequired,
+  overallStats: PropTypes.object.isRequired,
+  whiteStats: PropTypes.object.isRequired,
+  blackStats: PropTypes.object.isRequired,
+  ratedGames: PropTypes.number.isRequired,
+  eloHistory: PropTypes.arrayOf(PropTypes.object).isRequired,
+  tournamentStats: PropTypes.arrayOf(PropTypes.object).isRequired,
+  bestResults: PropTypes.arrayOf(PropTypes.object).isRequired,
+  worstResults: PropTypes.arrayOf(PropTypes.object).isRequired,
+  Trophy: PropTypes.elementType.isRequired,
+  Swords: PropTypes.elementType.isRequired,
+  Target: PropTypes.elementType.isRequired,
+  TrendingUp: PropTypes.elementType.isRequired,
 };
 
 export default OverviewTab;

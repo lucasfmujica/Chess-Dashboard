@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
 const RepertoireTab = ({
   openingRecommendations,
@@ -351,6 +352,10 @@ const RepertoireTab = ({
       </div>
     </div>
   );
+};
+
+RepertoireTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RepertoireTab;

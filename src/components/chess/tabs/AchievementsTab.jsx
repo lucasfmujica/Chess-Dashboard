@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { TrophyIcon, StarIcon, FireIcon, LightBulbIcon, SparklesIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 
 const AchievementsTab = ({ games }) => {
@@ -441,6 +442,10 @@ const AchievementsTab = ({ games }) => {
       </div>
     </div>
   );
+};
+
+AchievementsTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default AchievementsTab;

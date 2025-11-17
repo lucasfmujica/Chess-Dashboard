@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 const StatCard = ({ title, value, subtitle }) => (
@@ -211,6 +212,10 @@ const BlackGamesTab = ({
       </div>
     </div>
   );
+};
+
+BlackGamesTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default BlackGamesTab;

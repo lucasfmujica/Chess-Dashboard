@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PropTypes from 'prop-types';
 import { Area, Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import { TrophyIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { getChartHeight } from '../../../utils/chartUtils';
@@ -523,6 +524,10 @@ const RatingTab = ({ eloHistory }) => {
       </div>
     </div>
   );
+};
+
+RatingTab.propTypes = {
+  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RatingTab;
