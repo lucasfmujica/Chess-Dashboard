@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { FireIcon, CalendarIcon, ChartBarIcon, ClockIcon, TrophyIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
-const StreaksTab = ({ games }) => {
+const StreaksTab = ({ games, formStats, monthlyStats }) => {
   // Calculate streaks and consistency data
   const streaksData = useMemo(() => {
     if (!games || games.length === 0) {
@@ -218,6 +218,162 @@ const StreaksTab = ({ games }) => {
           </div>
         </div>
       </div>
+
+      {/* Recent Form Section */}
+      {formStats && (
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200/60 overflow-hidden">
+          <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                <ChartBarIcon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Recent Form</h3>
+                <p className="text-indigo-100 text-sm">Your performance in recent games</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Last 5 Games */}
+              <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-blue-500 rounded-lg">
+                    <span className="text-white text-sm font-bold">L5</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Last 5 Games</h4>
+                    <p className="text-xs text-gray-600">Most recent form</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Record</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {formStats.last5.wins}-{formStats.last5.draws}-{formStats.last5.losses}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Score</span>
+                    <span className={`text-2xl font-bold ${formStats.last5.percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+                      {formStats.last5.percentage}%
+                    </span>
+                  </div>
+                  <div className="pt-2 mt-2 border-t border-blue-200">
+                    <div className="flex gap-1">
+                      {formStats.last5.results.map((result, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex-1 h-2 rounded-full ${
+                            result === 'W' ? 'bg-green-500' :
+                            result === 'D' ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          title={result === 'W' ? 'Win' : result === 'D' ? 'Draw' : 'Loss'}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 text-center">
+                      {formStats.last5.results.join(' • ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Last 10 Games */}
+              <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <span className="text-white text-sm font-bold">L10</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900">Last 10 Games</h4>
+                    <p className="text-xs text-gray-600">Extended form</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Record</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {formStats.last10.wins}-{formStats.last10.draws}-{formStats.last10.losses}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Score</span>
+                    <span className={`text-2xl font-bold ${formStats.last10.percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+                      {formStats.last10.percentage}%
+                    </span>
+                  </div>
+                  <div className="pt-2 mt-2 border-t border-purple-200">
+                    <div className="flex gap-1">
+                      {formStats.last10.results.map((result, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex-1 h-2 rounded-full ${
+                            result === 'W' ? 'bg-green-500' :
+                            result === 'D' ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          title={result === 'W' ? 'Win' : result === 'D' ? 'Draw' : 'Loss'}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 text-center">
+                      {formStats.last10.results.join(' • ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Month */}
+              {monthlyStats && monthlyStats.length > 0 && (
+                <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-emerald-500 rounded-lg">
+                      <CalendarIcon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900">This Month</h4>
+                      <p className="text-xs text-gray-600">{monthlyStats[0].month}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Games</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        {monthlyStats[0].games}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Score</span>
+                      <span className={`text-2xl font-bold ${monthlyStats[0].percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+                        {monthlyStats[0].percentage}%
+                      </span>
+                    </div>
+                    <div className="pt-2 mt-2 border-t border-emerald-200">
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div>
+                          <div className="text-green-600 font-bold text-lg">{monthlyStats[0].wins}</div>
+                          <div className="text-gray-500">Wins</div>
+                        </div>
+                        <div>
+                          <div className="text-yellow-600 font-bold text-lg">{monthlyStats[0].draws}</div>
+                          <div className="text-gray-500">Draws</div>
+                        </div>
+                        <div>
+                          <div className="text-red-600 font-bold text-lg">{monthlyStats[0].losses}</div>
+                          <div className="text-gray-500">Losses</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Streak Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

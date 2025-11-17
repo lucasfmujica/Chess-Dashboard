@@ -714,7 +714,11 @@ const ChessDashboard = () => {
         )}
 
         {activeTab === 'streaks' && (
-          <StreaksTab games={filteredGames} />
+          <StreaksTab
+            games={filteredGames}
+            formStats={formStats}
+            monthlyStats={monthlyStats}
+          />
         )}
         </div>
       </div>
