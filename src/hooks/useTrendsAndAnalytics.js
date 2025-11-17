@@ -20,11 +20,13 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
       byMonth[tournament] = {
         tournament,
         order: idx,
+        month: tournamentData.date || tournament,
         games: stats.total,
         wins: stats.wins,
         draws: stats.draws,
         losses: stats.losses,
         winRate: parseFloat(stats.winRate),
+        percentage: parseFloat(stats.winRate), // Add percentage for compatibility
         performanceRating: stats.performanceRating,
         elo: tournamentGames[0].elo,
         eloChange: tournamentData.eloChange || 0,
@@ -40,13 +42,18 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
       const recentGames = ratedGames.slice(-lastN);
       const wins = recentGames.filter(g => g.result === 'W').length;
       const draws = recentGames.filter(g => g.result === 'D').length;
+      const losses = recentGames.filter(g => g.result === 'L').length;
       const score = wins + draws * 0.5;
 
       return {
         games: recentGames.length,
+        wins,
+        draws,
+        losses,
         score: `${score.toFixed(1)}/${recentGames.length}`,
-        percentage: ((score / recentGames.length) * 100).toFixed(1),
-        details: recentGames.map(g => g.result).reverse(),
+        percentage: recentGames.length > 0 ? ((score / recentGames.length) * 100).toFixed(1) : 0,
+        results: recentGames.map(g => g.result).reverse(),
+        details: recentGames.map(g => g.result).reverse(), // Keep for backward compatibility
       };
     };
 

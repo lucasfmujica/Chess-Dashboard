@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { trainingActivities } from '../../../constants/trainingActivities';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
 
@@ -7,7 +7,22 @@ const motivationalQuotes = [
   { text: "Chess is the struggle against error.", author: "Tarrasch" },
   { text: "Help your pieces so they can help you.", author: "Morphy" },
   { text: "When you see a good move, look for a better one.", author: "Lasker" },
-  { text: "Chess is 99% tactics.", author: "Teichmann" }
+  { text: "Chess is 99% tactics.", author: "Teichmann" },
+  { text: "Every chess master was once a beginner.", author: "Irving Chernev" },
+  { text: "The blunders are all there on the board, waiting to be made.", author: "Savielly Tartakower" },
+  { text: "You have to have the fighting spirit. You have to force moves and take chances.", author: "Bobby Fischer" },
+  { text: "The hardest game to win is a won game.", author: "Emanuel Lasker" },
+  { text: "Even a poor plan is better than no plan at all.", author: "Mikhail Chigorin" },
+  { text: "I don't believe in psychology. I believe in good moves.", author: "Bobby Fischer" },
+  { text: "Strategy requires thought, tactics require observation.", author: "Max Euwe" },
+  { text: "The pin is mightier than the sword.", author: "Fred Reinfeld" },
+  { text: "A bad plan is better than none at all.", author: "Frank Marshall" },
+  { text: "Alekhine is a poet who creates a work of art out of something that would hardly inspire another man to send home a picture post card.", author: "Max Euwe" },
+  { text: "I have come to the conclusion that I cannot improve on Alekhine's play. I may as well give up chess.", author: "Max Euwe" },
+  { text: "Life is too short for chess.", author: "Lord Byron" },
+  { text: "Chess is mental torture.", author: "Garry Kasparov" },
+  { text: "Chess is the art of analysis.", author: "Mikhail Botvinnik" },
+  { text: "No one ever won a game by resigning.", author: "Savielly Tartakower" }
 ];
 
 const TrainingTab = ({
@@ -27,10 +42,17 @@ const TrainingTab = ({
 }) => {
   const [completedActivities, setCompletedActivities] = useState({});
   const [showMotivation, setShowMotivation] = useState(true);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
-  const randomQuote = useMemo(() => {
-    return motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
-  }, [currentWeek]);
+  const currentQuote = motivationalQuotes[currentQuoteIndex];
+
+  const nextQuote = () => {
+    setCurrentQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
+  };
+
+  const prevQuote = () => {
+    setCurrentQuoteIndex((prev) => (prev - 1 + motivationalQuotes.length) % motivationalQuotes.length);
+  };
 
   const weekStats = getWeekStats(weeklyPlans, currentWeek);
   const weekDates = getWeekDates(currentWeek);
@@ -67,8 +89,31 @@ const TrainingTab = ({
                   </div>
                 </div>
                 <blockquote className="border-l-4 border-white/40 pl-4 py-2">
-                  <p className="text-white text-lg italic font-medium">"{randomQuote.text}"</p>
-                  <cite className="text-indigo-100 text-sm">— {randomQuote.author}</cite>
+                  <p className="text-white text-lg italic font-medium">"{currentQuote.text}"</p>
+                  <cite className="text-indigo-100 text-sm">— {currentQuote.author}</cite>
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      onClick={prevQuote}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Previous quote"
+                    >
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <span className="text-white/60 text-xs font-medium">
+                      {currentQuoteIndex + 1} / {motivationalQuotes.length}
+                    </span>
+                    <button
+                      onClick={nextQuote}
+                      className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Next quote"
+                    >
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </blockquote>
               </div>
               <button

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { getChartHeight } from '../../../utils/chartUtils';
 
 const OpponentStrengthTab = ({ games, currentElo }) => {
   const strengthAnalysis = useMemo(() => {
@@ -128,44 +129,112 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
         ))}
       </div>
 
-      {/* Performance vs Expected Chart */}
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Performance vs Expected Score by Opponent Strength</h3>
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="bracket" angle={-20} textAnchor="end" height={80} />
-            <YAxis label={{ value: 'Score %', angle: -90, position: 'insideLeft' }} domain={[0, 100]} />
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="p-3 bg-white border border-gray-300 rounded shadow">
-                      <p className="font-semibold">{data.bracket}</p>
-                      <p className="text-sm text-blue-600">Actual: {data.actual}%</p>
-                      <p className="text-sm text-gray-600">Expected: {data.expected}%</p>
-                      <p className="text-sm text-green-600">
-                        Performance: {(data.actual - data.expected >= 0 ? '+' : '')}
-                        {(data.actual - data.expected).toFixed(1)}%
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">{data.games} games</p>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Legend />
-            <Bar dataKey="actual" fill="#3b82f6" name="Actual Score %" />
-            <Bar dataKey="expected" fill="#94a3b8" name="Expected Score %" />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Performance vs Expected Chart - Enhanced */}
+      <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">Performance vs Expected Score</h3>
+              <p className="text-gray-600 text-sm">Analysis by opponent strength bracket</p>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={getChartHeight('large')}>
+            <BarChart data={chartData} barGap={8}>
+              <defs>
+                <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0.8}/>
+                </linearGradient>
+                <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#64748b" stopOpacity={0.7}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+              <XAxis
+                dataKey="bracket"
+                angle={-15}
+                textAnchor="end"
+                height={90}
+                tick={{ fontSize: 12, fontWeight: 600 }}
+                stroke="#64748b"
+              />
+              <YAxis
+                label={{ value: 'Score %', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
+                domain={[0, 100]}
+                tick={{ fontSize: 12 }}
+                stroke="#64748b"
+              />
+              <Tooltip
+                cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload;
+                    const performance = (data.actual - data.expected).toFixed(1);
+                    const isPositive = parseFloat(performance) >= 0;
+                    return (
+                      <div className="p-4 bg-white border-2 border-blue-300 rounded-xl shadow-2xl">
+                        <p className="font-bold text-lg text-gray-900 mb-3">{data.bracket}</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-sm text-gray-600">Actual Score:</span>
+                            <span className="text-sm font-bold text-blue-600">{data.actual}%</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-6">
+                            <span className="text-sm text-gray-600">Expected:</span>
+                            <span className="text-sm font-semibold text-gray-700">{data.expected}%</span>
+                          </div>
+                          <div className="pt-2 mt-2 border-t border-gray-200">
+                            <div className="flex items-center justify-between gap-6">
+                              <span className="text-sm font-semibold text-gray-700">Performance:</span>
+                              <span className={`text-lg font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                {isPositive ? '+' : ''}{performance}%
+                              </span>
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500 text-center">
+                              {data.games} game{data.games !== 1 ? 's' : ''} played
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
+              />
+              <Legend
+                wrapperStyle={{ paddingTop: 20 }}
+                iconType="rect"
+                iconSize={14}
+              />
+              <Bar
+                dataKey="actual"
+                fill="url(#actualGradient)"
+                name="Actual Score %"
+                radius={[8, 8, 0, 0]}
+                maxBarSize={80}
+              />
+              <Bar
+                dataKey="expected"
+                fill="url(#expectedGradient)"
+                name="Expected Score %"
+                radius={[8, 8, 0, 0]}
+                maxBarSize={80}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Detailed Breakdown Table */}
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Detailed Strength Analysis</h3>
+      <div className="p-6 bg-white rounded-lg shadow-md border border-slate-200">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">Detailed Strength Analysis</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">
@@ -222,7 +291,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       {/* Results vs Opponent Rating Scatter */}
       <div className="p-6 bg-white rounded-lg shadow-md">
         <h3 className="mb-4 text-lg font-semibold">Results by Opponent Rating Difference</h3>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={getChartHeight('small')}>
           <LineChart data={strengthTrend}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="game" label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }} />

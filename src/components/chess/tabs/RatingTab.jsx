@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Area, Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import { TrophyIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon, BoltIcon } from '@heroicons/react/24/outline';
+import { getChartHeight } from '../../../utils/chartUtils';
 
 const RatingTab = ({ eloHistory }) => {
   // Calculate statistics
@@ -249,7 +250,7 @@ const RatingTab = ({ eloHistory }) => {
             </h3>
             <p className="text-gray-600">Complete journey from 1651 to {stats.currentElo} • {eloHistory.length} rated games</p>
           </div>
-          <ResponsiveContainer width="100%" height={500}>
+          <ResponsiveContainer width="100%" height={getChartHeight('large')}>
             <ComposedChart data={eloHistory}>
               <defs>
                 <linearGradient id="eloAreaGradient" x1="0" y1="0" x2="0" y2="1">
@@ -350,7 +351,7 @@ const RatingTab = ({ eloHistory }) => {
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Expected vs Actual Performance</h3>
             <p className="text-gray-600">Compare your actual results with statistical expectations</p>
           </div>
-          <ResponsiveContainer width="100%" height={450}>
+          <ResponsiveContainer width="100%" height={getChartHeight('medium')}>
             <BarChart data={eloHistory}>
               <defs>
                 <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
@@ -424,7 +425,7 @@ const RatingTab = ({ eloHistory }) => {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Rating Change Distribution</h3>
               <p className="text-gray-600">How your rating changes are distributed across games</p>
             </div>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={eloChangeDistribution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
@@ -471,7 +472,7 @@ const RatingTab = ({ eloHistory }) => {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Tournament Performance</h3>
               <p className="text-gray-600">Rating change by tournament</p>
             </div>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={tournamentPerformance} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis

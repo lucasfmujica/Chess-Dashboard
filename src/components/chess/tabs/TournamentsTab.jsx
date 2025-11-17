@@ -1,8 +1,96 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { TrophyIcon, ChartBarIcon, StarIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, ChartBarIcon, StarIcon, UsersIcon, CalendarIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-const TournamentsTab = ({ tournamentStats }) => {
+const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments }) => {
+  // State for adding/editing upcoming tournaments
+  const [isAddingTournament, setIsAddingTournament] = useState(false);
+  const [editingTournamentId, setEditingTournamentId] = useState(null);
+  const [tournamentForm, setTournamentForm] = useState({
+    name: '',
+    club: '',
+    province: '',
+    startDate: '',
+    endDate: '',
+    chessResultsLink: ''
+  });
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setTournamentForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Add new tournament
+  const handleAddTournament = () => {
+    if (!tournamentForm.name || !tournamentForm.startDate) {
+      alert('Tournament name and start date are required');
+      return;
+    }
+
+    const newTournament = {
+      id: Date.now(),
+      ...tournamentForm
+    };
+
+    setUpcomingTournaments(prev => [...prev, newTournament]);
+    resetForm();
+  };
+
+  // Update existing tournament
+  const handleUpdateTournament = () => {
+    if (!tournamentForm.name || !tournamentForm.startDate) {
+      alert('Tournament name and start date are required');
+      return;
+    }
+
+    setUpcomingTournaments(prev => prev.map(t =>
+      t.id === editingTournamentId ? { ...t, ...tournamentForm } : t
+    ));
+    resetForm();
+  };
+
+  // Delete tournament
+  const handleDeleteTournament = (id) => {
+    if (window.confirm('Are you sure you want to delete this tournament?')) {
+      setUpcomingTournaments(prev => prev.filter(t => t.id !== id));
+    }
+  };
+
+  // Start editing tournament
+  const handleEditTournament = (tournament) => {
+    setTournamentForm({
+      name: tournament.name,
+      club: tournament.club,
+      province: tournament.province,
+      startDate: tournament.startDate,
+      endDate: tournament.endDate,
+      chessResultsLink: tournament.chessResultsLink
+    });
+    setEditingTournamentId(tournament.id);
+    setIsAddingTournament(true);
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setTournamentForm({
+      name: '',
+      club: '',
+      province: '',
+      startDate: '',
+      endDate: '',
+      chessResultsLink: ''
+    });
+    setIsAddingTournament(false);
+    setEditingTournamentId(null);
+  };
+
+  // Format date for display
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
   // Calculate summary statistics
   const stats = useMemo(() => {
     if (!tournamentStats || tournamentStats.length === 0) {
@@ -38,6 +126,213 @@ const TournamentsTab = ({ tournamentStats }) => {
 
   return (
     <div className="space-y-8">
+      {/* Upcoming Tournaments Section */}
+      <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+        <div className="p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                <CalendarIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900">Upcoming Tournaments</h2>
+                <p className="text-gray-600">Keep track of your scheduled competitions</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAddingTournament(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Add Tournament
+            </button>
+          </div>
+
+          {/* Add/Edit Tournament Form */}
+          {isAddingTournament && (
+            <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                {editingTournamentId ? 'Edit Tournament' : 'Add New Tournament'}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Tournament Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={tournamentForm.name}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Provincial Championship 2024"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Club
+                  </label>
+                  <input
+                    type="text"
+                    name="club"
+                    value={tournamentForm.club}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Capital Chess Club"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Province
+                  </label>
+                  <input
+                    type="text"
+                    name="province"
+                    value={tournamentForm.province}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Buenos Aires"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Chess-Results Link
+                  </label>
+                  <input
+                    type="url"
+                    name="chessResultsLink"
+                    value={tournamentForm.chessResultsLink}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://chess-results.com/..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Start Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={tournamentForm.startDate}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={tournamentForm.endDate}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={editingTournamentId ? handleUpdateTournament : handleAddTournament}
+                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  {editingTournamentId ? 'Update Tournament' : 'Add Tournament'}
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="px-6 py-2.5 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Tournaments List */}
+          {upcomingTournaments.length === 0 ? (
+            <div className="text-center py-12">
+              <CalendarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No upcoming tournaments scheduled</p>
+              <p className="text-gray-400 text-sm mt-2">Click "Add Tournament" to schedule your next competition</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {upcomingTournaments.map(tournament => (
+                <div
+                  key={tournament.id}
+                  className="p-5 bg-gradient-to-r from-white to-blue-50 rounded-xl border border-blue-200 hover:shadow-lg transition-shadow duration-200"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-xl font-bold text-gray-900 mb-2">{tournament.name}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        {tournament.club && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <TrophyIcon className="w-4 h-4 text-blue-600" />
+                            <span className="font-medium">Club:</span>
+                            <span>{tournament.club}</span>
+                          </div>
+                        )}
+                        {tournament.province && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
+                            </svg>
+                            <span className="font-medium">Province:</span>
+                            <span>{tournament.province}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <CalendarIcon className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium">Dates:</span>
+                          <span>
+                            {formatDate(tournament.startDate)}
+                            {tournament.endDate && tournament.endDate !== tournament.startDate && ` - ${formatDate(tournament.endDate)}`}
+                          </span>
+                        </div>
+                        {tournament.chessResultsLink && (
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            <a
+                              href={tournament.chessResultsLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium text-blue-600 hover:underline"
+                            >
+                              View on Chess-Results
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        onClick={() => handleEditTournament(tournament)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                        title="Edit tournament"
+                      >
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTournament(tournament.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                        title="Delete tournament"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 rounded-2xl shadow-xl">
         <div className="absolute inset-0 bg-black opacity-10"></div>

@@ -1,11 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const RepertoireTab = ({
   openingRecommendations,
   openingRepertoireAnalysis,
   mainRepertoire,
-  setMainRepertoire
+  setMainRepertoire,
+  openingHeroes,
+  setOpeningHeroes
 }) => {
+  const [selectedOpening, setSelectedOpening] = useState(null);
+  const [newHeroName, setNewHeroName] = useState('');
+
+  const addHero = (eco) => {
+    if (!newHeroName.trim()) return;
+    const updated = { ...openingHeroes };
+    if (!updated[eco]) updated[eco] = [];
+    if (!updated[eco].includes(newHeroName.trim())) {
+      updated[eco].push(newHeroName.trim());
+      setOpeningHeroes(updated);
+    }
+    setNewHeroName('');
+  };
+
+  const removeHero = (eco, heroName) => {
+    const updated = { ...openingHeroes };
+    if (updated[eco]) {
+      updated[eco] = updated[eco].filter(h => h !== heroName);
+      if (updated[eco].length === 0) delete updated[eco];
+      setOpeningHeroes(updated);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="p-6 border border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -35,6 +59,149 @@ const RepertoireTab = ({
         ) : (
           <p className="text-gray-600">No critical issues found. Your opening repertoire looks solid!</p>
         )}
+      </div>
+
+      {/* Opening Heroes Section */}
+      <div className="p-6 border-2 border-purple-200 rounded-lg shadow-md bg-gradient-to-r from-purple-50 to-pink-50">
+        <h3 className="flex items-center mb-4 text-lg font-semibold text-purple-900">
+          <span className="mr-2 text-2xl">⭐</span>
+          Opening Heroes
+          <span className="ml-2 px-2 py-0.5 text-xs bg-purple-200 text-purple-800 rounded-full">NEW</span>
+        </h3>
+        <p className="text-sm text-purple-700 mb-4">
+          Track which top players you're following for each opening in your repertoire.
+          Add players to study their games in ChessBase or other databases.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* White Openings Heroes */}
+          <div className="bg-white rounded-lg p-4 border border-purple-200">
+            <h4 className="font-semibold text-sm mb-3 text-gray-800">⚪ White Openings</h4>
+            <div className="space-y-3">
+              {openingRepertoireAnalysis.white.map((opening) => {
+                return (
+                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-xs text-gray-900">{opening.name}</p>
+                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
+                        className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
+                      >
+                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
+                      </button>
+                    </div>
+
+                    {selectedOpening === opening.eco && (
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={newHeroName}
+                          onChange={(e) => setNewHeroName(e.target.value)}
+                          placeholder="Enter player name..."
+                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
+                        />
+                        <button
+                          onClick={() => addHero(opening.eco)}
+                          className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
+
+                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {openingHeroes[opening.eco].map((hero, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
+                          >
+                            {hero}
+                            <button
+                              onClick={() => removeHero(opening.eco, hero)}
+                              className="hover:text-purple-900"
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Black Openings Heroes */}
+          <div className="bg-white rounded-lg p-4 border border-purple-200">
+            <h4 className="font-semibold text-sm mb-3 text-gray-800">⚫ Black Defenses</h4>
+            <div className="space-y-3">
+              {openingRepertoireAnalysis.black.map((opening) => {
+                return (
+                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-xs text-gray-900">{opening.name}</p>
+                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
+                      </div>
+                      <button
+                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
+                        className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
+                      >
+                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
+                      </button>
+                    </div>
+
+                    {selectedOpening === opening.eco && (
+                      <div className="flex gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={newHeroName}
+                          onChange={(e) => setNewHeroName(e.target.value)}
+                          placeholder="Enter player name..."
+                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
+                        />
+                        <button
+                          onClick={() => addHero(opening.eco)}
+                          className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
+
+                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {openingHeroes[opening.eco].map((hero, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
+                          >
+                            {hero}
+                            <button
+                              onClick={() => removeHero(opening.eco, hero)}
+                              className="hover:text-purple-900"
+                              title="Remove"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
