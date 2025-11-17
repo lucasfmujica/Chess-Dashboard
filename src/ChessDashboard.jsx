@@ -24,12 +24,11 @@ import { useGameStats } from './hooks/useGameStats';
 import { useTrendsAndAnalytics } from './hooks/useTrendsAndAnalytics';
 import { useRepertoireAnalysis } from './hooks/useRepertoireAnalysis';
 import { useGoalsAndAchievements } from './hooks/useGoalsAndAchievements';
-import { getEloRatingBracket } from './utils/eloCalculations';
+import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 
 const ChessDashboard = () => {
   // UI State
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedBracket, setSelectedBracket] = useState(null);
   const [gameFilter, setGameFilter] = useState('otb'); // 'all', 'otb', 'online'
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -121,7 +120,6 @@ const ChessDashboard = () => {
     tournamentStats,
     bestResults,
     worstResults,
-    opponentBracketStats,
     whiteStats,
     blackStats,
     allOpeningsStats,
@@ -155,27 +153,6 @@ const ChessDashboard = () => {
     targetElo,
     targetDate
   );
-
-  // Bracket games for opponent analysis
-  const bracketGames = useMemo(() => {
-    if (!selectedBracket) return [];
-
-    return ratedGames
-      .filter(g => g.opp_elo > 0)
-      .map((game, idx) => {
-        const bracket = getEloRatingBracket(game.elo, game.opp_elo);
-        const diff = game.opp_elo - game.elo;
-
-        return {
-          ...game,
-          gameNumber: idx + 1,
-          bracket,
-          ratingDiff: diff,
-          opening: ecoNames[game.eco] || game.eco,
-        };
-      })
-      .filter(g => g.bracket === selectedBracket);
-  }, [ratedGames, selectedBracket]);
 
   // Training plan helper functions
   const getCurrentWeekPlan = () => weeklyPlans[currentWeek] || {};
@@ -251,63 +228,49 @@ const ChessDashboard = () => {
     window.open(url, '_blank');
   };
 
-  // PGN Import Parser
-  const parsePGN = (pgnText) => {
-    try {
-      const parsedGames = [];
-      const gameBlocks = pgnText.split(/\n\n(?=\[Event)/);
-
-      gameBlocks.forEach(block => {
-        if (!block.trim()) return;
-
-        const game = {};
-        const lines = block.split('\n');
-
-        lines.forEach(line => {
-          if (line.startsWith('[')) {
-            const match = line.match(/\[(\w+)\s+"([^"]+)"\]/);
-            if (match) {
-              const [, key, value] = match;
-              if (key === 'WhiteElo') game.whiteElo = parseInt(value);
-              if (key === 'BlackElo') game.blackElo = parseInt(value);
-              if (key === 'White') game.white = value;
-              if (key === 'Black') game.black = value;
-              if (key === 'Result') game.result = value;
-              if (key === 'ECO') game.eco = value;
-              if (key === 'Event') game.tournament = value;
-            }
-          }
-        });
-
-        if (game.white && game.black) {
-          parsedGames.push(game);
-        }
-      });
-
-      return parsedGames;
-    } catch (error) {
-      alert('Error parsing PGN: ' + error.message);
-      return [];
-    }
-  };
-
+  // PGN Import Handler
   const handlePgnImport = () => {
-    const parsedGames = parsePGN(pgnText);
-    if (parsedGames.length === 0) {
-      alert('No valid games found in PGN');
-      return;
-    }
+    try {
+      const parsedGames = parsePGN(pgnText);
+      if (parsedGames.length === 0) {
+        alert('No valid games found in PGN');
+        return;
+      }
 
-    const confirmImport = window.confirm(
-      `Found ${parsedGames.length} games. This is a preview feature. ` +
-      `Imported games would need to be manually added to the games array.`
-    );
+      // Ask for player's name to identify their games
+      const playerName = prompt(`Found ${parsedGames.length} games. Enter your name as it appears in the PGN (White or Black player name):`);
+      if (!playerName) return;
 
-    if (confirmImport) {
-      console.log('Parsed games:', parsedGames);
-      alert(`Successfully parsed ${parsedGames.length} games. Check console for details.`);
-      setPgnText('');
-      setShowPgnImport(false);
+      // Ask for player's ELO at the time of this tournament
+      const playerElo = prompt('Enter your ELO rating at the time of this tournament:');
+      if (!playerElo || isNaN(parseInt(playerElo))) {
+        alert('Valid ELO rating is required');
+        return;
+      }
+
+      const { games: formattedGames, skippedCount } = convertPGNGamesToInternal(
+        parsedGames,
+        playerName,
+        parseInt(playerElo)
+      );
+
+      if (formattedGames.length === 0) {
+        alert(`Could not match any games to player name "${playerName}". Please check the name and try again.`);
+        return;
+      }
+
+      const confirmImport = window.confirm(
+        `Ready to import ${formattedGames.length} game(s)${skippedCount > 0 ? ` (${skippedCount} skipped)` : ''}. Continue?`
+      );
+
+      if (confirmImport) {
+        setGames(prev => [...prev, ...formattedGames]);
+        alert(`Successfully imported ${formattedGames.length} game(s)!`);
+        setPgnText('');
+        setShowPgnImport(false);
+      }
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -682,6 +645,8 @@ const ChessDashboard = () => {
             onLichessSync={handleLichessSync}
             onRemoveLichessGames={handleRemoveLichessGames}
             lichessGamesCount={games.filter(g => g.source === 'lichess').length}
+            games={games}
+            setGames={setGames}
           />
         )}
 
