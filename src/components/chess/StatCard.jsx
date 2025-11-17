@@ -35,7 +35,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend }) => {
   return (
     <div className="group relative overflow-hidden">
       {/* Main Card */}
-      <div className={`relative bg-white dark:bg-slate-900 rounded-2xl shadow-lg ${style.shadow} border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 card-hover`}>
+      <div className={`relative bg-white rounded-2xl shadow-lg ${style.shadow} border border-slate-200/60 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 card-hover`}>
         {/* Gradient Accent Bar */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${style.gradient}`}></div>
 
@@ -43,13 +43,13 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend }) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {/* Title */}
-              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+              <p className="text-sm font-semibold text-slate-600 uppercase tracking-wider mb-3">
                 {title}
               </p>
 
               {/* Value */}
               <div className="flex items-baseline gap-2 mb-2">
-                <p className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
+                <p className="text-4xl font-bold text-slate-900 tracking-tight">
                   {value}
                 </p>
                 {trend && (
@@ -70,7 +70,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend }) => {
 
               {/* Subtitle */}
               {subtitle && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-slate-500 font-medium">
                   {subtitle}
                 </p>
               )}

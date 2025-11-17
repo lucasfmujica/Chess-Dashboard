@@ -130,7 +130,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       </div>
 
       {/* Performance vs Expected Chart - Enhanced */}
-      <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
+      <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
         <div className="p-8">
           <div className="flex items-center gap-3 mb-6">
@@ -140,8 +140,8 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Performance vs Expected Score</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Analysis by opponent strength bracket</p>
+              <h3 className="text-2xl font-bold text-gray-900">Performance vs Expected Score</h3>
+              <p className="text-gray-600 text-sm">Analysis by opponent strength bracket</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('large')}>
@@ -179,25 +179,25 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
                     const performance = (data.actual - data.expected).toFixed(1);
                     const isPositive = parseFloat(performance) >= 0;
                     return (
-                      <div className="p-4 bg-white dark:bg-slate-800 border-2 border-blue-300 dark:border-blue-600 rounded-xl shadow-2xl">
-                        <p className="font-bold text-lg text-gray-900 dark:text-white mb-3">{data.bracket}</p>
+                      <div className="p-4 bg-white border-2 border-blue-300 rounded-xl shadow-2xl">
+                        <p className="font-bold text-lg text-gray-900 mb-3">{data.bracket}</p>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Actual Score:</span>
-                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{data.actual}%</span>
+                            <span className="text-sm text-gray-600">Actual Score:</span>
+                            <span className="text-sm font-bold text-blue-600">{data.actual}%</span>
                           </div>
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Expected:</span>
-                            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{data.expected}%</span>
+                            <span className="text-sm text-gray-600">Expected:</span>
+                            <span className="text-sm font-semibold text-gray-700">{data.expected}%</span>
                           </div>
-                          <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-600">
+                          <div className="pt-2 mt-2 border-t border-gray-200">
                             <div className="flex items-center justify-between gap-6">
-                              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Performance:</span>
-                              <span className={`text-lg font-bold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              <span className="text-sm font-semibold text-gray-700">Performance:</span>
+                              <span className={`text-lg font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                                 {isPositive ? '+' : ''}{performance}%
                               </span>
                             </div>
-                            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                            <p className="mt-2 text-xs text-gray-500 text-center">
                               {data.games} game{data.games !== 1 ? 's' : ''} played
                             </p>
                           </div>
@@ -233,8 +233,8 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       </div>
 
       {/* Detailed Breakdown Table */}
-      <div className="p-6 bg-white dark:bg-slate-900 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Detailed Strength Analysis</h3>
+      <div className="p-6 bg-white rounded-lg shadow-md border border-slate-200">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">Detailed Strength Analysis</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">

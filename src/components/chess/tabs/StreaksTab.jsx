@@ -223,7 +223,7 @@ const StreaksTab = ({ games, formStats, monthlyStats }) => {
 
       {/* Recent Form Section */}
       {formStats && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-lg border border-slate-200/60 overflow-hidden">
           <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
@@ -239,25 +239,25 @@ const StreaksTab = ({ games, formStats, monthlyStats }) => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Last 5 Games */}
-              <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl border-2 border-blue-200 dark:border-slate-600">
+              <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="p-2 bg-blue-500 rounded-lg">
                     <span className="text-white text-sm font-bold">L5</span>
                   </div>
                   <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white">Last 5 Games</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">Most recent form</p>
+                    <h4 className="font-bold text-gray-900">Last 5 Games</h4>
+                    <p className="text-xs text-gray-600">Most recent form</p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">Record</span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    <span className="text-sm text-gray-600">Record</span>
+                    <span className="text-lg font-bold text-gray-900">
                       {formStats.last5.wins}-{formStats.last5.draws}-{formStats.last5.losses}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-300">Score</span>
+                    <span className="text-sm text-gray-600">Score</span>
                     <span className={`text-2xl font-bold ${formStats.last5.percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
                       {formStats.last5.percentage}%
                     </span>

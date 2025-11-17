@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { useTheme } from './contexts/ThemeContext';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
 import AnalyticsTab from './components/chess/tabs/AnalyticsTab';
@@ -28,9 +27,6 @@ import { useGoalsAndAchievements } from './hooks/useGoalsAndAchievements';
 import { getEloRatingBracket } from './utils/eloCalculations';
 
 const ChessDashboard = () => {
-  // Theme
-  const { isDarkMode, toggleTheme } = useTheme();
-
   // UI State
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedBracket, setSelectedBracket] = useState(null);
@@ -335,7 +331,7 @@ const ChessDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 chess-pattern transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 chess-pattern">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -346,14 +342,14 @@ const ChessDashboard = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
+        className={`fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${
           isSidebarCollapsed ? 'lg:w-20' : 'w-72'
         }`}
       >
         {/* Sidebar Header */}
-        <div className={`p-6 border-b border-slate-200 dark:border-slate-700 ${isSidebarCollapsed ? 'lg:px-4' : ''}`}>
+        <div className={`p-6 border-b border-slate-200 ${isSidebarCollapsed ? 'lg:px-4' : ''}`}>
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-3 ${isSidebarCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
               <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg shadow-lg">
@@ -363,8 +359,8 @@ const ChessDashboard = () => {
               </div>
               {!isSidebarCollapsed && (
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Chess Analytics</h2>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">Lucas's Performance</p>
+                  <h2 className="text-lg font-bold text-slate-900">Chess Analytics</h2>
+                  <p className="text-xs text-slate-600">Lucas's Performance</p>
                 </div>
               )}
             </div>
@@ -392,32 +388,14 @@ const ChessDashboard = () => {
             </div>
           )}
 
-          {/* Theme Toggle & Collapse Buttons */}
+          {/* Collapse/Expand Button (Desktop only) */}
           <div className="flex gap-2 mt-4">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="flex-1 flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? (
-                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              )}
-            </button>
-
-            {/* Collapse/Expand Button (Desktop only) */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="hidden lg:flex flex-1 items-center justify-center p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 transition-colors"
               title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              <svg className={`w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={`w-5 h-5 text-slate-600 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
               </svg>
             </button>
@@ -436,7 +414,7 @@ const ChessDashboard = () => {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
               } ${
                 isSidebarCollapsed ? 'lg:justify-center lg:px-3' : ''
               }`}
