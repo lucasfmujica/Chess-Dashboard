@@ -708,12 +708,9 @@ const TrainingTab = ({
             }
 
             return reflections.map(([weekKey, reflection]) => {
-              const weekDate = new Date(weekKey.replace('-summary', ''));
-              const weekLabel = weekDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              });
+              const weekStartDate = weekKey.replace('-summary', '');
+              const reflectionWeekDates = getWeekDates(weekStartDate);
+              const weekLabel = `${reflectionWeekDates[0]?.displayDate} - ${reflectionWeekDates[6]?.displayDate}, ${new Date(weekStartDate).getFullYear()}`;
 
               return (
                 <div key={weekKey} className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200">
