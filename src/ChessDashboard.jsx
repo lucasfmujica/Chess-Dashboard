@@ -7,9 +7,12 @@ import StatCard from './components/chess/StatCard';
 import QuickTemplates from './components/chess/training/QuickTemplates';
 import WeeklyPlanner from './components/chess/training/WeeklyPlanner';
 import { Swords, Target, TrendingDown, TrendingUp, Trophy } from './components/icons/ChessIcons';
-import { ecoNames } from './constants/ecoNames';
 import { trainingActivities } from './constants/trainingActivities';
 import { getCurrentWeekStart, getWeekDates, getWeekStats } from './utils/chessHelpers';
+import { games as gamesData, playerInfo as playerInfoData, tournamentOrder } from './data/playerData';
+import { useAllOpeningsStats, useBestWorstGames, useColorStats, useEloBracketStats, useEloHistory, useOverallStats } from './hooks/useChessStats';
+import { getEloBracket } from './constants/chessConstants';
+import { ecoNames } from './constants/ecoNames';
 
 const ChessDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -40,117 +43,15 @@ const ChessDashboard = () => {
   const [editingDay, setEditingDay] = useState(null);
   const [weeklyHours, setWeeklyHours] = useState(6);
 
-  const playerInfo = {
-    current_elo: 1861,
-    elo_change_last_tournament: -28,
-    last_tournament: "Abierto Lago Puelo"
-  };
-
-  // Games ordered chronologically by tournament
-  const games = [
-    // Club Argentino de Ajedrez
-    { "elo": 1651, "color": "B", "result": "W", "opp": "Vanesa Guzman", "opp_elo": 1756, "eco": "B30", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "W", "result": "W", "opp": "Maximiliano Lalli", "opp_elo": 1691, "eco": "A37", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "W", "result": "D", "opp": "Exequiel Medina", "opp_elo": 1858, "eco": "A15", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "W", "result": "L", "opp": "Walter Montero", "opp_elo": 1884, "eco": "A20", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "B", "result": "D", "opp": "Ezequiel Paredes", "opp_elo": 0, "eco": "B32", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "W", "result": "W", "opp": "Marcelo Prieto", "opp_elo": 1902, "eco": "A25", "tournament": "Club Argentino de Ajedrez", "rated": true },
-    { "elo": 1651, "color": "B", "result": "L", "opp": "Joaquin Rueda", "opp_elo": 1996, "eco": "B26", "tournament": "Club Argentino de Ajedrez", "rated": true },
-
-    // Torre Blanca
-    { "elo": 1651, "color": "W", "result": "W", "opp": "German Cisneros", "opp_elo": 1914, "eco": "A15", "tournament": "Torre Blanca", "rated": true },
-    { "elo": 1651, "color": "B", "result": "W", "opp": "Daniel Federico", "opp_elo": 0, "eco": "B20", "tournament": "Torre Blanca", "rated": true },
-    { "elo": 1651, "color": "W", "result": "L", "opp": "Raul Adrian Habiaga", "opp_elo": 1984, "eco": "A29", "tournament": "Torre Blanca", "rated": true },
-    { "elo": 1651, "color": "B", "result": "D", "opp": "Marcelo Maucci", "opp_elo": 1768, "eco": "B37", "tournament": "Torre Blanca", "rated": true },
-    { "elo": 1651, "color": "W", "result": "D", "opp": "Dario Moreno", "opp_elo": 1910, "eco": "A15", "tournament": "Torre Blanca", "rated": true },
-
-    // Club Zugzwang (unrated)
-    { "elo": 1651, "color": "B", "result": "W", "opp": "Maria Paula Arias", "opp_elo": 1736, "eco": "A70", "tournament": "Club Zugzwang", "rated": false },
-    { "elo": 1651, "color": "W", "result": "L", "opp": "Anibal Borras", "opp_elo": 1731, "eco": "A15", "tournament": "Club Zugzwang", "rated": false },
-    { "elo": 1651, "color": "W", "result": "W", "opp": "Gabriel Izak", "opp_elo": 2046, "eco": "A13", "tournament": "Club Zugzwang", "rated": false },
-    { "elo": 1651, "color": "B", "result": "W", "opp": "Jesuan Letizia", "opp_elo": 1486, "eco": "A45", "tournament": "Club Zugzwang", "rated": false },
-    { "elo": 1651, "color": "B", "result": "L", "opp": "Hugo Massenzana", "opp_elo": 2025, "eco": "A46", "tournament": "Club Zugzwang", "rated": false },
-    { "elo": 1651, "color": "W", "result": "W", "opp": "Juan Vilches", "opp_elo": 1854, "eco": "A14", "tournament": "Club Zugzwang", "rated": false },
-
-    // Masters Ciudad
-    { "elo": 1776, "color": "W", "result": "W", "opp": "Enzo Alvarez", "opp_elo": 1899, "eco": "A29", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "W", "result": "W", "opp": "Thomas Castillo", "opp_elo": 1997, "eco": "A10", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "B", "result": "L", "opp": "Hernan Gastiaburo", "opp_elo": 2239, "eco": "E91", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "W", "result": "W", "opp": "Jorge Guelman", "opp_elo": 1576, "eco": "A15", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "W", "result": "D", "opp": "Agustín Meza Astrada", "opp_elo": 2077, "eco": "A13", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "B", "result": "L", "opp": "Federico Naspleda", "opp_elo": 2052, "eco": "B31", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "W", "result": "W", "opp": "Isaac Lainez Reyes", "opp_elo": 1890, "eco": "A30", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "B", "result": "L", "opp": "Facundo Simbler", "opp_elo": 1903, "eco": "B35", "tournament": "Masters Ciudad", "rated": true },
-    { "elo": 1776, "color": "B", "result": "L", "opp": "José Zamudio", "opp_elo": 1921, "eco": "B21", "tournament": "Masters Ciudad", "rated": true },
-
-    // Abierto Madryn
-    { "elo": 1848, "color": "W", "result": "W", "opp": "Sergio Alonso", "opp_elo": 1754, "eco": "A20", "tournament": "Abierto Madryn", "rated": true },
-    { "elo": 1848, "color": "B", "result": "D", "opp": "Teo Dante Cicciari", "opp_elo": 1972, "eco": "A05", "tournament": "Abierto Madryn", "rated": true },
-    { "elo": 1848, "color": "B", "result": "L", "opp": "Martin Daneri", "opp_elo": 2011, "eco": "B23", "tournament": "Abierto Madryn", "rated": true },
-    { "elo": 1848, "color": "W", "result": "W", "opp": "Jeremías De Los Santos", "opp_elo": 1791, "eco": "A20", "tournament": "Abierto Madryn", "rated": true },
-    { "elo": 1486, "color": "B", "result": "W", "opp": "Carlos Gonzalez", "opp_elo": 1405, "eco": "B23", "tournament": "Abierto Madryn", "rated": true },
-    { "elo": 1848, "color": "W", "result": "D", "opp": "Marzo Daniel Lucero", "opp_elo": 2051, "eco": "A15", "tournament": "Abierto Madryn", "rated": true },
-
-    // Abierto Lago Puelo
-    { "elo": 1889, "color": "B", "result": "W", "opp": "Pedro Bustos", "opp_elo": 1622, "eco": "B35", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "W", "result": "D", "opp": "Dario Castiglioni", "opp_elo": 1783, "eco": "A13", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "W", "result": "W", "opp": "Xavier Cugat", "opp_elo": 1710, "eco": "A10", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "W", "result": "L", "opp": "Jonas Nahuelmir", "opp_elo": 1727, "eco": "A20", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "W", "result": "D", "opp": "Aarón Pizarro Rozas", "opp_elo": 1601, "eco": "A13", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "B", "result": "W", "opp": "Pablo Rugiero", "opp_elo": 1584, "eco": "A76", "tournament": "Abierto Lago Puelo", "rated": true },
-    { "elo": 1889, "color": "B", "result": "L", "opp": "Eliseo Torres", "opp_elo": 1658, "eco": "A56", "tournament": "Abierto Lago Puelo", "rated": true }
-  ];
-
+  // Use imported data
+  const playerInfo = playerInfoData;
+  const games = gamesData;
   const ratedGames = useMemo(() => games.filter(g => g.rated), []);
 
-  const tournamentOrder = ["Club Argentino de Ajedrez", "Torre Blanca", "Masters Ciudad", "Abierto Madryn", "Abierto Lago Puelo"];
+  // Use custom hooks for statistics
+  const eloHistory = useEloHistory(ratedGames);
 
-  const eloHistory = useMemo(() => {
-    const history = [];
-
-    ratedGames.forEach((game, idx) => {
-      const expectedScore = game.opp_elo > 0 ? 1 / (1 + Math.pow(10, (game.opp_elo - game.elo) / 400)) : 0.5;
-      const actualScore = game.result === 'W' ? 1 : game.result === 'D' ? 0.5 : 0;
-
-      history.push({
-        game: idx + 1,
-        elo: game.elo,
-        tournament: game.tournament,
-        opponent: game.opp,
-        eco: game.eco,
-        opening: ecoNames[game.eco] || game.eco,
-        expected: expectedScore,
-        actual: actualScore,
-        diff: actualScore - expectedScore
-      });
-    });
-
-    return history;
-  }, [ratedGames]);
-
-  const overallStats = useMemo(() => {
-    const wins = ratedGames.filter(g => g.result === 'W').length;
-    const draws = ratedGames.filter(g => g.result === 'D').length;
-    const losses = ratedGames.filter(g => g.result === 'L').length;
-    const total = ratedGames.length;
-
-    const totalExpected = ratedGames.reduce((sum, g) => {
-      return sum + (g.opp_elo > 0 ? (1 / (1 + Math.pow(10, (g.opp_elo - g.elo) / 400))) : 0.5);
-    }, 0);
-
-    const totalActual = wins + draws * 0.5;
-    const avgOppElo = Math.round(ratedGames.filter(g => g.opp_elo > 0).reduce((sum, g) => sum + g.opp_elo, 0) / ratedGames.filter(g => g.opp_elo > 0).length);
-    const performanceRating = totalActual > 0 && totalActual < total ?
-      Math.round(avgOppElo + 400 * Math.log10(totalActual / (total - totalActual))) : avgOppElo;
-
-    return {
-      wins, draws, losses, total,
-      winRate: ((wins / total) * 100).toFixed(1),
-      expectedScore: totalExpected.toFixed(1),
-      actualScore: totalActual.toFixed(1),
-      performanceRating
-    };
-  }, [ratedGames]);
+  const overallStats = useOverallStats(ratedGames);
 
   const tournamentStats = useMemo(() => {
     const byTournament = {};
@@ -196,207 +97,14 @@ const ChessDashboard = () => {
       });
   }, [ratedGames]);
 
-  const opponentBracketStats = useMemo(() => {
-    const brackets = {
-      lower: { name: 'Lower rated (-100+)', games: [], wins: 0, draws: 0, losses: 0 },
-      similar: { name: 'Similar (±100)', games: [], wins: 0, draws: 0, losses: 0 },
-      higher: { name: 'Higher rated (+100+)', games: [], wins: 0, draws: 0, losses: 0 }
-    };
+  const opponentBracketStats = useEloBracketStats(ratedGames);
 
-    ratedGames.filter(g => g.opp_elo > 0).forEach(game => {
-      const diff = game.opp_elo - game.elo;
-      let bracket;
+  const whiteStats = useColorStats(ratedGames, 'W');
+  const blackStats = useColorStats(ratedGames, 'B');
 
-      if (diff < -100) bracket = 'lower';
-      else if (diff > 100) bracket = 'higher';
-      else bracket = 'similar';
+  const allOpeningsStats = useAllOpeningsStats(ratedGames);
 
-      brackets[bracket].games.push(game);
-      if (game.result === 'W') brackets[bracket].wins++;
-      if (game.result === 'D') brackets[bracket].draws++;
-      if (game.result === 'L') brackets[bracket].losses++;
-    });
-
-    return Object.values(brackets).map(b => ({
-      bracket: b.name,
-      total: b.games.length,
-      wins: b.wins,
-      draws: b.draws,
-      losses: b.losses,
-      winRate: b.games.length > 0 ? ((b.wins / b.games.length) * 100).toFixed(1) : '0.0',
-      score: `${(b.wins + b.draws * 0.5).toFixed(1)}/${b.games.length}`
-    }));
-  }, [ratedGames]);
-
-  const whiteStats = useMemo(() => {
-    const whiteGames = ratedGames.filter(g => g.color === 'W');
-    const wins = whiteGames.filter(g => g.result === 'W').length;
-    const draws = whiteGames.filter(g => g.result === 'D').length;
-    const losses = whiteGames.filter(g => g.result === 'L').length;
-    const total = whiteGames.length;
-    const actualScore = wins + draws * 0.5;
-
-    const ratedOpponents = whiteGames.filter(g => g.opp_elo > 0);
-    const avgOppElo = ratedOpponents.length > 0 ?
-      Math.round(ratedOpponents.reduce((sum, g) => sum + g.opp_elo, 0) / ratedOpponents.length) : 0;
-    const performanceRating = actualScore > 0 && actualScore < total && avgOppElo > 0 ?
-      Math.round(avgOppElo + 400 * Math.log10(actualScore / (total - actualScore))) : avgOppElo;
-
-    const ecoStats = {};
-    whiteGames.forEach(game => {
-      if (!ecoStats[game.eco]) {
-        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
-      }
-      ecoStats[game.eco].games++;
-      if (game.result === 'W') ecoStats[game.eco].wins++;
-      if (game.result === 'D') ecoStats[game.eco].draws++;
-      if (game.result === 'L') ecoStats[game.eco].losses++;
-    });
-
-    const openings = Object.entries(ecoStats)
-      .map(([eco, stats]) => ({
-        eco,
-        name: stats.name,
-        games: stats.games,
-        wins: stats.wins,
-        draws: stats.draws,
-        losses: stats.losses,
-        score: `${(stats.wins + stats.draws * 0.5).toFixed(1)}/${stats.games}`,
-        winRate: ((stats.wins / stats.games) * 100).toFixed(1)
-      }))
-      .sort((a, b) => b.games - a.games);
-
-    return {
-      total, wins, draws, losses,
-      winRate: ((wins / total) * 100).toFixed(1),
-      score: `${actualScore.toFixed(1)}/${total}`,
-      performanceRating,
-      openings
-    };
-  }, [ratedGames]);
-
-  const blackStats = useMemo(() => {
-    const blackGames = ratedGames.filter(g => g.color === 'B');
-    const wins = blackGames.filter(g => g.result === 'W').length;
-    const draws = blackGames.filter(g => g.result === 'D').length;
-    const losses = blackGames.filter(g => g.result === 'L').length;
-    const total = blackGames.length;
-    const actualScore = wins + draws * 0.5;
-
-    const ratedOpponents = blackGames.filter(g => g.opp_elo > 0);
-    const avgOppElo = ratedOpponents.length > 0 ?
-      Math.round(ratedOpponents.reduce((sum, g) => sum + g.opp_elo, 0) / ratedOpponents.length) : 0;
-    const performanceRating = actualScore > 0 && actualScore < total && avgOppElo > 0 ?
-      Math.round(avgOppElo + 400 * Math.log10(actualScore / (total - actualScore))) : avgOppElo;
-
-    const ecoStats = {};
-    blackGames.forEach(game => {
-      if (!ecoStats[game.eco]) {
-        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
-      }
-      ecoStats[game.eco].games++;
-      if (game.result === 'W') ecoStats[game.eco].wins++;
-      if (game.result === 'D') ecoStats[game.eco].draws++;
-      if (game.result === 'L') ecoStats[game.eco].losses++;
-    });
-
-    const openings = Object.entries(ecoStats)
-      .map(([eco, stats]) => ({
-        eco,
-        name: stats.name,
-        games: stats.games,
-        wins: stats.wins,
-        draws: stats.draws,
-        losses: stats.losses,
-        score: `${(stats.wins + stats.draws * 0.5).toFixed(1)}/${stats.games}`,
-        winRate: ((stats.wins / stats.games) * 100).toFixed(1)
-      }))
-      .sort((a, b) => b.games - a.games);
-
-    return {
-      total, wins, draws, losses,
-      winRate: ((wins / total) * 100).toFixed(1),
-      score: `${actualScore.toFixed(1)}/${total}`,
-      performanceRating,
-      openings
-    };
-  }, [ratedGames]);
-
-  const allOpeningsStats = useMemo(() => {
-    const ecoStats = {};
-
-    ratedGames.forEach(game => {
-      if (!ecoStats[game.eco]) {
-        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, color: {}, name: ecoNames[game.eco] || game.eco };
-      }
-      ecoStats[game.eco].games++;
-      if (game.result === 'W') ecoStats[game.eco].wins++;
-      if (game.result === 'D') ecoStats[game.eco].draws++;
-      if (game.result === 'L') ecoStats[game.eco].losses++;
-
-      if (!ecoStats[game.eco].color[game.color]) {
-        ecoStats[game.eco].color[game.color] = 0;
-      }
-      ecoStats[game.eco].color[game.color]++;
-    });
-
-    return Object.entries(ecoStats)
-      .map(([eco, stats]) => ({
-        eco,
-        name: stats.name,
-        games: stats.games,
-        wins: stats.wins,
-        draws: stats.draws,
-        losses: stats.losses,
-        score: `${(stats.wins + stats.draws * 0.5).toFixed(1)}/${stats.games}`,
-        winRate: parseFloat(((stats.wins / stats.games) * 100).toFixed(1)),
-        asWhite: stats.color['W'] || 0,
-        asBlack: stats.color['B'] || 0
-      }))
-      .sort((a, b) => b.games - a.games);
-  }, [ratedGames]);
-
-  const bestResults = useMemo(() => {
-    return ratedGames
-      .filter(g => g.opp_elo > 0)
-      .map((game, idx) => {
-        const ratingDiff = game.opp_elo - game.elo;
-        const expectedScore = 1 / (1 + Math.pow(10, ratingDiff / 400));
-        const actualScore = game.result === 'W' ? 1 : game.result === 'D' ? 0.5 : 0;
-        const performance = actualScore - expectedScore;
-
-        return {
-          ...game,
-          gameNumber: idx + 1,
-          ratingDiff,
-          performance,
-          opening: ecoNames[game.eco] || game.eco
-        };
-      })
-      .sort((a, b) => b.performance - a.performance)
-      .slice(0, 3);
-  }, [ratedGames]);
-
-  const worstResults = useMemo(() => {
-    return ratedGames
-      .filter(g => g.opp_elo > 0)
-      .map((game, idx) => {
-        const ratingDiff = game.opp_elo - game.elo;
-        const expectedScore = 1 / (1 + Math.pow(10, ratingDiff / 400));
-        const actualScore = game.result === 'W' ? 1 : game.result === 'D' ? 0.5 : 0;
-        const performance = actualScore - expectedScore;
-
-        return {
-          ...game,
-          gameNumber: idx + 1,
-          ratingDiff,
-          performance,
-          opening: ecoNames[game.eco] || game.eco
-        };
-      })
-      .sort((a, b) => a.performance - b.performance)
-      .slice(0, 3);
-  }, [ratedGames]);
+  const { bestResults, worstResults } = useBestWorstGames(ratedGames);
 
   const bracketGames = useMemo(() => {
     if (!selectedBracket) return [];
@@ -405,11 +113,7 @@ const ChessDashboard = () => {
       .filter(g => g.opp_elo > 0)
       .map((game, idx) => {
         const diff = game.opp_elo - game.elo;
-        let bracket;
-
-        if (diff < -100) bracket = 'lower';
-        else if (diff > 100) bracket = 'higher';
-        else bracket = 'similar';
+        const bracket = getEloBracket(diff);
 
         return {
           ...game,
