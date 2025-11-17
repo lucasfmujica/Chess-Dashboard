@@ -113,3 +113,35 @@ export const exportChartAsPNG = async (chartId, filename = 'chart.png') => {
     alert('Chart export is not fully supported in this browser. Please use screenshot instead.');
   }
 };
+
+/**
+ * Chart Zoom/Pan Configuration
+ * Note: Recharts doesn't have built-in zoom/pan. For advanced interactions:
+ * 1. Install recharts-to-use package: npm install recharts-to-use
+ * 2. Or implement custom zoom with state management
+ *
+ * Basic example implementation:
+ *
+ * const [zoomDomain, setZoomDomain] = useState({ x: [0, 100], y: [0, 100] });
+ *
+ * <LineChart
+ *   onMouseDown={(e) => {
+ *     // Start zoom selection
+ *   }}
+ *   onMouseMove={(e) => {
+ *     // Update zoom selection
+ *   }}
+ *   onMouseUp={(e) => {
+ *     // Apply zoom
+ *     setZoomDomain({ x: [newMin, newMax], y: [newMin, newMax] });
+ *   }}
+ * >
+ *   <XAxis domain={zoomDomain.x} />
+ *   <YAxis domain={zoomDomain.y} />
+ * </LineChart>
+ *
+ * Add reset zoom button:
+ * <button onClick={() => setZoomDomain({ x: ['auto', 'auto'], y: ['auto', 'auto'] })}>
+ *   Reset Zoom
+ * </button>
+ */
