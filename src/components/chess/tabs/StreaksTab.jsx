@@ -96,17 +96,19 @@ const StreaksTab = ({ games, formStats, monthlyStats }) => {
     // Calculate games this week/month
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const gamesThisWeek = games.filter(g => {
       const gameDate = new Date(g.date || 0);
       return gameDate >= oneWeekAgo;
     }).length;
 
-    const gamesThisMonth = games.filter(g => {
-      const gameDate = new Date(g.date || 0);
-      return gameDate >= oneMonthAgo;
-    }).length;
+    // Since games don't have calendar dates, count games from the most recent tournament
+    // Get unique tournaments and find the most recent one (assuming last in the array is most recent)
+    const uniqueTournaments = [...new Set(games.map(g => g.tournament))];
+    const mostRecentTournament = uniqueTournaments.length > 0 ? uniqueTournaments[uniqueTournaments.length - 1] : null;
+    const gamesThisMonth = mostRecentTournament
+      ? games.filter(g => g.tournament === mostRecentTournament).length
+      : games.length;
 
     // Calculate weekly activity for the last 12 weeks
     const weeklyActivity = [];
@@ -423,7 +425,7 @@ const StreaksTab = ({ games, formStats, monthlyStats }) => {
             </div>
             <div className="text-center py-4">
               <p className="text-5xl font-bold text-purple-600 mb-2">{streaksData.gamesThisMonth}</p>
-              <p className="text-gray-600">games in 30 days</p>
+              <p className="text-gray-600">games in latest tournament</p>
             </div>
           </div>
         </div>

@@ -20,11 +20,13 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
       byMonth[tournament] = {
         tournament,
         order: idx,
+        month: tournamentData.date || tournament,
         games: stats.total,
         wins: stats.wins,
         draws: stats.draws,
         losses: stats.losses,
         winRate: parseFloat(stats.winRate),
+        percentage: parseFloat(stats.winRate), // Add percentage for compatibility
         performanceRating: stats.performanceRating,
         elo: tournamentGames[0].elo,
         eloChange: tournamentData.eloChange || 0,
