@@ -1,0 +1,179 @@
+import React, { useState } from 'react';
+
+const LichessSyncPanel = ({ onSyncComplete, onError }) => {
+  const [lichessUsername, setLichessUsername] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [maxGames, setMaxGames] = useState(50);
+  const [perfType, setPerfType] = useState('classical,rapid,blitz');
+
+  const handleSync = async () => {
+    if (!lichessUsername.trim()) {
+      onError?.('Please enter a Lichess username');
+      return;
+    }
+
+    setIsSyncing(true);
+    setSyncStatus({ type: 'loading', message: 'Fetching games from Lichess...' });
+
+    try {
+      const { fetchLichessGames, transformLichessGames } = await import('../../utils/lichessApi');
+
+      const lichessGames = await fetchLichessGames(lichessUsername, {
+        max: maxGames,
+        perfType,
+        rated: true,
+      });
+
+      if (lichessGames.length === 0) {
+        setSyncStatus({ type: 'warning', message: 'No games found for this user' });
+        setIsSyncing(false);
+        return;
+      }
+
+      const transformedGames = transformLichessGames(lichessGames, lichessUsername);
+
+      setSyncStatus({
+        type: 'success',
+        message: `Successfully fetched ${transformedGames.length} games!`
+      });
+
+      // Call parent callback with the new games
+      onSyncComplete?.(transformedGames);
+
+      // Auto-clear success message after 3 seconds
+      setTimeout(() => {
+        setSyncStatus(null);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Lichess sync error:', error);
+      setSyncStatus({
+        type: 'error',
+        message: error.message || 'Failed to fetch games from Lichess'
+      });
+      onError?.(error.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  return (
+    <div className="p-6 border-2 border-indigo-200 rounded-lg shadow-md bg-gradient-to-r from-indigo-50 to-purple-50">
+      <h3 className="flex items-center mb-4 text-lg font-semibold text-indigo-900">
+        <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+        </svg>
+        Lichess.org Integration
+      </h3>
+
+      <p className="mb-4 text-sm text-indigo-800">
+        Automatically import your recent games from Lichess.org
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Lichess Username
+          </label>
+          <input
+            type="text"
+            value={lichessUsername}
+            onChange={(e) => setLichessUsername(e.target.value)}
+            placeholder="Enter your Lichess username"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            disabled={isSyncing}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Max Games to Import
+            </label>
+            <select
+              value={maxGames}
+              onChange={(e) => setMaxGames(parseInt(e.target.value))}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              disabled={isSyncing}
+            >
+              <option value="20">20 games</option>
+              <option value="50">50 games</option>
+              <option value="100">100 games</option>
+              <option value="200">200 games</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Game Types
+            </label>
+            <select
+              value={perfType}
+              onChange={(e) => setPerfType(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              disabled={isSyncing}
+            >
+              <option value="classical,rapid,blitz">All (Classical, Rapid, Blitz)</option>
+              <option value="classical">Classical only</option>
+              <option value="rapid">Rapid only</option>
+              <option value="blitz">Blitz only</option>
+              <option value="bullet">Bullet only</option>
+            </select>
+          </div>
+        </div>
+
+        <button
+          onClick={handleSync}
+          disabled={isSyncing || !lichessUsername.trim()}
+          className={`w-full px-6 py-3 text-white font-medium rounded-lg transition-colors ${isSyncing || !lichessUsername.trim()
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+        >
+          {isSyncing ? (
+            <span className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Syncing...
+            </span>
+          ) : (
+            'Import Games from Lichess'
+          )}
+        </button>
+
+        {syncStatus && (
+          <div className={`p-4 rounded-lg ${syncStatus.type === 'success' ? 'bg-green-100 border border-green-300 text-green-800' :
+            syncStatus.type === 'error' ? 'bg-red-100 border border-red-300 text-red-800' :
+              syncStatus.type === 'warning' ? 'bg-yellow-100 border border-yellow-300 text-yellow-800' :
+                'bg-blue-100 border border-blue-300 text-blue-800'
+            }`}>
+            <div className="flex items-start">
+              <span className="mr-2 text-lg">
+                {syncStatus.type === 'success' ? '✓' :
+                  syncStatus.type === 'error' ? '✗' :
+                    syncStatus.type === 'warning' ? '⚠' : 'ℹ'}
+              </span>
+              <p className="text-sm font-medium">{syncStatus.message}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 mt-4 bg-white rounded-lg">
+        <h4 className="mb-2 text-sm font-semibold text-gray-700">How it works:</h4>
+        <ul className="space-y-1 text-xs text-gray-600 list-disc list-inside">
+          <li>Enter your Lichess username (case-insensitive)</li>
+          <li>Select how many recent games to import</li>
+          <li>Games will be automatically added to your dashboard</li>
+          <li>Only rated games are imported</li>
+          <li>Duplicate games are automatically detected and merged</li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default LichessSyncPanel;

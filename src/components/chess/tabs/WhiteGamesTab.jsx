@@ -1,0 +1,216 @@
+import React from 'react';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+
+const StatCard = ({ title, value, subtitle }) => (
+  <div className="p-6 bg-white rounded-lg shadow-md">
+    <h3 className="mb-2 text-sm text-gray-600">{title}</h3>
+    <div className="text-3xl font-bold text-blue-600">{value}</div>
+    {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+  </div>
+);
+
+const WhiteGamesTab = ({
+  whiteStats,
+  whiteSortBy,
+  setWhiteSortBy,
+  whiteSortOrder,
+  setWhiteSortOrder,
+  games,
+  ecoNames
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <StatCard
+          title="Games as White"
+          value={whiteStats.total}
+          subtitle={`Win rate: ${whiteStats.winRate}%`}
+        />
+        <StatCard
+          title="Score"
+          value={whiteStats.score}
+          subtitle={`${whiteStats.wins}W ${whiteStats.draws}D ${whiteStats.losses}L`}
+        />
+        <StatCard
+          title="Performance Rating"
+          value={whiteStats.performanceRating}
+        />
+      </div>
+
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <h3 className="mb-4 text-lg font-semibold">Results Distribution as White</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={[
+                { name: 'Wins', value: whiteStats.wins },
+                { name: 'Draws', value: whiteStats.draws },
+                { name: 'Losses', value: whiteStats.losses }
+              ]}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              <Cell fill="#10b981" />
+              <Cell fill="#f59e0b" />
+              <Cell fill="#ef4444" />
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <h3 className="mb-4 text-lg font-semibold">Openings as White</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
+                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
+                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
+                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
+                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {whiteStats.openings.map((opening, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm">
+                    <div className="font-medium text-gray-900">{opening.name}</div>
+                    <div className="text-xs text-gray-500">{opening.eco}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-700">{opening.games}</td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-700">
+                    <span className="text-green-600">{opening.wins}</span>-
+                    <span className="text-yellow-600">{opening.draws}</span>-
+                    <span className="text-red-600">{opening.losses}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-semibold text-center text-gray-900">{opening.score}</td>
+                  <td className="px-6 py-4 text-sm text-center">
+                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                      {opening.winRate}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="p-6 bg-white rounded-lg shadow-md">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">All Games as White</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-slate-50">
+              <tr>
+                <th
+                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  onClick={() => {
+                    if (whiteSortBy === 'date') {
+                      setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
+                    } else {
+                      setWhiteSortBy('date');
+                      setWhiteSortOrder('desc');
+                    }
+                  }}
+                >
+                  Game # {whiteSortBy === 'date' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">My ELO</th>
+                <th
+                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  onClick={() => {
+                    if (whiteSortBy === 'opponent') {
+                      setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
+                    } else {
+                      setWhiteSortBy('opponent');
+                      setWhiteSortOrder('asc');
+                    }
+                  }}
+                >
+                  Opponent {whiteSortBy === 'opponent' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">Opp ELO</th>
+                <th
+                  className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  onClick={() => {
+                    setWhiteSortBy('result');
+                    setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
+                  }}
+                >
+                  Result {whiteSortBy === 'result' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Opening</th>
+                <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Tournament</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {(() => {
+                const whiteGames = games
+                  .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
+                  .filter(game => game.color === 'W');
+
+                const sortedGames = [...whiteGames].sort((a, b) => {
+                  let compareA, compareB;
+
+                  switch (whiteSortBy) {
+                    case 'date':
+                      compareA = a.gameNumber;
+                      compareB = b.gameNumber;
+                      break;
+                    case 'opponent':
+                      compareA = (a.opp || '').toLowerCase();
+                      compareB = (b.opp || '').toLowerCase();
+                      break;
+                    case 'result':
+                      const resultOrder = { 'W': 3, 'D': 2, 'L': 1 };
+                      compareA = resultOrder[a.result];
+                      compareB = resultOrder[b.result];
+                      break;
+                    default:
+                      compareA = a.gameNumber;
+                      compareB = b.gameNumber;
+                  }
+
+                  if (compareA < compareB) return whiteSortOrder === 'asc' ? -1 : 1;
+                  if (compareA > compareB) return whiteSortOrder === 'asc' ? 1 : -1;
+                  return 0;
+                });
+
+                return sortedGames.map((game) => (
+                  <tr key={game.gameNumber} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 text-sm font-medium text-slate-900">#{game.gameNumber}</td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-700">{game.elo}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900">{game.opp}</td>
+                    <td className="px-4 py-3 text-sm text-center text-slate-700">{game.opp_elo || 'Unrated'}</td>
+                    <td className="px-4 py-3 text-sm text-center">
+                      <span className={`px-2 py-1 rounded font-semibold ${game.result === 'W' ? 'bg-emerald-100 text-emerald-700' :
+                        game.result === 'D' ? 'bg-amber-100 text-amber-700' :
+                          'bg-rose-100 text-rose-700'
+                        }`}>
+                        {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      <div>{ecoNames[game.eco] || game.eco}</div>
+                      <div className="text-xs text-slate-500">{game.eco}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-slate-600">{game.tournament}</td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WhiteGamesTab;

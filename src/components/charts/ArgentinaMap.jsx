@@ -3,26 +3,33 @@ import React, { useState } from 'react';
 const ArgentinaMap = ({ games }) => {
   const [hoveredProvince, setHoveredProvince] = useState(null);
 
-  // Map tournaments to provinces with location data
-  const provinceData = {
-    'Buenos Aires': {
+  // Map tournaments to cities with location data
+  const cityData = {
+    'Buenos Aires (CABA)': {
       tournaments: ['Club Argentino de Ajedrez', 'Torre Blanca', 'Masters Ciudad'],
       games: games.filter(g =>
         ['Club Argentino de Ajedrez', 'Torre Blanca', 'Masters Ciudad'].includes(g.tournament)
       ),
-      coords: { x: '67%', y: '64%' }
+      coords: { x: '52%', y: '36%' }
     },
-    'Chubut': {
-      tournaments: ['Abierto Madryn', 'Abierto Lago Puelo'],
+    'Puerto Madryn': {
+      tournaments: ['Abierto Madryn'],
       games: games.filter(g =>
-        ['Abierto Madryn', 'Abierto Lago Puelo'].includes(g.tournament)
+        g.tournament === 'Abierto Madryn'
       ),
-      coords: { x: '45%', y: '84%' }
+      coords: { x: '38%', y: '57%' }
+    },
+    'Lago Puelo': {
+      tournaments: ['Abierto Lago Puelo'],
+      games: games.filter(g =>
+        g.tournament === 'Abierto Lago Puelo'
+      ),
+      coords: { x: '25%', y: '57%' }
     }
   };
 
-  const getProvinceStats = (provinceName) => {
-    const data = provinceData[provinceName];
+  const getCityStats = (cityName) => {
+    const data = cityData[cityName];
     if (!data || data.games.length === 0) return null;
 
     const wins = data.games.filter(g => g.result === 'W').length;
@@ -39,30 +46,23 @@ const ArgentinaMap = ({ games }) => {
     };
   };
 
-  // Map position percentages (relative to image dimensions - adjusted for new map)
-  const provincePositions = {
-    'Buenos Aires': { x: '67%', y: '64%' },
-    'Chubut': { x: '45%', y: '84%' }
-  };
-
   return (
     <div className="relative p-6 bg-white rounded-lg shadow-lg">
-      <h3 className="mb-4 text-xl font-bold text-gray-800">Partidas por Provincia</h3>
+      <h3 className="mb-4 text-xl font-bold text-gray-800">Partidas por Ciudad</h3>
 
       <div className="relative w-full max-w-md mx-auto">
-        {/* Argentina location map from Wikimedia */}
+        {/* Argentina map */}
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Argentina_location_map.svg"
+          src="/argentina_map.avif"
           alt="Mapa de Argentina"
           className="w-full h-auto rounded-lg shadow-md"
         />
 
-        {/* Province markers overlay */}
-        {Object.entries(provinceData).map(([provinceName, data]) => {
-          const stats = getProvinceStats(provinceName);
-          const position = provincePositions[provinceName];
+        {/* City markers overlay */}
+        {Object.entries(cityData).map(([cityName, data]) => {
+          const stats = getCityStats(cityName);
 
-          if (!stats || !position) return null;
+          if (!stats) return null;
 
           // Color based on number of games
           let markerColor = 'bg-blue-500';
@@ -75,14 +75,14 @@ const ArgentinaMap = ({ games }) => {
             ringColor = 'ring-blue-700';
           }
 
-          const isHovered = hoveredProvince === provinceName;
+          const isHovered = hoveredProvince === cityName;
 
           return (
             <div
-              key={provinceName}
+              key={cityName}
               className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{ left: position.x, top: position.y }}
-              onMouseEnter={() => setHoveredProvince(provinceName)}
+              style={{ left: data.coords.x, top: data.coords.y }}
+              onMouseEnter={() => setHoveredProvince(cityName)}
               onMouseLeave={() => setHoveredProvince(null)}
             >
               {/* Animated marker */}
@@ -99,7 +99,7 @@ const ArgentinaMap = ({ games }) => {
                 {stats.total}
               </div>
 
-              {/* Province label */}
+              {/* City label */}
               <div className={`
                 absolute top-12 left-1/2 transform -translate-x-1/2
                 bg-gray-900 text-white text-xs px-3 py-1 rounded-full
@@ -107,7 +107,7 @@ const ArgentinaMap = ({ games }) => {
                 transition-all duration-200
                 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
               `}>
-                {provinceName}
+                {cityName}
               </div>
             </div>
           );
@@ -115,11 +115,11 @@ const ArgentinaMap = ({ games }) => {
       </div>
 
       {/* Tooltip */}
-      {hoveredProvince && getProvinceStats(hoveredProvince) && (
+      {hoveredProvince && getCityStats(hoveredProvince) && (
         <div className="p-4 mt-4 border-2 border-blue-300 rounded-lg shadow-xl bg-gradient-to-br from-blue-50 to-white">
           <h4 className="mb-3 text-lg font-bold text-blue-900">{hoveredProvince}</h4>
           {(() => {
-            const stats = getProvinceStats(hoveredProvince);
+            const stats = getCityStats(hoveredProvince);
             return (
               <>
                 <div className="grid grid-cols-2 gap-3 mb-3">
@@ -133,9 +133,9 @@ const ArgentinaMap = ({ games }) => {
                   </div>
                 </div>
                 <div className="flex gap-4 mb-3 text-sm">
-                  <span className="font-semibold text-green-600">✓ {stats.wins}W</span>
-                  <span className="font-semibold text-gray-600">⊟ {stats.draws}D</span>
-                  <span className="font-semibold text-red-600">✗ {stats.losses}L</span>
+                  <span className="font-semibold text-emerald-600">✓ {stats.wins}W</span>
+                  <span className="font-semibold text-slate-600">⊟ {stats.draws}D</span>
+                  <span className="font-semibold text-rose-600">✗ {stats.losses}L</span>
                 </div>
                 <div className="pt-3 border-t">
                   <p className="mb-2 text-xs font-semibold text-gray-700">Torneos:</p>
