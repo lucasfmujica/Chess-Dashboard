@@ -1,9 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Modal = ({ isOpen, type, title, message, defaultValue, onConfirm, onCancel }) => {
-  const [inputValue, setInputValue] = useState(defaultValue || '');
-  const inputRef = useRef(null);
-  const confirmButtonRef = useRef(null);
+type ModalType = 'alert' | 'confirm' | 'prompt';
+
+interface ModalProps {
+  isOpen: boolean;
+  type: ModalType;
+  title: string;
+  message: string;
+  defaultValue?: string;
+  onConfirm?: (value?: string) => void;
+  onCancel?: () => void;
+}
+
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  type,
+  title,
+  message,
+  defaultValue = '',
+  onConfirm,
+  onCancel
+}) => {
+  const [inputValue, setInputValue] = useState<string>(defaultValue || '');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setInputValue(defaultValue || '');
@@ -21,13 +41,13 @@ const Modal = ({ isOpen, type, title, message, defaultValue, onConfirm, onCancel
   }, [isOpen, type]);
 
   useEffect(() => {
-    const handleEscape = (e) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         handleCancel();
       }
     };
 
-    const handleEnter = (e) => {
+    const handleEnter = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && isOpen && type === 'alert') {
         handleConfirm();
       }
@@ -40,7 +60,7 @@ const Modal = ({ isOpen, type, title, message, defaultValue, onConfirm, onCancel
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('keydown', handleEnter);
     };
-  }, [isOpen, type]);
+  });
 
   if (!isOpen) return null;
 
@@ -56,7 +76,7 @@ const Modal = ({ isOpen, type, title, message, defaultValue, onConfirm, onCancel
     onCancel?.();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleConfirm();
   };
