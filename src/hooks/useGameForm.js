@@ -4,9 +4,10 @@ import { useState, useMemo } from 'react';
  * Custom hook for managing manual game entry form
  * @param {Array} games - Current games array
  * @param {Function} setGames - Function to update games
+ * @param {Object} modal - Modal context for showing alerts
  * @returns {Object} Form state and handlers
  */
-export const useGameForm = (games, setGames) => {
+export const useGameForm = (games, setGames, modal) => {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [gameForm, setGameForm] = useState({
     tournament: '',
@@ -33,22 +34,22 @@ export const useGameForm = (games, setGames) => {
     }));
   };
 
-  const handleAddGame = () => {
+  const handleAddGame = async () => {
     // Validation
     if (!gameForm.tournament.trim()) {
-      alert('Tournament name is required');
+      await modal.alert('Tournament name is required', 'Validation Error');
       return false;
     }
     if (!gameForm.elo || isNaN(parseInt(gameForm.elo))) {
-      alert('Valid player ELO is required');
+      await modal.alert('Valid player ELO is required', 'Validation Error');
       return false;
     }
     if (!gameForm.opp.trim()) {
-      alert('Opponent name is required');
+      await modal.alert('Opponent name is required', 'Validation Error');
       return false;
     }
     if (!gameForm.opp_elo || isNaN(parseInt(gameForm.opp_elo))) {
-      alert('Valid opponent ELO is required');
+      await modal.alert('Valid opponent ELO is required', 'Validation Error');
       return false;
     }
 

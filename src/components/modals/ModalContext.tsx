@@ -1,9 +1,31 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import Modal from './Modal';
 
-const ModalContext = createContext(null);
+type ModalType = 'alert' | 'confirm' | 'prompt';
 
-export const useModal = () => {
+interface ModalState {
+  isOpen: boolean;
+  type: ModalType;
+  title: string;
+  message: string;
+  defaultValue: string;
+  onConfirm: ((value?: string) => void) | null;
+  onCancel: (() => void) | null;
+}
+
+interface ModalContextType {
+  alert: (message: string, title?: string) => Promise<void>;
+  confirm: (message: string, title?: string) => Promise<boolean>;
+  prompt: (message: string, defaultValue?: string, title?: string) => Promise<string | null>;
+}
+
+interface ModalProviderProps {
+  children: ReactNode;
+}
+
+const ModalContext = createContext<ModalContextType | null>(null);
+
+export const useModal = (): ModalContextType => {
   const context = useContext(ModalContext);
   if (!context) {
     throw new Error('useModal must be used within a ModalProvider');
@@ -11,10 +33,10 @@ export const useModal = () => {
   return context;
 };
 
-export const ModalProvider = ({ children }) => {
-  const [modalState, setModalState] = useState({
+export const ModalProvider = ({ children }: ModalProviderProps) => {
+  const [modalState, setModalState] = useState<ModalState>({
     isOpen: false,
-    type: 'alert', // 'alert', 'confirm', 'prompt'
+    type: 'alert',
     title: '',
     message: '',
     defaultValue: '',
@@ -26,7 +48,7 @@ export const ModalProvider = ({ children }) => {
     setModalState((prev) => ({ ...prev, isOpen: false }));
   }, []);
 
-  const alert = useCallback((message, title = 'Notice') => {
+  const alert = useCallback((message: string, title: string = 'Notice'): Promise<void> => {
     return new Promise((resolve) => {
       setModalState({
         isOpen: true,
@@ -43,7 +65,7 @@ export const ModalProvider = ({ children }) => {
     });
   }, [closeModal]);
 
-  const confirm = useCallback((message, title = 'Confirm') => {
+  const confirm = useCallback((message: string, title: string = 'Confirm'): Promise<boolean> => {
     return new Promise((resolve) => {
       setModalState({
         isOpen: true,
@@ -63,7 +85,7 @@ export const ModalProvider = ({ children }) => {
     });
   }, [closeModal]);
 
-  const prompt = useCallback((message, defaultValue = '', title = 'Input Required') => {
+  const prompt = useCallback((message: string, defaultValue: string = '', title: string = 'Input Required'): Promise<string | null> => {
     return new Promise((resolve) => {
       setModalState({
         isOpen: true,
@@ -71,9 +93,9 @@ export const ModalProvider = ({ children }) => {
         title,
         message,
         defaultValue,
-        onConfirm: (value) => {
+        onConfirm: (value?: string) => {
           closeModal();
-          resolve(value);
+          resolve(value ?? null);
         },
         onCancel: () => {
           closeModal();
@@ -98,8 +120,8 @@ export const ModalProvider = ({ children }) => {
         title={modalState.title}
         message={modalState.message}
         defaultValue={modalState.defaultValue}
-        onConfirm={modalState.onConfirm}
-        onCancel={modalState.onCancel}
+        onConfirm={modalState.onConfirm ?? undefined}
+        onCancel={modalState.onCancel ?? undefined}
       />
     </ModalContext.Provider>
   );

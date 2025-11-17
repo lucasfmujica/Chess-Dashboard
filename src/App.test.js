@@ -1,8 +1,45 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import { ModalProvider } from './components/modals/ModalContext';
+import { GamesProvider } from './context/GamesContext';
+import { UIProvider } from './context/UIContext';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+// Helper to render App with all required providers
+const renderApp = () => {
+  return render(
+    <ModalProvider>
+      <GamesProvider>
+        <UIProvider>
+          <App />
+        </UIProvider>
+      </GamesProvider>
+    </ModalProvider>
+  );
+};
+
+describe('App Component', () => {
+  test('renders Chess Dashboard without crashing', () => {
+    renderApp();
+    // Check that the app renders successfully
+    expect(document.body).toBeInTheDocument();
+  });
+
+  test('renders Chess Performance heading', () => {
+    renderApp();
+    // Check that Chess Performance text exists somewhere in the document
+    const heading = screen.getByText(/Chess Performance/i);
+    expect(heading).toBeInTheDocument();
+  });
+
+  test('renders navigation sidebar', () => {
+    renderApp();
+    const navigation = screen.getByRole('navigation');
+    expect(navigation).toBeInTheDocument();
+  });
+
+  test('renders Overview tab by default', () => {
+    renderApp();
+    const overviewButton = screen.getByRole('button', { name: /Overview/i });
+    expect(overviewButton).toBeInTheDocument();
+  });
 });

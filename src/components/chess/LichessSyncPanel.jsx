@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const LichessSyncPanel = ({ onSyncComplete, onError }) => {
   const [lichessUsername, setLichessUsername] = useState('');
@@ -6,6 +6,17 @@ const LichessSyncPanel = ({ onSyncComplete, onError }) => {
   const [syncStatus, setSyncStatus] = useState(null);
   const [maxGames, setMaxGames] = useState(50);
   const [perfType, setPerfType] = useState('classical,rapid,blitz');
+
+  // Cleanup timer when success status is set
+  useEffect(() => {
+    if (syncStatus?.type === 'success') {
+      const timeoutId = setTimeout(() => {
+        setSyncStatus(null);
+      }, 3000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [syncStatus?.type]);
 
   const handleSync = async () => {
     if (!lichessUsername.trim()) {
@@ -41,10 +52,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }) => {
       // Call parent callback with the new games
       onSyncComplete?.(transformedGames);
 
-      // Auto-clear success message after 3 seconds
-      setTimeout(() => {
-        setSyncStatus(null);
-      }, 3000);
+      // Success message will auto-clear via useEffect
 
     } catch (error) {
       console.error('Lichess sync error:', error);
