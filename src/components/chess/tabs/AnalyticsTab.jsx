@@ -21,8 +21,99 @@ const AnalyticsTab = ({
   LichessSyncPanel,
   onLichessSync,
   onRemoveLichessGames,
-  lichessGamesCount
+  lichessGamesCount,
+  games,
+  setGames
 }) => {
+  // Manual game entry state
+  const [showManualEntry, setShowManualEntry] = React.useState(false);
+  const [gameForm, setGameForm] = React.useState({
+    tournament: '',
+    elo: '',
+    opp: '',
+    opp_elo: '',
+    color: 'W',
+    result: 'W',
+    eco: '',
+    rated: true,
+  });
+
+  // Get unique tournament names for dropdown
+  const uniqueTournaments = React.useMemo(() => {
+    const tournaments = [...new Set(games.map(g => g.tournament))];
+    return tournaments.sort();
+  }, [games]);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setGameForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddGame = () => {
+    // Validation
+    if (!gameForm.tournament.trim()) {
+      alert('Tournament name is required');
+      return;
+    }
+    if (!gameForm.elo || isNaN(parseInt(gameForm.elo))) {
+      alert('Valid player ELO is required');
+      return;
+    }
+    if (!gameForm.opp.trim()) {
+      alert('Opponent name is required');
+      return;
+    }
+    if (!gameForm.opp_elo || isNaN(parseInt(gameForm.opp_elo))) {
+      alert('Valid opponent ELO is required');
+      return;
+    }
+
+    const newGame = {
+      elo: parseInt(gameForm.elo),
+      color: gameForm.color,
+      result: gameForm.result,
+      opp: gameForm.opp.trim(),
+      opp_elo: parseInt(gameForm.opp_elo),
+      eco: gameForm.eco.trim() || 'Unknown',
+      tournament: gameForm.tournament.trim(),
+      rated: gameForm.rated,
+      source: 'otb',
+      time: '00:00',
+    };
+
+    setGames(prev => [...prev, newGame]);
+
+    // Reset form
+    setGameForm({
+      tournament: gameForm.tournament, // Keep tournament name
+      elo: gameForm.elo, // Keep ELO
+      opp: '',
+      opp_elo: '',
+      color: 'W',
+      result: 'W',
+      eco: '',
+      rated: true,
+    });
+
+    alert('Game added successfully!');
+  };
+
+  const resetForm = () => {
+    setGameForm({
+      tournament: '',
+      elo: '',
+      opp: '',
+      opp_elo: '',
+      color: 'W',
+      result: 'W',
+      eco: '',
+      rated: true,
+    });
+    setShowManualEntry(false);
+  };
   // Calculate insights
   const insights = useMemo(() => {
     // Best time of day
@@ -112,6 +203,191 @@ const AnalyticsTab = ({
           </div>
         </div>
       </div>
+
+      {/* Manual Game Entry Section */}
+      <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-xl">
+                <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Add Game Manually</h3>
+                <p className="text-sm text-slate-600">Record individual tournament games</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowManualEntry(!showManualEntry)}
+              className="px-4 py-2 text-sm font-medium text-white transition-all duration-300 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105"
+            >
+              {showManualEntry ? '✕ Close Form' : '➕ Add Game'}
+            </button>
+          </div>
+
+          {showManualEntry && (
+            <div className="space-y-4 animate-slideUp">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Tournament Name */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Tournament Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="tournament"
+                    list="tournament-suggestions"
+                    value={gameForm.tournament}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Lago Puelo Open 2025"
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  />
+                  <datalist id="tournament-suggestions">
+                    {uniqueTournaments.map((t, idx) => (
+                      <option key={idx} value={t} />
+                    ))}
+                  </datalist>
+                </div>
+
+                {/* Your ELO */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Your ELO *
+                  </label>
+                  <input
+                    type="number"
+                    name="elo"
+                    value={gameForm.elo}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 1650"
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Opponent Name */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Opponent Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="opp"
+                    value={gameForm.opp}
+                    onChange={handleInputChange}
+                    placeholder="e.g., John Smith"
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Opponent ELO */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Opponent ELO *
+                  </label>
+                  <input
+                    type="number"
+                    name="opp_elo"
+                    value={gameForm.opp_elo}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 1700"
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Color */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Your Color
+                  </label>
+                  <select
+                    name="color"
+                    value={gameForm.color}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  >
+                    <option value="W">⚪ White</option>
+                    <option value="B">⚫ Black</option>
+                  </select>
+                </div>
+
+                {/* Result */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    Result
+                  </label>
+                  <select
+                    name="result"
+                    value={gameForm.result}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  >
+                    <option value="W">✅ Win</option>
+                    <option value="D">➖ Draw</option>
+                    <option value="L">❌ Loss</option>
+                  </select>
+                </div>
+
+                {/* ECO Code */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-slate-700">
+                    ECO Code (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="eco"
+                    value={gameForm.eco}
+                    onChange={handleInputChange}
+                    placeholder="e.g., B23"
+                    className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  />
+                </div>
+
+                {/* Rated */}
+                <div className="flex items-center pt-8">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="rated"
+                      checked={gameForm.rated}
+                      onChange={handleInputChange}
+                      className="w-5 h-5 text-emerald-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="text-sm font-semibold text-slate-700">Rated Game</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleAddGame}
+                  className="px-6 py-2.5 text-sm font-medium text-white transition-all duration-300 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105"
+                >
+                  ✓ Add Game
+                </button>
+                <button
+                  onClick={resetForm}
+                  className="px-6 py-2.5 text-sm font-medium text-slate-700 transition-all bg-slate-100 rounded-xl hover:bg-slate-200"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <LightBulbIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800">
+                  <strong>Tip:</strong> Tournament and ELO are preserved when adding multiple games from the same event. Games are saved automatically to your browser's localStorage.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* PGN Import Section */}
       <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-600"></div>
@@ -165,10 +441,10 @@ const AnalyticsTab = ({
                   Cancel
                 </button>
               </div>
-              <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                <LightBulbIcon className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-800">
-                  <strong>Note:</strong> This is a preview feature. Parsed games will be shown in the console for manual review.
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <LightBulbIcon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-800">
+                  <strong>How to use:</strong> Paste your PGN text, then enter your name as it appears in the games and your ELO rating. Games will be automatically added to your database.
                 </p>
               </div>
             </div>

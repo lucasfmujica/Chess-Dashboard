@@ -298,14 +298,80 @@ const ChessDashboard = () => {
       return;
     }
 
+    // Ask for player's name to identify their games
+    const playerName = prompt(`Found ${parsedGames.length} games. Enter your name as it appears in the PGN (White or Black player name):`);
+    if (!playerName) return;
+
+    // Ask for player's ELO at the time of this tournament
+    const playerElo = prompt('Enter your ELO rating at the time of this tournament:');
+    if (!playerElo || isNaN(parseInt(playerElo))) {
+      alert('Valid ELO rating is required');
+      return;
+    }
+
+    const elo = parseInt(playerElo);
+    const formattedGames = [];
+    let skippedGames = 0;
+
+    parsedGames.forEach(game => {
+      // Determine player's color and opponent
+      let color, oppName, oppElo, result;
+
+      if (game.white && game.white.toLowerCase().includes(playerName.toLowerCase())) {
+        color = 'W';
+        oppName = game.black || 'Unknown';
+        oppElo = game.blackElo || 0;
+        // Convert PGN result format to our format
+        if (game.result === '1-0') result = 'W';
+        else if (game.result === '0-1') result = 'L';
+        else if (game.result === '1/2-1/2') result = 'D';
+        else {
+          skippedGames++;
+          return;
+        }
+      } else if (game.black && game.black.toLowerCase().includes(playerName.toLowerCase())) {
+        color = 'B';
+        oppName = game.white || 'Unknown';
+        oppElo = game.whiteElo || 0;
+        // Convert PGN result format (reversed for black)
+        if (game.result === '0-1') result = 'W';
+        else if (game.result === '1-0') result = 'L';
+        else if (game.result === '1/2-1/2') result = 'D';
+        else {
+          skippedGames++;
+          return;
+        }
+      } else {
+        skippedGames++;
+        return;
+      }
+
+      formattedGames.push({
+        elo,
+        color,
+        result,
+        opp: oppName,
+        opp_elo: oppElo,
+        eco: game.eco || 'Unknown',
+        tournament: game.tournament || 'Imported Tournament',
+        rated: true,
+        source: 'otb',
+        time: '00:00',
+      });
+    });
+
+    if (formattedGames.length === 0) {
+      alert(`Could not match any games to player name "${playerName}". Please check the name and try again.`);
+      return;
+    }
+
     const confirmImport = window.confirm(
-      `Found ${parsedGames.length} games. This is a preview feature. ` +
-      `Imported games would need to be manually added to the games array.`
+      `Ready to import ${formattedGames.length} game(s)${skippedGames > 0 ? ` (${skippedGames} skipped)` : ''}. Continue?`
     );
 
     if (confirmImport) {
-      console.log('Parsed games:', parsedGames);
-      alert(`Successfully parsed ${parsedGames.length} games. Check console for details.`);
+      setGames(prev => [...prev, ...formattedGames]);
+      alert(`Successfully imported ${formattedGames.length} game(s)!`);
       setPgnText('');
       setShowPgnImport(false);
     }
@@ -682,6 +748,8 @@ const ChessDashboard = () => {
             onLichessSync={handleLichessSync}
             onRemoveLichessGames={handleRemoveLichessGames}
             lichessGamesCount={games.filter(g => g.source === 'lichess').length}
+            games={games}
+            setGames={setGames}
           />
         )}
 
