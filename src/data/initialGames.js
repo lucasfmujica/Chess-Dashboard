@@ -57,11 +57,11 @@ export const initialGames = [
   { elo: 1889, color: 'W', result: 'D', opp: 'Dario Castiglioni', opp_elo: 1783, eco: 'A13', tournament: 'Abierto Lago Puelo', rated: true, time: '14:00', source: 'otb', eloChange: -3, kFactor: 20 },
 
   // IRT Soberanía Nacional (game 35+) - In progress
-  { elo: 1861, color: 'W', result: 'W', opp: 'Fernando Quintans', opp_elo: 1670, eco: 'A25', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 5, kFactor: 20 },
+  { elo: 1889, color: 'W', result: 'W', opp: 'Fernando Quintans', opp_elo: 1670, eco: 'A25', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 4, kFactor: 20 },
 ];
 
 export const playerInfo = {
-  current_elo: 1866,
-  elo_change_last_tournament: 5,
+  current_elo: 1865,
+  elo_change_last_tournament: 4,
   last_tournament: 'IRT Soberanía Nacional',
 };
