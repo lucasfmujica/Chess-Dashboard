@@ -4,14 +4,14 @@
  */
 
 export const initialGames = [
-  // Club Argentino de Ajedrez (games 1-7) - Ends at 1727
-  { elo: 1651, color: 'W', result: 'W', opp: 'Marcelo Prieto', opp_elo: 1902, eco: 'A25', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: 32, kFactor: 40 },
-  { elo: 1651, color: 'B', result: 'W', opp: 'Vanesa Guzman', opp_elo: 1756, eco: 'B30', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: 26, kFactor: 40 },
-  { elo: 1651, color: 'W', result: 'D', opp: 'Exequiel Medina', opp_elo: 1858, eco: 'A15', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: 11, kFactor: 40 },
-  { elo: 1651, color: 'B', result: 'L', opp: 'Joaquin Rueda', opp_elo: 1996, eco: 'B26', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: -4, kFactor: 40 },
-  { elo: 1651, color: 'W', result: 'L', opp: 'Walter Montero', opp_elo: 1884, eco: 'A20', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: -8, kFactor: 40 },
-  { elo: 1651, color: 'W', result: 'W', opp: 'Maximiliano Lalli', opp_elo: 1691, eco: 'A37', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: 19, kFactor: 40 },
-  { elo: 1651, color: 'B', result: 'D', opp: 'Ezequiel Paredes', opp_elo: 0, eco: 'B32', tournament: 'Club Argentino de Ajedrez', rated: true, time: '19:00', source: 'otb', eloChange: 0, kFactor: 40 },
+  // IRT Damian Reca (games 1-7) - Ends at 1727
+  { elo: 1651, color: 'W', result: 'W', opp: 'Marcelo Prieto', opp_elo: 1902, eco: 'A25', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 32, kFactor: 40 },
+  { elo: 1651, color: 'B', result: 'W', opp: 'Vanesa Guzman', opp_elo: 1756, eco: 'B30', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 26, kFactor: 40 },
+  { elo: 1651, color: 'W', result: 'D', opp: 'Exequiel Medina', opp_elo: 1858, eco: 'A15', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 11, kFactor: 40 },
+  { elo: 1651, color: 'B', result: 'L', opp: 'Joaquin Rueda', opp_elo: 1996, eco: 'B26', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: -4, kFactor: 40 },
+  { elo: 1651, color: 'W', result: 'L', opp: 'Walter Montero', opp_elo: 1884, eco: 'A20', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: -8, kFactor: 40 },
+  { elo: 1651, color: 'W', result: 'W', opp: 'Maximiliano Lalli', opp_elo: 1691, eco: 'A37', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 19, kFactor: 40 },
+  { elo: 1651, color: 'B', result: 'D', opp: 'Ezequiel Paredes', opp_elo: 0, eco: 'B32', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 0, kFactor: 40 },
 
   // Torre Blanca (games 8-12) - Ends at 1776
   { elo: 1727, color: 'W', result: 'L', opp: 'Raul Adrian Habiaga', opp_elo: 1984, eco: 'A29', tournament: 'Torre Blanca', rated: true, time: '19:00', source: 'otb', eloChange: -5, kFactor: 40 },
@@ -55,10 +55,13 @@ export const initialGames = [
   { elo: 1889, color: 'B', result: 'W', opp: 'Pedro Bustos', opp_elo: 1622, eco: 'B35', tournament: 'Abierto Lago Puelo', rated: true, time: '19:00', source: 'otb', eloChange: 4, kFactor: 20 },
   { elo: 1889, color: 'W', result: 'W', opp: 'Xavier Cugat', opp_elo: 1710, eco: 'A10', tournament: 'Abierto Lago Puelo', rated: true, time: '09:00', source: 'otb', eloChange: 5, kFactor: 20 },
   { elo: 1889, color: 'W', result: 'D', opp: 'Dario Castiglioni', opp_elo: 1783, eco: 'A13', tournament: 'Abierto Lago Puelo', rated: true, time: '14:00', source: 'otb', eloChange: -3, kFactor: 20 },
+
+  // IRT Soberanía Nacional (game 35+) - In progress
+  { elo: 1861, color: 'W', result: 'W', opp: 'Fernando Quintans', opp_elo: 1670, eco: 'A25', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 5, kFactor: 20 },
 ];
 
 export const playerInfo = {
-  current_elo: 1861,
-  elo_change_last_tournament: -28,
-  last_tournament: 'Abierto Lago Puelo',
+  current_elo: 1866,
+  elo_change_last_tournament: 5,
+  last_tournament: 'IRT Soberanía Nacional',
 };

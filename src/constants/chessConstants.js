@@ -14,7 +14,7 @@ export const ELO_CONSTANTS = {
 
 // Tournament Historical Data
 export const TOURNAMENT_DATA = {
-  'Club Argentino de Ajedrez': {
+  'IRT Damian Reca': {
     startElo: 1651,
     eloChange: +76,
     performanceRating: 1777,
@@ -39,15 +39,21 @@ export const TOURNAMENT_DATA = {
     eloChange: -28,
     performanceRating: 1719,
   },
+  'IRT Soberanía Nacional': {
+    startElo: 1861,
+    eloChange: 0,
+    performanceRating: 0,
+  },
 };
 
 // Tournament Order (chronological)
 export const TOURNAMENT_ORDER = [
-  'Club Argentino de Ajedrez',
+  'IRT Damian Reca',
   'Torre Blanca',
   'Masters Ciudad',
   'Abierto Madryn',
   'Abierto Lago Puelo',
+  'IRT Soberanía Nacional',
 ];
 
 // Game Result Values
