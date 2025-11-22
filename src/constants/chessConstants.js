@@ -40,7 +40,7 @@ export const TOURNAMENT_DATA = {
     performanceRating: 1719,
   },
   'IRT Soberanía Nacional': {
-    startElo: 1861,
+    startElo: 1889,
     eloChange: 0,
     performanceRating: 0,
   },
