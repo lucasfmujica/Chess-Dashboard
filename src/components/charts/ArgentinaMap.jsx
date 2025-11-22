@@ -6,9 +6,9 @@ const ArgentinaMap = ({ games }) => {
   // Map tournaments to cities with location data
   const cityData = {
     'Buenos Aires (CABA)': {
-      tournaments: ['Club Argentino de Ajedrez', 'Torre Blanca', 'Masters Ciudad'],
+      tournaments: ['IRT Damian Reca', 'Torre Blanca', 'Masters Ciudad', 'IRT Soberanía Nacional'],
       games: games.filter(g =>
-        ['Club Argentino de Ajedrez', 'Torre Blanca', 'Masters Ciudad'].includes(g.tournament)
+        ['IRT Damian Reca', 'Torre Blanca', 'Masters Ciudad', 'IRT Soberanía Nacional'].includes(g.tournament)
       ),
       coords: { x: '52%', y: '36%' }
     },
