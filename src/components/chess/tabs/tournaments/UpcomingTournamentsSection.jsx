@@ -25,19 +25,19 @@ const UpcomingTournamentsSection = ({
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
       <div className="p-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
               <CalendarIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">Upcoming Tournaments</h2>
-              <p className="text-gray-600">Keep track of your scheduled competitions</p>
+              <h2 className="text-xl sm:text-3xl font-bold text-gray-900">Upcoming Tournaments</h2>
+              <p className="text-sm sm:text-base text-gray-600">Keep track of your scheduled competitions</p>
             </div>
           </div>
           <button
             onClick={() => setIsAddingTournament(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <PlusIcon className="w-5 h-5" />
             Add Tournament
