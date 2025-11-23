@@ -58,10 +58,11 @@ export const initialGames = [
 
   // IRT Soberanía Nacional (game 35+) - In progress
   { elo: 1889, color: 'W', result: 'W', opp: 'Fernando Quintans', opp_elo: 1670, eco: 'A25', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 4, kFactor: 20 },
+  { elo: 1889, color: 'B', result: 'W', opp: 'Tomas Marinesco', opp_elo: 1761, eco: 'B35', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 6, kFactor: 20 },
 ];
 
 export const playerInfo = {
-  current_elo: 1865,
-  elo_change_last_tournament: 4,
+  current_elo: 1871,
+  elo_change_last_tournament: 10,
   last_tournament: 'IRT Soberanía Nacional',
 };
