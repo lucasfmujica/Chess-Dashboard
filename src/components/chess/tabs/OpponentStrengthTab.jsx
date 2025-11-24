@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartHeight } from '../../../utils/chartUtils';
 
 const OpponentStrengthTab = ({ games, currentElo }) => {
+  const [selectedBracket, setSelectedBracket] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const strengthAnalysis = useMemo(() => {
     const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
 
@@ -50,6 +52,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       return {
         ...bracket,
         games: total,
+        bracketGames, // Include actual games for detail view
         wins,
         draws,
         losses,
@@ -98,7 +101,17 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
-          <div key={idx} className="p-6 bg-white border-2 rounded-lg shadow-md" style={{ borderColor: bracket.color }}>
+          <div
+            key={idx}
+            className={`p-6 bg-white border-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
+              selectedBracket?.label === bracket.label ? 'ring-2 ring-offset-2' : ''
+            }`}
+            style={{
+              borderColor: bracket.color,
+              ...(selectedBracket?.label === bracket.label && { ringColor: bracket.color })
+            }}
+            onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
+          >
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-sm font-semibold text-gray-700">{bracket.label}</h3>
               <span className="px-2 py-1 text-xs font-bold text-white rounded" style={{ backgroundColor: bracket.color }}>
@@ -129,10 +142,168 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
                   <span>L: {bracket.losses}</span>
                 </div>
               </div>
+              <div className="mt-2 text-xs text-center text-gray-400">
+                {selectedBracket?.label === bracket.label ? 'Click to close' : 'Click to view games'}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Games Detail Panel */}
+      {selectedBracket && (
+        <div className="p-6 bg-white border-2 rounded-lg shadow-lg" style={{ borderColor: selectedBracket.color }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: selectedBracket.color }}></div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Games vs {selectedBracket.label}
+              </h3>
+              <span className="px-2 py-1 text-xs font-semibold text-white rounded" style={{ backgroundColor: selectedBracket.color }}>
+                {selectedBracket.games} games
+              </span>
+            </div>
+            <button
+              onClick={() => setSelectedBracket(null)}
+              className="p-2 text-gray-400 transition-colors hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-sm text-gray-600">Sort by:</span>
+            {[
+              { key: 'date', label: 'Date' },
+              { key: 'opp_elo', label: 'Opponent ELO' },
+              { key: 'eloDiff', label: 'ELO Diff' },
+              { key: 'result', label: 'Result' },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => {
+                  if (sortConfig.key === key) {
+                    setSortConfig({ key, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                  } else {
+                    setSortConfig({ key, direction: 'desc' });
+                  }
+                }}
+                className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                  sortConfig.key === key
+                    ? 'bg-blue-100 text-blue-700 font-semibold'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {label}
+                {sortConfig.key === key && (
+                  <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Games Table */}
+          <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50 sticky top-0">
+                <tr>
+                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Date</th>
+                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opponent</th>
+                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Your ELO</th>
+                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Opp ELO</th>
+                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Diff</th>
+                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Color</th>
+                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Result</th>
+                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
+                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Tournament</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {[...selectedBracket.bracketGames]
+                  .sort((a, b) => {
+                    let aVal, bVal;
+                    switch (sortConfig.key) {
+                      case 'date':
+                        aVal = new Date(a.date || 0).getTime();
+                        bVal = new Date(b.date || 0).getTime();
+                        break;
+                      case 'opp_elo':
+                        aVal = a.opp_elo;
+                        bVal = b.opp_elo;
+                        break;
+                      case 'eloDiff':
+                        aVal = a.opp_elo - a.elo;
+                        bVal = b.opp_elo - b.elo;
+                        break;
+                      case 'result':
+                        const resultOrder = { W: 3, D: 2, L: 1 };
+                        aVal = resultOrder[a.result] || 0;
+                        bVal = resultOrder[b.result] || 0;
+                        break;
+                      default:
+                        aVal = 0;
+                        bVal = 0;
+                    }
+                    return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                  })
+                  .map((game, idx) => {
+                    const eloDiff = game.opp_elo - game.elo;
+                    return (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-sm text-gray-600">
+                          {game.date ? new Date(game.date).toLocaleDateString() : '-'}
+                        </td>
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900">{game.opp}</td>
+                        <td className="px-4 py-2 text-sm text-center text-gray-600">{game.elo}</td>
+                        <td className="px-4 py-2 text-sm text-center text-gray-600">{game.opp_elo}</td>
+                        <td className="px-4 py-2 text-sm text-center">
+                          <span className={`font-medium ${eloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                            {eloDiff >= 0 ? '+' : ''}{eloDiff}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            game.color === 'W' ? 'bg-white border border-gray-300 text-gray-700' : 'bg-gray-800 text-white'
+                          }`}>
+                            {game.color === 'W' ? 'White' : 'Black'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            game.result === 'W' ? 'bg-green-100 text-green-800' :
+                            game.result === 'D' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-600">{game.eco || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-600 truncate max-w-[200px]" title={game.tournament}>
+                          {game.tournament || '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary Footer */}
+          <div className="flex justify-between items-center mt-4 pt-4 border-t text-sm text-gray-600">
+            <div>
+              Score: <span className="font-semibold">{selectedBracket.score}/{selectedBracket.games}</span> ({selectedBracket.scorePercentage}%)
+            </div>
+            <div className="flex gap-4">
+              <span className="text-green-600">W: {selectedBracket.wins}</span>
+              <span className="text-yellow-600">D: {selectedBracket.draws}</span>
+              <span className="text-red-600">L: {selectedBracket.losses}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Performance vs Expected Chart - Enhanced */}
       <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
@@ -239,7 +410,10 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
 
       {/* Detailed Breakdown Table */}
       <div className="p-6 bg-white rounded-lg shadow-md border border-slate-200">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">Detailed Strength Analysis</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Detailed Strength Analysis</h3>
+          <span className="text-xs text-gray-400">Click any row to view games</span>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">
@@ -256,14 +430,22 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
+                <tr
+                  key={idx}
+                  className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                    selectedBracket?.label === bracket.label ? 'bg-blue-50' : ''
+                  }`}
+                  onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
+                >
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center">
                       <div className="w-3 h-3 mr-2 rounded-full" style={{ backgroundColor: bracket.color }}></div>
                       <span className="font-medium text-gray-900">{bracket.label}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-700">{bracket.games}</td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-700">
+                    <span className="underline decoration-dotted decoration-gray-400">{bracket.games}</span>
+                  </td>
                   <td className="px-6 py-4 text-sm text-center text-gray-700">
                     <span className="text-green-600">{bracket.wins}</span>-
                     <span className="text-yellow-600">{bracket.draws}</span>-
