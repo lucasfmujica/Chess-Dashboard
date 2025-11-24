@@ -5,21 +5,23 @@ import { getChartHeight } from '../../../utils/chartUtils';
 
 const OpponentStrengthTab = ({ games, currentElo }) => {
   const strengthAnalysis = useMemo(() => {
-    const ratedGames = games.filter(g => g.rated && g.opp_elo > 0);
+    const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
 
-    // Define ELO brackets relative to current rating
+    // Define ELO brackets based on rating difference (opp_elo - player_elo at time of game)
     const brackets = [
-      { label: 'Much Lower (-200+)', min: -Infinity, max: currentElo - 200, color: '#10b981' },
-      { label: 'Lower (-100 to -199)', min: currentElo - 199, max: currentElo - 100, color: '#22c55e' },
-      { label: 'Similar (±99)', min: currentElo - 99, max: currentElo + 99, color: '#3b82f6' },
-      { label: 'Higher (+100 to +199)', min: currentElo + 100, max: currentElo + 199, color: '#f59e0b' },
-      { label: 'Much Higher (+200+)', min: currentElo + 200, max: Infinity, color: '#ef4444' },
+      { label: 'Much Lower (-200+)', minDiff: -Infinity, maxDiff: -200, color: '#10b981' },
+      { label: 'Lower (-100 to -199)', minDiff: -199, maxDiff: -100, color: '#22c55e' },
+      { label: 'Similar (±99)', minDiff: -99, maxDiff: 99, color: '#3b82f6' },
+      { label: 'Higher (+100 to +199)', minDiff: 100, maxDiff: 199, color: '#f59e0b' },
+      { label: 'Much Higher (+200+)', minDiff: 200, maxDiff: Infinity, color: '#ef4444' },
     ];
 
     const analysis = brackets.map(bracket => {
-      const bracketGames = ratedGames.filter(
-        g => g.opp_elo >= bracket.min && g.opp_elo < bracket.max
-      );
+      // Filter games based on rating difference at time of game
+      const bracketGames = ratedGames.filter(g => {
+        const diff = g.opp_elo - g.elo;
+        return diff >= bracket.minDiff && diff <= bracket.maxDiff;
+      });
 
       const wins = bracketGames.filter(g => g.result === 'W').length;
       const draws = bracketGames.filter(g => g.result === 'D').length;
@@ -29,14 +31,14 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
       const scorePercentage = total > 0 ? ((score / total) * 100).toFixed(1) : 0;
 
-      // Calculate average ELO difference
+      // Calculate average ELO difference using player's ELO at time of each game
       const avgEloDiff = total > 0
-        ? (bracketGames.reduce((sum, g) => sum + (g.opp_elo - currentElo), 0) / total).toFixed(0)
+        ? (bracketGames.reduce((sum, g) => sum + (g.opp_elo - g.elo), 0) / total).toFixed(0)
         : 0;
 
-      // Calculate expected score
+      // Calculate expected score using player's ELO at time of each game
       const expectedScore = bracketGames.reduce((sum, g) => {
-        const ratingDiff = g.opp_elo - currentElo;
+        const ratingDiff = g.opp_elo - g.elo;
         const expected = 1 / (1 + Math.pow(10, ratingDiff / 400));
         return sum + expected;
       }, 0);
@@ -61,7 +63,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
     });
 
     return analysis;
-  }, [games, currentElo]);
+  }, [games]);
 
   const chartData = useMemo(() => {
     return strengthAnalysis.map(bracket => ({
@@ -73,10 +75,11 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
   }, [strengthAnalysis]);
 
   const strengthTrend = useMemo(() => {
-    const ratedGames = games.filter(g => g.rated && g.opp_elo > 0);
+    const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
 
     return ratedGames.map((game, idx) => {
-      const eloDiff = game.opp_elo - currentElo;
+      // Use player's ELO at time of game, not current ELO
+      const eloDiff = game.opp_elo - game.elo;
       const result = game.result === 'W' ? 1 : game.result === 'D' ? 0.5 : 0;
 
       return {
@@ -85,9 +88,10 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
         result: result * 100,
         opponent: game.opp,
         oppElo: game.opp_elo,
+        playerElo: game.elo,
       };
     });
-  }, [games, currentElo]);
+  }, [games]);
 
   return (
     <div className="space-y-6">
@@ -313,6 +317,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
                   return (
                     <div className="p-3 bg-white border border-gray-300 rounded shadow">
                       <p className="font-semibold">Game {data.game}</p>
+                      <p className="text-sm">Your ELO: {data.playerElo}</p>
                       <p className="text-sm">vs {data.opponent} ({data.oppElo})</p>
                       <p className="text-sm">ELO Diff: {data.eloDiff >= 0 ? '+' : ''}{data.eloDiff}</p>
                       <p className="text-sm">Result: {data.result}%</p>
@@ -372,6 +377,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
 OpponentStrengthTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.shape({
     rated: PropTypes.bool,
+    elo: PropTypes.number,
     opp_elo: PropTypes.number,
     result: PropTypes.string,
     opp: PropTypes.string,
