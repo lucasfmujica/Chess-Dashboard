@@ -26,7 +26,7 @@ const RatingTab = ({ eloHistory }) => {
     const currentElo = eloHistory[eloHistory.length - 1].elo;
     const highestElo = Math.max(...eloValues);
     const lowestElo = Math.min(...eloValues);
-    const totalChange = currentElo - eloHistory[0].elo;
+    const totalChange = currentElo - eloHistory[0].eloBefore;
 
     // Calculate biggest gain and loss
     let biggestGain = 0;
