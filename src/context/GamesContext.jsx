@@ -100,7 +100,7 @@ export const useComputedStats = (gameFilter) => {
   const gameStats = useGameStats(games, filteredGames, ratedGames);
   const trendsAndAnalytics = useTrendsAndAnalytics(games, ratedGames);
 
-  const { games: gamesFromContext, mainRepertoire, targetElo, targetDate } = useGames();
+  const { mainRepertoire, targetElo, targetDate } = useGames();
   const { allOpeningsStats } = gameStats;
 
   const repertoireAnalysis = useRepertoireAnalysis(ratedGames, allOpeningsStats, mainRepertoire);
