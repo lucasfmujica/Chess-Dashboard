@@ -46,8 +46,8 @@ export const TOURNAMENT_DATA = {
   },
   'IRT Carnaval': {
     startElo: 1880,
-    eloChange: -3,
-    performanceRating: 1766,
+    eloChange: +1,
+    performanceRating: 1843,
   },
 };
 
