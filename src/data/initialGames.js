@@ -62,10 +62,14 @@ export const initialGames = [
   { elo: 1889, color: 'B', result: 'W', opp: 'Ezequiel Gullace', opp_elo: 1933, eco: 'A45', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 12, kFactor: 20 },
   { elo: 1889, color: 'W', result: 'L', opp: 'Stefan Botz', opp_elo: 1916, eco: 'A20', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: -10, kFactor: 20 },
   { elo: 1889, color: 'B', result: 'W', opp: 'Thiago Chocala', opp_elo: 1743, eco: 'B35', tournament: 'IRT Soberanía Nacional', rated: true, source: 'otb', eloChange: 7, kFactor: 20 },
+
+  // IRT Carnaval - CAVP (game 40+) - In progress
+  { elo: 1880, color: 'W', result: 'W', opp: 'Thiago Bowerman', opp_elo: 1470, eco: 'A20', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: 2, kFactor: 20 },
+  { elo: 1880, color: 'B', result: 'L', opp: 'Fernando Gil Chacon', opp_elo: 2062, eco: 'B34', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: -5, kFactor: 20 },
 ];
 
 export const playerInfo = {
   current_elo: 1880,
-  elo_change_last_tournament: 19,
-  last_tournament: 'IRT Soberanía Nacional',
+  elo_change_last_tournament: -3,
+  last_tournament: 'IRT Carnaval',
 };
