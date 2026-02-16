@@ -44,6 +44,11 @@ export const TOURNAMENT_DATA = {
     eloChange: +19,
     performanceRating: 2046,
   },
+  'IRT Carnaval': {
+    startElo: 1880,
+    eloChange: -3,
+    performanceRating: 1766,
+  },
 };
 
 // Tournament Order (chronological)
@@ -54,6 +59,7 @@ export const TOURNAMENT_ORDER = [
   'Abierto Madryn',
   'Abierto Lago Puelo',
   'IRT Soberanía Nacional',
+  'IRT Carnaval',
 ];
 
 // Game Result Values

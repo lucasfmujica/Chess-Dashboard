@@ -22,6 +22,7 @@ export const ecoNames = {
   "B30": "Sicilian: Old Sicilian",
   "B31": "Sicilian: Nyezhmetdinov-Rossolimo",
   "B32": "Sicilian: Open",
+  "B34": "Sicilian: Accelerated Dragon",
   "B35": "Sicilian: Accelerated Dragon",
   "B37": "Sicilian: Accelerated Dragon",
   "E91": "King's Indian: Classical"
