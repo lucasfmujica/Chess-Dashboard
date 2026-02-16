@@ -25,7 +25,7 @@ const GameAnnotationTab = ({ games }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Available tags
-  const tags = [
+  const tags = useMemo(() => [
     { id: 'brilliant-attack', label: 'Brilliant Attack', color: 'emerald', icon: '⚔️' },
     { id: 'endgame-technique', label: 'Endgame Technique', color: 'blue', icon: '♔' },
     { id: 'tactical-shot', label: 'Tactical Shot', color: 'purple', icon: '⚡' },
@@ -34,7 +34,7 @@ const GameAnnotationTab = ({ games }) => {
     { id: 'blunder', label: 'Blunder to Study', color: 'rose', icon: '❌' },
     { id: 'sacrifice', label: 'Brilliant Sacrifice', color: 'fuchsia', icon: '💎' },
     { id: 'defensive-resource', label: 'Defensive Resource', color: 'cyan', icon: '🛡️' }
-  ];
+  ], []);
 
   // Symbols for notation
   const symbols = [
@@ -103,7 +103,7 @@ const GameAnnotationTab = ({ games }) => {
       : 0;
 
     return { total, byTag, avgRating };
-  }, [annotatedGames]);
+  }, [annotatedGames, tags]);
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 type ModalType = 'alert' | 'confirm' | 'prompt';
 
@@ -40,17 +40,17 @@ const Modal: React.FC<ModalProps> = ({
     }
   }, [isOpen, type]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (type === 'prompt') {
       onConfirm?.(inputValue);
     } else {
       onConfirm?.();
     }
-  };
+  }, [type, inputValue, onConfirm]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     onCancel?.();
-  };
+  }, [onCancel]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -74,7 +74,7 @@ const Modal: React.FC<ModalProps> = ({
       document.removeEventListener('keydown', handleEscape);
       document.removeEventListener('keydown', handleEnter);
     };
-  }, [isOpen, type, inputValue, onConfirm, onCancel]);
+  }, [isOpen, type, handleConfirm, handleCancel]);
 
   if (!isOpen) return null;
 
