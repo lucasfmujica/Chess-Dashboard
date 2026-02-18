@@ -68,10 +68,12 @@ export const initialGames = [
   { elo: 1880, color: 'B', result: 'L', opp: 'Fernando Gil Chacon', opp_elo: 2062, eco: 'B34', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: -5, kFactor: 20 },
   { elo: 1880, color: 'W', result: 'W', opp: 'Lorenzo Candiloro', opp_elo: 1637, eco: 'A20', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: 4, kFactor: 20 },
   { elo: 1880, color: 'B', result: 'D', opp: 'Jonathan Borras', opp_elo: 1743, eco: 'B22', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: -4, kFactor: 20 },
+  { elo: 1880, color: 'B', result: 'L', opp: 'Gustavo Aguila', opp_elo: 2149, eco: 'A05', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: -6, kFactor: 20 },
+  { elo: 1880, color: 'W', result: 'W', opp: 'Anibal Borras', opp_elo: 1688, eco: 'A15', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: 5, kFactor: 20 },
 ];
 
 export const playerInfo = {
   current_elo: 1880,
-  elo_change_last_tournament: -3,
+  elo_change_last_tournament: -4,
   last_tournament: 'IRT Carnaval',
 };
