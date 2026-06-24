@@ -3,15 +3,52 @@
  * Fetches games from Lichess.org for a given username
  */
 
+import type { Game, GameResult, LichessSpeed } from '../types/chess';
+
 const LICHESS_API_BASE = 'https://lichess.org/api';
 
+export interface FetchLichessOptions {
+  max?: number;
+  rated?: boolean;
+  perfType?: string;
+  since?: number | null;
+  until?: number | null;
+}
+
+interface LichessPlayer {
+  user?: { name?: string; id?: string };
+  rating?: number;
+}
+
+/** Shape of a Lichess game as returned by the public API (fields we use). */
+export interface LichessRawGame {
+  id: string;
+  rated: boolean;
+  createdAt: number;
+  winner?: 'white' | 'black';
+  speed?: LichessSpeed;
+  players: { white: LichessPlayer; black: LichessPlayer };
+  opening?: { eco?: string; name?: string };
+  tournament?: { name?: string } | string;
+  clock?: { initial: number; increment: number };
+}
+
+export interface LichessUserRating {
+  classical: number | null;
+  rapid: number | null;
+  blitz: number | null;
+  bullet: number | null;
+  username: string;
+  id: string;
+}
+
 /**
- * Fetch games from Lichess for a specific user
- * @param {string} username - Lichess username
- * @param {Object} options - Query options
- * @returns {Promise<Array>} Array of game objects
+ * Fetch games from Lichess for a specific user.
  */
-export const fetchLichessGames = async (username, options = {}) => {
+export const fetchLichessGames = async (
+  username: string,
+  options: FetchLichessOptions = {}
+): Promise<LichessRawGame[]> => {
   const {
     max = 50,
     rated = true,
@@ -38,7 +75,7 @@ export const fetchLichessGames = async (username, options = {}) => {
       `${LICHESS_API_BASE}/games/user/${username}?${params.toString()}`,
       {
         headers: {
-          'Accept': 'application/x-ndjson',
+          Accept: 'application/x-ndjson',
         },
       }
     );
@@ -50,7 +87,7 @@ export const fetchLichessGames = async (username, options = {}) => {
     const text = await response.text();
 
     // Parse NDJSON (newline-delimited JSON)
-    const games = text
+    const games: LichessRawGame[] = text
       .trim()
       .split('\n')
       .filter(line => line.trim())
@@ -64,12 +101,9 @@ export const fetchLichessGames = async (username, options = {}) => {
 };
 
 /**
- * Transform Lichess game data to match our app's game format
- * @param {Array} lichessGames - Raw games from Lichess API
- * @param {string} username - The user's Lichess username
- * @returns {Array} Games in our app format
+ * Transform Lichess game data to match our app's game format.
  */
-export const transformLichessGames = (lichessGames, username) => {
+export const transformLichessGames = (lichessGames: LichessRawGame[], username: string): Game[] => {
   return lichessGames.map(game => {
     const isWhite = game.players.white.user?.name?.toLowerCase() === username.toLowerCase();
     const playerColor = isWhite ? 'white' : 'black';
@@ -79,7 +113,7 @@ export const transformLichessGames = (lichessGames, username) => {
     const opponentData = game.players[opponentColor];
 
     // Determine result from player's perspective
-    let result;
+    let result: GameResult;
     if (game.winner === playerColor) {
       result = 'W';
     } else if (game.winner === opponentColor) {
@@ -88,6 +122,9 @@ export const transformLichessGames = (lichessGames, username) => {
       result = 'D'; // Draw or no winner
     }
 
+    const tournamentName =
+      typeof game.tournament === 'string' ? game.tournament : game.tournament?.name;
+
     return {
       elo: playerData.rating || 0,
       color: isWhite ? 'W' : 'B',
@@ -95,7 +132,7 @@ export const transformLichessGames = (lichessGames, username) => {
       opp: opponentData.user?.name || 'Anonymous',
       opp_elo: opponentData.rating || 0,
       eco: game.opening?.eco || 'Unknown',
-      tournament: game.tournament?.name || 'Lichess Online',
+      tournament: tournamentName || 'Lichess Online',
       rated: game.rated,
       time: new Date(game.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       date: new Date(game.createdAt).toISOString().split('T')[0],
@@ -109,11 +146,9 @@ export const transformLichessGames = (lichessGames, username) => {
 };
 
 /**
- * Get user's current rating from Lichess
- * @param {string} username - Lichess username
- * @returns {Promise<Object>} User rating data
+ * Get user's current rating from Lichess.
  */
-export const fetchLichessUserRating = async (username) => {
+export const fetchLichessUserRating = async (username: string): Promise<LichessUserRating> => {
   try {
     const response = await fetch(`${LICHESS_API_BASE}/user/${username}`);
 
@@ -138,25 +173,18 @@ export const fetchLichessUserRating = async (username) => {
 };
 
 /**
- * Merge Lichess games with existing local games, removing duplicates
- * @param {Array} existingGames - Current games in the app
- * @param {Array} newGames - New games from Lichess
- * @returns {Array} Merged games without duplicates
+ * Merge Lichess games with existing local games, removing duplicates.
  */
-export const mergeGames = (existingGames, newGames) => {
-  const gameMap = new Map();
+export const mergeGames = (existingGames: Game[], newGames: Game[]): Game[] => {
+  const gameMap = new Map<string, Game>();
+
+  const keyFor = (game: Game): string =>
+    game.gameId || `${game.tournament}-${game.opp}-${game.date}`;
 
   // Add existing games first
-  existingGames.forEach(game => {
-    const key = game.gameId || `${game.tournament}-${game.opp}-${game.date}`;
-    gameMap.set(key, game);
-  });
-
+  existingGames.forEach(game => gameMap.set(keyFor(game), game));
   // Add new games (will overwrite if duplicate key)
-  newGames.forEach(game => {
-    const key = game.gameId || `${game.tournament}-${game.opp}-${game.date}`;
-    gameMap.set(key, game);
-  });
+  newGames.forEach(game => gameMap.set(keyFor(game), game));
 
   return Array.from(gameMap.values());
 };

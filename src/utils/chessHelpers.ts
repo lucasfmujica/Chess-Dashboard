@@ -1,16 +1,15 @@
+import type { WeeklyPlans, WeekDate, WeekStats } from '../types/training';
+
 /**
  * Returns the current date. Centralized so date-dependent features use a single
  * source of truth (and so it can be mocked in tests).
- * @returns {Date}
  */
-export const getToday = () => new Date();
+export const getToday = (): Date => new Date();
 
 /**
  * Format a Date as a local YYYY-MM-DD string (no UTC shift).
- * @param {Date} date
- * @returns {string}
  */
-export const formatLocalDate = (date) => {
+export const formatLocalDate = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -19,13 +18,12 @@ export const formatLocalDate = (date) => {
 
 /**
  * Today's date as a local YYYY-MM-DD string.
- * @returns {string}
  */
-export const getTodayStr = () => formatLocalDate(getToday());
+export const getTodayStr = (): string => formatLocalDate(getToday());
 
-export const getWeekDates = (startDate) => {
+export const getWeekDates = (startDate: string): WeekDate[] => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const dates = [];
+  const dates: WeekDate[] = [];
   const [year, month, day] = startDate.split('-').map(Number);
   const start = new Date(year, month - 1, day); // month is 0-indexed
 
@@ -38,13 +36,13 @@ export const getWeekDates = (startDate) => {
     dates.push({
       day: days[i],
       date: `${dateYear}-${dateMonth}-${dateDay}`,
-      displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     });
   }
   return dates;
 };
 
-export const getCurrentWeekStart = () => {
+export const getCurrentWeekStart = (): string => {
   const today = getToday();
   const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
   const startOfWeek = new Date(today);
@@ -54,14 +52,14 @@ export const getCurrentWeekStart = () => {
   return formatLocalDate(startOfWeek);
 };
 
-export const getWeekStats = (weeklyPlans, weekStart) => {
+export const getWeekStats = (weeklyPlans: WeeklyPlans, weekStart: string): WeekStats => {
   const plan = weeklyPlans[weekStart] || {};
   const dates = getWeekDates(weekStart);
 
   let totalPlannedMinutes = 0;
   let daysPlanned = 0;
   let restDays = 0;
-  const activityCounts = {};
+  const activityCounts: Record<string, number> = {};
 
   dates.forEach(({ date }) => {
     const dayPlan = plan[date] || [];
@@ -87,6 +85,6 @@ export const getWeekStats = (weeklyPlans, weekStart) => {
     daysPlanned,
     restDays,
     activityCounts,
-    avgMinutesPerDay: activeDays > 0 ? Math.round(totalPlannedMinutes / activeDays) : 0
+    avgMinutesPerDay: activeDays > 0 ? Math.round(totalPlannedMinutes / activeDays) : 0,
   };
 };
