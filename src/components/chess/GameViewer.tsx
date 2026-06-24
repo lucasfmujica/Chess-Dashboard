@@ -1,15 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
+  ArrowsUpDownIcon,
 } from '@heroicons/react/24/solid';
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import { useGameReplay } from '../../hooks/useGameReplay';
 import { useGameAnalysis } from '../../hooks/useGameAnalysis';
 import type { MoveQuality } from '../../engine/analyzeGame';
+import MovesExplorer from './MovesExplorer';
 
 interface GameViewerProps {
   pgn?: string;
@@ -17,6 +19,8 @@ interface GameViewerProps {
   white?: string;
   black?: string;
   result?: string;
+  /** Show the Lichess masters opening explorer for the current position. */
+  showExplorer?: boolean;
 }
 
 const QUALITY_META: Partial<Record<MoveQuality, { sym: string; cls: string }>> = {
@@ -55,11 +59,16 @@ const ControlButton = ({
   </button>
 );
 
-const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameViewerProps) => {
+const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExplorer = false }: GameViewerProps) => {
   const replay = useGameReplay(pgn);
   const { fen, fens, sans, ply, totalPlies, isValid, error, goTo, next, prev, first, last } = replay;
   const { analysis, analyzing, progress, error: analysisError, analyze, cancel } = useGameAnalysis(pgn, fens);
+  const [flipped, setFlipped] = useState(false);
   const moveListRef = useRef<HTMLDivElement>(null);
+
+  const boardOrientation: 'white' | 'black' = (orientation === 'white') !== flipped ? 'white' : 'black';
+
+  useEffect(() => setFlipped(false), [pgn]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -82,11 +91,10 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
     rows.push({ num: i / 2 + 1, white: sans[i], black: sans[i + 1] });
   }
 
-  // Eval bar (chess.com style): white-advantage fill + numeric eval at the
-  // winning side, oriented with the board.
+  // Eval bar (chess.com style)
   const currentEval = analysis ? analysis.evals[ply] ?? 0 : 0;
   const whiteFraction = analysis ? winPct(currentEval) / 100 : 0.5;
-  const flip = orientation === 'black';
+  const flip = boardOrientation === 'black';
   const whiteWinning = currentEval >= 0;
   const labelAtBottom = whiteWinning !== flip;
   const isMate = Math.abs(currentEval) >= 9000;
@@ -119,16 +127,13 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
             className="relative w-7 rounded-md overflow-hidden border border-hairline bg-slate-900"
             title={analysis ? `Evaluation ${formatEval(currentEval)} (White's perspective)` : 'Run analysis to see the evaluation'}
           >
-            {/* White's share, anchored to the white side of the board */}
             <div
               className="absolute left-0 right-0 bg-white transition-all duration-200"
               style={flip ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
             />
             {analysis && (
               <span
-                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${
-                  whiteWinning ? 'text-slate-900' : 'text-white'
-                }`}
+                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-slate-900' : 'text-white'}`}
                 style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
               >
                 {evalLabel}
@@ -140,7 +145,7 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
             <Chessboard
               options={{
                 position: fen,
-                boardOrientation: orientation,
+                boardOrientation,
                 allowDragging: false,
                 showNotation: true,
                 animationDurationInMs: 150,
@@ -151,13 +156,16 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
 
         {/* Controls */}
         <div className="mt-3 flex items-center justify-center gap-2">
+          <ControlButton onClick={() => setFlipped(f => !f)} label="Flip board">
+            <ArrowsUpDownIcon className="w-4 h-4" />
+          </ControlButton>
           <ControlButton onClick={first} disabled={ply === 0} label="First move">
             <ChevronDoubleLeftIcon className="w-4 h-4" />
           </ControlButton>
           <ControlButton onClick={prev} disabled={ply === 0} label="Previous move">
             <ChevronLeftIcon className="w-4 h-4" />
           </ControlButton>
-          <span className="min-w-[70px] text-center text-sm text-fg-muted tabular-nums">
+          <span className="min-w-[64px] text-center text-sm text-fg-muted tabular-nums">
             {ply} / {totalPlies}
           </span>
           <ControlButton onClick={next} disabled={ply >= totalPlies} label="Next move">
@@ -170,10 +178,10 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
         <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
       </div>
 
-      {/* Move list / analysis */}
-      <div className="flex-1 min-w-0">
+      {/* Move list / analysis / explorer */}
+      <div className="flex-1 min-w-0 space-y-3">
         {(white || black) && (
-          <div className="mb-3 text-sm">
+          <div className="text-sm">
             <span className="font-semibold text-fg">{white || 'White'}</span>
             <span className="text-fg-subtle"> vs </span>
             <span className="font-semibold text-fg">{black || 'Black'}</span>
@@ -183,7 +191,7 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
 
         {/* Analysis panel */}
         {isValid && (
-          <div className="mb-3 rounded-lg border border-hairline bg-surface-2 p-3">
+          <div className="rounded-lg border border-hairline bg-surface-2 p-3">
             {!analysis && !analyzing && (
               <button
                 onClick={analyze}
@@ -217,12 +225,15 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
           </div>
         )}
 
+        {/* Opening explorer (masters) */}
+        {showExplorer && <MovesExplorer fen={fen} playedMove={sans[ply]} />}
+
         {!isValid ? (
           <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
             {error || 'This game has no recorded moves to replay.'}
           </div>
         ) : (
-          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[420px] overflow-y-auto">
+          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[360px] overflow-y-auto">
             <table className="w-full text-sm">
               <tbody>
                 {rows.map(row => {
