@@ -67,15 +67,15 @@ const ArgentinaMap = ({ games }: ArgentinaMapProps) => {
   };
 
   return (
-    <div className="relative p-6 bg-white rounded-lg shadow-lg">
-      <h3 className="mb-4 text-xl font-bold text-gray-800">Partidas por Ciudad</h3>
+    <div className="relative p-6 bg-surface rounded-lg border border-hairline">
+      <h3 className="mb-4 text-lg font-semibold text-fg">Partidas por Ciudad</h3>
 
       <div className="relative w-full max-w-md mx-auto">
         {/* Argentina map */}
         <img
           src="/argentina_map.avif"
           alt="Mapa de Argentina"
-          className="w-full h-auto rounded-lg shadow-md"
+          className="w-full h-auto rounded-lg border border-hairline dark:opacity-90"
         />
 
         {/* City markers overlay */}
