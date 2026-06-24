@@ -1,8 +1,18 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { ClockIcon, FireIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
-const ConsistencyInsights = ({ streaksData }) => {
+interface ConsistencyInsightsData {
+  consistency: number;
+  currentWinStreak: number;
+  currentUnbeatenStreak: number;
+  currentLossStreak: number;
+  gamesThisWeek: number;
+}
+
+interface ConsistencyInsightsProps {
+  streaksData: ConsistencyInsightsData;
+}
+
+const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
   const getFrequencyMessage = () => {
     if (streaksData.consistency >= 75) return 'Excellent! Very consistent player';
     if (streaksData.consistency >= 50) return 'Good! Playing regularly';
@@ -60,16 +70,6 @@ const ConsistencyInsights = ({ streaksData }) => {
       </div>
     </div>
   );
-};
-
-ConsistencyInsights.propTypes = {
-  streaksData: PropTypes.shape({
-    consistency: PropTypes.number.isRequired,
-    currentWinStreak: PropTypes.number.isRequired,
-    currentUnbeatenStreak: PropTypes.number.isRequired,
-    currentLossStreak: PropTypes.number.isRequired,
-    gamesThisWeek: PropTypes.number.isRequired,
-  }).isRequired,
 };
 
 export default ConsistencyInsights;

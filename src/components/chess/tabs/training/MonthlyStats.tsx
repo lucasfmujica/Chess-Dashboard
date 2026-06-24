@@ -1,10 +1,20 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { getWeekStats } from '../../../../utils/chessHelpers';
+import type { WeeklyPlans } from '../../../../types/training';
 
-const MonthlyStats = ({ weeklyPlans }) => {
+interface MonthlyData {
+  totalMinutes: number;
+  weeksPlanned: number;
+  totalActivities: number;
+  monthName: string;
+}
+
+interface MonthlyStatsProps {
+  weeklyPlans: WeeklyPlans;
+}
+
+const MonthlyStats = ({ weeklyPlans }: MonthlyStatsProps) => {
   // Calculate monthly stats from all weekly plans
-  const monthlyData = {};
+  const monthlyData: Record<string, MonthlyData> = {};
 
   Object.entries(weeklyPlans).forEach(([weekKey, weekPlan]) => {
     const weekDate = new Date(weekKey);
@@ -86,10 +96,6 @@ const MonthlyStats = ({ weeklyPlans }) => {
       </div>
     </div>
   );
-};
-
-MonthlyStats.propTypes = {
-  weeklyPlans: PropTypes.object.isRequired,
 };
 
 export default MonthlyStats;

@@ -1,9 +1,26 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { ChartBarIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import FormCard from './FormCard';
+import type { GameResult, MonthlyStat } from '../../../../types/chess';
 
-const RecentFormSection = ({ formStats, monthlyStats }) => {
+interface FormPeriodStats {
+  wins: number;
+  draws: number;
+  losses: number;
+  percentage: string | number;
+  results: GameResult[];
+}
+
+interface FormStats {
+  last5: FormPeriodStats;
+  last10: FormPeriodStats;
+}
+
+interface RecentFormSectionProps {
+  formStats?: FormStats | null;
+  monthlyStats?: MonthlyStat[];
+}
+
+const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) => {
   if (!formStats) return null;
 
   return (
@@ -104,26 +121,6 @@ const RecentFormSection = ({ formStats, monthlyStats }) => {
       </div>
     </div>
   );
-};
-
-RecentFormSection.propTypes = {
-  formStats: PropTypes.shape({
-    last5: PropTypes.shape({
-      wins: PropTypes.number.isRequired,
-      draws: PropTypes.number.isRequired,
-      losses: PropTypes.number.isRequired,
-      percentage: PropTypes.number.isRequired,
-      results: PropTypes.arrayOf(PropTypes.string).isRequired,
-    }).isRequired,
-    last10: PropTypes.shape({
-      wins: PropTypes.number.isRequired,
-      draws: PropTypes.number.isRequired,
-      losses: PropTypes.number.isRequired,
-      percentage: PropTypes.number.isRequired,
-      results: PropTypes.arrayOf(PropTypes.string).isRequired,
-    }).isRequired,
-  }),
-  monthlyStats: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default RecentFormSection;

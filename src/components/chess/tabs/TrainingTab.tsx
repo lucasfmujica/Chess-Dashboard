@@ -23,7 +23,7 @@ interface TrainingTabProps {
   setWeeklyHours: (value: number) => void;
   getCurrentWeekPlan: () => WeekPlan;
   updateDayPlan: (date: string, plan: DayPlan) => void;
-  exportToGoogleCalendar: (date: string, dayPlan: DayPlan) => void;
+  exportToGoogleCalendar: (date: string, dayPlan: DayPlan, note: string) => void;
 }
 
 const motivationalQuotes = [

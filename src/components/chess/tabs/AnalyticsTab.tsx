@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+import type { ComponentType } from 'react';
 import { useGameForm } from '../../../hooks/useGameForm';
 import { useModal } from '../../modals/ModalContext';
 import AnalyticsHero from './analytics/AnalyticsHero';
@@ -7,6 +7,48 @@ import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
 import TournamentComparison from './analytics/TournamentComparison';
+import type { Game } from '../../../types/chess';
+
+/** Per time-of-day-slot aggregate row. */
+interface TimeOfDayStat {
+  time: string;
+  total: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: string;
+}
+
+/** A single entry from useTrendsAndAnalytics.tournamentComparison. */
+interface TournamentComparisonEntry {
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: number;
+  avgOppElo: number;
+  playerElo: number;
+  eloChange: number;
+  performance: number | null;
+}
+
+interface AnalyticsTabProps {
+  showPgnImport: boolean;
+  setShowPgnImport: React.Dispatch<React.SetStateAction<boolean>>;
+  pgnText: string;
+  setPgnText: React.Dispatch<React.SetStateAction<string>>;
+  handlePgnImport: () => void;
+  timeOfDayStats: TimeOfDayStat[];
+  tournamentComparison: TournamentComparisonEntry[];
+  LichessSyncPanel: ComponentType<Record<string, unknown>>;
+  onLichessSync: (games: Game[]) => void;
+  onRemoveLichessGames: () => void;
+  lichessGamesCount: number;
+  games: Game[];
+  setGames: (v: Game[] | ((p: Game[]) => Game[])) => void;
+}
 
 const AnalyticsTab = ({
   showPgnImport,
@@ -22,7 +64,7 @@ const AnalyticsTab = ({
   lichessGamesCount,
   games,
   setGames
-}) => {
+}: AnalyticsTabProps) => {
   // Modal functions
   const modal = useModal();
 
@@ -47,13 +89,13 @@ const AnalyticsTab = ({
   // Calculate insights
   const insights = useMemo(() => {
     // Best time of day
-    const bestTimeSlot = timeOfDayStats.reduce((best, current) =>
-      parseFloat(current.score) > parseFloat(best.score) ? current : best
+    const bestTimeSlot = timeOfDayStats.reduce<{ time?: string; score?: string }>((best, current) =>
+      parseFloat(current.score) > parseFloat(best.score ?? '0') ? current : best
     , timeOfDayStats[0] || {});
 
     // Best tournament
-    const bestTournament = tournamentComparison.reduce((best, current) =>
-      current.performance > best.performance ? current : best
+    const bestTournament = tournamentComparison.reduce<Partial<TournamentComparisonEntry>>((best, current) =>
+      (current.performance ?? 0) > (best.performance ?? 0) ? current : best
     , tournamentComparison[0] || {});
 
     // Total games across all time slots
@@ -66,7 +108,10 @@ const AnalyticsTab = ({
 
     return {
       bestTimeSlot,
-      bestTournament,
+      bestTournament: {
+        name: bestTournament.name,
+        performance: bestTournament.performance ?? undefined,
+      },
       totalTimeGames,
       avgPerformance
     };
@@ -131,30 +176,6 @@ const AnalyticsTab = ({
       <TournamentComparison tournamentComparison={tournamentComparison} />
     </div>
   );
-};
-
-AnalyticsTab.propTypes = {
-  showPgnImport: PropTypes.bool.isRequired,
-  setShowPgnImport: PropTypes.func.isRequired,
-  pgnText: PropTypes.string.isRequired,
-  setPgnText: PropTypes.func.isRequired,
-  handlePgnImport: PropTypes.func.isRequired,
-  timeOfDayStats: PropTypes.arrayOf(PropTypes.shape({
-    time: PropTypes.string,
-    total: PropTypes.number,
-    wins: PropTypes.number,
-    draws: PropTypes.number,
-    losses: PropTypes.number,
-    score: PropTypes.string,
-    winRate: PropTypes.string,
-  })).isRequired,
-  tournamentComparison: PropTypes.arrayOf(PropTypes.object).isRequired,
-  LichessSyncPanel: PropTypes.elementType.isRequired,
-  onLichessSync: PropTypes.func.isRequired,
-  onRemoveLichessGames: PropTypes.func.isRequired,
-  lichessGamesCount: PropTypes.number.isRequired,
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
-  setGames: PropTypes.func.isRequired,
 };
 
 export default AnalyticsTab;

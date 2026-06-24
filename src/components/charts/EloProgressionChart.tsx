@@ -1,7 +1,25 @@
-import React from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const EloProgressionChart = ({ eloHistory }) => {
+interface EloHistoryEntry {
+  game: number;
+  eloBefore: number;
+  elo: number;
+  eloChange: number;
+  tournament: string;
+  opponent: string;
+  eco: string;
+  opening: string;
+  expected: number;
+  actual: number;
+  diff: number;
+  kFactor: number;
+}
+
+interface EloProgressionChartProps {
+  eloHistory: EloHistoryEntry[];
+}
+
+const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h3 className="mb-4 text-lg font-semibold">ELO Progression</h3>

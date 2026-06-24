@@ -1,8 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { TrophyIcon, CheckCircleIcon, CalendarIcon } from '@heroicons/react/24/outline';
 
-const StreakStatsCards = ({ streaksData }) => {
+interface StreakStatsData {
+  longestWinStreak: number;
+  longestUnbeatenStreak: number;
+  gamesThisMonth: number;
+}
+
+interface StreakStatsCardsProps {
+  streaksData: StreakStatsData;
+}
+
+const StreakStatsCards = ({ streaksData }: StreakStatsCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Longest Win Streak */}
@@ -57,14 +65,6 @@ const StreakStatsCards = ({ streaksData }) => {
       </div>
     </div>
   );
-};
-
-StreakStatsCards.propTypes = {
-  streaksData: PropTypes.shape({
-    longestWinStreak: PropTypes.number.isRequired,
-    longestUnbeatenStreak: PropTypes.number.isRequired,
-    gamesThisMonth: PropTypes.number.isRequired,
-  }).isRequired,
 };
 
 export default StreakStatsCards;

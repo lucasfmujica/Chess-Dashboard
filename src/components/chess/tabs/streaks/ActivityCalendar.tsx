@@ -1,7 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+interface CalendarDay {
+  date: string;
+  games: number;
+  level: number;
+}
 
-const ActivityCalendar = ({ calendar }) => {
+interface ActivityCalendarProps {
+  calendar: CalendarDay[];
+}
+
+const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
   const levelColors = [
     'bg-gray-100',
     'bg-emerald-200',
@@ -58,14 +65,6 @@ const ActivityCalendar = ({ calendar }) => {
       </div>
     </div>
   );
-};
-
-ActivityCalendar.propTypes = {
-  calendar: PropTypes.arrayOf(PropTypes.shape({
-    date: PropTypes.string.isRequired,
-    games: PropTypes.number.isRequired,
-    level: PropTypes.number.isRequired,
-  })).isRequired,
 };
 
 export default ActivityCalendar;

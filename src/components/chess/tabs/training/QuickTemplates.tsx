@@ -1,5 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+interface QuickTemplatesProps {
+  weeklyHours: number;
+  setWeeklyHours: (value: number) => void;
+  onApplyGMNoahMethod: () => void;
+  onApplyBalancedDaily: () => void;
+  onApplyBlockFocus: () => void;
+  onClearWeek: () => void;
+}
 
 const QuickTemplates = ({
   weeklyHours,
@@ -8,7 +14,7 @@ const QuickTemplates = ({
   onApplyBalancedDaily,
   onApplyBlockFocus,
   onClearWeek,
-}) => {
+}: QuickTemplatesProps) => {
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
       <div className="flex items-center gap-3 mb-6">
@@ -86,15 +92,6 @@ const QuickTemplates = ({
       </div>
     </div>
   );
-};
-
-QuickTemplates.propTypes = {
-  weeklyHours: PropTypes.number.isRequired,
-  setWeeklyHours: PropTypes.func.isRequired,
-  onApplyGMNoahMethod: PropTypes.func.isRequired,
-  onApplyBalancedDaily: PropTypes.func.isRequired,
-  onApplyBlockFocus: PropTypes.func.isRequired,
-  onClearWeek: PropTypes.func.isRequired,
 };
 
 export default QuickTemplates;

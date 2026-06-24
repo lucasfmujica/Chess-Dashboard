@@ -1,15 +1,49 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { UsersIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import type { GameResult, PlayerColor } from '../../../types/chess';
+
+/** Rating bracket the user can drill into. */
+type OpponentBracket = 'lower' | 'similar' | 'higher';
+
+/** Per-bracket aggregate of performance vs opponent strength. */
+interface OpponentBracketStat {
+  bracket: string;
+  total: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string | number;
+  winRate: string | number;
+}
+
+/** A single game row shown in the drill-down table. */
+interface BracketGame {
+  gameNumber: number;
+  opp: string;
+  opp_elo: number;
+  ratingDiff: number;
+  color: PlayerColor;
+  opening: string;
+  eco: string;
+  result: GameResult;
+  tournament: string;
+}
+
+interface OpponentsTabProps {
+  selectedBracket: OpponentBracket | null;
+  setSelectedBracket: (bracket: OpponentBracket | null) => void;
+  opponentBracketStats: OpponentBracketStat[];
+  bracketGames: BracketGame[];
+  ecoNames?: Record<string, string>;
+}
 
 const OpponentsTab = ({
   selectedBracket,
   setSelectedBracket,
   opponentBracketStats,
   bracketGames,
-  ecoNames
-}) => {
+}: OpponentsTabProps) => {
   // Calculate overall statistics
   const stats = useMemo(() => {
     if (!opponentBracketStats || opponentBracketStats.length === 0) {
@@ -18,7 +52,7 @@ const OpponentsTab = ({
         totalWins: 0,
         totalDraws: 0,
         totalLosses: 0,
-        overallWinRate: 0
+        overallWinRate: 0 as string | number
       };
     }
 
@@ -310,10 +344,6 @@ const OpponentsTab = ({
       )}
     </div>
   );
-};
-
-OpponentsTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default OpponentsTab;

@@ -1,8 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { getWeekDates } from '../../../../utils/chessHelpers';
 
-const ReflectionHistory = ({ dailyNotes, currentWeek }) => {
+interface ReflectionHistoryProps {
+  dailyNotes: Record<string, string>;
+  currentWeek: string;
+}
+
+const ReflectionHistory = ({ dailyNotes, currentWeek }: ReflectionHistoryProps) => {
   const reflections = Object.entries(dailyNotes)
     .filter(([key, value]) => key.includes('-summary') && value.trim())
     .sort(([a], [b]) => b.localeCompare(a))
@@ -66,11 +69,6 @@ const ReflectionHistory = ({ dailyNotes, currentWeek }) => {
       </div>
     </div>
   );
-};
-
-ReflectionHistory.propTypes = {
-  dailyNotes: PropTypes.object.isRequired,
-  currentWeek: PropTypes.string.isRequired,
 };
 
 export default ReflectionHistory;

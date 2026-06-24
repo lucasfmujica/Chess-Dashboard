@@ -1,5 +1,15 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { WeekDate, WeekStats } from '../../../../types/training';
+
+interface WeekNavigatorProps {
+  currentWeek: string;
+  weekDates: WeekDate[];
+  weekStats: WeekStats;
+  onPrevWeek: () => void;
+  onNextWeek: () => void;
+  completionPercent: number;
+  completedCount: number;
+  totalActivities: number;
+}
 
 const WeekNavigator = ({
   currentWeek,
@@ -10,7 +20,7 @@ const WeekNavigator = ({
   completionPercent,
   completedCount,
   totalActivities,
-}) => {
+}: WeekNavigatorProps) => {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
       {/* Week Navigator */}
@@ -141,26 +151,6 @@ const WeekNavigator = ({
       </div>
     </div>
   );
-};
-
-WeekNavigator.propTypes = {
-  currentWeek: PropTypes.string.isRequired,
-  weekDates: PropTypes.arrayOf(PropTypes.shape({
-    day: PropTypes.string.isRequired,
-    date: PropTypes.string.isRequired,
-    displayDate: PropTypes.string.isRequired,
-  })).isRequired,
-  weekStats: PropTypes.shape({
-    totalPlannedMinutes: PropTypes.number.isRequired,
-    daysPlanned: PropTypes.number.isRequired,
-    avgMinutesPerDay: PropTypes.number.isRequired,
-    restDays: PropTypes.number.isRequired,
-  }).isRequired,
-  onPrevWeek: PropTypes.func.isRequired,
-  onNextWeek: PropTypes.func.isRequired,
-  completionPercent: PropTypes.number.isRequired,
-  completedCount: PropTypes.number.isRequired,
-  totalActivities: PropTypes.number.isRequired,
 };
 
 export default WeekNavigator;

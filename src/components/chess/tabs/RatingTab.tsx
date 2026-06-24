@@ -1,10 +1,28 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 import { Area, Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import { TrophyIcon, ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChartBarIcon, FireIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { getChartHeight } from '../../../utils/chartUtils';
 
-const RatingTab = ({ eloHistory }) => {
+interface EloHistoryEntry {
+  game: number;
+  eloBefore: number;
+  elo: number;
+  eloChange: number;
+  tournament: string;
+  opponent: string;
+  eco: string;
+  opening: string;
+  expected: number;
+  actual: number;
+  diff: number;
+  kFactor: number;
+}
+
+interface RatingTabProps {
+  eloHistory: EloHistoryEntry[];
+}
+
+const RatingTab = ({ eloHistory }: RatingTabProps) => {
   // Calculate statistics
   const stats = useMemo(() => {
     if (!eloHistory || eloHistory.length === 0) {
@@ -67,7 +85,7 @@ const RatingTab = ({ eloHistory }) => {
   const eloChangeDistribution = useMemo(() => {
     if (!eloHistory || eloHistory.length === 0) return [];
 
-    const ranges = {
+    const ranges: Record<string, number> = {
       '-20+': 0,
       '-10 to -19': 0,
       '-1 to -9': 0,
@@ -101,7 +119,15 @@ const RatingTab = ({ eloHistory }) => {
   const tournamentPerformance = useMemo(() => {
     if (!eloHistory || eloHistory.length === 0) return [];
 
-    const tournaments = {};
+    interface TournamentSummary {
+      name: string;
+      totalChange: number;
+      games: number;
+      startElo: number;
+      endElo: number;
+    }
+
+    const tournaments: Record<string, TournamentSummary> = {};
     eloHistory.forEach(game => {
       if (!tournaments[game.tournament]) {
         tournaments[game.tournament] = {
@@ -524,10 +550,6 @@ const RatingTab = ({ eloHistory }) => {
       </div>
     </div>
   );
-};
-
-RatingTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RatingTab;

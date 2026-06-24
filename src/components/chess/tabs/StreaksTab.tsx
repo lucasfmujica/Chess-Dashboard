@@ -5,14 +5,14 @@ import StreakStatsCards from './streaks/StreakStatsCards';
 import ActivityCalendar from './streaks/ActivityCalendar';
 import WeeklyActivityChart from './streaks/WeeklyActivityChart';
 import ConsistencyInsights from './streaks/ConsistencyInsights';
-import type { Game, MonthlyStat } from '../../../types/chess';
+import type { Game, GameResult, MonthlyStat } from '../../../types/chess';
 
 interface FormStat {
   wins: number;
   draws: number;
   losses: number;
-  percentage: number;
-  results: string[];
+  percentage: string | number;
+  results: GameResult[];
 }
 
 interface FormStats {

@@ -1,5 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+interface Quote {
+  text: string;
+  author: string;
+}
+
+interface MotivationalQuoteProps {
+  currentQuote: Quote;
+  currentQuoteIndex: number;
+  totalQuotes: number;
+  onPrevQuote: () => void;
+  onNextQuote: () => void;
+  onClose: () => void;
+  show: boolean;
+}
 
 const MotivationalQuote = ({
   currentQuote,
@@ -9,7 +21,7 @@ const MotivationalQuote = ({
   onNextQuote,
   onClose,
   show,
-}) => {
+}: MotivationalQuoteProps) => {
   if (!show) return null;
 
   return (
@@ -70,19 +82,6 @@ const MotivationalQuote = ({
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
     </div>
   );
-};
-
-MotivationalQuote.propTypes = {
-  currentQuote: PropTypes.shape({
-    text: PropTypes.string.isRequired,
-    author: PropTypes.string.isRequired,
-  }).isRequired,
-  currentQuoteIndex: PropTypes.number.isRequired,
-  totalQuotes: PropTypes.number.isRequired,
-  onPrevQuote: PropTypes.func.isRequired,
-  onNextQuote: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
-  show: PropTypes.bool.isRequired,
 };
 
 export default MotivationalQuote;

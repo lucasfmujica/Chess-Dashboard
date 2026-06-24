@@ -1,6 +1,23 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { trainingActivities } from '../../../../constants/trainingActivities';
+import type { TrainingActivityTemplate } from '../../../../constants/trainingActivities';
+import type { DayPlan } from '../../../../types/training';
+
+interface DayCardProps {
+  day: string;
+  date: string;
+  displayDate: string;
+  isToday: boolean;
+  dayPlan: DayPlan;
+  note: string;
+  editingDay: string | null;
+  completedActivities: Record<string, boolean>;
+  onToggleActivityCompletion: (activityKey: string) => void;
+  onRemoveActivity: (idx: number) => void;
+  onSetEditingDay: (date: string | null) => void;
+  onAddActivity: (activity: TrainingActivityTemplate) => void;
+  onExportToCalendar: (date: string, dayPlan: DayPlan, note: string) => void;
+  onUpdateNote: (date: string, value: string) => void;
+}
 
 const DayCard = ({
   day,
@@ -17,7 +34,7 @@ const DayCard = ({
   onAddActivity,
   onExportToCalendar,
   onUpdateNote,
-}) => {
+}: DayCardProps) => {
   const dayTotalMinutes = dayPlan.reduce((sum, act) => sum + (act.minutes || 0), 0);
 
   return (
@@ -98,7 +115,7 @@ const DayCard = ({
                     <p className={`text-sm font-semibold ${isCompleted ? 'line-through text-slate-500' : 'text-slate-900'}`}>
                       {activityDef?.label}
                     </p>
-                    {activity.minutes > 0 && (
+                    {activity.minutes != null && activity.minutes > 0 && (
                       <div className="flex items-center gap-1.5 mt-1">
                         <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -175,33 +192,12 @@ const DayCard = ({
             onChange={(e) => onUpdateNote(date, e.target.value)}
             placeholder="Daily notes & reflections..."
             className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent placeholder-slate-400"
-            rows="2"
+            rows={2}
           />
         </div>
       </div>
     </div>
   );
-};
-
-DayCard.propTypes = {
-  day: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
-  displayDate: PropTypes.string.isRequired,
-  isToday: PropTypes.bool.isRequired,
-  dayPlan: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    minutes: PropTypes.number,
-    details: PropTypes.string,
-  })).isRequired,
-  note: PropTypes.string.isRequired,
-  editingDay: PropTypes.string,
-  completedActivities: PropTypes.object.isRequired,
-  onToggleActivityCompletion: PropTypes.func.isRequired,
-  onRemoveActivity: PropTypes.func.isRequired,
-  onSetEditingDay: PropTypes.func.isRequired,
-  onAddActivity: PropTypes.func.isRequired,
-  onExportToCalendar: PropTypes.func.isRequired,
-  onUpdateNote: PropTypes.func.isRequired,
 };
 
 export default DayCard;

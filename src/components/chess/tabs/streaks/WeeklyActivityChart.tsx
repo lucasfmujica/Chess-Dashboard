@@ -1,8 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { ChartBarIcon } from '@heroicons/react/24/outline';
 
-const WeeklyActivityChart = ({ weeklyActivity, avgGamesPerWeek }) => {
+interface WeekActivity {
+  week: string;
+  games: number;
+  active: boolean;
+}
+
+interface WeeklyActivityChartProps {
+  weeklyActivity: WeekActivity[];
+  avgGamesPerWeek: string;
+}
+
+const WeeklyActivityChart = ({ weeklyActivity, avgGamesPerWeek }: WeeklyActivityChartProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
@@ -47,15 +56,6 @@ const WeeklyActivityChart = ({ weeklyActivity, avgGamesPerWeek }) => {
       </div>
     </div>
   );
-};
-
-WeeklyActivityChart.propTypes = {
-  weeklyActivity: PropTypes.arrayOf(PropTypes.shape({
-    week: PropTypes.string.isRequired,
-    games: PropTypes.number.isRequired,
-    active: PropTypes.bool.isRequired,
-  })).isRequired,
-  avgGamesPerWeek: PropTypes.string.isRequired,
 };
 
 export default WeeklyActivityChart;

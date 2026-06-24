@@ -1,8 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { FireIcon } from '@heroicons/react/24/outline';
 
-const StreaksHeroSection = ({ streaksData }) => {
+interface StreaksHeroData {
+  currentWinStreak: number;
+  currentUnbeatenStreak: number;
+  gamesThisWeek: number;
+  consistency: number;
+}
+
+interface StreaksHeroSectionProps {
+  streaksData: StreaksHeroData;
+}
+
+const StreaksHeroSection = ({ streaksData }: StreaksHeroSectionProps) => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-red-600 to-pink-700 rounded-2xl shadow-xl">
       <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -47,15 +56,6 @@ const StreaksHeroSection = ({ streaksData }) => {
       </div>
     </div>
   );
-};
-
-StreaksHeroSection.propTypes = {
-  streaksData: PropTypes.shape({
-    currentWinStreak: PropTypes.number.isRequired,
-    currentUnbeatenStreak: PropTypes.number.isRequired,
-    gamesThisWeek: PropTypes.number.isRequired,
-    consistency: PropTypes.number.isRequired,
-  }).isRequired,
 };
 
 export default StreaksHeroSection;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useModal } from './components/modals/ModalContext';
 import { useGames, useComputedStats } from './context/GamesContext';
 import { useUI } from './context/UIContext';
@@ -23,6 +22,8 @@ import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcon
 import { ecoNames } from './constants/ecoNames';
 import { mergeGames } from './utils/lichessApi';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
+import type { Game } from './types/chess';
+import type { DayPlan } from './types/training';
 
 const ChessDashboard = () => {
   const modal = useModal();
@@ -98,7 +99,7 @@ const ChessDashboard = () => {
   } = useComputedStats(gameFilter);
 
   // Handler for Lichess game sync
-  const handleLichessSync = (transformedGames) => {
+  const handleLichessSync = (transformedGames: Game[]) => {
     const merged = mergeGames(games, transformedGames);
     setGames(merged);
   };
@@ -120,7 +121,7 @@ const ChessDashboard = () => {
   // Training plan helper functions
   const getCurrentWeekPlan = () => weeklyPlans[currentWeek] || {};
 
-  const updateDayPlan = (date, activities) => {
+  const updateDayPlan = (date: string, activities: DayPlan) => {
     setWeeklyPlans(prev => ({
       ...prev,
       [currentWeek]: {
@@ -130,7 +131,7 @@ const ChessDashboard = () => {
     }));
   };
 
-  const updateDailyNote = (date, note) => {
+  const updateDailyNote = (date: string, note: string) => {
     setDailyNotes(prev => ({
       ...prev,
       [date]: note,
@@ -138,7 +139,7 @@ const ChessDashboard = () => {
   };
 
   // Google Calendar export function
-  const exportToGoogleCalendar = async (date, dayPlan, note) => {
+  const exportToGoogleCalendar = async (date: string, dayPlan: DayPlan, note: string) => {
     if (dayPlan.length === 0) {
       await modal.alert('No activities planned for this day');
       return;
@@ -151,7 +152,7 @@ const ChessDashboard = () => {
     let description = 'Chess Training Activities:\\n\\n';
     dayPlan.forEach((activity, idx) => {
       description += `${idx + 1}. ${activity.label || activity.id}`;
-      if (activity.minutes > 0) description += ` (${activity.minutes} min)`;
+      if ((activity.minutes ?? 0) > 0) description += ` (${activity.minutes} min)`;
       if (activity.details) description += ` - ${activity.details}`;
       description += '\\n';
     });
@@ -163,7 +164,7 @@ const ChessDashboard = () => {
     const endTime = new Date(startTime);
     endTime.setMinutes(startTime.getMinutes() + (totalMinutes || 120));
 
-    const formatGoogleDate = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const formatGoogleDate = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const params = new URLSearchParams({
       action: 'TEMPLATE',
       text: title,
@@ -222,7 +223,7 @@ const ChessDashboard = () => {
         setShowPgnImport(false);
       }
     } catch (error) {
-      await modal.alert(error.message);
+      await modal.alert(error instanceof Error ? error.message : 'Failed to import PGN');
     }
   };
 

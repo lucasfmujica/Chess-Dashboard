@@ -1,9 +1,51 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { ComponentType } from 'react';
 import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import ArgentinaMap from '../../charts/ArgentinaMap';
 import StatCard from '../StatCard';
 import { getChartHeight } from '../../../utils/chartUtils';
+import type { Game, GameStats, PlayerInfo, TournamentStat } from '../../../types/chess';
+
+/** Per-opening aggregate row attached to colored game stats. */
+interface ColorOpeningStat {
+  eco: string;
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: string;
+}
+
+type ColorStats = GameStats & { openings: ColorOpeningStat[] };
+
+/** A notable (best/worst) result row. */
+interface ResultEntry {
+  opponent: string;
+  elo: number;
+  oppElo: number;
+  diff: number;
+  eco: string;
+  opening: string;
+  color: string;
+  tournament: string;
+}
+
+interface OverviewTabProps {
+  playerInfo: PlayerInfo;
+  overallStats: GameStats;
+  whiteStats: ColorStats;
+  blackStats: ColorStats;
+  ratedGames: Game[];
+  eloHistory: unknown[];
+  tournamentStats: TournamentStat[];
+  bestResults: ResultEntry[];
+  worstResults: ResultEntry[];
+  Trophy: ComponentType<{ className?: string }>;
+  Swords: ComponentType<{ className?: string }>;
+  Target: ComponentType<{ className?: string }>;
+  TrendingUp: ComponentType<{ className?: string }>;
+}
 
 const OverviewTab = ({
   playerInfo,
@@ -11,7 +53,6 @@ const OverviewTab = ({
   whiteStats,
   blackStats,
   ratedGames,
-  eloHistory,
   tournamentStats,
   bestResults,
   worstResults,
@@ -19,10 +60,10 @@ const OverviewTab = ({
   Swords,
   Target,
   TrendingUp
-}) => {
+}: OverviewTabProps) => {
   // Generate ELO progress timeline from tournament stats (use starting ELO for each tournament)
   const eloTimeline = tournamentStats && tournamentStats.length > 0 ?
-    tournamentStats.map((t, idx) => ({
+    tournamentStats.map((t) => ({
       tournament: t.name.length > 15 ? t.name.substring(0, 15) + '...' : t.name,
       elo: t.eloBefore || playerInfo.current_elo,
       performanceRating: t.performanceRating
@@ -96,7 +137,7 @@ const OverviewTab = ({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                label={({ name, value, percent }) => `${name}: ${value} (${((percent ?? 0) * 100).toFixed(0)}%)`}
                 outerRadius={90}
                 fill="#8884d8"
                 dataKey="value"
@@ -308,25 +349,6 @@ const OverviewTab = ({
       </div>
     </div>
   );
-};
-
-OverviewTab.propTypes = {
-  playerInfo: PropTypes.shape({
-    current_elo: PropTypes.number,
-    name: PropTypes.string,
-  }).isRequired,
-  overallStats: PropTypes.object.isRequired,
-  whiteStats: PropTypes.object.isRequired,
-  blackStats: PropTypes.object.isRequired,
-  ratedGames: PropTypes.number.isRequired,
-  eloHistory: PropTypes.arrayOf(PropTypes.object).isRequired,
-  tournamentStats: PropTypes.arrayOf(PropTypes.object).isRequired,
-  bestResults: PropTypes.arrayOf(PropTypes.object).isRequired,
-  worstResults: PropTypes.arrayOf(PropTypes.object).isRequired,
-  Trophy: PropTypes.elementType.isRequired,
-  Swords: PropTypes.elementType.isRequired,
-  Target: PropTypes.elementType.isRequired,
-  TrendingUp: PropTypes.elementType.isRequired,
 };
 
 export default OverviewTab;

@@ -1,7 +1,24 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { GameResult } from '../../../../types/chess';
 
-const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }) => {
+export interface FormCardStats {
+  subtitle: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  percentage: string | number;
+  results: GameResult[];
+}
+
+interface FormCardProps {
+  title: string;
+  badge: string;
+  stats: FormCardStats;
+  borderColor: string;
+  bgColor: string;
+  badgeColor: string;
+}
+
+const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }: FormCardProps) => {
   return (
     <div className={`p-5 bg-gradient-to-br ${bgColor} rounded-xl border-2 ${borderColor}`}>
       <div className="flex items-center gap-2 mb-4">
@@ -22,7 +39,7 @@ const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }) => 
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Score</span>
-          <span className={`text-2xl font-bold ${stats.percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+          <span className={`text-2xl font-bold ${Number(stats.percentage) >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
             {stats.percentage}%
           </span>
         </div>
@@ -47,22 +64,6 @@ const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }) => 
       </div>
     </div>
   );
-};
-
-FormCard.propTypes = {
-  title: PropTypes.string.isRequired,
-  badge: PropTypes.string.isRequired,
-  stats: PropTypes.shape({
-    subtitle: PropTypes.string.isRequired,
-    wins: PropTypes.number.isRequired,
-    draws: PropTypes.number.isRequired,
-    losses: PropTypes.number.isRequired,
-    percentage: PropTypes.number.isRequired,
-    results: PropTypes.arrayOf(PropTypes.string).isRequired,
-  }).isRequired,
-  borderColor: PropTypes.string.isRequired,
-  bgColor: PropTypes.string.isRequired,
-  badgeColor: PropTypes.string.isRequired,
 };
 
 export default FormCard;

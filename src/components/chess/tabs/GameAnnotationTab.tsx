@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useMemo } from 'react';
 import {
   DocumentTextIcon,
   PencilIcon,
@@ -10,22 +9,65 @@ import {
   FunnelIcon
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
+import type { Game } from '../../../types/chess';
 
-const GameAnnotationTab = ({ games }) => {
+/** A single annotated key moment within a game. */
+interface KeyMoment {
+  move: string;
+  symbol: string;
+  comment: string;
+}
+
+/** A user-saved annotated game stored in localStorage. */
+interface AnnotatedGame {
+  id: number;
+  createdAt: number;
+  gameName?: string;
+  opponent?: string;
+  date?: string;
+  opening?: string;
+  eco?: string;
+  result?: string;
+  rating?: number;
+  tags?: string[];
+  notes?: string;
+  keyMoments?: KeyMoment[];
+}
+
+/** A selectable annotation tag definition. */
+interface AnnotationTag {
+  id: string;
+  label: string;
+  color: string;
+  icon: string;
+}
+
+/** A notation symbol definition. */
+interface NotationSymbol {
+  symbol: string;
+  label: string;
+  color: string;
+}
+
+interface GameAnnotationTabProps {
+  games: Game[];
+}
+
+const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
   const modal = useModal();
 
-  const [annotatedGames, setAnnotatedGames] = useState(() => {
+  const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>(() => {
     const stored = localStorage.getItem('chessDashboard_annotatedGames');
     return stored ? JSON.parse(stored) : [];
   });
 
-  const [selectedGame, setSelectedGame] = useState(null);
-  const [editingAnnotation, setEditingAnnotation] = useState(null);
+  const [selectedGame, setSelectedGame] = useState<Partial<AnnotatedGame> | null>(null);
+  const [editingAnnotation, setEditingAnnotation] = useState<AnnotatedGame | null>(null);
   const [filterTag, setFilterTag] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Available tags
-  const tags = useMemo(() => [
+  const tags = useMemo<AnnotationTag[]>(() => [
     { id: 'brilliant-attack', label: 'Brilliant Attack', color: 'emerald', icon: '⚔️' },
     { id: 'endgame-technique', label: 'Endgame Technique', color: 'blue', icon: '♔' },
     { id: 'tactical-shot', label: 'Tactical Shot', color: 'purple', icon: '⚡' },
@@ -37,7 +79,7 @@ const GameAnnotationTab = ({ games }) => {
   ], []);
 
   // Symbols for notation
-  const symbols = [
+  const symbols: NotationSymbol[] = [
     { symbol: '!', label: 'Good move', color: 'text-emerald-600' },
     { symbol: '!!', label: 'Brilliant move', color: 'text-emerald-700' },
     { symbol: '?', label: 'Mistake', color: 'text-amber-600' },
@@ -49,14 +91,14 @@ const GameAnnotationTab = ({ games }) => {
     { symbol: '=', label: 'Equal position', color: 'text-slate-500' }
   ];
 
-  const saveAnnotation = (annotation) => {
-    let updated;
+  const saveAnnotation = (annotation: Partial<AnnotatedGame>) => {
+    let updated: AnnotatedGame[];
     if (editingAnnotation) {
-      updated = annotatedGames.map(a => a.id === annotation.id ? annotation : a);
+      updated = annotatedGames.map(a => a.id === annotation.id ? (annotation as AnnotatedGame) : a);
     } else {
       annotation.id = Date.now();
       annotation.createdAt = Date.now();
-      updated = [...annotatedGames, annotation];
+      updated = [...annotatedGames, annotation as AnnotatedGame];
     }
     setAnnotatedGames(updated);
     localStorage.setItem('chessDashboard_annotatedGames', JSON.stringify(updated));
@@ -64,7 +106,7 @@ const GameAnnotationTab = ({ games }) => {
     setSelectedGame(null);
   };
 
-  const deleteAnnotation = async (id) => {
+  const deleteAnnotation = async (id: number) => {
     const confirmed = await modal.confirm('Delete this annotation?');
     if (confirmed) {
       const updated = annotatedGames.filter(a => a.id !== id);
@@ -492,10 +534,6 @@ const GameAnnotationTab = ({ games }) => {
       </div>
     </div>
   );
-};
-
-GameAnnotationTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default GameAnnotationTab;

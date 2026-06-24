@@ -1,12 +1,41 @@
-import React, { useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartHeight } from '../../../utils/chartUtils';
+import type { Game } from '../../../types/chess';
 
-const OpponentStrengthTab = ({ games, currentElo }) => {
-  const [selectedBracket, setSelectedBracket] = useState(null);
-  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
-  const strengthAnalysis = useMemo(() => {
+/** Per-bracket aggregate computed from rated games. */
+interface BracketAnalysis {
+  label: string;
+  minDiff: number;
+  maxDiff: number;
+  color: string;
+  games: number;
+  bracketGames: Game[];
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: number;
+  scorePercentage: number;
+  avgEloDiff: number;
+  expectedPercentage: number;
+  performance: number;
+}
+
+interface SortConfig {
+  key: 'date' | 'opp_elo' | 'eloDiff' | 'result';
+  direction: 'asc' | 'desc';
+}
+
+interface OpponentStrengthTabProps {
+  games: Game[];
+  currentElo: number;
+}
+
+const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
+  const [selectedBracket, setSelectedBracket] = useState<BracketAnalysis | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'desc' });
+  const strengthAnalysis = useMemo<BracketAnalysis[]>(() => {
     const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
 
     // Define ELO brackets based on rating difference (opp_elo - player_elo at time of game)
@@ -47,7 +76,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       const expectedPercentage = total > 0 ? ((expectedScore / total) * 100).toFixed(1) : 0;
 
       // Performance vs expected
-      const performance = total > 0 ? (parseFloat(scorePercentage) - parseFloat(expectedPercentage)).toFixed(1) : 0;
+      const performance = total > 0 ? (parseFloat(String(scorePercentage)) - parseFloat(String(expectedPercentage))).toFixed(1) : 0;
 
       return {
         ...bracket,
@@ -57,11 +86,11 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
         draws,
         losses,
         score: score.toFixed(1),
-        winRate: parseFloat(winRate),
-        scorePercentage: parseFloat(scorePercentage),
-        avgEloDiff: parseInt(avgEloDiff),
-        expectedPercentage: parseFloat(expectedPercentage),
-        performance: parseFloat(performance),
+        winRate: parseFloat(String(winRate)),
+        scorePercentage: parseFloat(String(scorePercentage)),
+        avgEloDiff: parseInt(String(avgEloDiff)),
+        expectedPercentage: parseFloat(String(expectedPercentage)),
+        performance: parseFloat(String(performance)),
       };
     });
 
@@ -186,9 +215,9 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
                 key={key}
                 onClick={() => {
                   if (sortConfig.key === key) {
-                    setSortConfig({ key, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                    setSortConfig({ key: key as SortConfig['key'], direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
                   } else {
-                    setSortConfig({ key, direction: 'desc' });
+                    setSortConfig({ key: key as SortConfig['key'], direction: 'desc' });
                   }
                 }}
                 className={`px-3 py-1 text-xs rounded-full transition-colors ${
@@ -224,7 +253,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
               <tbody className="divide-y divide-gray-200">
                 {[...selectedBracket.bracketGames]
                   .sort((a, b) => {
-                    let aVal, bVal;
+                    let aVal: number, bVal: number;
                     switch (sortConfig.key) {
                       case 'date':
                         aVal = new Date(a.date || 0).getTime();
@@ -239,7 +268,7 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
                         bVal = b.opp_elo - b.elo;
                         break;
                       case 'result':
-                        const resultOrder = { W: 3, D: 2, L: 1 };
+                        const resultOrder: Record<string, number> = { W: 3, D: 2, L: 1 };
                         aVal = resultOrder[a.result] || 0;
                         bVal = resultOrder[b.result] || 0;
                         break;
@@ -554,17 +583,6 @@ const OpponentStrengthTab = ({ games, currentElo }) => {
       </div>
     </div>
   );
-};
-
-OpponentStrengthTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.shape({
-    rated: PropTypes.bool,
-    elo: PropTypes.number,
-    opp_elo: PropTypes.number,
-    result: PropTypes.string,
-    opp: PropTypes.string,
-  })).isRequired,
-  currentElo: PropTypes.number.isRequired,
 };
 
 export default OpponentStrengthTab;

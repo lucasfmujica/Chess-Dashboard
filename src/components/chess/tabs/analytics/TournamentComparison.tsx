@@ -1,9 +1,25 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Area, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { TrophyIcon, SparklesIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
-const TournamentComparison = ({ tournamentComparison }) => {
+/** A single entry from useTrendsAndAnalytics.tournamentComparison. */
+interface TournamentComparisonEntry {
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: number;
+  avgOppElo: number;
+  playerElo: number;
+  eloChange: number;
+  performance: number | null;
+}
+
+interface TournamentComparisonProps {
+  tournamentComparison: TournamentComparisonEntry[];
+}
+
+const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-600"></div>
@@ -85,8 +101,8 @@ const TournamentComparison = ({ tournamentComparison }) => {
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span className={`px-2.5 py-1 font-bold rounded-lg ${
-                        t.performance > t.playerElo ? 'text-emerald-700 bg-emerald-100' :
-                        t.performance < t.playerElo ? 'text-rose-700 bg-rose-100' : 'text-slate-700 bg-slate-100'
+                        (t.performance ?? 0) > t.playerElo ? 'text-emerald-700 bg-emerald-100' :
+                        (t.performance ?? 0) < t.playerElo ? 'text-rose-700 bg-rose-100' : 'text-slate-700 bg-slate-100'
                       }`}>
                         {t.performance || '-'}
                       </span>
@@ -180,18 +196,6 @@ const TournamentComparison = ({ tournamentComparison }) => {
       </div>
     </div>
   );
-};
-
-TournamentComparison.propTypes = {
-  tournamentComparison: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    games: PropTypes.number.isRequired,
-    score: PropTypes.number.isRequired,
-    playerElo: PropTypes.number.isRequired,
-    avgOppElo: PropTypes.number.isRequired,
-    performance: PropTypes.number,
-    eloChange: PropTypes.number.isRequired,
-  })).isRequired,
 };
 
 export default TournamentComparison;

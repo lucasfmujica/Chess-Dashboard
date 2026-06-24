@@ -1,7 +1,10 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+interface WeeklyReflectionsProps {
+  currentWeek: string;
+  dailyNotes: Record<string, string>;
+  onUpdateNote: (key: string, value: string) => void;
+}
 
-const WeeklyReflections = ({ currentWeek, dailyNotes, onUpdateNote }) => {
+const WeeklyReflections = ({ currentWeek, dailyNotes, onUpdateNote }: WeeklyReflectionsProps) => {
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -20,16 +23,10 @@ const WeeklyReflections = ({ currentWeek, dailyNotes, onUpdateNote }) => {
         onChange={(e) => onUpdateNote(`${currentWeek}-summary`, e.target.value)}
         placeholder="How did this week go? What worked well? What needs improvement for next week? Any key insights from your games or studies?"
         className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent placeholder-slate-400 transition-all"
-        rows="6"
+        rows={6}
       />
     </div>
   );
-};
-
-WeeklyReflections.propTypes = {
-  currentWeek: PropTypes.string.isRequired,
-  dailyNotes: PropTypes.object.isRequired,
-  onUpdateNote: PropTypes.func.isRequired,
 };
 
 export default WeeklyReflections;

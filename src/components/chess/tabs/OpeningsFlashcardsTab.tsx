@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useMemo } from 'react';
 import {
   SparklesIcon,
   ChartBarIcon,
@@ -10,8 +9,29 @@ import {
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 
+/** Color the opening is played as. */
+type OpeningColor = 'white' | 'black';
+
+/** Difficulty bucket for an opening flashcard. */
+type OpeningDifficulty = 'beginner' | 'intermediate' | 'advanced';
+
+/** A trainable opening flashcard with spaced-repetition metadata. */
+interface OpeningCard {
+  id: number;
+  name: string;
+  moves: string;
+  fen: string;
+  color: OpeningColor;
+  difficulty: OpeningDifficulty;
+  reviewCount: number;
+  lastReviewed: number | null;
+  nextReview: number;
+  successRate: number;
+  totalAttempts: number;
+}
+
 // Sample opening positions - in a real app, this would come from a database
-const initialOpenings = [
+const initialOpenings: OpeningCard[] = [
   {
     id: 1,
     name: "Sicilian Defense - Najdorf",
@@ -92,22 +112,26 @@ const initialOpenings = [
   }
 ];
 
+type StudyMode = 'review' | 'learn';
+type ColorFilter = 'all' | OpeningColor;
+type DifficultyFilter = 'all' | OpeningDifficulty;
+
 const OpeningsFlashcardsTab = () => {
   const modal = useModal();
 
-  const [openings, setOpenings] = useState(() => {
+  const [openings, setOpenings] = useState<OpeningCard[]>(() => {
     const stored = localStorage.getItem('chessDashboard_openings');
     return stored ? JSON.parse(stored) : initialOpenings;
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [filter, setFilter] = useState('all'); // all, white, black
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
-  const [studyMode, setStudyMode] = useState('review'); // review, learn
+  const [filter, setFilter] = useState<ColorFilter>('all'); // all, white, black
+  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyFilter>('all');
+  const [studyMode, setStudyMode] = useState<StudyMode>('review'); // review, learn
 
   // Calculate spaced repetition intervals (in days)
-  const getNextReviewInterval = (reviewCount, success) => {
+  const getNextReviewInterval = (reviewCount: number, success: boolean) => {
     if (!success) return 0; // Review again today
     const intervals = [1, 3, 7, 14, 30, 60, 120]; // Days
     const index = Math.min(reviewCount, intervals.length - 1);
@@ -148,7 +172,7 @@ const OpeningsFlashcardsTab = () => {
     return { total, dueToday, mastered, avgSuccessRate };
   }, [openings]);
 
-  const handleResponse = (correct) => {
+  const handleResponse = (correct: boolean) => {
     if (!currentOpening) return;
 
     const updated = openings.map(opening => {
@@ -285,7 +309,7 @@ const OpeningsFlashcardsTab = () => {
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Color</label>
             <div className="flex gap-2">
-              {['all', 'white', 'black'].map(c => (
+              {(['all', 'white', 'black'] as const).map(c => (
                 <button
                   key={c}
                   onClick={() => setFilter(c)}
@@ -304,7 +328,7 @@ const OpeningsFlashcardsTab = () => {
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">Difficulty</label>
             <div className="flex gap-2">
-              {['all', 'beginner', 'intermediate', 'advanced'].map(d => (
+              {(['all', 'beginner', 'intermediate', 'advanced'] as const).map(d => (
                 <button
                   key={d}
                   onClick={() => setDifficultyFilter(d)}
@@ -464,10 +488,6 @@ const OpeningsFlashcardsTab = () => {
       )}
     </div>
   );
-};
-
-OpeningsFlashcardsTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default OpeningsFlashcardsTab;

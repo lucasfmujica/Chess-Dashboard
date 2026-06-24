@@ -1,5 +1,41 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState } from 'react';
+
+interface GoalProjections {
+  currentElo: number;
+  targetElo: number;
+  eloGain: number;
+  daysRemaining: number;
+  monthsRemaining: string;
+  avgEloPerTournament: string;
+  tournamentsNeeded: number;
+  pointsNeededPer9Games: string;
+  kFactor: number;
+  onTrack: boolean;
+  projectedElo: number;
+}
+
+interface Achievement {
+  name: string;
+  icon: string;
+  earned: boolean;
+}
+
+interface Milestone {
+  title: string;
+  current: number | string;
+  target: number;
+  progress: string;
+}
+
+interface GoalsTabProps {
+  targetElo: number;
+  setTargetElo: (v: number) => void;
+  targetDate: string;
+  setTargetDate: (v: string) => void;
+  goalProjections: GoalProjections;
+  achievements: Achievement[];
+  nextMilestones: Milestone[];
+}
 
 const GoalsTab = ({
   targetElo,
@@ -9,7 +45,7 @@ const GoalsTab = ({
   goalProjections,
   achievements,
   nextMilestones
-}) => {
+}: GoalsTabProps) => {
   const [showAllAchievements, setShowAllAchievements] = useState(false);
 
   // Calculate progress percentage for circular progress
@@ -346,7 +382,7 @@ const GoalsTab = ({
                 <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-1000 flex items-center justify-end pr-2"
-                    style={{ width: `${Math.min(100, milestone.progress)}%` }}
+                    style={{ width: `${Math.min(100, parseFloat(milestone.progress))}%` }}
                   >
                     {parseFloat(milestone.progress) > 20 && (
                       <span className="text-xs font-bold text-white">{milestone.progress}%</span>
@@ -365,26 +401,6 @@ const GoalsTab = ({
       </div>
     </div>
   );
-};
-
-GoalsTab.propTypes = {
-  targetElo: PropTypes.number.isRequired,
-  setTargetElo: PropTypes.func.isRequired,
-  targetDate: PropTypes.string.isRequired,
-  setTargetDate: PropTypes.func.isRequired,
-  goalProjections: PropTypes.shape({
-    currentElo: PropTypes.number,
-    targetElo: PropTypes.number,
-    pointsToGain: PropTypes.number,
-    weeksRemaining: PropTypes.number,
-    gamesPerWeek: PropTypes.number,
-    estimatedDate: PropTypes.string,
-  }).isRequired,
-  achievements: PropTypes.shape({
-    totalPoints: PropTypes.number,
-    unlockedCount: PropTypes.number,
-  }).isRequired,
-  nextMilestones: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default GoalsTab;

@@ -1,10 +1,66 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 import { TrophyIcon, StarIcon, FireIcon, UserGroupIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import type { Game } from '../../../types/chess';
 
-const RecordsTab = ({ games, eloHistory }) => {
+/** Game enriched with optional per-game fields used for record-keeping. */
+type RecordGame = Game & {
+  moves?: unknown[];
+  performanceRating?: number;
+};
+
+/** A single ELO-history datapoint. */
+interface EloHistoryEntry {
+  elo: number;
+  date?: string;
+  game?: number;
+}
+
+/** Best-performing tournament aggregate. */
+interface TournamentRecord {
+  name: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+  score: string | number;
+}
+
+/** Most wins against a single opponent. */
+interface MostWinsRecord {
+  opponent: string;
+  wins: number;
+}
+
+/** Favourite (most-played) opening. */
+interface FavoriteOpeningRecord {
+  opening: string;
+  count: number;
+}
+
+/** Computed hall-of-fame records. */
+interface Records {
+  highestRating: number;
+  highestRatingDate: string;
+  lowestRating: number;
+  longestWinStreak: number;
+  longestUnbeatenStreak: number;
+  bestTournament: TournamentRecord | null;
+  highestRatedOpponent: RecordGame | null;
+  mostWinsVsOpponent: MostWinsRecord | null;
+  quickestWin: RecordGame | null;
+  longestGame: RecordGame | null;
+  favoriteOpening: FavoriteOpeningRecord | null;
+  bestPerformance: RecordGame | null;
+}
+
+interface RecordsTabProps {
+  games: RecordGame[];
+  eloHistory?: EloHistoryEntry[];
+}
+
+const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
   // Calculate personal records
-  const records = useMemo(() => {
+  const records = useMemo<Records>(() => {
     if (!games || games.length === 0) {
       return {
         highestRating: 0,
@@ -62,7 +118,7 @@ const RecordsTab = ({ games, eloHistory }) => {
     });
 
     // Best Tournament Performance
-    const tournamentStats = {};
+    const tournamentStats: Record<string, TournamentRecord> = {};
     games.forEach(game => {
       if (game.tournament) {
         if (!tournamentStats[game.tournament]) {
@@ -82,33 +138,33 @@ const RecordsTab = ({ games, eloHistory }) => {
       }
     });
 
-    let bestTournament = null;
+    let bestTournament: TournamentRecord | null = null;
     Object.values(tournamentStats).forEach(t => {
       t.score = ((t.wins + t.draws * 0.5) / t.total * 100).toFixed(1);
-      if (!bestTournament || parseFloat(t.score) > parseFloat(bestTournament.score)) {
+      if (!bestTournament || parseFloat(String(t.score)) > parseFloat(String(bestTournament.score))) {
         bestTournament = t;
       }
     });
 
     // Highest Rated Opponent Defeated
-    let highestRatedOpponent = null;
+    let highestRatedOpponent: RecordGame | null = null;
     games.forEach(game => {
       if (game.result === 'W' && game.opp_elo) {
-        if (!highestRatedOpponent || parseInt(game.opp_elo) > parseInt(highestRatedOpponent.opp_elo)) {
+        if (!highestRatedOpponent || parseInt(String(game.opp_elo)) > parseInt(String(highestRatedOpponent.opp_elo))) {
           highestRatedOpponent = game;
         }
       }
     });
 
     // Most Wins vs Same Opponent
-    const opponentWins = {};
+    const opponentWins: Record<string, number> = {};
     games.forEach(game => {
       if (game.result === 'W' && game.opp) {
         opponentWins[game.opp] = (opponentWins[game.opp] || 0) + 1;
       }
     });
 
-    let mostWinsVsOpponent = null;
+    let mostWinsVsOpponent: MostWinsRecord | null = null;
     Object.entries(opponentWins).forEach(([opponent, wins]) => {
       if (!mostWinsVsOpponent || wins > mostWinsVsOpponent.wins) {
         mostWinsVsOpponent = { opponent, wins };
@@ -116,36 +172,36 @@ const RecordsTab = ({ games, eloHistory }) => {
     });
 
     // Quickest Win (fewest moves)
-    let quickestWin = null;
+    let quickestWin: RecordGame | null = null;
     games.forEach(game => {
       if (game.result === 'W' && game.moves) {
         const moveCount = game.moves.length;
-        if (!quickestWin || moveCount < quickestWin.moves.length) {
+        if (!quickestWin || moveCount < (quickestWin.moves?.length ?? Infinity)) {
           quickestWin = game;
         }
       }
     });
 
     // Longest Game (most moves)
-    let longestGame = null;
+    let longestGame: RecordGame | null = null;
     games.forEach(game => {
       if (game.moves) {
         const moveCount = game.moves.length;
-        if (!longestGame || moveCount > longestGame.moves.length) {
+        if (!longestGame || moveCount > (longestGame.moves?.length ?? 0)) {
           longestGame = game;
         }
       }
     });
 
     // Favorite Opening (most played)
-    const openingCounts = {};
+    const openingCounts: Record<string, number> = {};
     games.forEach(game => {
       if (game.opening) {
         openingCounts[game.opening] = (openingCounts[game.opening] || 0) + 1;
       }
     });
 
-    let favoriteOpening = null;
+    let favoriteOpening: FavoriteOpeningRecord | null = null;
     Object.entries(openingCounts).forEach(([opening, count]) => {
       if (!favoriteOpening || count > favoriteOpening.count) {
         favoriteOpening = { opening, count };
@@ -153,10 +209,10 @@ const RecordsTab = ({ games, eloHistory }) => {
     });
 
     // Best Performance Rating
-    let bestPerformance = null;
+    let bestPerformance: RecordGame | null = null;
     games.forEach(game => {
       if (game.performanceRating) {
-        if (!bestPerformance || game.performanceRating > bestPerformance.performanceRating) {
+        if (!bestPerformance || game.performanceRating > (bestPerformance.performanceRating ?? 0)) {
           bestPerformance = game;
         }
       }
@@ -383,7 +439,7 @@ const RecordsTab = ({ games, eloHistory }) => {
                 </div>
                 <div className="space-y-2">
                   <div className="text-center py-3">
-                    <p className="text-4xl font-bold text-yellow-600 mb-1">{records.quickestWin.moves.length}</p>
+                    <p className="text-4xl font-bold text-yellow-600 mb-1">{records.quickestWin.moves?.length}</p>
                     <p className="text-sm text-gray-600">moves to victory</p>
                   </div>
                   <div className="pt-3 border-t border-gray-200">
@@ -408,7 +464,7 @@ const RecordsTab = ({ games, eloHistory }) => {
                 </div>
                 <div className="space-y-2">
                   <div className="text-center py-3">
-                    <p className="text-4xl font-bold text-indigo-600 mb-1">{records.longestGame.moves.length}</p>
+                    <p className="text-4xl font-bold text-indigo-600 mb-1">{records.longestGame.moves?.length}</p>
                     <p className="text-sm text-gray-600">moves played</p>
                   </div>
                   <div className="pt-3 border-t border-gray-200">
@@ -485,10 +541,6 @@ const RecordsTab = ({ games, eloHistory }) => {
       </div>
     </div>
   );
-};
-
-RecordsTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RecordsTab;
