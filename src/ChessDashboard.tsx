@@ -244,7 +244,7 @@ const ChessDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 chess-pattern">
+    <div className="min-h-screen bg-app text-fg">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -277,10 +277,10 @@ const ChessDashboard = () => {
           <div className="hidden lg:block mb-8 animate-fadeIn">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-semibold tracking-tight text-fg">
                   Lucas's Chess Performance
                 </h1>
-                <p className="mt-1 text-slate-600 font-medium flex items-center gap-2">
+                <p className="mt-1 text-sm text-fg-muted flex items-center gap-2">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
