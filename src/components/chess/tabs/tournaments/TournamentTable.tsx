@@ -17,20 +17,20 @@ const TournamentTable = ({ tournamentStats }: TournamentTableProps) => {
           <table className="min-w-full">
             <thead>
               <tr className="border-b-2 border-gray-200">
-                <th className="px-6 py-4 text-xs font-bold text-left text-gray-700 uppercase tracking-wider">Tournament</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Games</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Score</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">W-D-L</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Avg Opp</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Performance</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">White</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Black</th>
-                <th className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">ELO Δ</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-left text-gray-700 uppercase tracking-wider">Tournament</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Games</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Score</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">W-D-L</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Avg Opp</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Performance</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">White</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">Black</th>
+                <th scope="col" className="px-6 py-4 text-xs font-bold text-center text-gray-700 uppercase tracking-wider">ELO Δ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {tournamentStats.map((t, idx) => (
-                <tr key={idx} className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-transparent transition-colors duration-150">
+                <tr key={idx} className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-transparent dark:hover:from-slate-800 dark:hover:to-transparent transition-colors duration-150">
                   <td className="px-6 py-4 text-sm font-semibold text-gray-900">{t.tournament}</td>
                   <td className="px-6 py-4 text-sm text-center">
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">

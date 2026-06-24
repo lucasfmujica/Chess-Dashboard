@@ -185,7 +185,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <TrophyIcon className="w-5 h-5 text-amber-600" />
               </div>
             </div>
@@ -199,7 +199,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <ArrowTrendingUpIcon className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
@@ -213,7 +213,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-rose-50 to-rose-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-rose-50 to-rose-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <ArrowTrendingDownIcon className="w-5 h-5 text-rose-600" />
               </div>
             </div>
@@ -227,7 +227,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <BoltIcon className="w-5 h-5 text-blue-600" />
               </div>
             </div>
@@ -243,7 +243,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-green-50 to-green-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <FireIcon className="w-5 h-5 text-green-600" />
               </div>
             </div>
@@ -257,7 +257,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+              <div className="p-2.5 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
                 <ChartBarIcon className="w-5 h-5 text-orange-600" />
               </div>
             </div>
@@ -268,7 +268,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       </div>
 
       {/* ELO Progression Chart */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white to-blue-50 rounded-2xl shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl shadow-xl">
         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500"></div>
         <div className="p-8">
           <div className="mb-6">

@@ -44,7 +44,7 @@ const WeeklyActivityChart = ({ weeklyActivity, avgGamesPerWeek }: WeeklyActivity
         </div>
 
         {/* Average Line */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
+        <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg border border-indigo-200 dark:border-indigo-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ChartBarIcon className="w-5 h-5 text-indigo-600" />

@@ -108,7 +108,7 @@ const OverviewTab = ({
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Results Distribution */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-slate-900">Results Distribution</h3>
             <div className="flex items-center gap-2 text-sm">
@@ -152,11 +152,11 @@ const OverviewTab = ({
         </div>
 
         {/* Performance by Color */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <h3 className="text-xl font-bold text-slate-900 mb-6">Performance by Color</h3>
           <div className="space-y-6">
             {/* White Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200">
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -181,7 +181,7 @@ const OverviewTab = ({
             </div>
 
             {/* Black Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl border border-slate-200">
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="p-2 bg-white rounded-lg shadow-sm">
@@ -210,7 +210,7 @@ const OverviewTab = ({
 
       {/* ELO Progress and Map */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -238,7 +238,7 @@ const OverviewTab = ({
           )}
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 card-hover">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

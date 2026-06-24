@@ -40,7 +40,7 @@ const MonthlyStats = ({ weeklyPlans }: MonthlyStatsProps) => {
     .slice(0, 3);
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl">
           <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,7 +66,7 @@ const MonthlyStats = ({ weeklyPlans }: MonthlyStatsProps) => {
           </div>
         ) : (
           sortedMonths.map(([monthKey, data]) => (
-            <div key={monthKey} className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-5 border border-cyan-200">
+            <div key={monthKey} className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-5 border border-cyan-200">
               <h4 className="font-bold text-slate-900 mb-4">{data.monthName}</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">

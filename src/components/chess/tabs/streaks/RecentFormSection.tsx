@@ -24,7 +24,7 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
   if (!formStats) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-200/60 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
       <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
@@ -51,8 +51,8 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
               percentage: formStats.last5.percentage,
               results: formStats.last5.results
             }}
-            borderColor="border-blue-200"
-            bgColor="from-blue-50 to-indigo-50"
+            borderColor="border-blue-200 dark:border-blue-700/50"
+            bgColor="from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30"
             badgeColor="bg-blue-500"
           />
 
@@ -68,14 +68,14 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
               percentage: formStats.last10.percentage,
               results: formStats.last10.results
             }}
-            borderColor="border-purple-200"
-            bgColor="from-purple-50 to-pink-50"
+            borderColor="border-purple-200 dark:border-purple-700/50"
+            bgColor="from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30"
             badgeColor="bg-purple-500"
           />
 
           {/* Current Month */}
           {monthlyStats && monthlyStats.length > 0 && (
-            <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+            <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-700/50">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 bg-emerald-500 rounded-lg">
                   <CalendarIcon className="w-5 h-5 text-white" />
@@ -98,7 +98,7 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
                     {monthlyStats[0].percentage}%
                   </span>
                 </div>
-                <div className="pt-2 mt-2 border-t border-emerald-200">
+                <div className="pt-2 mt-2 border-t border-emerald-200 dark:border-emerald-700/50">
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div>
                       <div className="text-green-600 font-bold text-lg">{monthlyStats[0].wins}</div>

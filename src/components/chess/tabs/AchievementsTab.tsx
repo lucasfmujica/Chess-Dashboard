@@ -350,7 +350,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
             return (
               <div
                 key={badge.id}
-                className={`relative overflow-hidden bg-gradient-to-br ${colors.bg} rounded-xl p-6 border-2 ${
+                className={`relative overflow-hidden bg-gradient-to-br ${colors.bg} dark:from-slate-800 dark:to-slate-800 rounded-xl p-6 border-2 ${
                   badge.unlocked ? colors.border : 'border-gray-200'
                 } transition-all duration-300 hover:shadow-lg ${
                   badge.unlocked ? 'hover:scale-105' : 'opacity-75'
@@ -438,7 +438,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
                 <AcademicCapIcon className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-semibold text-blue-900">Next Milestone</span>
@@ -448,7 +448,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-emerald-200">
               <div className="flex items-center gap-2 mb-2">
                 <FireIcon className="w-5 h-5 text-emerald-600" />
                 <span className="text-sm font-semibold text-emerald-900">Total Progress</span>
@@ -458,7 +458,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-amber-200">
               <div className="flex items-center gap-2 mb-2">
                 <StarIcon className="w-5 h-5 text-amber-600" />
                 <span className="text-sm font-semibold text-amber-900">Points Needed</span>

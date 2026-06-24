@@ -68,7 +68,7 @@ const UpcomingTournamentsSection = ({
 
         {/* Add/Edit Tournament Form */}
         {isAddingTournament && (
-          <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+          <div className="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-blue-200 dark:border-blue-700/50">
             <h3 className="text-xl font-bold text-gray-900 mb-4">
               {editingTournamentId ? 'Edit Tournament' : 'Add New Tournament'}
             </h3>
@@ -179,7 +179,7 @@ const UpcomingTournamentsSection = ({
             {upcomingTournaments.map(tournament => (
               <div
                 key={tournament.id}
-                className="p-5 bg-gradient-to-r from-white to-blue-50 rounded-xl border border-blue-200 hover:shadow-lg transition-shadow duration-200"
+                className="p-5 bg-gradient-to-r from-white to-blue-50 dark:from-slate-800 dark:to-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700/50 hover:shadow-lg transition-shadow duration-200"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">

@@ -21,7 +21,7 @@ interface TournamentComparisonProps {
 
 const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60">
+    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-600"></div>
 
       <div className="p-6">
@@ -37,7 +37,7 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
 
         {/* Tournament Stats Summary */}
         <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border-2 border-purple-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-purple-700">Total Tournaments</span>
               <TrophyIcon className="w-5 h-5 text-purple-500" />
@@ -48,7 +48,7 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
             </div>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border-2 border-emerald-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-emerald-700">Best Performance</span>
               <SparklesIcon className="w-5 h-5 text-emerald-500" />
@@ -66,15 +66,15 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
         <div className="overflow-hidden border border-slate-200 rounded-xl">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
+              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Tournament</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Your ELO</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Avg Opp</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Performance</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">ELO Δ</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Tournament</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Your ELO</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Avg Opp</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Performance</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">ELO Δ</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100">
@@ -123,7 +123,7 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
         </div>
 
         {/* Enhanced Tournament Performance Trend Chart */}
-        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200">
           <h4 className="mb-4 text-sm font-semibold text-slate-700 flex items-center gap-2">
             <ChartBarIcon className="w-4 h-4" />
             Performance Rating Trend

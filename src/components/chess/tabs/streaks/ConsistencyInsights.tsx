@@ -43,7 +43,7 @@ const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-lg border border-emerald-200 dark:border-emerald-700/50">
             <div className="flex items-center gap-2 mb-2">
               <ClockIcon className="w-5 h-5 text-emerald-600" />
               <span className="text-sm font-semibold text-emerald-900">Play Frequency</span>
@@ -51,7 +51,7 @@ const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
             <p className="text-gray-700 text-sm">{getFrequencyMessage()}</p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-700/50">
             <div className="flex items-center gap-2 mb-2">
               <FireIcon className="w-5 h-5 text-blue-600" />
               <span className="text-sm font-semibold text-blue-900">Current Momentum</span>
@@ -59,7 +59,7 @@ const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
             <p className="text-gray-700 text-sm">{getMomentumMessage()}</p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-700/50">
             <div className="flex items-center gap-2 mb-2">
               <TrophyIcon className="w-5 h-5 text-purple-600" />
               <span className="text-sm font-semibold text-purple-900">Goal Suggestion</span>

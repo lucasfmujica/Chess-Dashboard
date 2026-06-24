@@ -6,7 +6,7 @@ interface ChartSkeletonProps {
 
 export const ChartSkeleton = ({ height = 300 }: ChartSkeletonProps) => (
   <div className="animate-pulse" style={{ height }}>
-    <div className="h-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 rounded-lg"></div>
+    <div className="h-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-lg"></div>
   </div>
 );
 
@@ -32,7 +32,7 @@ export const TableSkeleton = ({ rows = 5 }: TableSkeletonProps) => (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="h-12 bg-slate-200"></div>
       {Array.from({ length: rows }).map((_, idx) => (
-        <div key={idx} className="h-16 border-t border-slate-100 bg-gradient-to-r from-transparent via-slate-50 to-transparent"></div>
+        <div key={idx} className="h-16 border-t border-slate-100 bg-gradient-to-r from-transparent via-slate-50 to-transparent dark:via-slate-800"></div>
       ))}
     </div>
   </div>

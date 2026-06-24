@@ -239,15 +239,15 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
             <table className="min-w-full">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Date</th>
-                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opponent</th>
-                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Your ELO</th>
-                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Opp ELO</th>
-                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Diff</th>
-                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Color</th>
-                  <th className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Result</th>
-                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
-                  <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Tournament</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Date</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opponent</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Your ELO</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Opp ELO</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Diff</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Color</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Result</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Tournament</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -447,14 +447,14 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Bracket</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Expected</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Performance</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Avg ELO Diff</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Bracket</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Expected</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Performance</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Avg ELO Diff</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -546,7 +546,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
       </div>
 
       {/* Insights */}
-      <div className="p-6 border-2 border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="p-6 border-2 border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
         <h3 className="flex items-center mb-4 text-lg font-semibold">
           <span className="mr-2 text-2xl">💡</span>
           Insights & Recommendations

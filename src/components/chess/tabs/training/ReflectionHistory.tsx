@@ -12,7 +12,7 @@ const ReflectionHistory = ({ dailyNotes, currentWeek }: ReflectionHistoryProps) 
     .slice(0, 10);
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl">
           <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,7 +43,7 @@ const ReflectionHistory = ({ dailyNotes, currentWeek }: ReflectionHistoryProps) 
             const weekLabel = `${reflectionWeekDates[0]?.displayDate} - ${reflectionWeekDates[6]?.displayDate}, ${new Date(weekStartDate).getFullYear()}`;
 
             return (
-              <div key={weekKey} className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-4 border border-violet-200">
+              <div key={weekKey} className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-violet-200">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-violet-500 rounded-lg">

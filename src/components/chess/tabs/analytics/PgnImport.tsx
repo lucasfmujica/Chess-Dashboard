@@ -16,7 +16,7 @@ const PgnImport = ({
   handlePgnImport,
 }: PgnImportProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
+    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 hover:shadow-xl">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-600"></div>
 
       <div className="p-6">
@@ -48,7 +48,7 @@ const PgnImport = ({
                 value={pgnText}
                 onChange={(e) => setPgnText(e.target.value)}
                 placeholder={`[Event "Tournament Name"]\n[White "Player1"]\n[Black "Player2"]\n[Result "1-0"]\n[WhiteElo "1800"]\n[BlackElo "1750"]\n[ECO "B23"]\n\n1. e4 c5 2. Nc3 ...`}
-                className="w-full h-64 px-4 py-3 font-mono text-sm border-2 border-slate-300 rounded-xl resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                className="w-full h-64 px-4 py-3 font-mono text-sm border-2 border-slate-300 rounded-xl resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
               />
             </div>
             <div className="flex gap-3">

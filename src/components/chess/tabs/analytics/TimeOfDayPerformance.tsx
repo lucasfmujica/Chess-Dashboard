@@ -18,7 +18,7 @@ interface TimeOfDayPerformanceProps {
 
 const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60">
+    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600"></div>
 
       <div className="p-6">
@@ -39,7 +39,7 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
             return (
               <div key={idx} className={`p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md ${
                 isTopPerformer
-                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300'
+                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 border-emerald-300'
                   : 'bg-slate-50 border-slate-200'
               }`}>
                 <div className="flex items-center justify-between mb-2">
@@ -69,13 +69,13 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
         <div className="overflow-hidden border border-slate-200 rounded-xl">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
+              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
                 <tr>
-                  <th className="px-6 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Time Slot</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">W-D-L</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Win Rate</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Time Slot</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">W-D-L</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Win Rate</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-100">
@@ -112,7 +112,7 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
         </div>
 
         {/* Enhanced Visual Chart */}
-        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200">
           <h4 className="mb-4 text-sm font-semibold text-slate-700 flex items-center gap-2">
             <ChartBarIcon className="w-4 h-4" />
             Performance Distribution

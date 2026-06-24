@@ -69,7 +69,7 @@ const RepertoireTab = ({
   };
   return (
     <div className="space-y-6">
-      <div className="p-6 border border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50">
+      <div className="p-6 border border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
         <h3 className="flex items-center mb-4 text-lg font-semibold">
           <span className="mr-2 text-2xl">💡</span>
           Opening Recommendations
@@ -99,7 +99,7 @@ const RepertoireTab = ({
       </div>
 
       {/* Opening Heroes Section */}
-      <div className="p-6 border-2 border-purple-200 rounded-lg shadow-md bg-gradient-to-r from-purple-50 to-pink-50">
+      <div className="p-6 border-2 border-purple-200 rounded-lg shadow-md bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900">
         <h3 className="flex items-center mb-4 text-lg font-semibold text-purple-900">
           <span className="mr-2 text-2xl">⭐</span>
           Opening Heroes
@@ -138,7 +138,7 @@ const RepertoireTab = ({
                           value={newHeroName}
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 dark:text-slate-100 dark:placeholder-slate-500"
                           onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
@@ -202,7 +202,7 @@ const RepertoireTab = ({
                           value={newHeroName}
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
+                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 dark:text-slate-100 dark:placeholder-slate-500"
                           onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
@@ -273,10 +273,10 @@ const RepertoireTab = ({
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -345,10 +345,10 @@ const RepertoireTab = ({
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
-                  <th className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">

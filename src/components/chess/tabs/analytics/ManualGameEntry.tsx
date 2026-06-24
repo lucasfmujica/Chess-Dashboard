@@ -33,7 +33,7 @@ const ManualGameEntry = ({
   resetForm,
 }: ManualGameEntryProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
+    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 hover:shadow-xl">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
 
       <div className="p-6">
@@ -72,7 +72,7 @@ const ManualGameEntry = ({
                   value={gameForm.tournament}
                   onChange={handleInputChange}
                   placeholder="e.g., Lago Puelo Open 2025"
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
                 />
                 <datalist id="tournament-suggestions">
                   {uniqueTournaments.map((t, idx) => (
@@ -92,7 +92,7 @@ const ManualGameEntry = ({
                   value={gameForm.elo}
                   onChange={handleInputChange}
                   placeholder="e.g., 1650"
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -107,7 +107,7 @@ const ManualGameEntry = ({
                   value={gameForm.opp}
                   onChange={handleInputChange}
                   placeholder="e.g., John Smith"
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -122,7 +122,7 @@ const ManualGameEntry = ({
                   value={gameForm.opp_elo}
                   onChange={handleInputChange}
                   placeholder="e.g., 1700"
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>
 
@@ -135,7 +135,7 @@ const ManualGameEntry = ({
                   name="color"
                   value={gameForm.color}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100"
                 >
                   <option value="W">⚪ White</option>
                   <option value="B">⚫ Black</option>
@@ -151,7 +151,7 @@ const ManualGameEntry = ({
                   name="result"
                   value={gameForm.result}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100"
                 >
                   <option value="W">✅ Win</option>
                   <option value="D">➖ Draw</option>
@@ -170,7 +170,7 @@ const ManualGameEntry = ({
                   value={gameForm.eco}
                   onChange={handleInputChange}
                   placeholder="e.g., B23"
-                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                  className="w-full px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all dark:text-slate-100 dark:placeholder-slate-500"
                 />
               </div>
 

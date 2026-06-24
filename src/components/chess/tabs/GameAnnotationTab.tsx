@@ -214,7 +214,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6">
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[300px]">
             <input
@@ -246,7 +246,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
 
       {/* Annotation Form */}
       {selectedGame !== null && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden animate-slideUp">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden animate-slideUp">
           <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
             <h3 className="text-xl font-bold text-white">
               {editingAnnotation ? 'Edit Annotation' : 'New Game Annotation'}
@@ -441,7 +441,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {filteredAnnotations.length > 0 ? (
           filteredAnnotations.map(annotation => (
-            <div key={annotation.id} className="bg-white rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden hover:shadow-xl transition-shadow">
+            <div key={annotation.id} className="bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden hover:shadow-xl transition-shadow">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -514,7 +514,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
           ))
         ) : (
-          <div className="col-span-2 bg-white rounded-2xl shadow-lg border border-slate-200/60 p-12 text-center">
+          <div className="col-span-2 bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-12 text-center">
             <div className="p-4 bg-slate-100 rounded-full inline-block mb-4">
               <DocumentTextIcon className="w-12 h-12 text-slate-400" />
             </div>

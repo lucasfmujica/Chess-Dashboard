@@ -39,12 +39,12 @@ const DayCard = ({
 
   return (
     <div
-      className={`bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-xl ${
-        isToday ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200/60'
+      className={`bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-xl ${
+        isToday ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200/60 dark:border-slate-700/60'
       }`}
     >
       {/* Day Header */}
-      <div className={`p-4 ${isToday ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gradient-to-r from-slate-100 to-slate-50'}`}>
+      <div className={`p-4 ${isToday ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900'}`}>
         <div className="flex items-center justify-between">
           <div>
             <h4 className={`font-bold ${isToday ? 'text-white' : 'text-slate-900'}`}>{day}</h4>
@@ -144,7 +144,7 @@ const DayCard = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="p-4 border-t bg-slate-50/80 backdrop-blur-sm space-y-3">
+      <div className="p-4 border-t bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-sm space-y-3">
         <div className="flex gap-2">
           <button
             onClick={() => onSetEditingDay(editingDay === date ? null : date)}
@@ -191,7 +191,7 @@ const DayCard = ({
             value={note}
             onChange={(e) => onUpdateNote(date, e.target.value)}
             placeholder="Daily notes & reflections..."
-            className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent placeholder-slate-400"
+            className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent placeholder-slate-400 dark:text-slate-100 dark:placeholder-slate-500"
             rows={2}
           />
         </div>

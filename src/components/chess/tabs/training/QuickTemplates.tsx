@@ -16,7 +16,7 @@ const QuickTemplates = ({
   onClearWeek,
 }: QuickTemplatesProps) => {
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
           <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,7 +53,7 @@ const QuickTemplates = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <button
           onClick={onApplyGMNoahMethod}
-          className="group p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300"
+          className="group p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300"
         >
           <div className="text-4xl mb-3">⚡</div>
           <p className="font-bold text-blue-900 text-lg mb-2">GM Noah&apos;s Method</p>
@@ -62,7 +62,7 @@ const QuickTemplates = ({
 
         <button
           onClick={onApplyBalancedDaily}
-          className="group p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 hover:shadow-lg transition-all duration-300"
+          className="group p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border-2 border-emerald-200 hover:border-emerald-400 hover:shadow-lg transition-all duration-300"
         >
           <div className="text-4xl mb-3">🎯</div>
           <p className="font-bold text-emerald-900 text-lg mb-2">Balanced Daily</p>
@@ -71,7 +71,7 @@ const QuickTemplates = ({
 
         <button
           onClick={onApplyBlockFocus}
-          className="group p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300"
+          className="group p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300"
         >
           <div className="text-4xl mb-3">📚</div>
           <p className="font-bold text-purple-900 text-lg mb-2">Block Focus</p>

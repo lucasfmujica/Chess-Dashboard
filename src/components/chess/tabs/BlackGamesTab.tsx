@@ -103,11 +103,11 @@ const BlackGamesTab = ({
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
-                <th className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -143,6 +143,7 @@ const BlackGamesTab = ({
             <thead className="bg-slate-50">
               <tr>
                 <th
+                  scope="col"
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
                     if (blackSortBy === 'date') {
@@ -155,8 +156,9 @@ const BlackGamesTab = ({
                 >
                   Game # {blackSortBy === 'date' && (blackSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">My ELO</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">My ELO</th>
                 <th
+                  scope="col"
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
                     if (blackSortBy === 'opponent') {
@@ -169,8 +171,9 @@ const BlackGamesTab = ({
                 >
                   Opponent {blackSortBy === 'opponent' && (blackSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">Opp ELO</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">Opp ELO</th>
                 <th
+                  scope="col"
                   className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
                     setBlackSortBy('result');
@@ -179,8 +182,8 @@ const BlackGamesTab = ({
                 >
                   Result {blackSortBy === 'result' && (blackSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Opening</th>
-                <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Tournament</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Opening</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Tournament</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">

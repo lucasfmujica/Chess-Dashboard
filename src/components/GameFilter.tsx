@@ -10,7 +10,7 @@ interface GameFilterProps {
 
 const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProps) => {
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/60 p-2">
+    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/60 dark:border-slate-700/60 p-2">
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 px-3 py-2">
           <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -23,7 +23,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
           className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
             gameFilter === 'otb'
               ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
-              : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
           }`}
           aria-label="Filter to show only over-the-board games"
           aria-pressed={gameFilter === 'otb'}
@@ -45,7 +45,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
           className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
             gameFilter === 'online'
               ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-105'
-              : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
           }`}
           aria-label="Filter to show only online games"
           aria-pressed={gameFilter === 'online'}
@@ -67,7 +67,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
           className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
             gameFilter === 'all'
               ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
-              : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
           }`}
           aria-label="Filter to show all games"
           aria-pressed={gameFilter === 'all'}

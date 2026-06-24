@@ -149,7 +149,7 @@ const AnalyticsTab = ({
 
           {/* Remove Lichess Games Button */}
           {lichessGamesCount > 0 && (
-            <div className="p-4 border-2 border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-pink-50">
+            <div className="p-4 border-2 border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-pink-50 dark:from-slate-800 dark:to-slate-900">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-semibold text-red-900">Remove Imported Games</h4>

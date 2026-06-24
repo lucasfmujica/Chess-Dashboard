@@ -22,9 +22,9 @@ const WeekNavigator = ({
   totalActivities,
 }: WeekNavigatorProps) => {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
+    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
       {/* Week Navigator */}
-      <div className="p-6 bg-gradient-to-r from-slate-50 to-indigo-50 border-b border-slate-200">
+      <div className="p-6 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <button
             onClick={onPrevWeek}
@@ -67,7 +67,7 @@ const WeekNavigator = ({
       {/* Week Stats Grid */}
       <div className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200/60">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-blue-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-blue-500 rounded-lg">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@ const WeekNavigator = ({
             <p className="text-xs text-slate-500 mt-1">minutes</p>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200/60">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-emerald-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-emerald-500 rounded-lg">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,7 +93,7 @@ const WeekNavigator = ({
             <p className="text-xs text-slate-500 mt-1">of 7 days</p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200/60">
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-purple-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-purple-500 rounded-lg">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -106,7 +106,7 @@ const WeekNavigator = ({
             <p className="text-xs text-slate-500 mt-1">minutes</p>
           </div>
 
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200/60">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-amber-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-amber-500 rounded-lg">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +119,7 @@ const WeekNavigator = ({
             <p className="text-xs text-slate-500 mt-1">recovery</p>
           </div>
 
-          <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-xl p-4 border border-rose-200/60">
+          <div className="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 border border-rose-200/60 dark:border-slate-700/60">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-rose-500 rounded-lg">
                 <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

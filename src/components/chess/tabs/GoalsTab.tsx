@@ -121,7 +121,7 @@ const GoalsTab = ({
       </div>
 
       {/* Goal Settings */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+      <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,7 +173,7 @@ const GoalsTab = ({
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-200 p-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl shadow-lg border border-blue-200 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-500 rounded-xl">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -190,7 +190,7 @@ const GoalsTab = ({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg border border-purple-200 p-6">
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl shadow-lg border border-purple-200 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-purple-500 rounded-xl">
               <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,7 +203,7 @@ const GoalsTab = ({
           <p className="text-sm text-slate-600">months ({goalProjections.daysRemaining} days)</p>
         </div>
 
-        <div className={`bg-gradient-to-br rounded-2xl shadow-lg border p-6 ${
+        <div className={`bg-gradient-to-br rounded-2xl shadow-lg border p-6 dark:from-slate-800 dark:to-slate-800 ${
           goalProjections.onTrack
             ? 'from-emerald-50 to-teal-50 border-emerald-200'
             : 'from-amber-50 to-orange-50 border-amber-200'
@@ -226,8 +226,8 @@ const GoalsTab = ({
       </div>
 
       {/* Detailed Projections */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-50 to-indigo-50 p-6 border-b border-slate-200">
+      <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-500 rounded-xl">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -302,7 +302,7 @@ const GoalsTab = ({
       </div>
 
       {/* Achievement Badges */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+      <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl">
@@ -338,7 +338,7 @@ const GoalsTab = ({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {(showAllAchievements ? achievements : achievements.slice(0, 4)).map((badge, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border-2 border-amber-300 text-center card-hover">
+              <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-5 border-2 border-amber-300 text-center card-hover">
                 <div className="text-5xl mb-3">{badge.icon}</div>
                 <p className="text-sm font-bold text-slate-900 leading-tight">{badge.name}</p>
               </div>
@@ -348,7 +348,7 @@ const GoalsTab = ({
       </div>
 
       {/* Next Milestones */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+      <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -363,7 +363,7 @@ const GoalsTab = ({
 
         <div className="space-y-4">
           {nextMilestones.map((milestone, idx) => (
-            <div key={idx} className="bg-gradient-to-r from-slate-50 to-emerald-50 rounded-xl p-5 border border-slate-200">
+            <div key={idx} className="bg-gradient-to-r from-slate-50 to-emerald-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-5 border border-slate-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${parseFloat(milestone.progress) >= 100 ? 'bg-emerald-500' : 'bg-slate-300'}`}>
