@@ -1,5 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { PlayIcon } from '@heroicons/react/24/solid';
 import type { Game, GameStats } from '../../../types/chess';
+import { useGameViewer } from '../../../context/GameViewerContext';
 
 interface StatCardProps {
   title: string;
@@ -51,6 +53,7 @@ const BlackGamesTab = ({
   games,
   ecoNames
 }: BlackGamesTabProps) => {
+  const { openGameViewer } = useGameViewer();
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -184,6 +187,7 @@ const BlackGamesTab = ({
                 </th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Opening</th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Tournament</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle"><span className="sr-only">Replay</span></th>
               </tr>
             </thead>
             <tbody className="bg-surface divide-y divide-hairline">
@@ -240,6 +244,24 @@ const BlackGamesTab = ({
                       <div className="text-xs text-fg-subtle">{game.eco}</div>
                     </td>
                     <td className="px-4 py-3 text-sm text-fg-muted">{game.tournament}</td>
+                    <td className="px-4 py-3 text-center">
+                      {game.pgn && (
+                        <button
+                          onClick={() => openGameViewer({
+                            pgn: game.pgn,
+                            orientation: 'black',
+                            white: game.opp,
+                            black: 'You',
+                            title: game.tournament,
+                          })}
+                          aria-label={`Replay game vs ${game.opp}`}
+                          title="Replay game"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-hairline text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
+                        >
+                          <PlayIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ));
               })()}

@@ -8,6 +8,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './components/modals/ModalContext';
 import { GamesProvider } from './context/GamesContext';
 import { UIProvider } from './context/UIContext';
+import { GameViewerProvider } from './context/GameViewerContext';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
@@ -18,7 +19,9 @@ root.render(
         <ModalProvider>
           <GamesProvider>
             <UIProvider>
-              <App />
+              <GameViewerProvider>
+                <App />
+              </GameViewerProvider>
             </UIProvider>
           </GamesProvider>
         </ModalProvider>

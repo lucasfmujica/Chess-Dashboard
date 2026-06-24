@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './components/modals/ModalContext';
 import { GamesProvider } from './context/GamesContext';
 import { UIProvider } from './context/UIContext';
+import { GameViewerProvider } from './context/GameViewerContext';
 
 // Helper to render App with all required providers
 const renderApp = () => {
@@ -12,7 +13,9 @@ const renderApp = () => {
       <ModalProvider>
         <GamesProvider>
           <UIProvider>
-            <App />
+            <GameViewerProvider>
+              <App />
+            </GameViewerProvider>
           </UIProvider>
         </GamesProvider>
       </ModalProvider>

@@ -5,6 +5,7 @@ import { useModal } from '../../modals/ModalContext';
 import AnalyticsHero from './analytics/AnalyticsHero';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
+import PgnReplayPanel from './analytics/PgnReplayPanel';
 import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
 import TournamentComparison from './analytics/TournamentComparison';
 import type { Game } from '../../../types/chess';
@@ -141,6 +142,9 @@ const AnalyticsTab = ({
         setPgnText={setPgnText}
         handlePgnImport={handlePgnImport}
       />
+
+      {/* Paste a PGN and replay it on a board */}
+      <PgnReplayPanel />
 
       {/* Lichess Sync Panel */}
       {LichessSyncPanel && (

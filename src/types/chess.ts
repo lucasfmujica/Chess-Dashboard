@@ -49,6 +49,9 @@ export interface Game {
   /** Full opening name. */
   opening?: string;
 
+  /** SAN movetext / PGN moves, when available (enables board replay). */
+  pgn?: string;
+
   // Optional location metadata (used by the geography feature)
   city?: string;
   country?: string;

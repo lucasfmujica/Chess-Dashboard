@@ -14,6 +14,8 @@ export interface ParsedPgnGame {
   result?: string;
   eco?: string;
   tournament?: string;
+  /** SAN movetext (everything after the headers), when present. */
+  moves?: string;
 }
 
 /** Result of converting parsed PGN games into the internal format. */
@@ -50,6 +52,7 @@ export const parsePGN = (pgnText: string): ParsedPgnGame[] => {
 
       const game: ParsedPgnGame = {};
       const lines = block.split('\n');
+      const moveLines: string[] = [];
 
       lines.forEach(line => {
         if (line.startsWith('[')) {
@@ -64,8 +67,14 @@ export const parsePGN = (pgnText: string): ParsedPgnGame[] => {
             if (key === 'ECO') game.eco = value;
             if (key === 'Event') game.tournament = value;
           }
+        } else if (line.trim()) {
+          // Non-header, non-empty line -> part of the movetext.
+          moveLines.push(line.trim());
         }
       });
+
+      const moves = moveLines.join(' ').trim();
+      if (moves) game.moves = moves;
 
       // Only keep games with both players and a recognized result.
       if (game.white && game.black && game.result && VALID_RESULTS.has(game.result)) {
@@ -140,6 +149,7 @@ export const convertPGNGamesToInternal = (
       rated: true,
       source: 'otb',
       time: '00:00',
+      ...(game.moves ? { pgn: game.moves } : {}),
     });
   });
 
