@@ -38,6 +38,10 @@ interface GamesContextValue {
 
   upcomingTournaments: UpcomingTournament[];
   setUpcomingTournaments: Updater<UpcomingTournament[]>;
+
+  /** User overrides: tournament name -> city key (see constants/locations). */
+  tournamentLocations: Record<string, string>;
+  setTournamentLocations: Updater<Record<string, string>>;
 }
 
 const GamesContext = createContext<GamesContextValue | null>(null);
@@ -76,6 +80,9 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   // Upcoming Tournaments State (persisted)
   const [upcomingTournaments, setUpcomingTournaments] = useLocalStorage<UpcomingTournament[]>('chess-dashboard-upcoming-tournaments', []);
 
+  // Per-tournament location overrides (persisted)
+  const [tournamentLocations, setTournamentLocations] = useLocalStorage<Record<string, string>>('chess-dashboard-tournament-locations', {});
+
   const value: GamesContextValue = {
     games,
     setGames,
@@ -96,6 +103,8 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     setWeeklyHours,
     upcomingTournaments,
     setUpcomingTournaments,
+    tournamentLocations,
+    setTournamentLocations,
   };
 
   return <GamesContext.Provider value={value}>{children}</GamesContext.Provider>;

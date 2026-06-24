@@ -18,6 +18,7 @@ import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
+import GeographyTab from './components/chess/tabs/GeographyTab';
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { mergeGames } from './utils/lichessApi';
@@ -233,6 +234,7 @@ const ChessDashboard = () => {
     { id: 'rating', label: 'ELO Progress', icon: '📈' },
     { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
     { id: 'opponent-analysis', label: 'Opponent Analysis', icon: '⚔️' },
+    { id: 'geography', label: 'Geography', icon: '🌎' },
     { id: 'by-color', label: 'By Color', icon: '♟️' },
     { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
     { id: 'annotations', label: 'Game Library', icon: '📝' },
@@ -333,6 +335,8 @@ const ChessDashboard = () => {
               currentElo={playerInfo.current_elo}
             />
           )}
+
+          {activeTab === 'geography' && <GeographyTab />}
 
           {activeTab === 'by-color' && (
             <div className="space-y-6">

@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react';
 import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import ArgentinaMap from '../../charts/ArgentinaMap';
+import GeoMap from '../../charts/GeoMap';
+import { useGames } from '../../../context/GamesContext';
+import { useGeographyStats } from '../../../hooks/useGeographyStats';
 import StatCard from '../StatCard';
 import { getChartHeight } from '../../../utils/chartUtils';
 import type { Game, GameStats, PlayerInfo, TournamentStat } from '../../../types/chess';
@@ -61,6 +63,9 @@ const OverviewTab = ({
   Target,
   TrendingUp
 }: OverviewTabProps) => {
+  const { tournamentLocations } = useGames();
+  const geo = useGeographyStats(ratedGames, tournamentLocations);
+
   // Generate ELO progress timeline from tournament stats (use starting ELO for each tournament)
   const eloTimeline = tournamentStats && tournamentStats.length > 0 ?
     tournamentStats.map((t) => ({
@@ -246,9 +251,9 @@ const OverviewTab = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-fg">Tournament Locations</h3>
+            <h3 className="text-lg font-semibold text-fg">Tournament Locations</h3>
           </div>
-          <ArgentinaMap games={ratedGames} />
+          <GeoMap markers={geo.byCity} />
         </div>
       </div>
 
