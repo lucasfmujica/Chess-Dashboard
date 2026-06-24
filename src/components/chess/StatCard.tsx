@@ -45,7 +45,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) 
   return (
     <div className="group relative overflow-hidden">
       {/* Main Card */}
-      <div className={`relative bg-white rounded-2xl shadow-lg ${style.shadow} border border-slate-200/60 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 card-hover`}>
+      <div className={`relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg ${style.shadow} border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 card-hover`}>
         {/* Gradient Accent Bar */}
         <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${style.gradient}`}></div>
 
