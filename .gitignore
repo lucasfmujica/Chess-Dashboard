@@ -40,3 +40,6 @@ pnpm-debug.log*
 *.swp
 *.swo
 *~
+
+# ShipStudio metadata
+.shipstudio/
