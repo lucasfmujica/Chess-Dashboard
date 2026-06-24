@@ -222,83 +222,77 @@ const OpeningsFlashcardsTab = () => {
   return (
     <div className="space-y-6">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 rounded-3xl shadow-2xl">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-          backgroundSize: '32px 32px'
-        }}></div>
-
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="relative px-8 py-10">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-              <BookOpenIcon className="w-8 h-8 text-white" />
+            <div className="p-3 bg-surface-2 rounded-lg">
+              <BookOpenIcon className="w-8 h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Opening Repertoire Trainer</h2>
-              <p className="text-purple-100">Master your openings with spaced repetition</p>
+              <h2 className="text-lg font-semibold text-fg">Opening Repertoire Trainer</h2>
+              <p className="text-fg-muted">Master your openings with spaced repetition</p>
             </div>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-4">
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <BookOpenIcon className="w-5 h-5 text-yellow-300" />
-                <p className="text-sm font-medium text-white/80">Total Openings</p>
+                <BookOpenIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Total Openings</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.total}</p>
             </div>
 
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <ClockIcon className="w-5 h-5 text-orange-300" />
-                <p className="text-sm font-medium text-white/80">Due Today</p>
+                <ClockIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Due Today</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.dueToday}</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.dueToday}</p>
             </div>
 
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <SparklesIcon className="w-5 h-5 text-emerald-300" />
-                <p className="text-sm font-medium text-white/80">Mastered</p>
+                <SparklesIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Mastered</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.mastered}</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.mastered}</p>
             </div>
 
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <ChartBarIcon className="w-5 h-5 text-blue-300" />
-                <p className="text-sm font-medium text-white/80">Avg Success</p>
+                <ChartBarIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Avg Success</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.avgSuccessRate}%</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.avgSuccessRate}%</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-6">
+      <div className="bg-surface rounded-lg border border-hairline p-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Study Mode</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-semibold text-fg mb-2">Study Mode</label>
+            <div className="flex gap-2 bg-surface border border-hairline rounded-lg p-1">
               <button
                 onClick={() => setStudyMode('review')}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
+                className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
                   studyMode === 'review'
-                    ? 'bg-purple-500 text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-surface-2 text-fg'
+                    : 'text-fg-muted hover:bg-surface-2'
                 }`}
               >
                 Review ({stats.dueToday})
               </button>
               <button
                 onClick={() => setStudyMode('learn')}
-                className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all ${
+                className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
                   studyMode === 'learn'
-                    ? 'bg-purple-500 text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-surface-2 text-fg'
+                    : 'text-fg-muted hover:bg-surface-2'
                 }`}
               >
                 All Openings
@@ -307,16 +301,16 @@ const OpeningsFlashcardsTab = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Color</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-semibold text-fg mb-2">Color</label>
+            <div className="flex gap-2 bg-surface border border-hairline rounded-lg p-1">
               {(['all', 'white', 'black'] as const).map(c => (
                 <button
                   key={c}
                   onClick={() => setFilter(c)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all capitalize ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-all capitalize ${
                     filter === c
-                      ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-surface-2 text-fg'
+                      : 'text-fg-muted hover:bg-surface-2'
                   }`}
                 >
                   {c}
@@ -326,16 +320,16 @@ const OpeningsFlashcardsTab = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Difficulty</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-semibold text-fg mb-2">Difficulty</label>
+            <div className="flex gap-2 bg-surface border border-hairline rounded-lg p-1">
               {(['all', 'beginner', 'intermediate', 'advanced'] as const).map(d => (
                 <button
                   key={d}
                   onClick={() => setDifficultyFilter(d)}
-                  className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all capitalize ${
+                  className={`px-4 py-2 text-sm font-semibold rounded-md transition-all capitalize ${
                     difficultyFilter === d
-                      ? 'bg-emerald-500 text-white shadow-lg'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-surface-2 text-fg'
+                      : 'text-fg-muted hover:bg-surface-2'
                   }`}
                 >
                   {d}
@@ -346,7 +340,7 @@ const OpeningsFlashcardsTab = () => {
 
           <button
             onClick={resetProgress}
-            className="ml-auto px-4 py-2 text-sm font-semibold text-rose-700 bg-rose-50 border-2 border-rose-200 rounded-xl hover:bg-rose-100 transition-colors"
+            className="ml-auto px-4 py-2 text-sm font-semibold border border-hairline bg-surface text-fg rounded-lg hover:bg-surface-2 transition-colors"
           >
             Reset Progress
           </button>
@@ -355,25 +349,25 @@ const OpeningsFlashcardsTab = () => {
 
       {/* Flashcard */}
       {filteredOpenings.length > 0 && currentOpening ? (
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden">
+        <div className="bg-surface rounded-lg border border-hairline overflow-hidden">
           {/* Progress */}
-          <div className="px-6 py-3 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+          <div className="px-6 py-3 bg-surface-2 border-b border-hairline">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-fg">
                 Card {currentIndex + 1} of {filteredOpenings.length}
               </span>
               <div className="flex items-center gap-4">
-                <span className="text-sm text-slate-600">
-                  Success: <span className="font-bold text-emerald-600">{currentOpening.successRate}%</span>
+                <span className="text-sm text-fg-muted">
+                  Success: <span className="font-bold text-win">{currentOpening.successRate}%</span>
                 </span>
-                <span className="text-sm text-slate-600">
-                  Reviews: <span className="font-bold text-indigo-600">{currentOpening.reviewCount}</span>
+                <span className="text-sm text-fg-muted">
+                  Reviews: <span className="font-bold text-accent">{currentOpening.reviewCount}</span>
                 </span>
               </div>
             </div>
-            <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="mt-2 h-2 bg-surface-2 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full transition-all duration-300"
+                className="h-full bg-accent rounded-full transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / filteredOpenings.length) * 100}%` }}
               ></div>
             </div>
@@ -383,12 +377,12 @@ const OpeningsFlashcardsTab = () => {
           <div className="p-8">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">{currentOpening.name}</h3>
+                <h3 className="text-base font-semibold text-fg">{currentOpening.name}</h3>
                 <div className="flex gap-2">
                   <span className={`px-3 py-1 text-xs font-bold rounded-full ${
                     currentOpening.color === 'white'
-                      ? 'bg-slate-100 text-slate-700'
-                      : 'bg-slate-800 text-white'
+                      ? 'bg-surface-2 text-fg'
+                      : 'bg-fg text-app'
                   }`}>
                     ⚔️ Playing as {currentOpening.color === 'white' ? 'White' : 'Black'}
                   </span>
@@ -403,21 +397,21 @@ const OpeningsFlashcardsTab = () => {
               </div>
 
               {/* Question */}
-              <div className="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border-2 border-indigo-200">
-                <p className="text-lg font-semibold text-slate-900 mb-2">What are the main moves?</p>
-                <p className="text-sm text-slate-600">Try to recall the move sequence before revealing...</p>
+              <div className="p-6 bg-surface-2 rounded-lg border border-hairline">
+                <p className="text-lg font-semibold text-fg mb-2">What are the main moves?</p>
+                <p className="text-sm text-fg-muted">Try to recall the move sequence before revealing...</p>
               </div>
             </div>
 
             {/* Answer */}
             {showAnswer && (
               <div className="mb-6 animate-slideUp">
-                <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border-2 border-emerald-200">
-                  <p className="text-sm font-semibold text-emerald-700 mb-2">Move Sequence:</p>
-                  <p className="text-lg font-bold text-slate-900 font-mono">{currentOpening.moves}</p>
+                <div className="p-6 bg-surface-2 rounded-lg border border-hairline">
+                  <p className="text-sm font-semibold text-fg-muted mb-2">Move Sequence:</p>
+                  <p className="text-lg font-bold text-fg font-mono">{currentOpening.moves}</p>
 
                   {currentOpening.lastReviewed && (
-                    <p className="text-xs text-slate-500 mt-3">
+                    <p className="text-xs text-fg-subtle mt-3">
                       Last reviewed: {new Date(currentOpening.lastReviewed).toLocaleDateString()}
                     </p>
                   )}
@@ -430,7 +424,7 @@ const OpeningsFlashcardsTab = () => {
               {!showAnswer ? (
                 <button
                   onClick={() => setShowAnswer(true)}
-                  className="flex-1 px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl hover:from-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all"
+                  className="flex-1 px-6 py-4 text-lg font-bold text-app bg-fg rounded-lg hover:opacity-90 transition-all"
                 >
                   Show Answer
                 </button>
@@ -438,14 +432,14 @@ const OpeningsFlashcardsTab = () => {
                 <>
                   <button
                     onClick={() => handleResponse(false)}
-                    className="flex-1 px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-rose-500 to-pink-600 rounded-xl hover:from-rose-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-4 text-lg font-bold text-app bg-loss rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
                   >
                     <XCircleIcon className="w-6 h-6" />
                     Incorrect
                   </button>
                   <button
                     onClick={() => handleResponse(true)}
-                    className="flex-1 px-6 py-4 text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl hover:from-emerald-600 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-4 text-lg font-bold text-app bg-win rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
                   >
                     <CheckCircleIcon className="w-6 h-6" />
                     Correct
@@ -461,7 +455,7 @@ const OpeningsFlashcardsTab = () => {
                   setShowAnswer(false);
                   setCurrentIndex((currentIndex - 1 + filteredOpenings.length) % filteredOpenings.length);
                 }}
-                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 text-sm font-semibold border border-hairline bg-surface text-fg rounded-lg hover:bg-surface-2 transition-colors"
               >
                 ← Previous
               </button>
@@ -470,7 +464,7 @@ const OpeningsFlashcardsTab = () => {
                   setShowAnswer(false);
                   setCurrentIndex((currentIndex + 1) % filteredOpenings.length);
                 }}
-                className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 text-sm font-semibold border border-hairline bg-surface text-fg rounded-lg hover:bg-surface-2 transition-colors"
               >
                 Next →
               </button>
@@ -478,12 +472,12 @@ const OpeningsFlashcardsTab = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-12 text-center">
-          <div className="p-4 bg-slate-100 rounded-full inline-block mb-4">
-            <CheckCircleIcon className="w-12 h-12 text-emerald-500" />
+        <div className="bg-surface rounded-lg border border-hairline p-12 text-center">
+          <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
+            <CheckCircleIcon className="w-12 h-12 text-win" />
           </div>
-          <h3 className="text-base font-semibold text-slate-900 mb-2">All done for today!</h3>
-          <p className="text-slate-600">No openings due for review. Check back tomorrow or switch to "All Openings" mode.</p>
+          <h3 className="text-base font-semibold text-fg mb-2">All done for today!</h3>
+          <p className="text-fg-muted">No openings due for review. Check back tomorrow or switch to "All Openings" mode.</p>
         </div>
       )}
     </div>

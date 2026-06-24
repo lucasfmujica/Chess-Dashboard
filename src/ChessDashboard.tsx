@@ -19,6 +19,8 @@ import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
 import GeographyTab from './components/chess/tabs/GeographyTab';
+import RecordsTab from './components/chess/tabs/RecordsTab';
+import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { mergeGames } from './utils/lichessApi';
@@ -237,8 +239,10 @@ const ChessDashboard = () => {
     { id: 'geography', label: 'Geography', icon: '🌎' },
     { id: 'by-color', label: 'By Color', icon: '♟️' },
     { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
+    { id: 'openings-trainer', label: 'Opening Trainer', icon: '🃏' },
     { id: 'annotations', label: 'Game Library', icon: '📝' },
     { id: 'achievements', label: 'Achievements', icon: '🏅' },
+    { id: 'records', label: 'Records', icon: '⭐' },
     { id: 'streaks', label: 'Streaks', icon: '🔥' },
     { id: 'analytics', label: 'Analytics', icon: '🔬' },
     { id: 'training', label: 'Training Plan', icon: '💡' },
@@ -337,6 +341,12 @@ const ChessDashboard = () => {
           )}
 
           {activeTab === 'geography' && <GeographyTab />}
+
+          {activeTab === 'openings-trainer' && <OpeningsFlashcardsTab />}
+
+          {activeTab === 'records' && (
+            <RecordsTab games={ratedGames} eloHistory={eloHistory} />
+          )}
 
           {activeTab === 'by-color' && (
             <div className="space-y-6">
