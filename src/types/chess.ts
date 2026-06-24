@@ -125,8 +125,8 @@ export interface TournamentStat {
   eloChange: number;
   eloBefore: number;
   eloAfter: number;
-  whitePerformance: number | '-';
-  blackPerformance: number | '-';
+  whitePerformance: number | string;
+  blackPerformance: number | string;
 }
 
 /** Kind of current streak. */
