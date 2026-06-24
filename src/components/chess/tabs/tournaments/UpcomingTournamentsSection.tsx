@@ -52,7 +52,7 @@ const UpcomingTournamentsSection = ({
               <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-3xl font-bold text-fg">Upcoming Tournaments</h2>
+              <h2 className="text-lg font-semibold text-fg">Upcoming Tournaments</h2>
               <p className="text-sm sm:text-base text-fg-muted">Keep track of your scheduled competitions</p>
             </div>
           </div>
@@ -68,7 +68,7 @@ const UpcomingTournamentsSection = ({
         {/* Add/Edit Tournament Form */}
         {isAddingTournament && (
           <div className="mb-6 p-6 bg-surface-2 rounded-lg border border-hairline">
-            <h3 className="text-xl font-bold text-fg mb-4">
+            <h3 className="text-base font-semibold text-fg mb-4">
               {editingTournamentId ? 'Edit Tournament' : 'Add New Tournament'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

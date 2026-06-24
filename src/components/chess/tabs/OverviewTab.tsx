@@ -115,7 +115,7 @@ const OverviewTab = ({
         {/* Results Distribution */}
         <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-fg">Results Distribution</h3>
+            <h3 className="text-base font-semibold text-fg">Results Distribution</h3>
             <div className="flex items-center gap-2 text-sm">
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
@@ -158,7 +158,7 @@ const OverviewTab = ({
 
         {/* Performance by Color */}
         <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <h3 className="text-xl font-bold text-fg mb-6">Performance by Color</h3>
+          <h3 className="text-base font-semibold text-fg mb-6">Performance by Color</h3>
           <div className="space-y-6">
             {/* White Pieces */}
             <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
@@ -222,7 +222,7 @@ const OverviewTab = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-fg">ELO Progress Timeline</h3>
+            <h3 className="text-base font-semibold text-fg">ELO Progress Timeline</h3>
           </div>
           {eloTimeline.length > 0 ? (
             <ResponsiveContainer width="100%" height={getChartHeight('mini')}>

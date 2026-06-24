@@ -235,7 +235,7 @@ const OpeningsFlashcardsTab = () => {
               <BookOpenIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">Opening Repertoire Trainer</h2>
+              <h2 className="text-lg font-semibold text-white">Opening Repertoire Trainer</h2>
               <p className="text-purple-100">Master your openings with spaced repetition</p>
             </div>
           </div>
@@ -383,7 +383,7 @@ const OpeningsFlashcardsTab = () => {
           <div className="p-8">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-bold text-slate-900">{currentOpening.name}</h3>
+                <h3 className="text-lg font-semibold text-slate-900">{currentOpening.name}</h3>
                 <div className="flex gap-2">
                   <span className={`px-3 py-1 text-xs font-bold rounded-full ${
                     currentOpening.color === 'white'
@@ -482,7 +482,7 @@ const OpeningsFlashcardsTab = () => {
           <div className="p-4 bg-slate-100 rounded-full inline-block mb-4">
             <CheckCircleIcon className="w-12 h-12 text-emerald-500" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">All done for today!</h3>
+          <h3 className="text-base font-semibold text-slate-900 mb-2">All done for today!</h3>
           <p className="text-slate-600">No openings due for review. Check back tomorrow or switch to "All Openings" mode.</p>
         </div>
       )}

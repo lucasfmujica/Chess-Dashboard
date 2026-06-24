@@ -20,7 +20,7 @@ const StreaksHeroSection = ({ streaksData }: StreaksHeroSectionProps) => {
             <FireIcon className="w-8 h-8 text-accent" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-fg">Streaks & Consistency</h2>
+            <h2 className="text-lg font-semibold text-fg">Streaks & Consistency</h2>
             <p className="text-fg-muted">Track your momentum and playing habits</p>
           </div>
         </div>

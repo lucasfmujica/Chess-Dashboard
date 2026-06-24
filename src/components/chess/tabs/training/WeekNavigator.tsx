@@ -39,7 +39,7 @@ const WeekNavigator = ({
           </button>
 
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-fg">
+            <h3 className="text-lg font-semibold text-fg">
               {weekDates[0]?.displayDate || ''} - {weekDates[6]?.displayDate || ''}, {new Date(currentWeek).getFullYear()}
             </h3>
             <p className="mt-1 text-sm text-fg-muted flex items-center gap-1.5 justify-center">

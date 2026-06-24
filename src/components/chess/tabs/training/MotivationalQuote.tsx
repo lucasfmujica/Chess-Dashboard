@@ -36,7 +36,7 @@ const MotivationalQuote = ({
                 </svg>
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-fg">Training Plan</h2>
+                <h2 className="text-lg font-semibold text-fg">Training Plan</h2>
                 <p className="text-fg-muted text-sm mt-1">Plan, Track, Improve</p>
               </div>
             </div>

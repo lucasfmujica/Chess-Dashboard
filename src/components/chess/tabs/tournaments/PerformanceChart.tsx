@@ -10,7 +10,7 @@ const PerformanceChart = ({ tournamentStats }: PerformanceChartProps) => {
     <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-fg mb-2">Performance Rating Comparison</h3>
+          <h3 className="text-lg font-semibold text-fg mb-2">Performance Rating Comparison</h3>
           <p className="text-fg-muted">Visual comparison of performance ratings across tournaments</p>
         </div>
         <ResponsiveContainer width="100%" height={400}>

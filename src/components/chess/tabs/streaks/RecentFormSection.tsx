@@ -31,7 +31,7 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
             <ChartBarIcon className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-fg">Recent Form</h3>
+            <h3 className="text-base font-semibold text-fg">Recent Form</h3>
             <p className="text-fg-muted text-sm">Your performance in recent games</p>
           </div>
         </div>

@@ -344,7 +344,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-fg">Performance vs Expected Score</h3>
+              <h3 className="text-lg font-semibold text-fg">Performance vs Expected Score</h3>
               <p className="text-fg-muted text-sm">Analysis by opponent strength bracket</p>
             </div>
           </div>

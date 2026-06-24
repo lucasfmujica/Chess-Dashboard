@@ -158,7 +158,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                 <DocumentTextIcon className="w-8 h-8 text-accent" />
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-fg">Game Annotation Library</h2>
+                <h2 className="text-lg font-semibold text-fg">Game Annotation Library</h2>
                 <p className="text-fg-muted">Build your personal database of analyzed games</p>
               </div>
             </div>
@@ -242,7 +242,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
       {selectedGame !== null && (
         <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
           <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
-            <h3 className="text-xl font-bold text-fg">
+            <h3 className="text-base font-semibold text-fg">
               {editingAnnotation ? 'Edit Annotation' : 'New Game Annotation'}
             </h3>
           </div>
@@ -512,7 +512,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
               <DocumentTextIcon className="w-12 h-12 text-fg-subtle" />
             </div>
-            <h3 className="text-xl font-bold text-fg mb-2">No annotations yet</h3>
+            <h3 className="text-base font-semibold text-fg mb-2">No annotations yet</h3>
             <p className="text-fg-muted mb-4">Start building your personal game library by annotating your best games!</p>
             <button
               onClick={() => {

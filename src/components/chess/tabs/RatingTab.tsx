@@ -159,7 +159,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
               <ChartBarIcon className="w-8 h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-fg">ELO Progress</h2>
+              <h2 className="text-lg font-semibold text-fg">ELO Progress</h2>
               <p className="text-fg-muted">Track your rating journey and performance</p>
             </div>
           </div>
@@ -264,7 +264,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="p-8">
           <div className="mb-6">
-            <h3 className="text-3xl font-bold text-fg mb-2">
+            <h3 className="text-lg font-semibold text-fg mb-2">
               Rating Progression
             </h3>
             <p className="text-fg-muted">Complete journey from 1651 to {stats.currentElo} • {eloHistory.length} rated games</p>
@@ -366,7 +366,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="p-8">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-fg mb-2">Expected vs Actual Performance</h3>
+            <h3 className="text-lg font-semibold text-fg mb-2">Expected vs Actual Performance</h3>
             <p className="text-fg-muted">Compare your actual results with statistical expectations</p>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('medium')}>
@@ -439,7 +439,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
         <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
           <div className="p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-fg mb-2">Rating Change Distribution</h3>
+              <h3 className="text-lg font-semibold text-fg mb-2">Rating Change Distribution</h3>
               <p className="text-fg-muted">How your rating changes are distributed across games</p>
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
@@ -485,7 +485,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
         <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
           <div className="p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-fg mb-2">Tournament Performance</h3>
+              <h3 className="text-lg font-semibold text-fg mb-2">Tournament Performance</h3>
               <p className="text-fg-muted">Rating change by tournament</p>
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>

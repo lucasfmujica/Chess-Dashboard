@@ -245,7 +245,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
               <StarIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">Personal Records</h2>
+              <h2 className="text-lg font-semibold text-white">Personal Records</h2>
               <p className="text-purple-100">Your greatest chess achievements and milestones</p>
             </div>
           </div>
@@ -275,7 +275,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
       {/* Rating Records */}
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Rating Milestones</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Rating Milestones</h3>
           <p className="text-gray-600">Your journey through the rating ladder</p>
         </div>
 
@@ -336,7 +336,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
       {/* Performance Records */}
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Performance Records</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Performance Records</h3>
           <p className="text-gray-600">Your most impressive competitive achievements</p>
         </div>
 
@@ -396,7 +396,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
       {/* Game Records */}
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Notable Games</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Notable Games</h3>
           <p className="text-gray-600">Memorable individual game achievements</p>
         </div>
 
@@ -486,7 +486,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
           <div className="p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Opening Preferences</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Opening Preferences</h3>
               <p className="text-gray-600">Your most-played opening systems</p>
             </div>
 
@@ -513,7 +513,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
             <div className="inline-flex p-4 bg-amber-100 rounded-full mb-4">
               <StarIcon className="w-12 h-12 text-amber-600" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Hall of Fame</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Hall of Fame</h3>
             <p className="text-gray-600">Your legacy in numbers</p>
           </div>
 

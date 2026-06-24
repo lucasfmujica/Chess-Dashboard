@@ -217,7 +217,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
               <TrophyIcon className="w-8 h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-fg">Achievement System</h2>
+              <h2 className="text-lg font-semibold text-fg">Achievement System</h2>
               <p className="text-fg-muted">Unlock badges and track your chess mastery</p>
             </div>
           </div>
@@ -271,7 +271,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
       {/* Achievements Grid */}
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-fg mb-2">Your Achievements</h3>
+          <h3 className="text-lg font-semibold text-fg mb-2">Your Achievements</h3>
           <p className="text-fg-muted">Complete challenges to unlock badges and earn points</p>
         </div>
 
@@ -428,7 +428,7 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
               <LightBulbIcon className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-fg">Keep Pushing Forward!</h3>
+              <h3 className="text-base font-semibold text-fg">Keep Pushing Forward!</h3>
               <p className="text-fg-muted">Your journey to chess mastery continues</p>
             </div>
           </div>

@@ -21,7 +21,7 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
     <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-fg mb-2">Activity Calendar</h3>
+          <h3 className="text-lg font-semibold text-fg mb-2">Activity Calendar</h3>
           <p className="text-fg-muted">Your playing activity over the last 12 weeks</p>
         </div>
 

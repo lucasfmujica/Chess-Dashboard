@@ -82,7 +82,7 @@ const OpponentsTab = ({
               <UsersIcon className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">
+              <h2 className="text-lg font-semibold text-white">
                 {selectedBracket
                   ? `vs ${selectedBracket === 'lower' ? 'Lower Rated' : selectedBracket === 'similar' ? 'Similar Rated' : 'Higher Rated'} Opponents`
                   : 'Opponent Analysis'}
@@ -125,7 +125,7 @@ const OpponentsTab = ({
           <div className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Game History</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Game History</h3>
                 <p className="text-gray-600">All games against {selectedBracket === 'lower' ? 'lower' : selectedBracket === 'similar' ? 'similar' : 'higher'} rated opponents</p>
               </div>
               <button
@@ -208,7 +208,7 @@ const OpponentsTab = ({
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-teal-500 to-emerald-500"></div>
             <div className="p-8">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Performance by Rating Bracket</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Performance by Rating Bracket</h3>
                 <p className="text-gray-600">How you perform against different strength opponents</p>
               </div>
 
@@ -277,7 +277,7 @@ const OpponentsTab = ({
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500"></div>
             <div className="p-8">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">Results Distribution</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Results Distribution</h3>
                 <p className="text-gray-600">Visual breakdown of wins, draws, and losses by opponent bracket</p>
               </div>
               <ResponsiveContainer width="100%" height={350}>

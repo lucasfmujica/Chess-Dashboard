@@ -68,7 +68,7 @@ const GoalsTab = ({
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold">Your Chess Journey</h2>
+                  <h2 className="text-lg font-semibold">Your Chess Journey</h2>
                   <p className="text-fg-muted text-sm mt-1">Track your path to mastery</p>
                 </div>
               </div>
@@ -127,7 +127,7 @@ const GoalsTab = ({
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-fg">Set Your Target</h3>
+            <h3 className="text-base font-semibold text-fg">Set Your Target</h3>
             <p className="text-sm text-fg-muted">Define your chess goals</p>
           </div>
         </div>
@@ -229,7 +229,7 @@ const GoalsTab = ({
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-fg">Projection Analysis</h3>
+              <h3 className="text-base font-semibold text-fg">Projection Analysis</h3>
               <p className="text-sm text-fg-muted">Your path to the goal based on current performance</p>
             </div>
           </div>
@@ -305,7 +305,7 @@ const GoalsTab = ({
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-fg">Achievement Badges</h3>
+              <h3 className="text-base font-semibold text-fg">Achievement Badges</h3>
               <p className="text-sm text-fg-muted">Celebrate your milestones</p>
             </div>
           </div>
@@ -350,7 +350,7 @@ const GoalsTab = ({
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-fg">Next Milestones</h3>
+            <h3 className="text-base font-semibold text-fg">Next Milestones</h3>
             <p className="text-sm text-fg-muted">Upcoming achievements to unlock</p>
           </div>
         </div>
