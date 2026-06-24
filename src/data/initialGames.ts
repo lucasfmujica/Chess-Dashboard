@@ -2,8 +2,9 @@
  * Initial games data
  * Games ordered chronologically by tournament
  */
+import type { Game, PlayerInfo } from '../types/chess';
 
-export const initialGames = [
+export const initialGames: Game[] = [
   // IRT Damian Reca (games 1-7) - Ends at 1727
   { elo: 1651, color: 'W', result: 'W', opp: 'Marcelo Prieto', opp_elo: 1902, eco: 'A25', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 32, kFactor: 40 },
   { elo: 1651, color: 'B', result: 'W', opp: 'Vanesa Guzman', opp_elo: 1756, eco: 'B30', tournament: 'IRT Damian Reca', rated: true, time: '19:00', source: 'otb', eloChange: 26, kFactor: 40 },
@@ -72,7 +73,7 @@ export const initialGames = [
   { elo: 1880, color: 'W', result: 'W', opp: 'Anibal Borras', opp_elo: 1688, eco: 'A15', tournament: 'IRT Carnaval', rated: true, source: 'otb', eloChange: 5, kFactor: 20 },
 ];
 
-export const playerInfo = {
+export const playerInfo: PlayerInfo = {
   current_elo: 1880,
   elo_change_last_tournament: -2,
   last_tournament: 'IRT Carnaval',

@@ -52,8 +52,8 @@ export const useGames = (): GamesContextValue => {
 
 export const GamesProvider = ({ children }: { children: ReactNode }) => {
   // Games State (persisted)
-  const [games, setGames] = useLocalStorage<Game[]>('chess-dashboard-games', initialGames as Game[]);
-  const playerInfo = initialPlayerInfo as PlayerInfo;
+  const [games, setGames] = useLocalStorage<Game[]>('chess-dashboard-games', initialGames);
+  const playerInfo = initialPlayerInfo;
 
   // Repertoire State (persisted)
   const [mainRepertoire, setMainRepertoire] = useLocalStorage<Repertoire>('chess-dashboard-main-repertoire', {
