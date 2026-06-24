@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type { Game, PlayerInfo } from '../types/chess';
+import ThemeToggle from './ThemeToggle';
 
 interface NavigationTab {
   id: string;
@@ -32,7 +33,7 @@ const Sidebar = ({
 }: SidebarProps) => {
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
+      className={`fixed top-0 left-0 h-full bg-white/95 dark:bg-slate-900/90 border-r border-transparent dark:border-slate-800 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       } ${isSidebarCollapsed ? 'lg:w-20' : 'w-72'}`}
     >
@@ -77,15 +78,16 @@ const Sidebar = ({
           </div>
         )}
 
-        {/* Collapse/Expand Button (Desktop only) */}
-        <div className="flex gap-2 mt-4">
+        {/* Theme toggle + Collapse/Expand */}
+        <div className={`mt-4 gap-2 ${isSidebarCollapsed ? 'flex flex-col lg:items-stretch' : 'flex'}`}>
+          <ThemeToggle compact={isSidebarCollapsed} />
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            className="flex items-center justify-center p-2 rounded-xl border border-hairline text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
             aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <svg className={`w-5 h-5 text-slate-600 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg className={`w-5 h-5 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
           </button>

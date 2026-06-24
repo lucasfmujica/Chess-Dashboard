@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './components/modals/ModalContext';
 import { GamesProvider } from './context/GamesContext';
 import { UIProvider } from './context/UIContext';
@@ -7,13 +8,15 @@ import { UIProvider } from './context/UIContext';
 // Helper to render App with all required providers
 const renderApp = () => {
   return render(
-    <ModalProvider>
-      <GamesProvider>
-        <UIProvider>
-          <App />
-        </UIProvider>
-      </GamesProvider>
-    </ModalProvider>
+    <ThemeProvider>
+      <ModalProvider>
+        <GamesProvider>
+          <UIProvider>
+            <App />
+          </UIProvider>
+        </GamesProvider>
+      </ModalProvider>
+    </ThemeProvider>
   );
 };
 

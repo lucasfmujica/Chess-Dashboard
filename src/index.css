@@ -2,10 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
+/* ============================================================
+   Design tokens (semantic, theme-aware via CSS variables)
+   Values are space-separated RGB channels so Tailwind can apply
+   alpha (rgb(var(--token) / <alpha-value>)).
+   ============================================================ */
+@layer base {
+  :root {
+    --bg: 248 250 252;        /* app background      (slate-50)  */
+    --surface: 255 255 255;   /* cards / panels      (white)     */
+    --surface-2: 241 245 249; /* subtle inset panels (slate-100) */
+    --fg: 15 23 42;           /* primary text        (slate-900) */
+    --fg-muted: 71 85 105;    /* secondary text      (slate-600) */
+    --fg-subtle: 100 116 139; /* tertiary text       (slate-500) */
+    --border: 226 232 240;    /* hairlines           (slate-200) */
+    --accent: 16 185 129;     /* emerald-500                     */
+    --accent-strong: 13 148 136;
+    --accent-fg: 255 255 255;
+    --win: 16 185 129;
+    --draw: 245 158 11;
+    --loss: 244 63 94;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --bg: 15 23 42;           /* slate-900 */
+    --surface: 30 41 59;      /* slate-800 */
+    --surface-2: 51 65 85;    /* slate-700 */
+    --fg: 241 245 249;        /* slate-100 */
+    --fg-muted: 148 163 184;  /* slate-400 */
+    --fg-subtle: 100 116 139; /* slate-500 */
+    --border: 51 65 85;       /* slate-700 */
+    --accent: 52 211 153;     /* emerald-400 (brighter for dark) */
+    --accent-strong: 45 212 191;
+    --accent-fg: 2 6 23;
+    --win: 52 211 153;
+    --draw: 251 191 36;
+    --loss: 251 113 133;
+
+    color-scheme: dark;
+  }
+
+  body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Modern thin scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+  *::-webkit-scrollbar { width: 10px; height: 10px; }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--border));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* ============================================================
+   Transitional dark-mode compatibility layer.
+   Existing components use hard-coded light utilities (bg-white,
+   slate/gray text & borders). Until each tab is restyled with
+   semantic tokens, map the common neutrals so the whole app is
+   usable in dark mode. (Higher specificity than single utilities,
+   so no !important needed.)
+   ============================================================ */
+@layer utilities {
+  .dark .bg-white { background-color: rgb(var(--surface)); }
+  .dark .bg-slate-50,
+  .dark .bg-gray-50,
+  .dark .bg-slate-100,
+  .dark .bg-gray-100 { background-color: rgb(var(--surface-2)); }
+
+  .dark .text-slate-900,
+  .dark .text-gray-900,
+  .dark .text-slate-800,
+  .dark .text-gray-800 { color: rgb(var(--fg)); }
+  .dark .text-slate-700,
+  .dark .text-gray-700,
+  .dark .text-slate-600,
+  .dark .text-gray-600,
+  .dark .text-slate-500,
+  .dark .text-gray-500 { color: rgb(var(--fg-muted)); }
+
+  .dark .border-slate-200,
+  .dark .border-gray-200,
+  .dark .border-slate-100,
+  .dark .border-gray-100,
+  .dark .border-slate-300,
+  .dark .border-gray-300 { border-color: rgb(var(--border)); }
+
+  .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--border)); }
+
+  .dark .hover\:bg-slate-50:hover,
+  .dark .hover\:bg-gray-50:hover,
+  .dark .hover\:bg-slate-100:hover,
+  .dark .hover\:bg-gray-100:hover { background-color: rgb(var(--surface-2)); }
 }

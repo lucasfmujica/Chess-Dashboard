@@ -24,7 +24,7 @@ interface EnvironmentConfig {
 }
 
 // Vite exposes env vars prefixed with VITE_ on import.meta.env.
-const viteEnv = import.meta.env as Record<string, string | undefined>;
+const viteEnv = import.meta.env as unknown as Record<string, string | undefined>;
 
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
   return viteEnv[key] || defaultValue;

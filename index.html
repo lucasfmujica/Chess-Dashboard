@@ -9,6 +9,16 @@
         <link rel="apple-touch-icon" href="/logo192.png" />
         <link rel="manifest" href="/manifest.json" />
         <title>Chess Dashboard</title>
+        <script>
+            // Apply theme before paint to avoid a flash of the wrong theme.
+            (function () {
+                try {
+                    var m = localStorage.getItem('chess-dashboard-theme') || 'system';
+                    var dark = m === 'dark' || (m === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    document.documentElement.classList.toggle('dark', dark);
+                } catch (e) {}
+            })();
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>

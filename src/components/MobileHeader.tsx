@@ -4,7 +4,7 @@ interface MobileHeaderProps {
 
 const MobileHeader = ({ setIsMobileMenuOpen }: MobileHeaderProps) => {
   return (
-    <div className="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md shadow-md border-b border-slate-200">
+    <div className="lg:hidden sticky top-0 z-30 bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-slate-200 dark:border-slate-800">
       <div className="flex items-center justify-between px-4 py-4">
         <button
           onClick={() => setIsMobileMenuOpen(true)}
