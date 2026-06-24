@@ -210,16 +210,15 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-yellow-500 via-amber-600 to-orange-700 rounded-2xl shadow-xl">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="relative px-8 py-12">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-              <TrophyIcon className="w-8 h-8 text-white" />
+            <div className="p-3 bg-surface-2 rounded-xl">
+              <TrophyIcon className="w-8 h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">Achievement System</h2>
-              <p className="text-amber-100">Unlock badges and track your chess mastery</p>
+              <h2 className="text-3xl font-bold text-fg">Achievement System</h2>
+              <p className="text-fg-muted">Unlock badges and track your chess mastery</p>
             </div>
           </div>
 
@@ -227,17 +226,17 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
           <div className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-amber-100 text-sm font-medium mb-1">Player Level</p>
+                <p className="text-fg-muted text-sm font-medium mb-1">Player Level</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-bold text-white">{achievements.level}</span>
-                  <span className="text-2xl font-semibold text-amber-200">
+                  <span className="text-6xl font-bold text-fg tabular-nums">{achievements.level}</span>
+                  <span className="text-2xl font-semibold text-fg-muted tabular-nums">
                     {achievements.totalPoints} pts
                   </span>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-amber-100 text-sm font-medium mb-1">Achievements</p>
-                <p className="text-3xl font-bold text-white">
+                <p className="text-fg-muted text-sm font-medium mb-1">Achievements</p>
+                <p className="text-3xl font-bold text-fg tabular-nums">
                   {achievements.unlockedCount}/{achievements.badges.length}
                 </p>
               </div>
@@ -246,22 +245,22 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
             {/* Level Progress Bar */}
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-white">Level {achievements.level}</span>
-                <span className="text-sm font-medium text-white">Level {achievements.level + 1}</span>
+                <span className="text-sm font-medium text-fg">Level {achievements.level}</span>
+                <span className="text-sm font-medium text-fg">Level {achievements.level + 1}</span>
               </div>
-              <div className="w-full h-4 bg-white bg-opacity-20 rounded-full overflow-hidden backdrop-blur-sm">
+              <div className="w-full h-4 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-1000 ease-out flex items-center justify-end px-2"
                   style={{ width: `${achievements.progressToNextLevel}%` }}
                 >
                   {achievements.progressToNextLevel > 10 && (
-                    <span className="text-xs font-bold text-white">
+                    <span className="text-xs font-bold text-white tabular-nums">
                       {Math.round(achievements.progressToNextLevel)}%
                     </span>
                   )}
                 </div>
               </div>
-              <p className="text-sm text-amber-100 mt-2">
+              <p className="text-sm text-fg-muted mt-2 tabular-nums">
                 {100 - (achievements.totalPoints % 100)} points to next level
               </p>
             </div>
@@ -272,8 +271,8 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
       {/* Achievements Grid */}
       <div>
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Achievements</h3>
-          <p className="text-gray-600">Complete challenges to unlock badges and earn points</p>
+          <h3 className="text-2xl font-bold text-fg mb-2">Your Achievements</h3>
+          <p className="text-fg-muted">Complete challenges to unlock badges and earn points</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -350,16 +349,14 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
             return (
               <div
                 key={badge.id}
-                className={`relative overflow-hidden bg-gradient-to-br ${colors.bg} dark:from-slate-800 dark:to-slate-800 rounded-xl p-6 border-2 ${
-                  badge.unlocked ? colors.border : 'border-gray-200'
-                } transition-all duration-300 hover:shadow-lg ${
-                  badge.unlocked ? 'hover:scale-105' : 'opacity-75'
+                className={`relative overflow-hidden bg-surface-2 rounded-lg p-6 border border-hairline transition-all duration-300 ${
+                  badge.unlocked ? '' : 'opacity-75'
                 }`}
               >
                 {/* Unlocked Badge */}
                 {badge.unlocked && (
                   <div className="absolute top-3 right-3">
-                    <div className={`${colors.badge} text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-md`}>
+                    <div className={`${colors.badge} text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1`}>
                       <StarIcon className="w-3 h-3" />
                       UNLOCKED
                     </div>
@@ -368,30 +365,30 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
 
                 <div className="flex items-start gap-4 mb-4">
                   {/* Icon */}
-                  <div className={`p-4 ${colors.icon} rounded-xl text-3xl flex-shrink-0 shadow-sm`}>
+                  <div className={`p-4 ${colors.icon} rounded-xl text-3xl flex-shrink-0`}>
                     {badge.icon}
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-lg font-bold text-gray-900 mb-1">{badge.name}</h4>
-                    <p className="text-sm text-gray-600">{badge.description}</p>
+                    <h4 className="text-lg font-bold text-fg mb-1">{badge.name}</h4>
+                    <p className="text-sm text-fg-muted">{badge.description}</p>
                   </div>
                 </div>
 
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">
+                    <span className="font-medium text-fg-muted tabular-nums">
                       Progress: {badge.current} / {badge.target}
                     </span>
-                    <span className={`font-bold ${colors.text}`}>
+                    <span className={`font-bold tabular-nums ${colors.text}`}>
                       {Math.round(badge.progress)}%
                     </span>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full h-3 bg-white rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full h-3 bg-surface rounded-full overflow-hidden">
                     <div
                       className={`h-full bg-gradient-to-r ${colors.progress} rounded-full transition-all duration-1000 ease-out`}
                       style={{ width: `${badge.progress}%` }}
@@ -400,12 +397,12 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
 
                   {/* Points */}
                   <div className="flex items-center justify-between mt-3">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-fg-muted">
                       {badge.unlocked ? 'Earned' : 'Reward'}
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                      badge.unlocked ? 'bg-white text-gray-900' : 'bg-gray-200 text-gray-600'
-                    } shadow-sm`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold tabular-nums ${
+                      badge.unlocked ? 'bg-surface text-fg' : 'bg-surface text-fg-muted'
+                    }`}>
                       +{badge.points} pts
                     </span>
                   </div>
@@ -424,46 +421,45 @@ const AchievementsTab = ({ games }: AchievementsTabProps) => {
       </div>
 
       {/* Motivation Section */}
-      <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500"></div>
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-purple-50 rounded-xl">
-              <LightBulbIcon className="w-6 h-6 text-purple-600" />
+            <div className="p-3 bg-surface-2 rounded-xl">
+              <LightBulbIcon className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Keep Pushing Forward!</h3>
-              <p className="text-gray-600">Your journey to chess mastery continues</p>
+              <h3 className="text-xl font-bold text-fg">Keep Pushing Forward!</h3>
+              <p className="text-fg-muted">Your journey to chess mastery continues</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-blue-200">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <AcademicCapIcon className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-900">Next Milestone</span>
+                <AcademicCapIcon className="w-5 h-5 text-accent" />
+                <span className="text-sm font-semibold text-fg">Next Milestone</span>
               </div>
-              <p className="text-gray-700 text-sm">
+              <p className="text-fg-muted text-sm">
                 {achievements.badges.find(b => !b.unlocked)?.name || 'All unlocked!'}
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-emerald-200">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
                 <FireIcon className="w-5 h-5 text-emerald-600" />
-                <span className="text-sm font-semibold text-emerald-900">Total Progress</span>
+                <span className="text-sm font-semibold text-fg">Total Progress</span>
               </div>
-              <p className="text-gray-700 text-sm">
+              <p className="text-fg-muted text-sm tabular-nums">
                 {((achievements.unlockedCount / achievements.badges.length) * 100).toFixed(0)}% Complete
               </p>
             </div>
 
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-slate-800 dark:to-slate-800 rounded-lg border border-amber-200">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
                 <StarIcon className="w-5 h-5 text-amber-600" />
-                <span className="text-sm font-semibold text-amber-900">Points Needed</span>
+                <span className="text-sm font-semibold text-fg">Points Needed</span>
               </div>
-              <p className="text-gray-700 text-sm">
+              <p className="text-fg-muted text-sm tabular-nums">
                 {achievements.badges.filter(b => !b.unlocked).reduce((sum, b) => sum + b.points, 0)} pts available
               </p>
             </div>

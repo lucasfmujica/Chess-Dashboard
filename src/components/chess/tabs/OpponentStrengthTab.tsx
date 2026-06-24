@@ -132,8 +132,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
         {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
           <div
             key={idx}
-            className={`p-6 bg-white border-2 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-              selectedBracket?.label === bracket.label ? 'ring-2 ring-offset-2' : ''
+            className={`p-6 bg-surface border rounded-lg cursor-pointer transition-colors hover:bg-surface-2 ${
+              selectedBracket?.label === bracket.label ? 'ring-1 ring-offset-1' : ''
             }`}
             style={{
               borderColor: bracket.color,
@@ -142,36 +142,36 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
             onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
           >
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">{bracket.label}</h3>
-              <span className="px-2 py-1 text-xs font-bold text-white rounded" style={{ backgroundColor: bracket.color }}>
+              <h3 className="text-sm font-semibold text-fg">{bracket.label}</h3>
+              <span className="px-2 py-1 text-xs font-bold text-white rounded tabular-nums" style={{ backgroundColor: bracket.color }}>
                 {bracket.games} games
               </span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Score</span>
-                <span className="text-lg font-bold" style={{ color: bracket.color }}>
+                <span className="text-sm text-fg-muted">Score</span>
+                <span className="text-lg font-bold tabular-nums" style={{ color: bracket.color }}>
                   {bracket.scorePercentage}%
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Expected</span>
-                <span className="text-gray-700">{bracket.expectedPercentage}%</span>
+                <span className="text-fg-muted">Expected</span>
+                <span className="text-fg-muted tabular-nums">{bracket.expectedPercentage}%</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Performance</span>
+                <span className="text-fg-muted">Performance</span>
                 <span className={`font-semibold ${bracket.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
                 </span>
               </div>
-              <div className="pt-2 mt-2 border-t">
-                <div className="flex justify-between text-xs text-gray-600">
+              <div className="pt-2 mt-2 border-t border-hairline">
+                <div className="flex justify-between text-xs text-fg-muted tabular-nums">
                   <span>W: {bracket.wins}</span>
                   <span>D: {bracket.draws}</span>
                   <span>L: {bracket.losses}</span>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-center text-gray-400">
+              <div className="mt-2 text-xs text-center text-fg-subtle">
                 {selectedBracket?.label === bracket.label ? 'Click to close' : 'Click to view games'}
               </div>
             </div>
@@ -181,20 +181,20 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
 
       {/* Games Detail Panel */}
       {selectedBracket && (
-        <div className="p-6 bg-white border-2 rounded-lg shadow-lg" style={{ borderColor: selectedBracket.color }}>
+        <div className="p-6 bg-surface border rounded-lg" style={{ borderColor: selectedBracket.color }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: selectedBracket.color }}></div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-fg">
                 Games vs {selectedBracket.label}
               </h3>
-              <span className="px-2 py-1 text-xs font-semibold text-white rounded" style={{ backgroundColor: selectedBracket.color }}>
+              <span className="px-2 py-1 text-xs font-semibold text-white rounded tabular-nums" style={{ backgroundColor: selectedBracket.color }}>
                 {selectedBracket.games} games
               </span>
             </div>
             <button
               onClick={() => setSelectedBracket(null)}
-              className="p-2 text-gray-400 transition-colors hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="p-2 text-fg-subtle transition-colors hover:text-fg hover:bg-surface-2 rounded-lg"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -204,7 +204,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
 
           {/* Sort Controls */}
           <div className="flex flex-wrap gap-2 mb-4">
-            <span className="text-sm text-gray-600">Sort by:</span>
+            <span className="text-sm text-fg-muted">Sort by:</span>
             {[
               { key: 'date', label: 'Date' },
               { key: 'opp_elo', label: 'Opponent ELO' },
@@ -222,8 +222,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                 }}
                 className={`px-3 py-1 text-xs rounded-full transition-colors ${
                   sortConfig.key === key
-                    ? 'bg-blue-100 text-blue-700 font-semibold'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-surface-2 text-fg font-semibold'
+                    : 'text-fg-muted hover:bg-surface-2'
                 }`}
               >
                 {label}
@@ -237,20 +237,20 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
           {/* Games Table */}
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-surface-2 sticky top-0">
                 <tr>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Date</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opponent</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Your ELO</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Opp ELO</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Diff</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Color</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-gray-500 uppercase">Result</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">Tournament</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Date</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Opponent</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Your ELO</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Opp ELO</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Diff</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Color</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Result</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
+                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Tournament</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-hairline">
                 {[...selectedBracket.bracketGames]
                   .sort((a, b) => {
                     let aVal: number, bVal: number;
@@ -281,21 +281,21 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                   .map((game, idx) => {
                     const eloDiff = game.opp_elo - game.elo;
                     return (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm text-gray-600">
+                      <tr key={idx} className="hover:bg-surface-2">
+                        <td className="px-4 py-2 text-sm text-fg-muted tabular-nums">
                           {game.date ? new Date(game.date).toLocaleDateString() : '-'}
                         </td>
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900">{game.opp}</td>
-                        <td className="px-4 py-2 text-sm text-center text-gray-600">{game.elo}</td>
-                        <td className="px-4 py-2 text-sm text-center text-gray-600">{game.opp_elo}</td>
-                        <td className="px-4 py-2 text-sm text-center">
+                        <td className="px-4 py-2 text-sm font-medium text-fg">{game.opp}</td>
+                        <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.elo}</td>
+                        <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo}</td>
+                        <td className="px-4 py-2 text-sm text-center tabular-nums">
                           <span className={`font-medium ${eloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
                             {eloDiff >= 0 ? '+' : ''}{eloDiff}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm text-center">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            game.color === 'W' ? 'bg-white border border-gray-300 text-gray-700' : 'bg-gray-800 text-white'
+                            game.color === 'W' ? 'bg-surface border border-hairline text-fg' : 'bg-gray-800 text-white'
                           }`}>
                             {game.color === 'W' ? 'White' : 'Black'}
                           </span>
@@ -309,8 +309,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                             {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-600">{game.eco || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-gray-600 truncate max-w-[200px]" title={game.tournament}>
+                        <td className="px-4 py-2 text-sm text-fg-muted">{game.eco || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-fg-muted truncate max-w-[200px]" title={game.tournament}>
                           {game.tournament || '-'}
                         </td>
                       </tr>
@@ -321,9 +321,9 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
           </div>
 
           {/* Summary Footer */}
-          <div className="flex justify-between items-center mt-4 pt-4 border-t text-sm text-gray-600">
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-hairline text-sm text-fg-muted">
             <div>
-              Score: <span className="font-semibold">{selectedBracket.score}/{selectedBracket.games}</span> ({selectedBracket.scorePercentage}%)
+              Score: <span className="font-semibold tabular-nums">{selectedBracket.score}/{selectedBracket.games}</span> ({selectedBracket.scorePercentage}%)
             </div>
             <div className="flex gap-4">
               <span className="text-green-600">W: {selectedBracket.wins}</span>
@@ -335,18 +335,17 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
       )}
 
       {/* Performance vs Expected Chart - Enhanced */}
-      <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-3 bg-surface-2 rounded-xl">
+              <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">Performance vs Expected Score</h3>
-              <p className="text-gray-600 text-sm">Analysis by opponent strength bracket</p>
+              <h3 className="text-2xl font-bold text-fg">Performance vs Expected Score</h3>
+              <p className="text-fg-muted text-sm">Analysis by opponent strength bracket</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('large')}>
@@ -384,25 +383,25 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                     const performance = (data.actual - data.expected).toFixed(1);
                     const isPositive = parseFloat(performance) >= 0;
                     return (
-                      <div className="p-4 bg-white border-2 border-blue-300 rounded-xl shadow-2xl">
-                        <p className="font-bold text-lg text-gray-900 mb-3">{data.bracket}</p>
+                      <div className="p-4 bg-surface border border-hairline rounded-lg">
+                        <p className="font-bold text-lg text-fg mb-3">{data.bracket}</p>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-gray-600">Actual Score:</span>
-                            <span className="text-sm font-bold text-blue-600">{data.actual}%</span>
+                            <span className="text-sm text-fg-muted">Actual Score:</span>
+                            <span className="text-sm font-bold text-accent tabular-nums">{data.actual}%</span>
                           </div>
                           <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-gray-600">Expected:</span>
-                            <span className="text-sm font-semibold text-gray-700">{data.expected}%</span>
+                            <span className="text-sm text-fg-muted">Expected:</span>
+                            <span className="text-sm font-semibold text-fg-muted tabular-nums">{data.expected}%</span>
                           </div>
-                          <div className="pt-2 mt-2 border-t border-gray-200">
+                          <div className="pt-2 mt-2 border-t border-hairline">
                             <div className="flex items-center justify-between gap-6">
-                              <span className="text-sm font-semibold text-gray-700">Performance:</span>
+                              <span className="text-sm font-semibold text-fg-muted">Performance:</span>
                               <span className={`text-lg font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                                 {isPositive ? '+' : ''}{performance}%
                               </span>
                             </div>
-                            <p className="mt-2 text-xs text-gray-500 text-center">
+                            <p className="mt-2 text-xs text-fg-muted text-center">
                               {data.games} game{data.games !== 1 ? 's' : ''} played
                             </p>
                           </div>
@@ -438,62 +437,62 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
       </div>
 
       {/* Detailed Breakdown Table */}
-      <div className="p-6 bg-white rounded-lg shadow-md border border-slate-200">
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Detailed Strength Analysis</h3>
-          <span className="text-xs text-gray-400">Click any row to view games</span>
+          <h3 className="text-lg font-semibold text-fg">Detailed Strength Analysis</h3>
+          <span className="text-xs text-fg-subtle">Click any row to view games</span>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-surface-2">
               <tr>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Bracket</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Expected</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Performance</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Avg ELO Diff</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Bracket</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Expected</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Performance</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Avg ELO Diff</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-surface divide-y divide-hairline">
               {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
                 <tr
                   key={idx}
-                  className={`hover:bg-gray-50 cursor-pointer transition-colors ${
-                    selectedBracket?.label === bracket.label ? 'bg-blue-50' : ''
+                  className={`hover:bg-surface-2 cursor-pointer transition-colors ${
+                    selectedBracket?.label === bracket.label ? 'bg-surface-2' : ''
                   }`}
                   onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
                 >
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center">
                       <div className="w-3 h-3 mr-2 rounded-full" style={{ backgroundColor: bracket.color }}></div>
-                      <span className="font-medium text-gray-900">{bracket.label}</span>
+                      <span className="font-medium text-fg">{bracket.label}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-700">
-                    <span className="underline decoration-dotted decoration-gray-400">{bracket.games}</span>
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
+                    <span className="underline decoration-dotted decoration-fg-subtle">{bracket.games}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-700">
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
                     <span className="text-green-600">{bracket.wins}</span>-
                     <span className="text-yellow-600">{bracket.draws}</span>-
                     <span className="text-red-600">{bracket.losses}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-center text-gray-900">{bracket.score}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{bracket.score}</td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold ${bracket.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold tabular-nums ${bracket.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
                       {bracket.winRate}%
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-600">{bracket.expectedPercentage}%</td>
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{bracket.expectedPercentage}%</td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-bold ${bracket.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-bold tabular-nums ${bracket.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-medium ${bracket.avgEloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                    <span className={`font-medium tabular-nums ${bracket.avgEloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
                       {bracket.avgEloDiff >= 0 ? '+' : ''}{bracket.avgEloDiff}
                     </span>
                   </td>
@@ -505,8 +504,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
       </div>
 
       {/* Results vs Opponent Rating Scatter */}
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Results by Opponent Rating Difference</h3>
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
+        <h3 className="mb-4 text-lg font-semibold text-fg">Results by Opponent Rating Difference</h3>
         <ResponsiveContainer width="100%" height={getChartHeight('small')}>
           <LineChart data={strengthTrend}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -526,8 +525,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="p-3 bg-white border border-gray-300 rounded shadow">
-                      <p className="font-semibold">Game {data.game}</p>
+                    <div className="p-3 bg-surface border border-hairline rounded">
+                      <p className="font-semibold text-fg">Game {data.game}</p>
                       <p className="text-sm">Your ELO: {data.playerElo}</p>
                       <p className="text-sm">vs {data.opponent} ({data.oppElo})</p>
                       <p className="text-sm">ELO Diff: {data.eloDiff >= 0 ? '+' : ''}{data.eloDiff}</p>
@@ -546,8 +545,8 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
       </div>
 
       {/* Insights */}
-      <div className="p-6 border-2 border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
-        <h3 className="flex items-center mb-4 text-lg font-semibold">
+      <div className="p-6 rounded-lg border border-hairline bg-surface-2">
+        <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
           <span className="mr-2 text-2xl">💡</span>
           Insights & Recommendations
         </h3>

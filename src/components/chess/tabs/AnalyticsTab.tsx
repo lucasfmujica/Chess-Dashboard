@@ -149,17 +149,17 @@ const AnalyticsTab = ({
 
           {/* Remove Lichess Games Button */}
           {lichessGamesCount > 0 && (
-            <div className="p-4 border-2 border-red-200 rounded-lg bg-gradient-to-r from-red-50 to-pink-50 dark:from-slate-800 dark:to-slate-900">
+            <div className="p-4 border border-hairline rounded-lg bg-surface-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-semibold text-red-900">Remove Imported Games</h4>
-                  <p className="text-xs text-red-700 mt-1">
+                  <h4 className="text-sm font-semibold text-fg">Remove Imported Games</h4>
+                  <p className="text-xs text-fg-muted mt-1">
                     You have {lichessGamesCount} Lichess game{lichessGamesCount !== 1 ? 's' : ''} imported
                   </p>
                 </div>
                 <button
                   onClick={onRemoveLichessGames}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-loss border border-hairline bg-surface hover:bg-surface-2 rounded-lg transition-colors"
                 >
                   Remove All Lichess Games
                 </button>

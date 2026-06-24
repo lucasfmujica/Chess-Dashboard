@@ -18,12 +18,11 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
   ];
 
   return (
-    <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500"></div>
+    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Activity Calendar</h3>
-          <p className="text-gray-600">Your playing activity over the last 12 weeks</p>
+          <h3 className="text-2xl font-bold text-fg mb-2">Activity Calendar</h3>
+          <p className="text-fg-muted">Your playing activity over the last 12 weeks</p>
         </div>
 
         {/* Calendar Grid */}
@@ -31,7 +30,7 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
           {/* Day labels */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-xs text-gray-500 text-center font-medium">
+              <div key={day} className="text-xs text-fg-muted text-center font-medium">
                 {day}
               </div>
             ))}
@@ -53,13 +52,13 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
 
           {/* Legend */}
           <div className="flex items-center gap-2 justify-end mt-4">
-            <span className="text-sm text-gray-600">Less</span>
+            <span className="text-sm text-fg-muted">Less</span>
             <div className="w-4 h-4 bg-gray-100 rounded-sm"></div>
             <div className="w-4 h-4 bg-emerald-200 rounded-sm"></div>
             <div className="w-4 h-4 bg-emerald-400 rounded-sm"></div>
             <div className="w-4 h-4 bg-emerald-600 rounded-sm"></div>
             <div className="w-4 h-4 bg-emerald-800 rounded-sm"></div>
-            <span className="text-sm text-gray-600">More</span>
+            <span className="text-sm text-fg-muted">More</span>
           </div>
         </div>
       </div>

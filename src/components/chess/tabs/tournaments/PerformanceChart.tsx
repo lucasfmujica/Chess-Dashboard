@@ -7,12 +7,11 @@ interface PerformanceChartProps {
 
 const PerformanceChart = ({ tournamentStats }: PerformanceChartProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Performance Rating Comparison</h3>
-          <p className="text-gray-600">Visual comparison of performance ratings across tournaments</p>
+          <h3 className="text-2xl font-bold text-fg mb-2">Performance Rating Comparison</h3>
+          <p className="text-fg-muted">Visual comparison of performance ratings across tournaments</p>
         </div>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={tournamentStats} layout="vertical">
@@ -30,20 +29,20 @@ const PerformanceChart = ({ tournamentStats }: PerformanceChartProps) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload as TournamentStat;
                   return (
-                    <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
-                      <p className="font-bold text-gray-900 text-lg mb-3">{data.tournament}</p>
+                    <div className="p-4 bg-surface border border-hairline rounded-lg">
+                      <p className="font-bold text-fg text-lg mb-3">{data.tournament}</p>
                       <div className="space-y-2">
                         <div className="flex justify-between gap-6">
-                          <span className="text-sm text-gray-600">Performance:</span>
-                          <span className="text-sm font-bold text-blue-600">{data.performanceRating}</span>
+                          <span className="text-sm text-fg-muted">Performance:</span>
+                          <span className="text-sm font-bold text-accent tabular-nums">{data.performanceRating}</span>
                         </div>
                         <div className="flex justify-between gap-6">
-                          <span className="text-sm text-gray-600">Score:</span>
-                          <span className="text-sm font-semibold text-gray-700">{data.score}</span>
+                          <span className="text-sm text-fg-muted">Score:</span>
+                          <span className="text-sm font-semibold text-fg tabular-nums">{data.score}</span>
                         </div>
                         <div className="flex justify-between gap-6">
-                          <span className="text-sm text-gray-600">Record:</span>
-                          <span className="text-sm font-semibold text-gray-700">
+                          <span className="text-sm text-fg-muted">Record:</span>
+                          <span className="text-sm font-semibold text-fg tabular-nums">
                             {data.wins}-{data.draws}-{data.losses}
                           </span>
                         </div>

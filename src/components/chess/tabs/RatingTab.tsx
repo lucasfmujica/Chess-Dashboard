@@ -152,25 +152,24 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-700 rounded-2xl shadow-xl">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="relative px-8 py-12">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-white bg-opacity-20 rounded-xl backdrop-blur-sm">
-              <ChartBarIcon className="w-8 h-8 text-white" />
+            <div className="p-3 bg-surface-2 rounded-xl">
+              <ChartBarIcon className="w-8 h-8 text-accent" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white">ELO Progress</h2>
-              <p className="text-blue-100">Track your rating journey and performance</p>
+              <h2 className="text-3xl font-bold text-fg">ELO Progress</h2>
+              <p className="text-fg-muted">Track your rating journey and performance</p>
             </div>
           </div>
 
           {/* Current ELO Display */}
           <div className="mt-6">
-            <p className="text-blue-100 text-sm font-medium mb-2">Current Rating</p>
+            <p className="text-fg-muted text-sm font-medium mb-2">Current Rating</p>
             <div className="flex items-baseline gap-3">
-              <span className="text-6xl font-bold text-white">{stats.currentElo}</span>
-              <span className={`text-2xl font-semibold ${stats.totalChange >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+              <span className="text-6xl font-bold text-fg tabular-nums">{stats.currentElo}</span>
+              <span className={`text-2xl font-semibold tabular-nums ${stats.totalChange >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                 {stats.totalChange >= 0 ? '+' : ''}{stats.totalChange}
               </span>
             </div>
@@ -181,101 +180,94 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       {/* Statistics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
         {/* Highest Rating */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-amber-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
+              <div className="p-2.5 bg-surface-2 rounded-lg">
                 <TrophyIcon className="w-5 h-5 text-amber-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Peak Rating</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.highestElo}</p>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Peak Rating</p>
+            <p className="text-2xl font-bold text-fg tabular-nums">{stats.highestElo}</p>
           </div>
         </div>
 
         {/* Biggest Gain */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
+              <div className="p-2.5 bg-surface-2 rounded-lg">
                 <ArrowTrendingUpIcon className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Best Game</p>
-            <p className="text-2xl font-bold text-emerald-600">+{stats.biggestGain}</p>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Best Game</p>
+            <p className="text-2xl font-bold text-emerald-600 tabular-nums">+{stats.biggestGain}</p>
           </div>
         </div>
 
         {/* Biggest Loss */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-rose-50 to-rose-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
+              <div className="p-2.5 bg-surface-2 rounded-lg">
                 <ArrowTrendingDownIcon className="w-5 h-5 text-rose-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Worst Game</p>
-            <p className="text-2xl font-bold text-rose-600">{stats.biggestLoss}</p>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Worst Game</p>
+            <p className="text-2xl font-bold text-rose-600 tabular-nums">{stats.biggestLoss}</p>
           </div>
         </div>
 
         {/* Average ELO Change */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
-                <BoltIcon className="w-5 h-5 text-blue-600" />
+              <div className="p-2.5 bg-surface-2 rounded-lg">
+                <BoltIcon className="w-5 h-5 text-accent" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Avg Change</p>
-            <p className={`text-2xl font-bold ${stats.averageEloChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Avg Change</p>
+            <p className={`text-2xl font-bold tabular-nums ${stats.averageEloChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {stats.averageEloChange >= 0 ? '+' : ''}{stats.averageEloChange.toFixed(1)}
             </p>
           </div>
         </div>
 
         {/* Positive Games */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-green-50 to-green-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
-                <FireIcon className="w-5 h-5 text-green-600" />
+              <div className="p-2.5 bg-surface-2 rounded-lg">
+                <FireIcon className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Rating Gains</p>
-            <p className="text-2xl font-bold text-green-600">{stats.positiveGames}</p>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Rating Gains</p>
+            <p className="text-2xl font-bold text-emerald-600 tabular-nums">{stats.positiveGames}</p>
           </div>
         </div>
 
         {/* Negative Games */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
-              <div className="p-2.5 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-slate-800 dark:to-slate-800 rounded-lg">
-                <ChartBarIcon className="w-5 h-5 text-orange-600" />
+              <div className="p-2.5 bg-surface-2 rounded-lg">
+                <ChartBarIcon className="w-5 h-5 text-rose-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Rating Drops</p>
-            <p className="text-2xl font-bold text-orange-600">{stats.negativeGames}</p>
+            <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Rating Drops</p>
+            <p className="text-2xl font-bold text-rose-600 tabular-nums">{stats.negativeGames}</p>
           </div>
         </div>
       </div>
 
       {/* ELO Progression Chart */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl shadow-xl">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500"></div>
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="p-8">
           <div className="mb-6">
-            <h3 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2">
+            <h3 className="text-3xl font-bold text-fg mb-2">
               Rating Progression
             </h3>
-            <p className="text-gray-600">Complete journey from 1651 to {stats.currentElo} • {eloHistory.length} rated games</p>
+            <p className="text-fg-muted">Complete journey from 1651 to {stats.currentElo} • {eloHistory.length} rated games</p>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('large')}>
             <ComposedChart data={eloHistory}>
@@ -371,12 +363,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       </div>
 
       {/* Performance Chart */}
-      <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500"></div>
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="p-8">
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Expected vs Actual Performance</h3>
-            <p className="text-gray-600">Compare your actual results with statistical expectations</p>
+            <h3 className="text-2xl font-bold text-fg mb-2">Expected vs Actual Performance</h3>
+            <p className="text-fg-muted">Compare your actual results with statistical expectations</p>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('medium')}>
             <BarChart data={eloHistory}>
@@ -445,12 +436,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
       {/* Two column layout for new charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* ELO Change Distribution */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"></div>
+        <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
           <div className="p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Rating Change Distribution</h3>
-              <p className="text-gray-600">How your rating changes are distributed across games</p>
+              <h3 className="text-2xl font-bold text-fg mb-2">Rating Change Distribution</h3>
+              <p className="text-fg-muted">How your rating changes are distributed across games</p>
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={eloChangeDistribution}>
@@ -492,12 +482,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
         </div>
 
         {/* Tournament Performance Comparison */}
-        <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
           <div className="p-8">
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Tournament Performance</h3>
-              <p className="text-gray-600">Rating change by tournament</p>
+              <h3 className="text-2xl font-bold text-fg mb-2">Tournament Performance</h3>
+              <p className="text-fg-muted">Rating change by tournament</p>
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={tournamentPerformance} layout="vertical">

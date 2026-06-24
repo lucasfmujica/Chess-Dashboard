@@ -24,15 +24,15 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
   if (!formStats) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
+    <div className="bg-surface rounded-lg border border-hairline overflow-hidden">
+      <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
-            <ChartBarIcon className="w-6 h-6 text-white" />
+          <div className="p-2 bg-surface rounded-lg">
+            <ChartBarIcon className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white">Recent Form</h3>
-            <p className="text-indigo-100 text-sm">Your performance in recent games</p>
+            <h3 className="text-xl font-bold text-fg">Recent Form</h3>
+            <p className="text-fg-muted text-sm">Your performance in recent games</p>
           </div>
         </div>
       </div>
@@ -51,9 +51,9 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
               percentage: formStats.last5.percentage,
               results: formStats.last5.results
             }}
-            borderColor="border-blue-200 dark:border-blue-700/50"
-            bgColor="from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30"
-            badgeColor="bg-blue-500"
+            borderColor="border-hairline"
+            bgColor="bg-surface-2"
+            badgeColor="bg-surface"
           />
 
           {/* Last 10 Games */}
@@ -68,49 +68,49 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
               percentage: formStats.last10.percentage,
               results: formStats.last10.results
             }}
-            borderColor="border-purple-200 dark:border-purple-700/50"
-            bgColor="from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30"
-            badgeColor="bg-purple-500"
+            borderColor="border-hairline"
+            bgColor="bg-surface-2"
+            badgeColor="bg-surface"
           />
 
           {/* Current Month */}
           {monthlyStats && monthlyStats.length > 0 && (
-            <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-xl border-2 border-emerald-200 dark:border-emerald-700/50">
+            <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-emerald-500 rounded-lg">
-                  <CalendarIcon className="w-5 h-5 text-white" />
+                <div className="p-2 bg-surface rounded-lg">
+                  <CalendarIcon className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900">This Month</h4>
-                  <p className="text-xs text-gray-600">{monthlyStats[0].month}</p>
+                  <h4 className="font-bold text-fg">This Month</h4>
+                  <p className="text-xs text-fg-muted">{monthlyStats[0].month}</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Games</span>
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-sm text-fg-muted">Games</span>
+                  <span className="text-lg font-bold text-fg tabular-nums">
                     {monthlyStats[0].games}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Score</span>
-                  <span className={`text-2xl font-bold ${monthlyStats[0].percentage >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+                  <span className="text-sm text-fg-muted">Score</span>
+                  <span className={`text-2xl font-bold tabular-nums ${monthlyStats[0].percentage >= 50 ? 'text-win' : 'text-loss'}`}>
                     {monthlyStats[0].percentage}%
                   </span>
                 </div>
-                <div className="pt-2 mt-2 border-t border-emerald-200 dark:border-emerald-700/50">
+                <div className="pt-2 mt-2 border-t border-hairline">
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div>
-                      <div className="text-green-600 font-bold text-lg">{monthlyStats[0].wins}</div>
-                      <div className="text-gray-500">Wins</div>
+                      <div className="text-win font-bold text-lg tabular-nums">{monthlyStats[0].wins}</div>
+                      <div className="text-fg-subtle">Wins</div>
                     </div>
                     <div>
-                      <div className="text-yellow-600 font-bold text-lg">{monthlyStats[0].draws}</div>
-                      <div className="text-gray-500">Draws</div>
+                      <div className="text-draw font-bold text-lg tabular-nums">{monthlyStats[0].draws}</div>
+                      <div className="text-fg-subtle">Draws</div>
                     </div>
                     <div>
-                      <div className="text-red-600 font-bold text-lg">{monthlyStats[0].losses}</div>
-                      <div className="text-gray-500">Losses</div>
+                      <div className="text-loss font-bold text-lg tabular-nums">{monthlyStats[0].losses}</div>
+                      <div className="text-fg-subtle">Losses</div>
                     </div>
                   </div>
                 </div>

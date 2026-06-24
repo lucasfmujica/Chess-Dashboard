@@ -8,10 +8,10 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, subtitle }: StatCardProps) => (
-  <div className="p-6 bg-white rounded-lg shadow-md">
-    <h3 className="mb-2 text-sm text-gray-600">{title}</h3>
-    <div className="text-3xl font-bold text-blue-600">{value}</div>
-    {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+  <div className="p-6 bg-surface rounded-lg border border-hairline">
+    <h3 className="mb-2 text-sm text-fg-muted">{title}</h3>
+    <div className="text-3xl font-bold text-accent tabular-nums">{value}</div>
+    {subtitle && <p className="text-sm text-fg-muted">{subtitle}</p>}
   </div>
 );
 
@@ -70,8 +70,8 @@ const WhiteGamesTab = ({
         />
       </div>
 
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Results Distribution as White</h3>
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
+        <h3 className="mb-4 text-lg font-semibold text-fg">Results Distribution as White</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
@@ -97,33 +97,33 @@ const WhiteGamesTab = ({
         </ResponsiveContainer>
       </div>
 
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Openings as White</h3>
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
+        <h3 className="mb-4 text-lg font-semibold text-fg">Openings as White</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-surface-2">
               <tr>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-gray-500 uppercase">Opening</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Games</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">W-D-L</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Score</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-gray-500 uppercase">Win Rate</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-surface divide-y divide-hairline">
               {whiteStats.openings.map((opening) => (
-                <tr key={opening.eco} className="hover:bg-gray-50">
+                <tr key={opening.eco} className="hover:bg-surface-2">
                   <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-gray-900">{opening.name}</div>
-                    <div className="text-xs text-gray-500">{opening.eco}</div>
+                    <div className="font-medium text-fg">{opening.name}</div>
+                    <div className="text-xs text-fg-muted">{opening.eco}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-700">{opening.games}</td>
-                  <td className="px-6 py-4 text-sm text-center text-gray-700">
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{opening.games}</td>
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
                     <span className="text-green-600">{opening.wins}</span>-
                     <span className="text-yellow-600">{opening.draws}</span>-
                     <span className="text-red-600">{opening.losses}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-center text-gray-900">{opening.score}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{opening.score}</td>
                   <td className="px-6 py-4 text-sm text-center">
                     <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
                       {opening.winRate}%
@@ -136,15 +136,15 @@ const WhiteGamesTab = ({
         </div>
       </div>
 
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">All Games as White</h3>
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
+        <h3 className="mb-4 text-lg font-semibold text-fg">All Games as White</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-slate-50">
+            <thead className="bg-surface-2">
               <tr>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
                     if (whiteSortBy === 'date') {
                       setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
@@ -156,10 +156,10 @@ const WhiteGamesTab = ({
                 >
                   Game # {whiteSortBy === 'date' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">My ELO</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">My ELO</th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
                     if (whiteSortBy === 'opponent') {
                       setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
@@ -171,10 +171,10 @@ const WhiteGamesTab = ({
                 >
                   Opponent {whiteSortBy === 'opponent' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">Opp ELO</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">Opp ELO</th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
+                  className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
                     setWhiteSortBy('result');
                     setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
@@ -182,11 +182,11 @@ const WhiteGamesTab = ({
                 >
                   Result {whiteSortBy === 'result' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Opening</th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Tournament</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Opening</th>
+                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Tournament</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-hairline">
               {(() => {
                 const whiteGames = games
                   .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
@@ -222,11 +222,11 @@ const WhiteGamesTab = ({
                 });
 
                 return sortedGames.map((game) => (
-                  <tr key={game.gameNumber} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900">#{game.gameNumber}</td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-700">{game.elo}</td>
-                    <td className="px-4 py-3 text-sm text-slate-900">{game.opp}</td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-700">{game.opp_elo || 'Unrated'}</td>
+                  <tr key={game.gameNumber} className="hover:bg-surface-2">
+                    <td className="px-4 py-3 text-sm font-medium text-fg tabular-nums">#{game.gameNumber}</td>
+                    <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.elo}</td>
+                    <td className="px-4 py-3 text-sm text-fg">{game.opp}</td>
+                    <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo || 'Unrated'}</td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span className={`px-2 py-1 rounded font-semibold ${game.result === 'W' ? 'bg-emerald-100 text-emerald-700' :
                         game.result === 'D' ? 'bg-amber-100 text-amber-700' :
@@ -235,11 +235,11 @@ const WhiteGamesTab = ({
                         {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
+                    <td className="px-4 py-3 text-sm text-fg-muted">
                       <div>{ecoNames[game.eco] || game.eco}</div>
-                      <div className="text-xs text-slate-500">{game.eco}</div>
+                      <div className="text-xs text-fg-subtle">{game.eco}</div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{game.tournament}</td>
+                    <td className="px-4 py-3 text-sm text-fg-muted">{game.tournament}</td>
                   </tr>
                 ));
               })()}

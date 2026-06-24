@@ -69,23 +69,22 @@ const RepertoireTab = ({
   };
   return (
     <div className="space-y-6">
-      <div className="p-6 border border-blue-200 rounded-lg shadow-md bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
-        <h3 className="flex items-center mb-4 text-lg font-semibold">
+      <div className="p-6 border border-hairline rounded-lg bg-surface">
+        <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
           <span className="mr-2 text-2xl">💡</span>
           Opening Recommendations
         </h3>
         {openingRecommendations.length > 0 ? (
           <div className="space-y-3">
             {openingRecommendations.map((rec, idx) => (
-              <div key={idx} className={`p-4 rounded-lg ${rec.priority === 'high' ? 'bg-red-100 border border-red-300' : 'bg-yellow-100 border border-yellow-300'
-                }`}>
+              <div key={idx} className="p-4 rounded-lg bg-surface-2 border border-hairline">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold text-gray-900">{rec.opening}</p>
-                    <p className="text-sm text-gray-600">{rec.eco}</p>
-                    <p className="mt-1 text-sm">{rec.reason}</p>
+                    <p className="font-semibold text-fg">{rec.opening}</p>
+                    <p className="text-sm text-fg-muted">{rec.eco}</p>
+                    <p className="mt-1 text-sm text-fg">{rec.reason}</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${rec.priority === 'high' ? 'bg-red-600 text-white' : 'bg-yellow-600 text-white'
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${rec.priority === 'high' ? 'bg-loss text-white' : 'bg-draw text-white'
                     }`}>
                     {rec.priority.toUpperCase()}
                   </span>
@@ -94,38 +93,38 @@ const RepertoireTab = ({
             ))}
           </div>
         ) : (
-          <p className="text-gray-600">No critical issues found. Your opening repertoire looks solid!</p>
+          <p className="text-fg-muted">No critical issues found. Your opening repertoire looks solid!</p>
         )}
       </div>
 
       {/* Opening Heroes Section */}
-      <div className="p-6 border-2 border-purple-200 rounded-lg shadow-md bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-purple-900">
+      <div className="p-6 border border-hairline rounded-lg bg-surface">
+        <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
           <span className="mr-2 text-2xl">⭐</span>
           Opening Heroes
-          <span className="ml-2 px-2 py-0.5 text-xs bg-purple-200 text-purple-800 rounded-full">NEW</span>
+          <span className="ml-2 px-2 py-0.5 text-xs bg-accent text-accent-fg rounded-full">NEW</span>
         </h3>
-        <p className="text-sm text-purple-700 mb-4">
+        <p className="text-sm text-fg-muted mb-4">
           Track which top players you're following for each opening in your repertoire.
           Add players to study their games in ChessBase or other databases.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* White Openings Heroes */}
-          <div className="bg-white rounded-lg p-4 border border-purple-200">
-            <h4 className="font-semibold text-sm mb-3 text-gray-800">⚪ White Openings</h4>
+          <div className="bg-surface-2 rounded-lg p-4 border border-hairline">
+            <h4 className="font-semibold text-sm mb-3 text-fg">⚪ White Openings</h4>
             <div className="space-y-3">
               {openingRepertoireAnalysis.white.map((opening) => {
                 return (
-                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
+                  <div key={opening.eco} className="border border-hairline rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-medium text-xs text-gray-900">{opening.name}</p>
-                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
+                        <p className="font-medium text-xs text-fg">{opening.name}</p>
+                        <p className="text-xs text-fg-muted">{opening.eco} • {opening.games} games</p>
                       </div>
                       <button
                         onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
-                        className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
+                        className="text-xs px-2 py-1 border border-hairline bg-surface hover:bg-surface-2 text-fg rounded transition-colors"
                       >
                         {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
                       </button>
@@ -138,12 +137,12 @@ const RepertoireTab = ({
                           value={newHeroName}
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 dark:text-slate-100 dark:placeholder-slate-500"
+                          className="flex-1 text-xs px-2 py-1 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
                           onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
                           onClick={() => addHero(opening.eco)}
-                          className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                          className="text-xs px-3 py-1 bg-fg text-app rounded hover:opacity-90 transition-opacity"
                         >
                           Add
                         </button>
@@ -155,12 +154,12 @@ const RepertoireTab = ({
                         {openingHeroes[opening.eco].map((hero, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-2 border border-hairline text-fg text-xs rounded-full"
                           >
                             {hero}
                             <button
                               onClick={() => removeHero(opening.eco, hero)}
-                              className="hover:text-purple-900"
+                              className="hover:text-loss"
                               title="Remove"
                             >
                               ×
@@ -176,20 +175,20 @@ const RepertoireTab = ({
           </div>
 
           {/* Black Openings Heroes */}
-          <div className="bg-white rounded-lg p-4 border border-purple-200">
-            <h4 className="font-semibold text-sm mb-3 text-gray-800">⚫ Black Defenses</h4>
+          <div className="bg-surface-2 rounded-lg p-4 border border-hairline">
+            <h4 className="font-semibold text-sm mb-3 text-fg">⚫ Black Defenses</h4>
             <div className="space-y-3">
               {openingRepertoireAnalysis.black.map((opening) => {
                 return (
-                  <div key={opening.eco} className="border border-gray-200 rounded-lg p-3">
+                  <div key={opening.eco} className="border border-hairline rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-medium text-xs text-gray-900">{opening.name}</p>
-                        <p className="text-xs text-gray-500">{opening.eco} • {opening.games} games</p>
+                        <p className="font-medium text-xs text-fg">{opening.name}</p>
+                        <p className="text-xs text-fg-muted">{opening.eco} • {opening.games} games</p>
                       </div>
                       <button
                         onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
-                        className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors"
+                        className="text-xs px-2 py-1 border border-hairline bg-surface hover:bg-surface-2 text-fg rounded transition-colors"
                       >
                         {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
                       </button>
@@ -202,12 +201,12 @@ const RepertoireTab = ({
                           value={newHeroName}
                           onChange={(e) => setNewHeroName(e.target.value)}
                           placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 dark:text-slate-100 dark:placeholder-slate-500"
+                          className="flex-1 text-xs px-2 py-1 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
                           onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
                         />
                         <button
                           onClick={() => addHero(opening.eco)}
-                          className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                          className="text-xs px-3 py-1 bg-fg text-app rounded hover:opacity-90 transition-opacity"
                         >
                           Add
                         </button>
@@ -219,12 +218,12 @@ const RepertoireTab = ({
                         {openingHeroes[opening.eco].map((hero, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-800 text-xs rounded-full"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-2 border border-hairline text-fg text-xs rounded-full"
                           >
                             {hero}
                             <button
                               onClick={() => removeHero(opening.eco, hero)}
-                              className="hover:text-purple-900"
+                              className="hover:text-loss"
                               title="Remove"
                             >
                               ×
@@ -242,10 +241,10 @@ const RepertoireTab = ({
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">White Repertoire</h3>
+        <div className="p-6 bg-surface rounded-lg border border-hairline">
+          <h3 className="mb-4 text-lg font-semibold text-fg">White Repertoire</h3>
           <div className="mb-4">
-            <p className="mb-2 text-sm text-gray-600">Main openings (click to toggle):</p>
+            <p className="mb-2 text-sm text-fg-muted">Main openings (click to toggle):</p>
             <div className="flex flex-wrap gap-2">
               {openingRepertoireAnalysis.white.slice(0, 8).map((opening, idx) => (
                 <button
@@ -260,8 +259,8 @@ const RepertoireTab = ({
                     setMainRepertoire(newRepertoire);
                   }}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${opening.isMain
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-surface-2 text-fg border border-hairline'
+                    : 'text-fg-muted hover:bg-surface-2'
                     }`}
                 >
                   {opening.eco}
@@ -271,38 +270,38 @@ const RepertoireTab = ({
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-2">
                 <tr>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-fg-muted">Opening</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Games</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Score</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-hairline">
                 {openingRepertoireAnalysis.white.map((opening, idx) => (
-                  <tr key={idx} className={opening.isMain ? 'bg-blue-50' : ''}>
+                  <tr key={idx} className={opening.isMain ? 'bg-surface-2' : ''}>
                     <td className="px-3 py-2">
-                      <div className="font-medium text-gray-900">{opening.name}</div>
-                      <div className="text-xs text-gray-500">{opening.eco}</div>
+                      <div className="font-medium text-fg">{opening.name}</div>
+                      <div className="text-xs text-fg-muted">{opening.eco}</div>
                     </td>
-                    <td className="px-3 py-2 text-center">{opening.games}</td>
+                    <td className="px-3 py-2 text-center text-fg">{opening.games}</td>
                     <td className="px-3 py-2 text-center">
-                      <span className={`font-semibold ${opening.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-semibold ${opening.winRate >= 50 ? 'text-win' : 'text-loss'}`}>
                         {opening.winRate}%
                       </span>
                     </td>
                     <td className="px-3 py-2 text-center">
                       {opening.needsWork ? (
-                        <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-loss bg-surface-2 border border-hairline rounded">
                           Needs Work
                         </span>
                       ) : opening.isMain ? (
-                        <span className="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-accent bg-surface-2 border border-hairline rounded">
                           Main
                         </span>
                       ) : (
-                        <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-fg-muted bg-surface-2 border border-hairline rounded">
                           Backup
                         </span>
                       )}
@@ -314,10 +313,10 @@ const RepertoireTab = ({
           </div>
         </div>
 
-        <div className="p-6 bg-white rounded-lg shadow-md">
-          <h3 className="mb-4 text-lg font-semibold">Black Repertoire</h3>
+        <div className="p-6 bg-surface rounded-lg border border-hairline">
+          <h3 className="mb-4 text-lg font-semibold text-fg">Black Repertoire</h3>
           <div className="mb-4">
-            <p className="mb-2 text-sm text-gray-600">Main defenses (click to toggle):</p>
+            <p className="mb-2 text-sm text-fg-muted">Main defenses (click to toggle):</p>
             <div className="flex flex-wrap gap-2">
               {openingRepertoireAnalysis.black.slice(0, 8).map((opening, idx) => (
                 <button
@@ -332,8 +331,8 @@ const RepertoireTab = ({
                     setMainRepertoire(newRepertoire);
                   }}
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${opening.isMain
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? 'bg-surface-2 text-fg border border-hairline'
+                    : 'text-fg-muted hover:bg-surface-2'
                     }`}
                 >
                   {opening.eco}
@@ -343,38 +342,38 @@ const RepertoireTab = ({
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-surface-2">
                 <tr>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-gray-500">Opening</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Games</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Score</th>
-                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-gray-500">Status</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-left text-fg-muted">Opening</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Games</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Score</th>
+                  <th scope="col" className="px-3 py-2 text-xs font-medium text-center text-fg-muted">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-hairline">
                 {openingRepertoireAnalysis.black.map((opening, idx) => (
-                  <tr key={idx} className={opening.isMain ? 'bg-gray-100' : ''}>
+                  <tr key={idx} className={opening.isMain ? 'bg-surface-2' : ''}>
                     <td className="px-3 py-2">
-                      <div className="font-medium text-gray-900">{opening.name}</div>
-                      <div className="text-xs text-gray-500">{opening.eco}</div>
+                      <div className="font-medium text-fg">{opening.name}</div>
+                      <div className="text-xs text-fg-muted">{opening.eco}</div>
                     </td>
-                    <td className="px-3 py-2 text-center">{opening.games}</td>
+                    <td className="px-3 py-2 text-center text-fg">{opening.games}</td>
                     <td className="px-3 py-2 text-center">
-                      <span className={`font-semibold ${opening.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-semibold ${opening.winRate >= 50 ? 'text-win' : 'text-loss'}`}>
                         {opening.winRate}%
                       </span>
                     </td>
                     <td className="px-3 py-2 text-center">
                       {opening.needsWork ? (
-                        <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-loss bg-surface-2 border border-hairline rounded">
                           Needs Work
                         </span>
                       ) : opening.isMain ? (
-                        <span className="px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-accent bg-surface-2 border border-hairline rounded">
                           Main
                         </span>
                       ) : (
-                        <span className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-fg-muted bg-surface-2 border border-hairline rounded">
                           Backup
                         </span>
                       )}

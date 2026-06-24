@@ -6,19 +6,19 @@ interface ChartSkeletonProps {
 
 export const ChartSkeleton = ({ height = 300 }: ChartSkeletonProps) => (
   <div className="animate-pulse" style={{ height }}>
-    <div className="h-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 rounded-lg"></div>
+    <div className="h-full bg-surface-2 rounded-lg"></div>
   </div>
 );
 
 export const StatCardSkeleton = () => (
-  <div className="animate-pulse bg-white rounded-xl shadow-lg p-6 border border-slate-200">
+  <div className="animate-pulse bg-surface rounded-lg p-6 border border-hairline">
     <div className="flex items-center justify-between mb-4">
-      <div className="h-4 w-24 bg-slate-200 rounded"></div>
-      <div className="h-8 w-8 bg-slate-200 rounded-lg"></div>
+      <div className="h-4 w-24 bg-surface-2 rounded"></div>
+      <div className="h-8 w-8 bg-surface-2 rounded-lg"></div>
     </div>
     <div className="space-y-3">
-      <div className="h-8 w-20 bg-slate-300 rounded"></div>
-      <div className="h-3 w-32 bg-slate-200 rounded"></div>
+      <div className="h-8 w-20 bg-surface-2 rounded"></div>
+      <div className="h-3 w-32 bg-surface-2 rounded"></div>
     </div>
   </div>
 );
@@ -29,10 +29,10 @@ interface TableSkeletonProps {
 
 export const TableSkeleton = ({ rows = 5 }: TableSkeletonProps) => (
   <div className="animate-pulse">
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="h-12 bg-slate-200"></div>
+    <div className="bg-surface rounded-lg border border-hairline overflow-hidden">
+      <div className="h-12 bg-surface-2"></div>
       {Array.from({ length: rows }).map((_, idx) => (
-        <div key={idx} className="h-16 border-t border-slate-100 bg-gradient-to-r from-transparent via-slate-50 to-transparent dark:via-slate-800"></div>
+        <div key={idx} className="h-16 border-t border-hairline bg-surface-2/50"></div>
       ))}
     </div>
   </div>

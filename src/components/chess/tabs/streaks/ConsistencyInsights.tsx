@@ -34,37 +34,36 @@ const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
   };
 
   return (
-    <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500"></div>
+    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-8">
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">Consistency Insights</h3>
-          <p className="text-gray-600">Keep your practice regular for best improvement</p>
+          <h3 className="text-2xl font-bold text-fg mb-2">Consistency Insights</h3>
+          <p className="text-fg-muted">Keep your practice regular for best improvement</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-lg border border-emerald-200 dark:border-emerald-700/50">
+          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
             <div className="flex items-center gap-2 mb-2">
-              <ClockIcon className="w-5 h-5 text-emerald-600" />
-              <span className="text-sm font-semibold text-emerald-900">Play Frequency</span>
+              <ClockIcon className="w-5 h-5 text-accent" />
+              <span className="text-sm font-semibold text-fg">Play Frequency</span>
             </div>
-            <p className="text-gray-700 text-sm">{getFrequencyMessage()}</p>
+            <p className="text-fg-muted text-sm">{getFrequencyMessage()}</p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg border border-blue-200 dark:border-blue-700/50">
+          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
             <div className="flex items-center gap-2 mb-2">
-              <FireIcon className="w-5 h-5 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-900">Current Momentum</span>
+              <FireIcon className="w-5 h-5 text-accent" />
+              <span className="text-sm font-semibold text-fg">Current Momentum</span>
             </div>
-            <p className="text-gray-700 text-sm">{getMomentumMessage()}</p>
+            <p className="text-fg-muted text-sm">{getMomentumMessage()}</p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-700/50">
+          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
             <div className="flex items-center gap-2 mb-2">
-              <TrophyIcon className="w-5 h-5 text-purple-600" />
-              <span className="text-sm font-semibold text-purple-900">Goal Suggestion</span>
+              <TrophyIcon className="w-5 h-5 text-accent" />
+              <span className="text-sm font-semibold text-fg">Goal Suggestion</span>
             </div>
-            <p className="text-gray-700 text-sm">{getGoalMessage()}</p>
+            <p className="text-fg-muted text-sm">{getGoalMessage()}</p>
           </div>
         </div>
       </div>

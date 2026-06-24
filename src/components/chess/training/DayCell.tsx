@@ -17,17 +17,17 @@ interface DayCellProps {
 const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, editingDay, setEditingDay }: DayCellProps) => {
   return (
     <div
-      className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${isToday ? 'border-blue-500' : 'border-gray-200'}`}
+      className={`bg-surface rounded-lg overflow-hidden border ${isToday ? 'border-accent ring-1 ring-accent' : 'border-hairline'}`}
     >
       {/* Day Header */}
-      <div className={`p-4 ${isToday ? 'bg-blue-50' : 'bg-gray-50'}`}>
+      <div className={`p-4 ${isToday ? 'bg-surface-2' : 'bg-surface-2'}`}>
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-bold text-gray-900">{day}</h4>
-            <p className="text-sm text-gray-600">{displayDate}</p>
+            <h4 className="font-bold text-fg">{day}</h4>
+            <p className="text-sm text-fg-muted">{displayDate}</p>
           </div>
           {isToday && (
-            <span className="px-2 py-1 text-xs font-semibold text-white bg-blue-600 rounded">
+            <span className="px-2 py-1 text-xs font-semibold text-accent-fg bg-accent rounded">
               Today
             </span>
           )}
@@ -37,7 +37,7 @@ const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, edit
       {/* Activities */}
       <div className="p-4 space-y-2 min-h-[200px]">
         {dayPlan.length === 0 ? (
-          <div className="py-8 text-center text-gray-400">
+          <div className="py-8 text-center text-fg-subtle">
             <p className="text-sm">No activities planned</p>
           </div>
         ) : (
@@ -46,16 +46,16 @@ const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, edit
             return (
               <div
                 key={idx}
-                className={`p-3 rounded-lg border-2 border-${activityDef?.color}-200 bg-${activityDef?.color}-50`}
+                className={`p-3 rounded-lg border border-${activityDef?.color}-200 bg-${activityDef?.color}-50`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activityDef?.label}</p>
+                    <p className="text-sm font-medium text-fg">{activityDef?.label}</p>
                     {activity.minutes != null && activity.minutes > 0 && (
-                      <p className="mt-1 text-xs text-gray-600">{activity.minutes} minutes</p>
+                      <p className="mt-1 text-xs text-fg-muted">{activity.minutes} minutes</p>
                     )}
                     {activity.details && (
-                      <p className="mt-1 text-xs text-gray-500">{activity.details}</p>
+                      <p className="mt-1 text-xs text-fg-muted">{activity.details}</p>
                     )}
                   </div>
                   <button
@@ -63,7 +63,7 @@ const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, edit
                       const newPlan = dayPlan.filter((_, i) => i !== idx);
                       updateDayPlan(date, newPlan);
                     }}
-                    className="ml-2 text-gray-400 hover:text-red-600"
+                    className="ml-2 text-fg-subtle hover:text-loss"
                   >
                     ✕
                   </button>
@@ -75,10 +75,10 @@ const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, edit
       </div>
 
       {/* Add Activity Button */}
-      <div className="p-4 border-t bg-gray-50">
+      <div className="p-4 border-t border-hairline bg-surface-2">
         <button
           onClick={() => setEditingDay(editingDay === date ? null : date)}
-          className="w-full px-3 py-2 text-sm font-medium text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700"
+          className="w-full px-3 py-2 text-sm font-medium text-app transition-opacity bg-fg rounded-lg hover:opacity-90"
         >
           {editingDay === date ? 'Close' : '+ Add Activity'}
         </button>
@@ -98,11 +98,11 @@ const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, edit
                   updateDayPlan(date, [...dayPlan, newActivity]);
                   setEditingDay(null);
                 }}
-                className="w-full px-3 py-2 text-sm text-left transition-colors bg-white border border-gray-200 rounded hover:border-indigo-300 hover:bg-indigo-50"
+                className="w-full px-3 py-2 text-sm text-left transition-colors bg-surface border border-hairline rounded hover:bg-surface-2 hover:text-accent"
               >
                 {activity.label}
                 {activity.defaultMinutes > 0 && (
-                  <span className="ml-2 text-xs text-gray-500">({activity.defaultMinutes}min)</span>
+                  <span className="ml-2 text-xs text-fg-muted">({activity.defaultMinutes}min)</span>
                 )}
               </button>
             ))}

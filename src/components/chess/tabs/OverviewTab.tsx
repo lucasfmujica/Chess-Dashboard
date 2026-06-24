@@ -108,21 +108,21 @@ const OverviewTab = ({
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Results Distribution */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
+        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-slate-900">Results Distribution</h3>
+            <h3 className="text-xl font-bold text-fg">Results Distribution</h3>
             <div className="flex items-center gap-2 text-sm">
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span className="text-slate-600">Wins</span>
+                <span className="text-fg-muted">Wins</span>
               </span>
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                <span className="text-slate-600">Draws</span>
+                <span className="text-fg-muted">Draws</span>
               </span>
               <span className="flex items-center gap-1">
                 <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
-                <span className="text-slate-600">Losses</span>
+                <span className="text-fg-muted">Losses</span>
               </span>
             </div>
           </div>
@@ -152,56 +152,56 @@ const OverviewTab = ({
         </div>
 
         {/* Performance by Color */}
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
-          <h3 className="text-xl font-bold text-slate-900 mb-6">Performance by Color</h3>
+        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
+          <h3 className="text-xl font-bold text-fg mb-6">Performance by Color</h3>
           <div className="space-y-6">
             {/* White Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-surface rounded-lg">
                     <span className="text-2xl">⚪</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">White Pieces</span>
+                  <span className="text-sm font-bold text-fg-muted uppercase tracking-wide">White Pieces</span>
                 </div>
-                <span className="text-lg font-bold text-slate-900">{whiteScore}</span>
+                <span className="text-lg font-bold text-fg tabular-nums">{whiteScore}</span>
               </div>
-              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000"
                   style={{ width: `${whiteStats.winRate}%` }}
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-slate-600">
+                <p className="text-xs font-semibold text-fg-muted tabular-nums">
                   {whiteStats.wins}W • {whiteStats.draws}D • {whiteStats.losses}L
                 </p>
-                <p className="text-sm font-bold text-blue-600">{whiteStats.winRate}% win rate</p>
+                <p className="text-sm font-bold text-blue-600 tabular-nums">{whiteStats.winRate}% win rate</p>
               </div>
             </div>
 
             {/* Black Pieces */}
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-800 dark:to-slate-800 rounded-xl border border-slate-200">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <div className="p-2 bg-surface rounded-lg">
                     <span className="text-2xl">⚫</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 uppercase tracking-wide">Black Pieces</span>
+                  <span className="text-sm font-bold text-fg-muted uppercase tracking-wide">Black Pieces</span>
                 </div>
-                <span className="text-lg font-bold text-slate-900">{blackScore}</span>
+                <span className="text-lg font-bold text-fg tabular-nums">{blackScore}</span>
               </div>
-              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-surface-2 rounded-full overflow-hidden">
                 <div
                   className="h-3 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full transition-all duration-1000"
                   style={{ width: `${blackStats.winRate}%` }}
                 />
               </div>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-slate-600">
+                <p className="text-xs font-semibold text-fg-muted tabular-nums">
                   {blackStats.wins}W • {blackStats.draws}D • {blackStats.losses}L
                 </p>
-                <p className="text-sm font-bold text-slate-700">{blackStats.winRate}% win rate</p>
+                <p className="text-sm font-bold text-fg-muted tabular-nums">{blackStats.winRate}% win rate</p>
               </div>
             </div>
           </div>
@@ -210,14 +210,14 @@ const OverviewTab = ({
 
       {/* ELO Progress and Map */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
+        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 bg-surface-2 rounded-lg">
+              <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900">ELO Progress Timeline</h3>
+            <h3 className="text-xl font-bold text-fg">ELO Progress Timeline</h3>
           </div>
           {eloTimeline.length > 0 ? (
             <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
@@ -232,21 +232,21 @@ const OverviewTab = ({
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-64 text-slate-500">
+            <div className="flex items-center justify-center h-64 text-fg-muted">
               <p>No tournament data available</p>
             </div>
           )}
         </div>
 
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 card-hover">
+        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
           <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 bg-surface-2 rounded-lg">
+              <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Tournament Locations</h3>
+            <h3 className="text-xl font-bold text-fg">Tournament Locations</h3>
           </div>
           <ArgentinaMap games={ratedGames} />
         </div>
@@ -255,21 +255,21 @@ const OverviewTab = ({
       {/* Best and Worst Results */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Best Results */}
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div className="p-6 bg-surface rounded-lg border border-hairline">
           <h3 className="mb-4 text-lg font-semibold text-emerald-700">🏆 Top 3 Wins</h3>
-          <p className="mb-4 text-sm text-slate-600">Biggest upsets - victories against higher-rated opponents</p>
+          <p className="mb-4 text-sm text-fg-muted">Biggest upsets - victories against higher-rated opponents</p>
           <div className="space-y-3">
             {bestResults && bestResults.length > 0 ? (
               bestResults.map((result, idx) => (
                 <div key={idx} className="p-4 border border-emerald-200 rounded-lg bg-emerald-50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-slate-900">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-emerald-700 bg-emerald-200 rounded">
+                    <span className="px-2 py-1 text-xs font-bold text-emerald-700 bg-emerald-200 rounded tabular-nums">
                       +{result.diff} ELO
                     </span>
                   </div>
                   <div className="text-sm text-slate-600">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
                     </div>
@@ -283,27 +283,27 @@ const OverviewTab = ({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500">No wins recorded yet</p>
+              <p className="text-sm text-fg-muted">No wins recorded yet</p>
             )}
           </div>
         </div>
 
         {/* Worst Results */}
-        <div className="p-6 bg-white rounded-lg shadow-md">
+        <div className="p-6 bg-surface rounded-lg border border-hairline">
           <h3 className="mb-4 text-lg font-semibold text-rose-700">⚠️ Top 3 Losses to Study</h3>
-          <p className="mb-4 text-sm text-slate-600">Losses against lower-rated opponents - learning opportunities</p>
+          <p className="mb-4 text-sm text-fg-muted">Losses against lower-rated opponents - learning opportunities</p>
           <div className="space-y-3">
             {worstResults && worstResults.length > 0 ? (
               worstResults.map((result, idx) => (
                 <div key={idx} className="p-4 border border-rose-200 rounded-lg bg-rose-50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-slate-900">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-rose-700 bg-rose-200 rounded">
+                    <span className="px-2 py-1 text-xs font-bold text-rose-700 bg-rose-200 rounded tabular-nums">
                       {result.diff > 0 ? `+${result.diff}` : result.diff} ELO
                     </span>
                   </div>
                   <div className="text-sm text-slate-600">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
                     </div>
@@ -317,33 +317,33 @@ const OverviewTab = ({
                 </div>
               ))
             ) : (
-              <p className="text-sm text-slate-500">No losses recorded yet</p>
+              <p className="text-sm text-fg-muted">No losses recorded yet</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Additional Stats Summary */}
-      <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Quick Stats Summary</h3>
+      <div className="p-6 bg-surface rounded-lg border border-hairline">
+        <h3 className="mb-4 text-lg font-semibold text-fg">Quick Stats Summary</h3>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="p-4 text-center bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-slate-900">{overallStats.wins}</div>
-            <div className="text-sm text-slate-600">Total Wins</div>
+          <div className="p-4 text-center bg-surface-2 rounded-lg">
+            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.wins}</div>
+            <div className="text-sm text-fg-muted">Total Wins</div>
           </div>
-          <div className="p-4 text-center bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-slate-900">{overallStats.draws}</div>
-            <div className="text-sm text-slate-600">Total Draws</div>
+          <div className="p-4 text-center bg-surface-2 rounded-lg">
+            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.draws}</div>
+            <div className="text-sm text-fg-muted">Total Draws</div>
           </div>
-          <div className="p-4 text-center bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-slate-900">{overallStats.losses}</div>
-            <div className="text-sm text-slate-600">Total Losses</div>
+          <div className="p-4 text-center bg-surface-2 rounded-lg">
+            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.losses}</div>
+            <div className="text-sm text-fg-muted">Total Losses</div>
           </div>
-          <div className="p-4 text-center bg-slate-50 rounded-lg">
-            <div className="text-2xl font-bold text-slate-900">
+          <div className="p-4 text-center bg-surface-2 rounded-lg">
+            <div className="text-2xl font-bold text-fg tabular-nums">
               {((parseFloat(overallStats.actualScore) / overallStats.total) * 100).toFixed(0)}%
             </div>
-            <div className="text-sm text-slate-600">Score Rate</div>
+            <div className="text-sm text-fg-muted">Score Rate</div>
           </div>
         </div>
       </div>

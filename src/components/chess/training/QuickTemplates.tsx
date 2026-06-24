@@ -15,10 +15,10 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
   const modal = useModal();
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h3 className="mb-4 text-lg font-semibold">Quick Templates</h3>
+    <div className="p-6 bg-surface rounded-lg border border-hairline">
+      <h3 className="mb-4 text-lg font-semibold text-fg">Quick Templates</h3>
       <div className="mb-4">
-        <label className="block mb-2 text-sm font-medium text-gray-700">
+        <label className="block mb-2 text-sm font-medium text-fg">
           Weekly Study Hours
         </label>
         <input
@@ -27,11 +27,11 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
           max="30"
           value={weeklyHours}
           onChange={(e) => setWeeklyHours(Number(e.target.value))}
-          className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-32 px-3 py-2 bg-surface border border-hairline text-fg rounded-md focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
         />
-        <span className="ml-2 text-sm text-gray-600">hours/week ({Math.round(weeklyHours * 60 / 6)} min/day)</span>
+        <span className="ml-2 text-sm text-fg-muted">hours/week ({Math.round(weeklyHours * 60 / 6)} min/day)</span>
       </div>
-      <p className="mb-4 text-sm text-gray-600">Following GM Noah's advice: 1/3 Tactics, 1/3 Play+Analyze, 1/3 Endgames/Openings/Strategy (this week: Endgames)</p>
+      <p className="mb-4 text-sm text-fg-muted">Following GM Noah's advice: 1/3 Tactics, 1/3 Play+Analyze, 1/3 Endgames/Openings/Strategy (this week: Endgames)</p>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <button
           onClick={() => {
@@ -61,10 +61,10 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             });
             setWeeklyPlans(prev => ({ ...prev, [currentWeek]: newPlan }));
           }}
-          className="p-4 transition-colors border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50"
+          className="p-4 transition-colors border border-hairline bg-surface rounded-lg hover:border-accent hover:bg-surface-2"
         >
-          <p className="font-semibold text-blue-900">⚡ Noah's Method</p>
-          <p className="mt-1 text-xs text-gray-600">1/3 Tactics, 1/3 Play+Analyze, 1/3 Endgames</p>
+          <p className="font-semibold text-fg">⚡ Noah's Method</p>
+          <p className="mt-1 text-xs text-fg-muted">1/3 Tactics, 1/3 Play+Analyze, 1/3 Endgames</p>
         </button>
 
         <button
@@ -89,10 +89,10 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             });
             setWeeklyPlans(prev => ({ ...prev, [currentWeek]: newPlan }));
           }}
-          className="p-4 transition-colors border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50"
+          className="p-4 transition-colors border border-hairline bg-surface rounded-lg hover:border-accent hover:bg-surface-2"
         >
-          <p className="font-semibold text-green-900">🎯 Balanced Daily</p>
-          <p className="mt-1 text-xs text-gray-600">All three elements every day</p>
+          <p className="font-semibold text-fg">🎯 Balanced Daily</p>
+          <p className="mt-1 text-xs text-fg-muted">All three elements every day</p>
         </button>
 
         <button
@@ -124,10 +124,10 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             });
             setWeeklyPlans(prev => ({ ...prev, [currentWeek]: newPlan }));
           }}
-          className="p-4 transition-colors border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50"
+          className="p-4 transition-colors border border-hairline bg-surface rounded-lg hover:border-accent hover:bg-surface-2"
         >
-          <p className="font-semibold text-purple-900">📚 Block Focus</p>
-          <p className="mt-1 text-xs text-gray-600">Multi-day blocks: Tactics → Play → Endgames</p>
+          <p className="font-semibold text-fg">📚 Block Focus</p>
+          <p className="mt-1 text-xs text-fg-muted">Multi-day blocks: Tactics → Play → Endgames</p>
         </button>
       </div>
 
@@ -143,7 +143,7 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
               });
             }
           }}
-          className="px-4 py-2 text-sm font-medium text-red-700 transition-colors bg-red-100 rounded-lg hover:bg-red-200"
+          className="px-4 py-2 text-sm font-medium text-loss border border-hairline bg-surface transition-colors rounded-lg hover:bg-surface-2"
         >
           Clear Week
         </button>

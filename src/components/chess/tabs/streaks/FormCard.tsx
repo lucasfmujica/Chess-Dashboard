@@ -20,26 +20,26 @@ interface FormCardProps {
 
 const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }: FormCardProps) => {
   return (
-    <div className={`p-5 bg-gradient-to-br ${bgColor} rounded-xl border-2 ${borderColor}`}>
+    <div className={`p-5 ${bgColor} rounded-lg border ${borderColor}`}>
       <div className="flex items-center gap-2 mb-4">
         <div className={`p-2 ${badgeColor} rounded-lg`}>
-          <span className="text-white text-sm font-bold">{badge}</span>
+          <span className="text-fg text-sm font-bold">{badge}</span>
         </div>
         <div>
-          <h4 className="font-bold text-gray-900">{title}</h4>
-          <p className="text-xs text-gray-600">{stats.subtitle}</p>
+          <h4 className="font-bold text-fg">{title}</h4>
+          <p className="text-xs text-fg-muted">{stats.subtitle}</p>
         </div>
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Record</span>
-          <span className="text-lg font-bold text-gray-900">
+          <span className="text-sm text-fg-muted">Record</span>
+          <span className="text-lg font-bold text-fg tabular-nums">
             {stats.wins}-{stats.draws}-{stats.losses}
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Score</span>
-          <span className={`text-2xl font-bold ${Number(stats.percentage) >= 50 ? 'text-green-600' : 'text-orange-600'}`}>
+          <span className="text-sm text-fg-muted">Score</span>
+          <span className={`text-2xl font-bold tabular-nums ${Number(stats.percentage) >= 50 ? 'text-win' : 'text-loss'}`}>
             {stats.percentage}%
           </span>
         </div>
@@ -57,7 +57,7 @@ const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }: For
               />
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-1 text-center">
+          <p className="text-xs text-fg-subtle mt-1 text-center">
             {stats.results.join(' • ')}
           </p>
         </div>

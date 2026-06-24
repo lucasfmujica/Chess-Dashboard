@@ -150,22 +150,16 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
   return (
     <div className="space-y-6">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-600 rounded-3xl shadow-2xl">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-          backgroundSize: '32px 32px'
-        }}></div>
-
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="relative px-8 py-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-                <DocumentTextIcon className="w-8 h-8 text-white" />
+              <div className="p-3 bg-surface-2 rounded-lg">
+                <DocumentTextIcon className="w-8 h-8 text-accent" />
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-white">Game Annotation Library</h2>
-                <p className="text-cyan-100">Build your personal database of analyzed games</p>
+                <h2 className="text-3xl font-bold text-fg">Game Annotation Library</h2>
+                <p className="text-fg-muted">Build your personal database of analyzed games</p>
               </div>
             </div>
 
@@ -174,7 +168,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                 setSelectedGame({});
                 setEditingAnnotation(null);
               }}
-              className="px-6 py-3 text-white bg-white/20 backdrop-blur-sm border-2 border-white/40 rounded-xl hover:bg-white/30 transition-all font-semibold flex items-center gap-2"
+              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-semibold flex items-center gap-2"
             >
               <PlusIcon className="w-5 h-5" />
               New Annotation
@@ -183,28 +177,28 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <DocumentTextIcon className="w-5 h-5 text-yellow-300" />
-                <p className="text-sm font-medium text-white/80">Total Annotations</p>
+                <DocumentTextIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Total Annotations</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.total}</p>
             </div>
 
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <StarIcon className="w-5 h-5 text-yellow-300" />
-                <p className="text-sm font-medium text-white/80">Avg Rating</p>
+                <StarIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Avg Rating</p>
               </div>
-              <p className="text-2xl font-bold text-white">{stats.avgRating} ★</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{stats.avgRating} ★</p>
             </div>
 
-            <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
-                <TagIcon className="w-5 h-5 text-emerald-300" />
-                <p className="text-sm font-medium text-white/80">Most Used Tag</p>
+                <TagIcon className="w-5 h-5 text-accent" />
+                <p className="text-sm font-medium text-fg-muted">Most Used Tag</p>
               </div>
-              <p className="text-lg font-bold text-white">
+              <p className="text-lg font-bold text-fg">
                 {stats.byTag.sort((a, b) => b.count - a.count)[0]?.icon || '—'}{' '}
                 {stats.byTag.sort((a, b) => b.count - a.count)[0]?.label.split(' ')[0] || 'None'}
               </p>
@@ -214,7 +208,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6">
+      <div className="bg-surface rounded-lg border border-hairline p-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[300px]">
             <input
@@ -222,16 +216,16 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
               placeholder="Search annotations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              className="w-full px-4 py-2.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <FunnelIcon className="w-5 h-5 text-slate-600" />
+            <FunnelIcon className="w-5 h-5 text-fg-muted" />
             <select
               value={filterTag}
               onChange={(e) => setFilterTag(e.target.value)}
-              className="px-4 py-2.5 border-2 border-slate-200 rounded-xl font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              className="px-4 py-2.5 bg-surface border border-hairline rounded-lg font-semibold text-fg focus:border-accent focus:ring-1 focus:ring-accent"
             >
               <option value="all">All Tags</option>
               {tags.map(tag => (
@@ -246,42 +240,42 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
 
       {/* Annotation Form */}
       {selectedGame !== null && (
-        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500">
-            <h3 className="text-xl font-bold text-white">
+        <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
+          <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
+            <h3 className="text-xl font-bold text-fg">
               {editingAnnotation ? 'Edit Annotation' : 'New Game Annotation'}
             </h3>
           </div>
 
           <div className="p-6 space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Game Name / Event</label>
+              <label className="block text-sm font-bold text-fg mb-2">Game Name / Event</label>
               <input
                 type="text"
                 placeholder="e.g., vs. GM Carlsen - Tata Steel 2024"
                 value={selectedGame.gameName || ''}
                 onChange={(e) => setSelectedGame({ ...selectedGame, gameName: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Date</label>
+                <label className="block text-sm font-bold text-fg mb-2">Date</label>
                 <input
                   type="date"
                   value={selectedGame.date || ''}
                   onChange={(e) => setSelectedGame({ ...selectedGame, date: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Result</label>
+                <label className="block text-sm font-bold text-fg mb-2">Result</label>
                 <select
                   value={selectedGame.result || ''}
                   onChange={(e) => setSelectedGame({ ...selectedGame, result: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
                 >
                   <option value="">Select result</option>
                   <option value="1-0">1-0 (Win)</option>
@@ -292,16 +286,16 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Personal Rating (1-5 stars)</label>
+              <label className="block text-sm font-bold text-fg mb-2">Personal Rating (1-5 stars)</label>
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map(rating => (
                   <button
                     key={rating}
                     onClick={() => setSelectedGame({ ...selectedGame, rating })}
-                    className={`p-3 rounded-xl transition-all ${
+                    className={`p-3 rounded-lg transition-all ${
                       (selectedGame.rating || 0) >= rating
                         ? 'bg-yellow-100 text-yellow-600'
-                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                        : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
                     }`}
                   >
                     <StarIcon className="w-6 h-6" fill={(selectedGame.rating || 0) >= rating ? 'currentColor' : 'none'} />
@@ -311,7 +305,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Tags</label>
+              <label className="block text-sm font-bold text-fg mb-2">Tags</label>
               <div className="flex flex-wrap gap-2">
                 {tags.map(tag => {
                   const isSelected = selectedGame.tags?.includes(tag.id);
@@ -325,10 +319,10 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                           : [...currentTags, tag.id];
                         setSelectedGame({ ...selectedGame, tags: newTags });
                       }}
-                      className={`px-4 py-2 text-sm font-semibold rounded-xl border-2 transition-all ${
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-all ${
                         isSelected
                           ? `bg-${tag.color}-100 border-${tag.color}-300 text-${tag.color}-700`
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                          : 'bg-surface border-hairline text-fg-muted hover:bg-surface-2'
                       }`}
                     >
                       {tag.icon} {tag.label}
@@ -339,20 +333,20 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Overall Notes</label>
+              <label className="block text-sm font-bold text-fg mb-2">Overall Notes</label>
               <textarea
                 placeholder="What made this game special? What did you learn? What patterns did you notice?"
                 value={selectedGame.notes || ''}
                 onChange={(e) => setSelectedGame({ ...selectedGame, notes: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl resize-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent h-32"
+                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-32"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-4">Key Moments & Variations</label>
+              <label className="block text-sm font-bold text-fg mb-4">Key Moments & Variations</label>
               <div className="space-y-3">
                 {(selectedGame.keyMoments || []).map((moment, idx) => (
-                  <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div key={idx} className="p-4 bg-surface-2 rounded-lg border border-hairline">
                     <div className="flex gap-3 items-start">
                       <input
                         type="text"
@@ -363,7 +357,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                           updated[idx] = { ...moment, move: e.target.value };
                           setSelectedGame({ ...selectedGame, keyMoments: updated });
                         }}
-                        className="w-32 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
+                        className="w-32 px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent"
                       />
                       <select
                         value={moment.symbol || ''}
@@ -372,7 +366,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                           updated[idx] = { ...moment, symbol: e.target.value };
                           setSelectedGame({ ...selectedGame, keyMoments: updated });
                         }}
-                        className="w-24 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                        className="w-24 px-3 py-2 bg-surface border border-hairline text-fg rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
                       >
                         <option value="">Symbol</option>
                         {symbols.map(s => (
@@ -388,7 +382,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                           updated[idx] = { ...moment, comment: e.target.value };
                           setSelectedGame({ ...selectedGame, keyMoments: updated });
                         }}
-                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                        className="flex-1 px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
                       />
                       <button
                         onClick={() => {
@@ -408,7 +402,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                     const updated = [...(selectedGame.keyMoments || []), { move: '', symbol: '', comment: '' }];
                     setSelectedGame({ ...selectedGame, keyMoments: updated });
                   }}
-                  className="w-full px-4 py-3 text-sm font-semibold text-indigo-600 bg-indigo-50 border-2 border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 text-sm font-semibold text-fg bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors flex items-center justify-center gap-2"
                 >
                   <PlusIcon className="w-5 h-5" />
                   Add Key Moment
@@ -419,7 +413,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             <div className="flex gap-4 pt-4">
               <button
                 onClick={() => saveAnnotation(selectedGame)}
-                className="flex-1 px-6 py-3 text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl hover:from-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all font-bold"
+                className="flex-1 px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
               >
                 {editingAnnotation ? 'Update Annotation' : 'Save Annotation'}
               </button>
@@ -428,7 +422,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                   setSelectedGame(null);
                   setEditingAnnotation(null);
                 }}
-                className="px-6 py-3 text-slate-700 bg-slate-100 border-2 border-slate-200 rounded-xl hover:bg-slate-200 transition-colors font-semibold"
+                className="px-6 py-3 text-fg bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors font-semibold"
               >
                 Cancel
               </button>
@@ -441,12 +435,12 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {filteredAnnotations.length > 0 ? (
           filteredAnnotations.map(annotation => (
-            <div key={annotation.id} className="bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden hover:shadow-xl transition-shadow">
+            <div key={annotation.id} className="bg-surface rounded-lg border border-hairline overflow-hidden hover:bg-surface-2 transition-colors">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-1">{annotation.gameName}</h4>
-                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <h4 className="text-xl font-bold text-fg mb-1">{annotation.gameName}</h4>
+                    <div className="flex items-center gap-3 text-sm text-fg-muted">
                       <span>{annotation.date}</span>
                       <span className="font-bold">{annotation.result}</span>
                       {annotation.rating && (
@@ -465,7 +459,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                         setSelectedGame(annotation);
                         setEditingAnnotation(annotation);
                       }}
-                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-2 text-accent hover:bg-surface-2 rounded-lg transition-colors"
                     >
                       <PencilIcon className="w-5 h-5" />
                     </button>
@@ -492,21 +486,21 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                 )}
 
                 {annotation.notes && (
-                  <p className="text-sm text-slate-700 mb-4 line-clamp-3">{annotation.notes}</p>
+                  <p className="text-sm text-fg-muted mb-4 line-clamp-3">{annotation.notes}</p>
                 )}
 
                 {annotation.keyMoments && annotation.keyMoments.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-600 uppercase">Key Moments:</p>
+                    <p className="text-xs font-semibold text-fg-muted uppercase">Key Moments:</p>
                     {annotation.keyMoments.slice(0, 3).map((moment, idx) => (
-                      <div key={idx} className="p-2 bg-slate-50 rounded-lg text-sm">
-                        <span className="font-mono font-bold text-indigo-600">{moment.move}</span>
+                      <div key={idx} className="p-2 bg-surface-2 rounded-lg text-sm">
+                        <span className="font-mono font-bold text-accent">{moment.move}</span>
                         {moment.symbol && <span className="ml-2 font-bold text-emerald-600">{moment.symbol}</span>}
-                        {moment.comment && <span className="ml-2 text-slate-600">— {moment.comment}</span>}
+                        {moment.comment && <span className="ml-2 text-fg-muted">— {moment.comment}</span>}
                       </div>
                     ))}
                     {annotation.keyMoments.length > 3 && (
-                      <p className="text-xs text-slate-500 italic">+ {annotation.keyMoments.length - 3} more moments</p>
+                      <p className="text-xs text-fg-subtle italic">+ {annotation.keyMoments.length - 3} more moments</p>
                     )}
                   </div>
                 )}
@@ -514,18 +508,18 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
           ))
         ) : (
-          <div className="col-span-2 bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-12 text-center">
-            <div className="p-4 bg-slate-100 rounded-full inline-block mb-4">
-              <DocumentTextIcon className="w-12 h-12 text-slate-400" />
+          <div className="col-span-2 bg-surface rounded-lg border border-hairline p-12 text-center">
+            <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
+              <DocumentTextIcon className="w-12 h-12 text-fg-subtle" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">No annotations yet</h3>
-            <p className="text-slate-600 mb-4">Start building your personal game library by annotating your best games!</p>
+            <h3 className="text-xl font-bold text-fg mb-2">No annotations yet</h3>
+            <p className="text-fg-muted mb-4">Start building your personal game library by annotating your best games!</p>
             <button
               onClick={() => {
                 setSelectedGame({});
                 setEditingAnnotation(null);
               }}
-              className="px-6 py-3 text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl hover:from-indigo-600 hover:to-purple-600 shadow-lg hover:shadow-xl transition-all font-bold"
+              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
             >
               Create First Annotation
             </button>

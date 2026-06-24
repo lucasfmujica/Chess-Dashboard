@@ -10,20 +10,20 @@ interface GameFilterProps {
 
 const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProps) => {
   return (
-    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/60 dark:border-slate-700/60 p-2">
+    <div className="bg-surface rounded-lg border border-hairline p-2">
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 px-3 py-2">
-          <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <svg className="w-4 h-4 text-fg-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
-          <span className="text-sm font-semibold text-slate-700">Filter:</span>
+          <span className="text-sm font-semibold text-fg">Filter:</span>
         </div>
         <button
           onClick={() => setGameFilter('otb')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
             gameFilter === 'otb'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
-              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              ? 'bg-surface-2 text-fg'
+              : 'text-fg-muted hover:bg-surface-2'
           }`}
           aria-label="Filter to show only over-the-board games"
           aria-pressed={gameFilter === 'otb'}
@@ -34,7 +34,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
             </svg>
             OTB
             {gameFilter === 'otb' && (
-              <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
                 {filteredGames.length}
               </span>
             )}
@@ -42,10 +42,10 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
         </button>
         <button
           onClick={() => setGameFilter('online')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
             gameFilter === 'online'
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 scale-105'
-              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              ? 'bg-surface-2 text-fg'
+              : 'text-fg-muted hover:bg-surface-2'
           }`}
           aria-label="Filter to show only online games"
           aria-pressed={gameFilter === 'online'}
@@ -56,7 +56,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
             </svg>
             Online
             {gameFilter === 'online' && (
-              <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
                 {filteredGames.length}
               </span>
             )}
@@ -64,10 +64,10 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
         </button>
         <button
           onClick={() => setGameFilter('all')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
             gameFilter === 'all'
-              ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30 scale-105'
-              : 'bg-slate-100/80 dark:bg-slate-700/80 text-slate-700 hover:bg-slate-200 hover:scale-105'
+              ? 'bg-surface-2 text-fg'
+              : 'text-fg-muted hover:bg-surface-2'
           }`}
           aria-label="Filter to show all games"
           aria-pressed={gameFilter === 'all'}
@@ -79,7 +79,7 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProp
             </svg>
             All
             {gameFilter === 'all' && (
-              <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
+              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
                 {filteredGames.length}
               </span>
             )}

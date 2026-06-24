@@ -18,17 +18,15 @@ interface TimeOfDayPerformanceProps {
 
 const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600"></div>
-
+    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-orange-100 rounded-xl">
-            <ClockIcon className="w-6 h-6 text-orange-600" />
+          <div className="p-2 bg-surface-2 rounded-lg">
+            <ClockIcon className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">⏰ Time of Day Performance</h3>
-            <p className="text-sm text-slate-600">Analyze when you perform best during the day</p>
+            <h3 className="text-lg font-semibold text-fg">⏰ Time of Day Performance</h3>
+            <p className="text-sm text-fg-muted">Analyze when you perform best during the day</p>
           </div>
         </div>
 
@@ -37,28 +35,28 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
           {timeOfDayStats.slice(0, 3).map((slot, idx) => {
             const isTopPerformer = idx === 0;
             return (
-              <div key={idx} className={`p-4 rounded-xl border-2 transition-all duration-300 hover:shadow-md ${
+              <div key={idx} className={`p-4 rounded-lg border transition-colors ${
                 isTopPerformer
-                  ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 border-emerald-300'
-                  : 'bg-slate-50 border-slate-200'
+                  ? 'bg-surface-2 border-accent'
+                  : 'bg-surface-2 border-hairline'
               }`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-slate-700">{slot.time}</span>
+                  <span className="text-sm font-semibold text-fg">{slot.time}</span>
                   {isTopPerformer && (
-                    <span className="px-2 py-0.5 text-xs font-bold text-emerald-700 bg-emerald-200 rounded-full">
+                    <span className="px-2 py-0.5 text-xs font-bold text-accent bg-surface rounded-full">
                       🏆 BEST
                     </span>
                   )}
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-slate-900">{slot.score}%</span>
-                  <span className="text-sm text-slate-600">score</span>
+                  <span className="text-2xl font-bold text-fg">{slot.score}%</span>
+                  <span className="text-sm text-fg-muted">score</span>
                 </div>
-                <div className="mt-2 text-xs text-slate-600">
-                  <span className="text-emerald-600 font-medium">{slot.wins}W</span> -
-                  <span className="text-amber-600 font-medium">{slot.draws}D</span> -
-                  <span className="text-rose-600 font-medium">{slot.losses}L</span>
-                  <span className="ml-2 text-slate-500">({slot.total} games)</span>
+                <div className="mt-2 text-xs text-fg-muted">
+                  <span className="text-win font-medium">{slot.wins}W</span> -
+                  <span className="text-draw font-medium">{slot.draws}D</span> -
+                  <span className="text-loss font-medium">{slot.losses}L</span>
+                  <span className="ml-2 text-fg-subtle">({slot.total} games)</span>
                 </div>
               </div>
             );
@@ -66,40 +64,40 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
         </div>
 
         {/* Enhanced Table */}
-        <div className="overflow-hidden border border-slate-200 rounded-xl">
+        <div className="overflow-hidden border border-hairline rounded-lg">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+            <table className="min-w-full divide-y divide-hairline">
+              <thead className="bg-surface-2">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Time Slot</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">W-D-L</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
-                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Win Rate</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-left text-fg uppercase tracking-wider">Time Slot</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Games</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">W-D-L</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Score %</th>
+                  <th scope="col" className="px-6 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Win Rate</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-100">
+              <tbody className="bg-surface divide-y divide-hairline">
                 {timeOfDayStats.map((slot, idx) => (
-                  <tr key={idx} className="transition-colors hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">{slot.time}</td>
-                    <td className="px-6 py-4 text-sm text-center text-slate-700">{slot.total}</td>
+                  <tr key={idx} className="transition-colors hover:bg-surface-2">
+                    <td className="px-6 py-4 text-sm font-semibold text-fg">{slot.time}</td>
+                    <td className="px-6 py-4 text-sm text-center text-fg-muted">{slot.total}</td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="text-emerald-600 font-medium">{slot.wins}</span>
-                      <span className="text-slate-400 mx-1">-</span>
-                      <span className="text-amber-600 font-medium">{slot.draws}</span>
-                      <span className="text-slate-400 mx-1">-</span>
-                      <span className="text-rose-600 font-medium">{slot.losses}</span>
+                      <span className="text-win font-medium">{slot.wins}</span>
+                      <span className="text-fg-subtle mx-1">-</span>
+                      <span className="text-draw font-medium">{slot.draws}</span>
+                      <span className="text-fg-subtle mx-1">-</span>
+                      <span className="text-loss font-medium">{slot.losses}</span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
-                      <span className="px-3 py-1 font-bold text-slate-900 bg-slate-100 rounded-lg">
+                      <span className="px-3 py-1 font-bold text-fg bg-surface-2 rounded-lg">
                         {slot.score}%
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-center">
                       <span className={`px-3 py-1 font-bold rounded-lg ${
                         parseFloat(slot.winRate) >= 50
-                          ? 'text-emerald-700 bg-emerald-100'
-                          : 'text-rose-700 bg-rose-100'
+                          ? 'text-win bg-surface-2'
+                          : 'text-loss bg-surface-2'
                       }`}>
                         {slot.winRate}%
                       </span>
@@ -112,8 +110,8 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
         </div>
 
         {/* Enhanced Visual Chart */}
-        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200">
-          <h4 className="mb-4 text-sm font-semibold text-slate-700 flex items-center gap-2">
+        <div className="mt-6 p-4 bg-surface-2 rounded-lg border border-hairline">
+          <h4 className="mb-4 text-sm font-semibold text-fg flex items-center gap-2">
             <ChartBarIcon className="w-4 h-4" />
             Performance Distribution
           </h4>

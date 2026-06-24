@@ -21,96 +21,94 @@ interface TournamentComparisonProps {
 
 const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProps) => {
   return (
-    <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-600"></div>
-
+    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-100 rounded-xl">
-            <TrophyIcon className="w-6 h-6 text-purple-600" />
+          <div className="p-2 bg-surface-2 rounded-lg">
+            <TrophyIcon className="w-6 h-6 text-accent" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">🏆 Tournament Comparison</h3>
-            <p className="text-sm text-slate-600">Compare your performance across all rated tournaments</p>
+            <h3 className="text-lg font-semibold text-fg">🏆 Tournament Comparison</h3>
+            <p className="text-sm text-fg-muted">Compare your performance across all rated tournaments</p>
           </div>
         </div>
 
         {/* Tournament Stats Summary */}
         <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border-2 border-purple-200">
+          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-purple-700">Total Tournaments</span>
-              <TrophyIcon className="w-5 h-5 text-purple-500" />
+              <span className="text-sm font-semibold text-fg-muted">Total Tournaments</span>
+              <TrophyIcon className="w-5 h-5 text-accent" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-purple-900">{tournamentComparison.length}</span>
-              <span className="text-sm text-purple-600">events</span>
+              <span className="text-3xl font-bold text-fg">{tournamentComparison.length}</span>
+              <span className="text-sm text-fg-muted">events</span>
             </div>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border-2 border-emerald-200">
+          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-emerald-700">Best Performance</span>
-              <SparklesIcon className="w-5 h-5 text-emerald-500" />
+              <span className="text-sm font-semibold text-fg-muted">Best Performance</span>
+              <SparklesIcon className="w-5 h-5 text-accent" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-emerald-900">
+              <span className="text-3xl font-bold text-fg">
                 {Math.max(...tournamentComparison.map(t => t.performance || 0))}
               </span>
-              <span className="text-sm text-emerald-600">rating</span>
+              <span className="text-sm text-fg-muted">rating</span>
             </div>
           </div>
         </div>
 
         {/* Enhanced Table */}
-        <div className="overflow-hidden border border-slate-200 rounded-xl">
+        <div className="overflow-hidden border border-hairline rounded-lg">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+            <table className="min-w-full divide-y divide-hairline">
+              <thead className="bg-surface-2">
                 <tr>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-left text-slate-700 uppercase tracking-wider">Tournament</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Games</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Score %</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Your ELO</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Avg Opp</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">Performance</th>
-                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-slate-700 uppercase tracking-wider">ELO Δ</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-left text-fg uppercase tracking-wider">Tournament</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Games</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Score %</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Your ELO</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Avg Opp</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">Performance</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold text-center text-fg uppercase tracking-wider">ELO Δ</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-100">
+              <tbody className="bg-surface divide-y divide-hairline">
                 {tournamentComparison.map((t, idx) => (
-                  <tr key={idx} className="transition-colors hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm font-semibold text-slate-900">{t.name}</td>
-                    <td className="px-4 py-3 text-sm text-center text-slate-700">{t.games}</td>
+                  <tr key={idx} className="transition-colors hover:bg-surface-2">
+                    <td className="px-4 py-3 text-sm font-semibold text-fg">{t.name}</td>
+                    <td className="px-4 py-3 text-sm text-center text-fg-muted">{t.games}</td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span className={`px-2.5 py-1 font-bold rounded-lg ${
-                        t.score >= 50 ? 'text-emerald-700 bg-emerald-100' : 'text-rose-700 bg-rose-100'
+                        t.score >= 50 ? 'text-win bg-surface-2' : 'text-loss bg-surface-2'
                       }`}>
                         {t.score}%
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      <span className="px-2.5 py-1 font-semibold text-blue-700 bg-blue-100 rounded-lg">
+                      <span className="px-2.5 py-1 font-semibold text-fg bg-surface-2 rounded-lg">
                         {t.playerElo}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
-                      <span className="px-2.5 py-1 font-semibold text-purple-700 bg-purple-100 rounded-lg">
+                      <span className="px-2.5 py-1 font-semibold text-fg bg-surface-2 rounded-lg">
                         {t.avgOppElo}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span className={`px-2.5 py-1 font-bold rounded-lg ${
-                        (t.performance ?? 0) > t.playerElo ? 'text-emerald-700 bg-emerald-100' :
-                        (t.performance ?? 0) < t.playerElo ? 'text-rose-700 bg-rose-100' : 'text-slate-700 bg-slate-100'
+                        (t.performance ?? 0) > t.playerElo ? 'text-win bg-surface-2' :
+                        (t.performance ?? 0) < t.playerElo ? 'text-loss bg-surface-2' : 'text-fg bg-surface-2'
                       }`}>
                         {t.performance || '-'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-center">
                       <span className={`px-2.5 py-1 font-bold rounded-lg ${
-                        t.eloChange > 0 ? 'text-emerald-700 bg-emerald-100' :
-                        t.eloChange < 0 ? 'text-rose-700 bg-rose-100' : 'text-slate-700 bg-slate-100'
+                        t.eloChange > 0 ? 'text-win bg-surface-2' :
+                        t.eloChange < 0 ? 'text-loss bg-surface-2' : 'text-fg bg-surface-2'
                       }`}>
                         {t.eloChange > 0 ? '+' : ''}{t.eloChange}
                       </span>
@@ -123,8 +121,8 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
         </div>
 
         {/* Enhanced Tournament Performance Trend Chart */}
-        <div className="mt-6 p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200">
-          <h4 className="mb-4 text-sm font-semibold text-slate-700 flex items-center gap-2">
+        <div className="mt-6 p-4 bg-surface-2 rounded-lg border border-hairline">
+          <h4 className="mb-4 text-sm font-semibold text-fg flex items-center gap-2">
             <ChartBarIcon className="w-4 h-4" />
             Performance Rating Trend
           </h4>
