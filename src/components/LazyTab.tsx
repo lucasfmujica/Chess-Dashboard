@@ -1,4 +1,5 @@
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
+import type { ReactNode } from 'react';
 import { LoadingSpinner } from './LoadingSkeleton';
 
 /**
@@ -22,7 +23,12 @@ import { LoadingSpinner } from './LoadingSkeleton';
  * - Shows loading spinner during load
  */
 
-const LazyTab = ({ children, fallback }) => {
+interface LazyTabProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+const LazyTab = ({ children, fallback }: LazyTabProps) => {
   return (
     <Suspense fallback={fallback || <TabLoadingFallback />}>
       {children}

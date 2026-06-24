@@ -1,8 +1,30 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { CalendarIcon, PlusIcon, PencilIcon, TrashIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import type { UpcomingTournament } from '../../../../types/chess';
 
-const formatDate = (dateStr) => {
+interface TournamentForm {
+  name: string;
+  club: string;
+  province: string;
+  chessResultsLink: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface UpcomingTournamentsSectionProps {
+  upcomingTournaments: UpcomingTournament[];
+  isAddingTournament: boolean;
+  setIsAddingTournament: React.Dispatch<React.SetStateAction<boolean>>;
+  editingTournamentId?: number | null;
+  tournamentForm: TournamentForm;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleAddTournament: () => void;
+  handleUpdateTournament: () => void;
+  handleEditTournament: (tournament: UpcomingTournament) => void;
+  handleDeleteTournament: (id: number) => void;
+  resetForm: () => void;
+}
+
+const formatDate = (dateStr?: string): string => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -20,7 +42,7 @@ const UpcomingTournamentsSection = ({
   handleEditTournament,
   handleDeleteTournament,
   resetForm
-}) => {
+}: UpcomingTournamentsSectionProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-slate-200">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
@@ -228,20 +250,6 @@ const UpcomingTournamentsSection = ({
       </div>
     </div>
   );
-};
-
-UpcomingTournamentsSection.propTypes = {
-  upcomingTournaments: PropTypes.arrayOf(PropTypes.object).isRequired,
-  isAddingTournament: PropTypes.bool.isRequired,
-  setIsAddingTournament: PropTypes.func.isRequired,
-  editingTournamentId: PropTypes.number,
-  tournamentForm: PropTypes.object.isRequired,
-  handleInputChange: PropTypes.func.isRequired,
-  handleAddTournament: PropTypes.func.isRequired,
-  handleUpdateTournament: PropTypes.func.isRequired,
-  handleEditTournament: PropTypes.func.isRequired,
-  handleDeleteTournament: PropTypes.func.isRequired,
-  resetForm: PropTypes.func.isRequired,
 };
 
 export default UpcomingTournamentsSection;

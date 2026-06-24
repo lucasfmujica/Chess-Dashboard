@@ -1,8 +1,16 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { StarIcon, ChartBarIcon, UsersIcon } from '@heroicons/react/24/outline';
 
-const TournamentSummaryCards = ({ stats }) => {
+interface TournamentSummaryStats {
+  totalWins: number;
+  totalDraws: number;
+  totalLosses: number;
+}
+
+interface TournamentSummaryCardsProps {
+  stats: TournamentSummaryStats;
+}
+
+const TournamentSummaryCards = ({ stats }: TournamentSummaryCardsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="relative overflow-hidden bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -45,14 +53,6 @@ const TournamentSummaryCards = ({ stats }) => {
       </div>
     </div>
   );
-};
-
-TournamentSummaryCards.propTypes = {
-  stats: PropTypes.shape({
-    totalWins: PropTypes.number.isRequired,
-    totalDraws: PropTypes.number.isRequired,
-    totalLosses: PropTypes.number.isRequired,
-  }).isRequired,
 };
 
 export default TournamentSummaryCards;

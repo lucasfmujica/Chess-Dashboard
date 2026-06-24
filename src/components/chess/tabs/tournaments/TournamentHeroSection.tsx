@@ -1,8 +1,17 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { TrophyIcon } from '@heroicons/react/24/outline';
 
-const TournamentHeroSection = ({ stats }) => {
+interface TournamentHeroStats {
+  totalTournaments: number;
+  totalGames: number;
+  bestPerformance: number;
+  averageScore: number | string;
+}
+
+interface TournamentHeroSectionProps {
+  stats: TournamentHeroStats;
+}
+
+const TournamentHeroSection = ({ stats }: TournamentHeroSectionProps) => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 rounded-2xl shadow-xl">
       <div className="absolute inset-0 bg-black opacity-10"></div>
@@ -39,15 +48,6 @@ const TournamentHeroSection = ({ stats }) => {
       </div>
     </div>
   );
-};
-
-TournamentHeroSection.propTypes = {
-  stats: PropTypes.shape({
-    totalTournaments: PropTypes.number.isRequired,
-    totalGames: PropTypes.number.isRequired,
-    bestPerformance: PropTypes.number.isRequired,
-    averageScore: PropTypes.string.isRequired,
-  }).isRequired,
 };
 
 export default TournamentHeroSection;

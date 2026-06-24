@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState } from 'react';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
 import { useModal } from '../../modals/ModalContext';
 import MotivationalQuote from './training/MotivationalQuote';
@@ -9,6 +8,23 @@ import QuickTemplates from './training/QuickTemplates';
 import WeeklyReflections from './training/WeeklyReflections';
 import MonthlyStats from './training/MonthlyStats';
 import ReflectionHistory from './training/ReflectionHistory';
+import type { WeeklyPlans, WeekPlan, DayPlan, TrainingActivity } from '../../../types/training';
+
+interface TrainingTabProps {
+  currentWeek: string;
+  setCurrentWeek: (value: string) => void;
+  weeklyPlans: WeeklyPlans;
+  setWeeklyPlans: (value: WeeklyPlans | ((prev: WeeklyPlans) => WeeklyPlans)) => void;
+  dailyNotes: Record<string, string>;
+  updateDailyNote: (date: string, note: string) => void;
+  editingDay: string | null;
+  setEditingDay: (value: string | null) => void;
+  weeklyHours: number;
+  setWeeklyHours: (value: number) => void;
+  getCurrentWeekPlan: () => WeekPlan;
+  updateDayPlan: (date: string, plan: DayPlan) => void;
+  exportToGoogleCalendar: (date: string, dayPlan: DayPlan) => void;
+}
 
 const motivationalQuotes = [
   { text: "The pawns are the soul of chess.", author: "Philidor" },
@@ -47,9 +63,9 @@ const TrainingTab = ({
   getCurrentWeekPlan,
   updateDayPlan,
   exportToGoogleCalendar
-}) => {
+}: TrainingTabProps) => {
   const modal = useModal();
-  const [completedActivities, setCompletedActivities] = useState({});
+  const [completedActivities, setCompletedActivities] = useState<Record<string, boolean>>({});
   const [showMotivation, setShowMotivation] = useState(true);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
@@ -71,7 +87,7 @@ const TrainingTab = ({
   const completedCount = Object.values(completedActivities).filter(Boolean).length;
   const completionPercent = totalActivities > 0 ? Math.round((completedCount / totalActivities) * 100) : 0;
 
-  const toggleActivityCompletion = (activityKey) => {
+  const toggleActivityCompletion = (activityKey: string) => {
     setCompletedActivities(prev => ({
       ...prev,
       [activityKey]: !prev[activityKey]
@@ -106,7 +122,7 @@ const TrainingTab = ({
     const dates = getWeekDates(currentWeek);
     const totalMinutes = weeklyHours * 60;
     const dailyMinutes = Math.round(totalMinutes / 6);
-    const newPlan = {};
+    const newPlan: WeekPlan = {};
     dates.forEach(({ date }, idx) => {
       if (idx === 6) {
         newPlan[date] = [{ id: 'rest', minutes: 0, details: 'Recovery and mental reset' }];
@@ -136,7 +152,7 @@ const TrainingTab = ({
     const tacticsTime = Math.round(dailyMinutes / 3);
     const gamesTime = Math.round(dailyMinutes / 2);
     const endgameTime = dailyMinutes - tacticsTime - gamesTime;
-    const newPlan = {};
+    const newPlan: WeekPlan = {};
     dates.forEach(({ date }, idx) => {
       if (idx === 6) {
         newPlan[date] = [{ id: 'rest', minutes: 0, details: '' }];
@@ -157,7 +173,7 @@ const TrainingTab = ({
     const tacticsDaily = Math.round(totalMinutes / 3 / 3);
     const playAnalyzeDaily = Math.round(totalMinutes / 3 / 2);
     const endgameDaily = Math.round(totalMinutes / 3);
-    const newPlan = {};
+    const newPlan: WeekPlan = {};
     dates.forEach(({ date }, idx) => {
       if (idx === 6) {
         newPlan[date] = [{ id: 'rest', minutes: 0, details: '' }];
@@ -221,13 +237,13 @@ const TrainingTab = ({
               editingDay={editingDay}
               completedActivities={completedActivities}
               onToggleActivityCompletion={toggleActivityCompletion}
-              onRemoveActivity={(idx) => {
+              onRemoveActivity={(idx: number) => {
                 const newPlan = dayPlan.filter((_, i) => i !== idx);
                 updateDayPlan(date, newPlan);
               }}
               onSetEditingDay={setEditingDay}
-              onAddActivity={(activity) => {
-                const newActivity = {
+              onAddActivity={(activity: { id: string; defaultMinutes: number }) => {
+                const newActivity: TrainingActivity = {
                   id: activity.id,
                   minutes: activity.defaultMinutes,
                   details: ''
@@ -269,22 +285,6 @@ const TrainingTab = ({
       />
     </div>
   );
-};
-
-TrainingTab.propTypes = {
-  currentWeek: PropTypes.string.isRequired,
-  setCurrentWeek: PropTypes.func.isRequired,
-  weeklyPlans: PropTypes.object.isRequired,
-  setWeeklyPlans: PropTypes.func.isRequired,
-  dailyNotes: PropTypes.object.isRequired,
-  updateDailyNote: PropTypes.func.isRequired,
-  editingDay: PropTypes.string,
-  setEditingDay: PropTypes.func.isRequired,
-  weeklyHours: PropTypes.number.isRequired,
-  setWeeklyHours: PropTypes.func.isRequired,
-  getCurrentWeekPlan: PropTypes.func.isRequired,
-  updateDayPlan: PropTypes.func.isRequired,
-  exportToGoogleCalendar: PropTypes.func.isRequired,
 };
 
 export default TrainingTab;

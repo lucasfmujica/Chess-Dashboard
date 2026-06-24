@@ -1,6 +1,27 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { LightBulbIcon } from '@heroicons/react/24/outline';
+import type { PlayerColor, GameResult } from '../../../../types/chess';
+
+/** Local form state shape for manual game entry (numeric fields kept as string|number while editing). */
+interface GameForm {
+  tournament: string;
+  elo: string | number;
+  opp: string;
+  opp_elo: string | number;
+  color: PlayerColor | string;
+  result: GameResult | string;
+  eco?: string;
+  rated: boolean;
+}
+
+interface ManualGameEntryProps {
+  showManualEntry: boolean;
+  setShowManualEntry: React.Dispatch<React.SetStateAction<boolean>>;
+  gameForm: GameForm;
+  uniqueTournaments: string[];
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleAddGame: () => void;
+  resetForm: () => void;
+}
 
 const ManualGameEntry = ({
   showManualEntry,
@@ -10,7 +31,7 @@ const ManualGameEntry = ({
   handleInputChange,
   handleAddGame,
   resetForm,
-}) => {
+}: ManualGameEntryProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
@@ -195,25 +216,6 @@ const ManualGameEntry = ({
       </div>
     </div>
   );
-};
-
-ManualGameEntry.propTypes = {
-  showManualEntry: PropTypes.bool.isRequired,
-  setShowManualEntry: PropTypes.func.isRequired,
-  gameForm: PropTypes.shape({
-    tournament: PropTypes.string.isRequired,
-    elo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    opp: PropTypes.string.isRequired,
-    opp_elo: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    color: PropTypes.string.isRequired,
-    result: PropTypes.string.isRequired,
-    eco: PropTypes.string,
-    rated: PropTypes.bool.isRequired,
-  }).isRequired,
-  uniqueTournaments: PropTypes.arrayOf(PropTypes.string).isRequired,
-  handleInputChange: PropTypes.func.isRequired,
-  handleAddGame: PropTypes.func.isRequired,
-  resetForm: PropTypes.func.isRequired,
 };
 
 export default ManualGameEntry;

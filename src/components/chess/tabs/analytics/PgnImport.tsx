@@ -1,6 +1,12 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { LightBulbIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+
+interface PgnImportProps {
+  showPgnImport: boolean;
+  setShowPgnImport: React.Dispatch<React.SetStateAction<boolean>>;
+  pgnText: string;
+  setPgnText: React.Dispatch<React.SetStateAction<string>>;
+  handlePgnImport: () => void;
+}
 
 const PgnImport = ({
   showPgnImport,
@@ -8,7 +14,7 @@ const PgnImport = ({
   pgnText,
   setPgnText,
   handlePgnImport,
-}) => {
+}: PgnImportProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60 transition-all duration-300 hover:shadow-xl">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-600"></div>
@@ -73,14 +79,6 @@ const PgnImport = ({
       </div>
     </div>
   );
-};
-
-PgnImport.propTypes = {
-  showPgnImport: PropTypes.bool.isRequired,
-  setShowPgnImport: PropTypes.func.isRequired,
-  pgnText: PropTypes.string.isRequired,
-  setPgnText: PropTypes.func.isRequired,
-  handlePgnImport: PropTypes.func.isRequired,
 };
 
 export default PgnImport;

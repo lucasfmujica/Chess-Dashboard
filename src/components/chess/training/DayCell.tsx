@@ -1,7 +1,20 @@
-import React from 'react';
 import { trainingActivities } from '../../../constants/trainingActivities';
+import type { DayPlan } from '../../../types/training';
 
-const DayCell = ({ day, date, displayDate, dayPlan, note, isToday, updateDayPlan, editingDay, setEditingDay }) => {
+interface DayCellProps {
+  day: string;
+  /** YYYY-MM-DD */
+  date: string;
+  displayDate: string;
+  dayPlan: DayPlan;
+  note?: string;
+  isToday: boolean;
+  updateDayPlan: (date: string, plan: DayPlan) => void;
+  editingDay: string | null;
+  setEditingDay: (date: string | null) => void;
+}
+
+const DayCell = ({ day, date, displayDate, dayPlan, isToday, updateDayPlan, editingDay, setEditingDay }: DayCellProps) => {
   return (
     <div
       className={`bg-white rounded-lg shadow-md overflow-hidden border-2 ${isToday ? 'border-blue-500' : 'border-gray-200'}`}
@@ -38,7 +51,7 @@ const DayCell = ({ day, date, displayDate, dayPlan, note, isToday, updateDayPlan
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{activityDef?.label}</p>
-                    {activity.minutes > 0 && (
+                    {activity.minutes != null && activity.minutes > 0 && (
                       <p className="mt-1 text-xs text-gray-600">{activity.minutes} minutes</p>
                     )}
                     {activity.details && (

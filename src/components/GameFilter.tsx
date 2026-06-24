@@ -1,7 +1,14 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { Game } from '../types/chess';
 
-const GameFilter = ({ gameFilter, setGameFilter, filteredGames }) => {
+type GameFilterValue = 'otb' | 'online' | 'all';
+
+interface GameFilterProps {
+  gameFilter: GameFilterValue;
+  setGameFilter: (value: GameFilterValue) => void;
+  filteredGames: Game[];
+}
+
+const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProps) => {
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/60 p-2">
       <div className="flex items-center gap-2">
@@ -81,12 +88,6 @@ const GameFilter = ({ gameFilter, setGameFilter, filteredGames }) => {
       </div>
     </div>
   );
-};
-
-GameFilter.propTypes = {
-  gameFilter: PropTypes.oneOf(['otb', 'online', 'all']).isRequired,
-  setGameFilter: PropTypes.func.isRequired,
-  filteredGames: PropTypes.array.isRequired,
 };
 
 export default GameFilter;

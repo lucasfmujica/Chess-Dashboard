@@ -1,5 +1,3 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { useModal } from '../../modals/ModalContext';
 import { useTournamentForm } from '../../../hooks/useTournamentForm';
 import { useTournamentStats } from '../../../hooks/useTournamentStats';
@@ -8,8 +6,17 @@ import TournamentHeroSection from './tournaments/TournamentHeroSection';
 import TournamentSummaryCards from './tournaments/TournamentSummaryCards';
 import TournamentTable from './tournaments/TournamentTable';
 import PerformanceChart from './tournaments/PerformanceChart';
+import type { TournamentStat, UpcomingTournament } from '../../../types/chess';
 
-const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments }) => {
+interface TournamentsTabProps {
+  tournamentStats: TournamentStat[];
+  upcomingTournaments: UpcomingTournament[];
+  setUpcomingTournaments: (
+    value: UpcomingTournament[] | ((prev: UpcomingTournament[]) => UpcomingTournament[])
+  ) => void;
+}
+
+const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments }: TournamentsTabProps) => {
   const modal = useModal();
   const stats = useTournamentStats(tournamentStats);
 
@@ -56,12 +63,6 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
       <PerformanceChart tournamentStats={tournamentStats} />
     </div>
   );
-};
-
-TournamentsTab.propTypes = {
-  tournamentStats: PropTypes.arrayOf(PropTypes.object).isRequired,
-  upcomingTournaments: PropTypes.arrayOf(PropTypes.object).isRequired,
-  setUpcomingTournaments: PropTypes.func.isRequired,
 };
 
 export default TournamentsTab;

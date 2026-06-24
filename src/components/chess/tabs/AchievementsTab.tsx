@@ -1,24 +1,54 @@
-import React, { useMemo } from 'react';
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
 import { TrophyIcon, StarIcon, FireIcon, LightBulbIcon, SparklesIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
+import type { Game } from '../../../types/chess';
 
-const AchievementsTab = ({ games }) => {
+interface AchievementsTabProps {
+  games: Game[];
+}
+
+interface AchievementBadge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  current: number;
+  target: number;
+  progress: number;
+  points: number;
+  unlocked: boolean;
+}
+
+interface BadgeColorClass {
+  bg: string;
+  border: string;
+  icon: string;
+  progress: string;
+  text: string;
+  badge: string;
+}
+
+/** Game with optional moves list used for achievement calculations. */
+type AchievementGame = Game & { moves?: unknown[] };
+
+const AchievementsTab = ({ games }: AchievementsTabProps) => {
   // Calculate achievements based on game data
   const achievements = useMemo(() => {
     if (!games || games.length === 0) {
       return {
-        badges: [],
+        badges: [] as AchievementBadge[],
         totalPoints: 0,
         level: 1,
-        progressToNextLevel: 0
+        progressToNextLevel: 0,
+        unlockedCount: 0,
       };
     }
 
-    const badges = [];
+    const badges: AchievementBadge[] = [];
     let totalPoints = 0;
 
     // Endgame Expert - Win games that went past move 40
-    const endgameWins = games.filter(g => g.result === 'W' && g.moves && g.moves.length > 40).length;
+    const endgameWins = games.filter(g => g.result === 'W' && (g as AchievementGame).moves && (g as AchievementGame).moves!.length > 40).length;
     const endgameProgress = Math.min((endgameWins / 20) * 100, 100);
     badges.push({
       id: 'endgame-expert',
@@ -53,7 +83,7 @@ const AchievementsTab = ({ games }) => {
 
     // Giant Slayer - Win against opponents 100+ rating points higher
     const giantSlayerWins = games.filter(g => {
-      const diff = parseInt(g.opp_elo) - parseInt(g.elo);
+      const diff = Number(g.opp_elo) - Number(g.elo);
       return g.result === 'W' && diff >= 100;
     }).length;
     const giantProgress = Math.min((giantSlayerWins / 10) * 100, 100);
@@ -89,7 +119,7 @@ const AchievementsTab = ({ games }) => {
     if (perfectGames >= 10) totalPoints += 60;
 
     // Tactician - Win games in under 25 moves
-    const quickWins = games.filter(g => g.result === 'W' && g.moves && g.moves.length < 25).length;
+    const quickWins = games.filter(g => g.result === 'W' && (g as AchievementGame).moves && (g as AchievementGame).moves!.length < 25).length;
     const tacticProgress = Math.min((quickWins / 15) * 100, 100);
     badges.push({
       id: 'tactician',
@@ -123,7 +153,7 @@ const AchievementsTab = ({ games }) => {
     if (totalGames >= 100) totalPoints += 30;
 
     // Tournament Champion - Win a tournament (simplified: 5+ wins in same tournament)
-    const tournamentWins = {};
+    const tournamentWins: Record<string, number> = {};
     games.forEach(g => {
       if (g.result === 'W' && g.tournament) {
         tournamentWins[g.tournament] = (tournamentWins[g.tournament] || 0) + 1;
@@ -169,7 +199,7 @@ const AchievementsTab = ({ games }) => {
     const progressToNextLevel = ((totalPoints % 100) / 100) * 100;
 
     return {
-      badges: badges.sort((a, b) => b.unlocked - a.unlocked || b.progress - a.progress),
+      badges: badges.sort((a, b) => Number(b.unlocked) - Number(a.unlocked) || b.progress - a.progress),
       totalPoints,
       level,
       progressToNextLevel,
@@ -248,7 +278,7 @@ const AchievementsTab = ({ games }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {achievements.badges.map((badge) => {
-            const colorClasses = {
+            const colorClasses: Record<string, BadgeColorClass> = {
               emerald: {
                 bg: 'from-emerald-50 to-teal-50',
                 border: 'border-emerald-300',
@@ -442,10 +472,6 @@ const AchievementsTab = ({ games }) => {
       </div>
     </div>
   );
-};
-
-AchievementsTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default AchievementsTab;

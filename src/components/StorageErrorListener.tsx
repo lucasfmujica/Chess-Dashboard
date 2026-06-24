@@ -2,6 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useModal } from './modals/ModalContext';
 import { STORAGE_ERROR_EVENT } from '../hooks/useLocalStorage';
 
+interface StorageErrorDetail {
+  message?: string;
+}
+
 /**
  * Listens for localStorage write failures (dispatched by useLocalStorage) and
  * surfaces them to the user via the shared modal, so data loss is never silent.
@@ -13,11 +17,12 @@ const StorageErrorListener = () => {
   const isShowingRef = useRef(false);
 
   useEffect(() => {
-    const handleStorageError = async (event) => {
+    const handleStorageError = async (event: Event) => {
       if (isShowingRef.current) return;
       isShowingRef.current = true;
+      const detail = (event as CustomEvent<StorageErrorDetail>).detail;
       const message =
-        event.detail?.message ?? 'A change could not be saved to local storage.';
+        detail?.message ?? 'A change could not be saved to local storage.';
       try {
         await modal.alert(message, 'Could not save');
       } finally {

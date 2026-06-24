@@ -1,6 +1,10 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
-export const ChartSkeleton = ({ height = 300 }) => (
+interface ChartSkeletonProps {
+  height?: number;
+}
+
+export const ChartSkeleton = ({ height = 300 }: ChartSkeletonProps) => (
   <div className="animate-pulse" style={{ height }}>
     <div className="h-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 rounded-lg"></div>
   </div>
@@ -19,7 +23,11 @@ export const StatCardSkeleton = () => (
   </div>
 );
 
-export const TableSkeleton = ({ rows = 5 }) => (
+interface TableSkeletonProps {
+  rows?: number;
+}
+
+export const TableSkeleton = ({ rows = 5 }: TableSkeletonProps) => (
   <div className="animate-pulse">
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="h-12 bg-slate-200"></div>
@@ -30,15 +38,23 @@ export const TableSkeleton = ({ rows = 5 }) => (
   </div>
 );
 
-export const LoadingSpinner = ({ size = 'md', color = 'indigo' }) => {
-  const sizeClasses = {
+type SpinnerSize = 'sm' | 'md' | 'lg' | 'xl';
+type SpinnerColor = 'indigo' | 'blue' | 'emerald' | 'purple';
+
+interface LoadingSpinnerProps {
+  size?: SpinnerSize;
+  color?: SpinnerColor;
+}
+
+export const LoadingSpinner = ({ size = 'md', color = 'indigo' }: LoadingSpinnerProps) => {
+  const sizeClasses: Record<SpinnerSize, string> = {
     sm: 'w-4 h-4',
     md: 'w-8 h-8',
     lg: 'w-12 h-12',
     xl: 'w-16 h-16'
   };
 
-  const colorClasses = {
+  const colorClasses: Record<SpinnerColor, string> = {
     indigo: 'text-indigo-600',
     blue: 'text-blue-600',
     emerald: 'text-emerald-600',
@@ -70,7 +86,13 @@ export const LoadingSpinner = ({ size = 'md', color = 'indigo' }) => {
   );
 };
 
-export const ChartLoadingWrapper = ({ isLoading, height = 300, children }) => {
+interface ChartLoadingWrapperProps {
+  isLoading: boolean;
+  height?: number;
+  children: ReactNode;
+}
+
+export const ChartLoadingWrapper = ({ isLoading, height = 300, children }: ChartLoadingWrapperProps) => {
   if (isLoading) {
     return <ChartSkeleton height={height} />;
   }

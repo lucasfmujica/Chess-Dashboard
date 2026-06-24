@@ -1,5 +1,41 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState } from 'react';
+import type { Repertoire } from '../../../types/chess';
+
+interface OpeningRecommendation {
+  type?: string;
+  opening: string;
+  eco: string;
+  reason: string;
+  priority: 'high' | 'medium';
+}
+
+interface AnalyzedOpening {
+  eco: string;
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  isMain: boolean;
+  needsWork: boolean;
+}
+
+interface OpeningRepertoireAnalysis {
+  white: AnalyzedOpening[];
+  black: AnalyzedOpening[];
+}
+
+type OpeningHeroes = Record<string, string[]>;
+
+interface RepertoireTabProps {
+  openingRecommendations: OpeningRecommendation[];
+  openingRepertoireAnalysis: OpeningRepertoireAnalysis;
+  mainRepertoire: Repertoire;
+  setMainRepertoire: (value: Repertoire | ((prev: Repertoire) => Repertoire)) => void;
+  openingHeroes: OpeningHeroes;
+  setOpeningHeroes: (value: OpeningHeroes | ((prev: OpeningHeroes) => OpeningHeroes)) => void;
+}
 
 const RepertoireTab = ({
   openingRecommendations,
@@ -8,13 +44,13 @@ const RepertoireTab = ({
   setMainRepertoire,
   openingHeroes,
   setOpeningHeroes
-}) => {
-  const [selectedOpening, setSelectedOpening] = useState(null);
+}: RepertoireTabProps) => {
+  const [selectedOpening, setSelectedOpening] = useState<string | null>(null);
   const [newHeroName, setNewHeroName] = useState('');
 
-  const addHero = (eco) => {
+  const addHero = (eco: string) => {
     if (!newHeroName.trim()) return;
-    const updated = { ...openingHeroes };
+    const updated: OpeningHeroes = { ...openingHeroes };
     if (!updated[eco]) updated[eco] = [];
     if (!updated[eco].includes(newHeroName.trim())) {
       updated[eco].push(newHeroName.trim());
@@ -23,8 +59,8 @@ const RepertoireTab = ({
     setNewHeroName('');
   };
 
-  const removeHero = (eco, heroName) => {
-    const updated = { ...openingHeroes };
+  const removeHero = (eco: string, heroName: string) => {
+    const updated: OpeningHeroes = { ...openingHeroes };
     if (updated[eco]) {
       updated[eco] = updated[eco].filter(h => h !== heroName);
       if (updated[eco].length === 0) delete updated[eco];
@@ -352,10 +388,6 @@ const RepertoireTab = ({
       </div>
     </div>
   );
-};
-
-RepertoireTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default RepertoireTab;

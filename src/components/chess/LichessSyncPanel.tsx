@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import type { Game } from '../../types/chess';
 
-const LichessSyncPanel = ({ onSyncComplete, onError }) => {
+type SyncStatusType = 'loading' | 'success' | 'warning' | 'error';
+
+interface SyncStatus {
+  type: SyncStatusType;
+  message: string;
+}
+
+interface LichessSyncPanelProps {
+  onSyncComplete?: (games: Game[]) => void;
+  onError?: (message: string) => void;
+}
+
+const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) => {
   const [lichessUsername, setLichessUsername] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [maxGames, setMaxGames] = useState(50);
   const [perfType, setPerfType] = useState('classical,rapid,blitz');
 
@@ -16,6 +29,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }) => {
 
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [syncStatus?.type]);
 
   const handleSync = async () => {
@@ -56,11 +70,12 @@ const LichessSyncPanel = ({ onSyncComplete, onError }) => {
 
     } catch (error) {
       console.error('Lichess sync error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to fetch games from Lichess';
       setSyncStatus({
         type: 'error',
-        message: error.message || 'Failed to fetch games from Lichess'
+        message: message || 'Failed to fetch games from Lichess'
       });
-      onError?.(error.message);
+      onError?.(message);
     } finally {
       setIsSyncing(false);
     }

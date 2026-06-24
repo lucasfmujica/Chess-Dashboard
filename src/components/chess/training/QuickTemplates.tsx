@@ -1,8 +1,17 @@
-import React from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { getWeekDates } from '../../../utils/chessHelpers';
 import { useModal } from '../../modals/ModalContext';
+import type { WeeklyPlans, WeekPlan } from '../../../types/training';
 
-const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPlans }) => {
+interface QuickTemplatesProps {
+  /** The week's Monday (YYYY-MM-DD). */
+  currentWeek: string;
+  weeklyHours: number;
+  setWeeklyHours: Dispatch<SetStateAction<number>>;
+  setWeeklyPlans: Dispatch<SetStateAction<WeeklyPlans>>;
+}
+
+const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPlans }: QuickTemplatesProps) => {
   const modal = useModal();
 
   return (
@@ -29,7 +38,7 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             const dates = getWeekDates(currentWeek);
             const totalMinutes = weeklyHours * 60;
             const dailyMinutes = Math.round(totalMinutes / 6); // 6 active days
-            const newPlan = {};
+            const newPlan: WeekPlan = {};
             dates.forEach(({ date }, idx) => {
               if (idx === 6) { // Sunday - rest day
                 newPlan[date] = [{ id: 'rest', minutes: 0, details: '' }];
@@ -66,7 +75,7 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             const tacticsTime = Math.round(dailyMinutes / 3);
             const gamesTime = Math.round(dailyMinutes / 2);
             const endgameTime = dailyMinutes - tacticsTime - gamesTime;
-            const newPlan = {};
+            const newPlan: WeekPlan = {};
             dates.forEach(({ date }, idx) => {
               if (idx === 6) { // Sunday
                 newPlan[date] = [{ id: 'rest', minutes: 0, details: '' }];
@@ -93,7 +102,7 @@ const QuickTemplates = ({ currentWeek, weeklyHours, setWeeklyHours, setWeeklyPla
             const tacticsDaily = Math.round(totalMinutes / 3 / 3); // 1/3 of total, spread over 3 days
             const playAnalyzeDaily = Math.round(totalMinutes / 3 / 2); // 1/3 of total, spread over 2 days
             const endgameDaily = Math.round(totalMinutes / 3); // 1/3 of total on 1 day
-            const newPlan = {};
+            const newPlan: WeekPlan = {};
             dates.forEach(({ date }, idx) => {
               if (idx === 6) { // Sunday
                 newPlan[date] = [{ id: 'rest', minutes: 0, details: '' }];

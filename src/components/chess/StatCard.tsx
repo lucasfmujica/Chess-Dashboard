@@ -1,6 +1,16 @@
-import React from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
-const StatCard = ({ title, value, subtitle, icon: Icon, trend }) => {
+type Trend = 'up' | 'down';
+
+interface StatCardProps {
+  title: ReactNode;
+  value: ReactNode;
+  subtitle?: ReactNode;
+  icon?: ComponentType<{ className?: string }>;
+  trend?: Trend;
+}
+
+const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) => {
   // Gradient and color based on trend
   const getCardStyle = () => {
     if (trend === 'up') {

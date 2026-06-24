@@ -1,8 +1,11 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import type { TournamentStat } from '../../../../types/chess';
 
-const PerformanceChart = ({ tournamentStats }) => {
+interface PerformanceChartProps {
+  tournamentStats: TournamentStat[];
+}
+
+const PerformanceChart = ({ tournamentStats }: PerformanceChartProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
@@ -25,7 +28,7 @@ const PerformanceChart = ({ tournamentStats }) => {
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
-                  const data = payload[0].payload;
+                  const data = payload[0].payload as TournamentStat;
                   return (
                     <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
                       <p className="font-bold text-gray-900 text-lg mb-3">{data.tournament}</p>
@@ -62,10 +65,6 @@ const PerformanceChart = ({ tournamentStats }) => {
       </div>
     </div>
   );
-};
-
-PerformanceChart.propTypes = {
-  tournamentStats: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default PerformanceChart;

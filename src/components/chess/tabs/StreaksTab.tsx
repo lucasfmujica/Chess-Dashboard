@@ -1,5 +1,3 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { useStreaksData } from '../../../hooks/useStreaksData';
 import StreaksHeroSection from './streaks/StreaksHeroSection';
 import RecentFormSection from './streaks/RecentFormSection';
@@ -7,8 +5,28 @@ import StreakStatsCards from './streaks/StreakStatsCards';
 import ActivityCalendar from './streaks/ActivityCalendar';
 import WeeklyActivityChart from './streaks/WeeklyActivityChart';
 import ConsistencyInsights from './streaks/ConsistencyInsights';
+import type { Game, MonthlyStat } from '../../../types/chess';
 
-const StreaksTab = ({ games, formStats, monthlyStats }) => {
+interface FormStat {
+  wins: number;
+  draws: number;
+  losses: number;
+  percentage: number;
+  results: string[];
+}
+
+interface FormStats {
+  last5: FormStat;
+  last10: FormStat;
+}
+
+interface StreaksTabProps {
+  games: Game[];
+  formStats: FormStats;
+  monthlyStats: MonthlyStat[];
+}
+
+const StreaksTab = ({ games, formStats, monthlyStats }: StreaksTabProps) => {
   const streaksData = useStreaksData(games);
 
   return (
@@ -35,27 +53,6 @@ const StreaksTab = ({ games, formStats, monthlyStats }) => {
       <ConsistencyInsights streaksData={streaksData} />
     </div>
   );
-};
-
-StreaksTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
-  formStats: PropTypes.shape({
-    last5: PropTypes.shape({
-      wins: PropTypes.number,
-      draws: PropTypes.number,
-      losses: PropTypes.number,
-      percentage: PropTypes.number,
-      results: PropTypes.arrayOf(PropTypes.string),
-    }),
-    last10: PropTypes.shape({
-      wins: PropTypes.number,
-      draws: PropTypes.number,
-      losses: PropTypes.number,
-      percentage: PropTypes.number,
-      results: PropTypes.arrayOf(PropTypes.string),
-    }),
-  }),
-  monthlyStats: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default StreaksTab;

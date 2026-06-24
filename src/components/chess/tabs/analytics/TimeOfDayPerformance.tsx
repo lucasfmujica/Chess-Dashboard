@@ -1,9 +1,22 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ClockIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
-const TimeOfDayPerformance = ({ timeOfDayStats }) => {
+/** Per time-of-day-slot aggregate row. */
+interface TimeOfDayStat {
+  time: string;
+  total: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: string;
+}
+
+interface TimeOfDayPerformanceProps {
+  timeOfDayStats: TimeOfDayStat[];
+}
+
+const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200/60">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-600"></div>
@@ -141,18 +154,6 @@ const TimeOfDayPerformance = ({ timeOfDayStats }) => {
       </div>
     </div>
   );
-};
-
-TimeOfDayPerformance.propTypes = {
-  timeOfDayStats: PropTypes.arrayOf(PropTypes.shape({
-    time: PropTypes.string.isRequired,
-    total: PropTypes.number.isRequired,
-    wins: PropTypes.number.isRequired,
-    draws: PropTypes.number.isRequired,
-    losses: PropTypes.number.isRequired,
-    score: PropTypes.string.isRequired,
-    winRate: PropTypes.string.isRequired,
-  })).isRequired,
 };
 
 export default TimeOfDayPerformance;

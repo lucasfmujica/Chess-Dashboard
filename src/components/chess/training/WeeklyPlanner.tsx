@@ -1,6 +1,16 @@
-import React from 'react';
 import { getWeekDates, getTodayStr } from '../../../utils/chessHelpers';
 import DayCell from './DayCell';
+import type { WeeklyPlans, DayPlan } from '../../../types/training';
+
+interface WeeklyPlannerProps {
+  /** The week's Monday (YYYY-MM-DD). */
+  currentWeek: string;
+  weeklyPlans: WeeklyPlans;
+  dailyNotes: Record<string, string>;
+  editingDay: string | null;
+  setEditingDay: (date: string | null) => void;
+  updateDayPlan: (date: string, plan: DayPlan) => void;
+}
 
 const WeeklyPlanner = ({
   currentWeek,
@@ -9,7 +19,7 @@ const WeeklyPlanner = ({
   editingDay,
   setEditingDay,
   updateDayPlan
-}) => {
+}: WeeklyPlannerProps) => {
   const getCurrentWeekPlan = () => {
     return weeklyPlans[currentWeek] || {};
   };

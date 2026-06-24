@@ -1,5 +1,23 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { Dispatch, SetStateAction } from 'react';
+import type { Game, PlayerInfo } from '../types/chess';
+
+interface NavigationTab {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+interface SidebarProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
+  isSidebarCollapsed: boolean;
+  setIsSidebarCollapsed: Dispatch<SetStateAction<boolean>>;
+  playerInfo: PlayerInfo;
+  filteredGames: Game[];
+  navigationTabs: NavigationTab[];
+  activeTab: string;
+  setActiveTab: Dispatch<SetStateAction<string>>;
+}
 
 const Sidebar = ({
   isMobileMenuOpen,
@@ -11,7 +29,7 @@ const Sidebar = ({
   navigationTabs,
   activeTab,
   setActiveTab,
-}) => {
+}: SidebarProps) => {
   return (
     <aside
       className={`fixed top-0 left-0 h-full bg-white/95 backdrop-blur-md shadow-2xl z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
@@ -99,26 +117,6 @@ const Sidebar = ({
       </nav>
     </aside>
   );
-};
-
-Sidebar.propTypes = {
-  isMobileMenuOpen: PropTypes.bool.isRequired,
-  setIsMobileMenuOpen: PropTypes.func.isRequired,
-  isSidebarCollapsed: PropTypes.bool.isRequired,
-  setIsSidebarCollapsed: PropTypes.func.isRequired,
-  playerInfo: PropTypes.shape({
-    current_elo: PropTypes.number.isRequired,
-  }).isRequired,
-  filteredGames: PropTypes.array.isRequired,
-  navigationTabs: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      icon: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  activeTab: PropTypes.string.isRequired,
-  setActiveTab: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

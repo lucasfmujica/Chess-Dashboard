@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import type { Game } from '../../types/chess';
 
-const ArgentinaMap = ({ games }) => {
-  const [hoveredProvince, setHoveredProvince] = useState(null);
+interface ArgentinaMapProps {
+  games: Game[];
+}
+
+interface CityEntry {
+  tournaments: string[];
+  games: Game[];
+  coords: { x: string; y: string };
+}
+
+interface CityStats {
+  total: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: string;
+  tournaments: string[];
+}
+
+const ArgentinaMap = ({ games }: ArgentinaMapProps) => {
+  const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
 
   // Map tournaments to cities with location data
-  const cityData = {
+  const cityData: Record<string, CityEntry> = {
     'Buenos Aires (CABA)': {
       tournaments: ['IRT Damian Reca', 'Torre Blanca', 'Masters Ciudad', 'IRT Soberanía Nacional'],
       games: games.filter(g =>
@@ -28,7 +48,7 @@ const ArgentinaMap = ({ games }) => {
     }
   };
 
-  const getCityStats = (cityName) => {
+  const getCityStats = (cityName: string): CityStats | null => {
     const data = cityData[cityName];
     if (!data || data.games.length === 0) return null;
 
@@ -120,6 +140,7 @@ const ArgentinaMap = ({ games }) => {
           <h4 className="mb-3 text-lg font-bold text-blue-900">{hoveredProvince}</h4>
           {(() => {
             const stats = getCityStats(hoveredProvince);
+            if (!stats) return null;
             return (
               <>
                 <div className="grid grid-cols-2 gap-3 mb-3">

@@ -1,5 +1,3 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import {
   ClockIcon,
   TrophyIcon,
@@ -8,7 +6,24 @@ import {
   FireIcon
 } from '@heroicons/react/24/outline';
 
-const AnalyticsHero = ({ insights }) => {
+interface AnalyticsInsights {
+  bestTimeSlot?: {
+    time?: string;
+    score?: string;
+  };
+  bestTournament?: {
+    name?: string;
+    performance?: number;
+  };
+  totalTimeGames: number;
+  avgPerformance: number;
+}
+
+interface AnalyticsHeroProps {
+  insights: AnalyticsInsights;
+}
+
+const AnalyticsHero = ({ insights }: AnalyticsHeroProps) => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl">
       <div className="absolute inset-0 bg-black/10"></div>
@@ -69,21 +84,6 @@ const AnalyticsHero = ({ insights }) => {
       </div>
     </div>
   );
-};
-
-AnalyticsHero.propTypes = {
-  insights: PropTypes.shape({
-    bestTimeSlot: PropTypes.shape({
-      time: PropTypes.string,
-      score: PropTypes.string,
-    }),
-    bestTournament: PropTypes.shape({
-      name: PropTypes.string,
-      performance: PropTypes.number,
-    }),
-    totalTimeGames: PropTypes.number.isRequired,
-    avgPerformance: PropTypes.number.isRequired,
-  }).isRequired,
 };
 
 export default AnalyticsHero;

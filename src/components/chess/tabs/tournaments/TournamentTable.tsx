@@ -1,7 +1,10 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import type { TournamentStat } from '../../../../types/chess';
 
-const TournamentTable = ({ tournamentStats }) => {
+interface TournamentTableProps {
+  tournamentStats: TournamentStat[];
+}
+
+const TournamentTable = ({ tournamentStats }: TournamentTableProps) => {
   return (
     <div className="relative overflow-hidden bg-white rounded-xl shadow-lg">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500"></div>
@@ -68,10 +71,6 @@ const TournamentTable = ({ tournamentStats }) => {
       </div>
     </div>
   );
-};
-
-TournamentTable.propTypes = {
-  tournamentStats: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 export default TournamentTable;

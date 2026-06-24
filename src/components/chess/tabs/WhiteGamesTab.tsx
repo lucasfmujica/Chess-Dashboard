@@ -1,8 +1,13 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import type { Game, GameStats } from '../../../types/chess';
 
-const StatCard = ({ title, value, subtitle }) => (
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+}
+
+const StatCard = ({ title, value, subtitle }: StatCardProps) => (
   <div className="p-6 bg-white rounded-lg shadow-md">
     <h3 className="mb-2 text-sm text-gray-600">{title}</h3>
     <div className="text-3xl font-bold text-blue-600">{value}</div>
@@ -10,48 +15,75 @@ const StatCard = ({ title, value, subtitle }) => (
   </div>
 );
 
-const BlackGamesTab = ({
-  blackStats,
-  blackSortBy,
-  setBlackSortBy,
-  blackSortOrder,
-  setBlackSortOrder,
+/** Per-opening aggregate row attached to colored game stats. */
+interface ColorOpeningStat {
+  eco: string;
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: string;
+}
+
+type ColorStats = GameStats & { openings: ColorOpeningStat[] };
+
+type SortBy = 'date' | 'opponent' | 'result';
+type SortOrder = 'asc' | 'desc';
+
+interface WhiteGamesTabProps {
+  whiteStats: ColorStats;
+  whiteSortBy: SortBy;
+  setWhiteSortBy: (v: SortBy) => void;
+  whiteSortOrder: SortOrder;
+  setWhiteSortOrder: (v: SortOrder) => void;
+  games: Game[];
+  ecoNames: Record<string, string>;
+}
+
+const WhiteGamesTab = ({
+  whiteStats,
+  whiteSortBy,
+  setWhiteSortBy,
+  whiteSortOrder,
+  setWhiteSortOrder,
   games,
   ecoNames
-}) => {
+}: WhiteGamesTabProps) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <StatCard
-          title="Games as Black"
-          value={blackStats.total}
-          subtitle={`Win rate: ${blackStats.winRate}%`}
+          title="Games as White"
+          value={whiteStats.total}
+          subtitle={`Win rate: ${whiteStats.winRate}%`}
         />
         <StatCard
           title="Score"
-          value={blackStats.score}
-          subtitle={`${blackStats.wins}W ${blackStats.draws}D ${blackStats.losses}L`}
+          value={whiteStats.score}
+          subtitle={`${whiteStats.wins}W ${whiteStats.draws}D ${whiteStats.losses}L`}
         />
         <StatCard
           title="Performance Rating"
-          value={blackStats.performanceRating}
+          value={whiteStats.performanceRating}
         />
       </div>
 
       <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Results Distribution as Black</h3>
+        <h3 className="mb-4 text-lg font-semibold">Results Distribution as White</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
               data={[
-                { name: 'Wins', value: blackStats.wins },
-                { name: 'Draws', value: blackStats.draws },
-                { name: 'Losses', value: blackStats.losses }
+                { name: 'Wins', value: whiteStats.wins },
+                { name: 'Draws', value: whiteStats.draws },
+                { name: 'Losses', value: whiteStats.losses }
               ]}
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+              label={({ name, value, percent }: { name?: string; value?: number; percent?: number }) => `${name}: ${value} (${((percent ?? 0) * 100).toFixed(0)}%)`}
               outerRadius={80}
               fill="#8884d8"
               dataKey="value"
@@ -66,7 +98,7 @@ const BlackGamesTab = ({
       </div>
 
       <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">Openings as Black</h3>
+        <h3 className="mb-4 text-lg font-semibold">Openings as White</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">
@@ -79,7 +111,7 @@ const BlackGamesTab = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {blackStats.openings.map((opening) => (
+              {whiteStats.openings.map((opening) => (
                 <tr key={opening.eco} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-gray-900">{opening.name}</div>
@@ -105,7 +137,7 @@ const BlackGamesTab = ({
       </div>
 
       <div className="p-6 bg-white rounded-lg shadow-md">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900">All Games as Black</h3>
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">All Games as White</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-slate-50">
@@ -113,39 +145,39 @@ const BlackGamesTab = ({
                 <th
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
-                    if (blackSortBy === 'date') {
-                      setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    if (whiteSortBy === 'date') {
+                      setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
                     } else {
-                      setBlackSortBy('date');
-                      setBlackSortOrder('desc');
+                      setWhiteSortBy('date');
+                      setWhiteSortOrder('desc');
                     }
                   }}
                 >
-                  Game # {blackSortBy === 'date' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Game # {whiteSortBy === 'date' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">My ELO</th>
                 <th
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
-                    if (blackSortBy === 'opponent') {
-                      setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    if (whiteSortBy === 'opponent') {
+                      setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
                     } else {
-                      setBlackSortBy('opponent');
-                      setBlackSortOrder('asc');
+                      setWhiteSortBy('opponent');
+                      setWhiteSortOrder('asc');
                     }
                   }}
                 >
-                  Opponent {blackSortBy === 'opponent' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Opponent {whiteSortBy === 'opponent' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium text-center uppercase text-slate-600">Opp ELO</th>
                 <th
                   className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-slate-600 hover:bg-slate-100"
                   onClick={() => {
-                    setBlackSortBy('result');
-                    setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    setWhiteSortBy('result');
+                    setWhiteSortOrder(whiteSortOrder === 'asc' ? 'desc' : 'asc');
                   }}
                 >
-                  Result {blackSortBy === 'result' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Result {whiteSortBy === 'result' && (whiteSortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Opening</th>
                 <th className="px-4 py-3 text-xs font-medium text-left uppercase text-slate-600">Tournament</th>
@@ -153,14 +185,15 @@ const BlackGamesTab = ({
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
               {(() => {
-                const blackGames = games
+                const whiteGames = games
                   .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
-                  .filter(game => game.color === 'B');
+                  .filter(game => game.color === 'W');
 
-                const sortedGames = [...blackGames].sort((a, b) => {
-                  let compareA, compareB;
+                const sortedGames = [...whiteGames].sort((a, b) => {
+                  let compareA: number | string;
+                  let compareB: number | string;
 
-                  switch (blackSortBy) {
+                  switch (whiteSortBy) {
                     case 'date':
                       compareA = a.gameNumber;
                       compareB = b.gameNumber;
@@ -169,18 +202,19 @@ const BlackGamesTab = ({
                       compareA = (a.opp || '').toLowerCase();
                       compareB = (b.opp || '').toLowerCase();
                       break;
-                    case 'result':
-                      const resultOrder = { 'W': 3, 'D': 2, 'L': 1 };
+                    case 'result': {
+                      const resultOrder: Record<string, number> = { 'W': 3, 'D': 2, 'L': 1 };
                       compareA = resultOrder[a.result];
                       compareB = resultOrder[b.result];
                       break;
+                    }
                     default:
                       compareA = a.gameNumber;
                       compareB = b.gameNumber;
                   }
 
-                  if (compareA < compareB) return blackSortOrder === 'asc' ? -1 : 1;
-                  if (compareA > compareB) return blackSortOrder === 'asc' ? 1 : -1;
+                  if (compareA < compareB) return whiteSortOrder === 'asc' ? -1 : 1;
+                  if (compareA > compareB) return whiteSortOrder === 'asc' ? 1 : -1;
                   return 0;
                 });
 
@@ -214,8 +248,4 @@ const BlackGamesTab = ({
   );
 };
 
-BlackGamesTab.propTypes = {
-  games: PropTypes.arrayOf(PropTypes.object).isRequired,
-};
-
-export default BlackGamesTab;
+export default WhiteGamesTab;
