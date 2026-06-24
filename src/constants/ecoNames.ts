@@ -1,5 +1,5 @@
 // ECO code to opening name mapping
-export const ecoNames = {
+export const ecoNames: Record<string, string> = {
   "A05": "Reti Opening",
   "A10": "English Opening",
   "A13": "English: Agincourt Defense",

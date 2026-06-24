@@ -1,4 +1,11 @@
-export const trainingActivities = [
+export interface TrainingActivityTemplate {
+  id: string;
+  label: string;
+  color: string;
+  defaultMinutes: number;
+}
+
+export const trainingActivities: TrainingActivityTemplate[] = [
   { id: 'tactics', label: '🎯 Tactics Training', color: 'blue', defaultMinutes: 30 },
   { id: 'openings', label: '📚 Opening Study', color: 'green', defaultMinutes: 45 },
   { id: 'endgame', label: '♟️ Endgame Practice', color: 'purple', defaultMinutes: 30 },
