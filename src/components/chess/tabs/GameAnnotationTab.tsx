@@ -8,7 +8,9 @@ import {
   PlusIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline';
+import { PlayIcon } from '@heroicons/react/24/solid';
 import { useModal } from '../../modals/ModalContext';
+import { useGameViewer } from '../../../context/GameViewerContext';
 import type { Game } from '../../../types/chess';
 
 /** A single annotated key moment within a game. */
@@ -32,6 +34,8 @@ interface AnnotatedGame {
   tags?: string[];
   notes?: string;
   keyMoments?: KeyMoment[];
+  /** Optional PGN moves so the game can be replayed/analysed. */
+  pgn?: string;
 }
 
 /** A selectable annotation tag definition. */
@@ -55,6 +59,7 @@ interface GameAnnotationTabProps {
 
 const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
   const modal = useModal();
+  const { openGameViewer } = useGameViewer();
 
   const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>(() => {
     const stored = localStorage.getItem('chessDashboard_annotatedGames');
@@ -343,6 +348,16 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
             </div>
 
             <div>
+              <label className="block text-sm font-bold text-fg mb-2">PGN moves (optional)</label>
+              <textarea
+                placeholder={'Paste the game moves to make it replayable & analysable\n1. e4 e5 2. Nf3 ...'}
+                value={selectedGame.pgn || ''}
+                onChange={(e) => setSelectedGame({ ...selectedGame, pgn: e.target.value })}
+                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-24 font-mono text-sm"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-bold text-fg mb-4">Key Moments & Variations</label>
               <div className="space-y-3">
                 {(selectedGame.keyMoments || []).map((moment, idx) => (
@@ -454,6 +469,22 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                   </div>
 
                   <div className="flex gap-2">
+                    {annotation.pgn && (
+                      <button
+                        onClick={() => openGameViewer({
+                          pgn: annotation.pgn,
+                          white: annotation.gameName || 'White',
+                          black: annotation.opponent || 'Black',
+                          result: annotation.result,
+                          title: annotation.gameName || 'Game Replay',
+                        })}
+                        aria-label="Replay and analyse"
+                        title="Replay & analyse"
+                        className="p-2 text-fg-muted hover:bg-surface-2 hover:text-fg rounded-lg transition-colors"
+                      >
+                        <PlayIcon className="w-5 h-5" />
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setSelectedGame(annotation);

@@ -23,6 +23,9 @@ const loadCache = (pgn?: string): GameAnalysis | null => {
   }
 };
 
+/** Read a previously-cached analysis for a game (null if not analysed yet). */
+export const getCachedAnalysis = (pgn?: string): GameAnalysis | null => loadCache(pgn);
+
 export interface UseGameAnalysis {
   analysis: GameAnalysis | null;
   analyzing: boolean;

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { BeakerIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../context/GamesContext';
 import GameViewer from '../GameViewer';
+import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
 
 interface LoadedGame {
   pgn: string;
@@ -113,6 +114,9 @@ const AnalysisBoardTab = () => {
           </div>
         </div>
       </div>
+
+      {/* Accuracy over analysed games */}
+      <AccuracyTrendCard />
 
       {/* Board + explorer + analysis */}
       <div className="rounded-lg border border-hairline bg-surface p-5">
