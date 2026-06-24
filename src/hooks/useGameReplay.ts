@@ -30,13 +30,31 @@ interface ParsedReplay {
   error: string | null;
 }
 
+/**
+ * Strip PGN constructs chess.js cannot parse in the movetext: comments
+ * ({...} and ;...), recursive variations (...) and NAGs ($n).
+ */
+const sanitizePgn = (pgn: string): string => {
+  let s = pgn
+    .replace(/\{[^}]*\}/g, ' ') // brace comments (e.g. clock/eval annotations)
+    .replace(/;[^\n]*/g, ' ') // rest-of-line comments
+    .replace(/\$\d+/g, ' '); // numeric annotation glyphs
+  // Remove parenthesised variations, innermost first to handle nesting.
+  let prev: string;
+  do {
+    prev = s;
+    s = s.replace(/\([^()]*\)/g, ' ');
+  } while (s !== prev);
+  return s.replace(/[ \t]+/g, ' ');
+};
+
 const parsePgn = (pgn?: string): ParsedReplay => {
   if (!pgn || !pgn.trim()) {
     return { fens: [STARTING_FEN], sans: [], error: null };
   }
   try {
     const chess = new Chess();
-    chess.loadPgn(pgn);
+    chess.loadPgn(sanitizePgn(pgn));
     const history = chess.history({ verbose: true });
     if (history.length === 0) {
       return { fens: [STARTING_FEN], sans: [], error: 'No moves found in PGN.' };

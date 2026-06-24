@@ -82,10 +82,15 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
     rows.push({ num: i / 2 + 1, white: sans[i], black: sans[i + 1] });
   }
 
-  // Eval bar: white advantage fraction for the current position.
+  // Eval bar (chess.com style): white-advantage fill + numeric eval at the
+  // winning side, oriented with the board.
   const currentEval = analysis ? analysis.evals[ply] ?? 0 : 0;
   const whiteFraction = analysis ? winPct(currentEval) / 100 : 0.5;
-  const barWhitePct = orientation === 'white' ? whiteFraction * 100 : (1 - whiteFraction) * 100;
+  const flip = orientation === 'black';
+  const whiteWinning = currentEval >= 0;
+  const labelAtBottom = whiteWinning !== flip;
+  const isMate = Math.abs(currentEval) >= 9000;
+  const evalLabel = isMate ? '#' : (Math.abs(currentEval) / 100).toFixed(1);
 
   const moveButton = (san: string, plyNum: number) => {
     const q = analysis?.moves[plyNum - 1]?.quality;
@@ -111,10 +116,24 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result }: GameVi
         <div className="flex gap-2">
           {/* Eval bar */}
           <div
-            className="relative w-3 rounded-full overflow-hidden border border-hairline bg-slate-900"
-            title={analysis ? `Eval ${formatEval(currentEval)}` : 'Run analysis to see evaluation'}
+            className="relative w-7 rounded-md overflow-hidden border border-hairline bg-slate-900"
+            title={analysis ? `Evaluation ${formatEval(currentEval)} (White's perspective)` : 'Run analysis to see the evaluation'}
           >
-            <div className="absolute bottom-0 left-0 right-0 bg-white transition-all duration-200" style={{ height: `${barWhitePct}%` }} />
+            {/* White's share, anchored to the white side of the board */}
+            <div
+              className="absolute left-0 right-0 bg-white transition-all duration-200"
+              style={flip ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
+            />
+            {analysis && (
+              <span
+                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${
+                  whiteWinning ? 'text-slate-900' : 'text-white'
+                }`}
+                style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
+              >
+                {evalLabel}
+              </span>
+            )}
           </div>
 
           <div className="flex-1 rounded-lg overflow-hidden border border-hairline">
