@@ -486,7 +486,6 @@ const RecordsTab = ({ games, eloHistory }) => {
     </div>
   );
 };
-};
 
 RecordsTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.object).isRequired,

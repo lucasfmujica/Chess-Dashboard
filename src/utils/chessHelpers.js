@@ -1,3 +1,28 @@
+/**
+ * Returns the current date. Centralized so date-dependent features use a single
+ * source of truth (and so it can be mocked in tests).
+ * @returns {Date}
+ */
+export const getToday = () => new Date();
+
+/**
+ * Format a Date as a local YYYY-MM-DD string (no UTC shift).
+ * @param {Date} date
+ * @returns {string}
+ */
+export const formatLocalDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Today's date as a local YYYY-MM-DD string.
+ * @returns {string}
+ */
+export const getTodayStr = () => formatLocalDate(getToday());
+
 export const getWeekDates = (startDate) => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const dates = [];
@@ -20,16 +45,13 @@ export const getWeekDates = (startDate) => {
 };
 
 export const getCurrentWeekStart = () => {
-  const today = new Date(2025, 10, 15); // Saturday Nov 15, 2025 (month is 0-indexed)
+  const today = getToday();
   const dayOfWeek = today.getDay(); // 0 = Sunday, 6 = Saturday
   const startOfWeek = new Date(today);
   // Find Monday of current week (1 = Monday)
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // If Sunday, go back 6 days, else go back (dayOfWeek - 1) days
   startOfWeek.setDate(today.getDate() - daysFromMonday);
-  const year = startOfWeek.getFullYear();
-  const month = String(startOfWeek.getMonth() + 1).padStart(2, '0');
-  const day = String(startOfWeek.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return formatLocalDate(startOfWeek);
 };
 
 export const getWeekStats = (weeklyPlans, weekStart) => {
@@ -56,11 +78,15 @@ export const getWeekStats = (weeklyPlans, weekStart) => {
     }
   });
 
+  // Active days = days with a non-rest plan. Guard against dividing by zero when
+  // every planned day is a rest day (daysPlanned === restDays).
+  const activeDays = daysPlanned - restDays;
+
   return {
     totalPlannedMinutes,
     daysPlanned,
     restDays,
     activityCounts,
-    avgMinutesPerDay: daysPlanned > 0 ? Math.round(totalPlannedMinutes / (daysPlanned - restDays)) : 0
+    avgMinutesPerDay: activeDays > 0 ? Math.round(totalPlannedMinutes / activeDays) : 0
   };
 };

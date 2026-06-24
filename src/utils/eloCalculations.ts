@@ -4,14 +4,19 @@
  */
 
 import { ELO_CONSTANTS, GAME_SCORES } from '../constants/chessConstants';
+import type {
+  Game,
+  GameResult,
+  GameStats,
+  ColorPerformance,
+  EloRatingBracket,
+} from '../types/chess';
 
 /**
- * Calculate expected score for a player against an opponent
- * @param {number} playerElo - Player's ELO rating
- * @param {number} opponentElo - Opponent's ELO rating
- * @returns {number} Expected score (0-1)
+ * Calculate expected score for a player against an opponent.
+ * @returns Expected score (0-1)
  */
-export const calculateExpectedScore = (playerElo, opponentElo) => {
+export const calculateExpectedScore = (playerElo: number, opponentElo: number): number => {
   if (opponentElo === 0) return 0.5; // Default to 50% if opponent has no rating
 
   return 1 / (
@@ -23,22 +28,20 @@ export const calculateExpectedScore = (playerElo, opponentElo) => {
 };
 
 /**
- * Get actual score value from game result
- * @param {string} result - 'W', 'D', or 'L'
- * @returns {number} Actual score (1, 0.5, or 0)
+ * Get actual score value from game result (1, 0.5, or 0).
  */
-export const getActualScore = (result) => {
-  return GAME_SCORES[result] ?? 0;
+export const getActualScore = (result: GameResult): number => {
+  return (GAME_SCORES as Record<string, number>)[result] ?? 0;
 };
 
 /**
- * Calculate performance rating based on results
- * @param {number} avgOpponentElo - Average opponent ELO
- * @param {number} actualScore - Actual score achieved
- * @param {number} totalGames - Total number of games
- * @returns {number} Performance rating
+ * Calculate performance rating based on results.
  */
-export const calculatePerformanceRating = (avgOpponentElo, actualScore, totalGames) => {
+export const calculatePerformanceRating = (
+  avgOpponentElo: number,
+  actualScore: number,
+  totalGames: number
+): number => {
   if (avgOpponentElo === 0 || totalGames === 0) {
     return 0;
   }
@@ -62,11 +65,9 @@ export const calculatePerformanceRating = (avgOpponentElo, actualScore, totalGam
 };
 
 /**
- * Calculate statistics for a set of games
- * @param {Array} games - Array of game objects
- * @returns {Object} Statistics including wins, draws, losses, scores, etc.
+ * Calculate aggregate statistics for a set of games.
  */
-export const calculateGameStats = (games) => {
+export const calculateGameStats = (games: Game[]): GameStats => {
   const wins = games.filter(g => g.result === 'W').length;
   const draws = games.filter(g => g.result === 'D').length;
   const losses = games.filter(g => g.result === 'L').length;
@@ -100,11 +101,9 @@ export const calculateGameStats = (games) => {
 };
 
 /**
- * Calculate performance rating for games with color-specific logic
- * @param {Array} games - Array of game objects
- * @returns {Object} Performance rating and related stats
+ * Calculate performance rating for games with color-specific logic.
  */
-export const calculateColorPerformance = (games) => {
+export const calculateColorPerformance = (games: Game[]): ColorPerformance => {
   if (games.length === 0) {
     return { performance: '-', avgOppElo: 0 };
   }
@@ -123,11 +122,9 @@ export const calculateColorPerformance = (games) => {
 };
 
 /**
- * Get average opponent ELO for a set of games
- * @param {Array} games - Array of game objects
- * @returns {number} Average opponent ELO
+ * Get average opponent ELO for a set of games.
  */
-export const getAverageOpponentElo = (games) => {
+export const getAverageOpponentElo = (games: Game[]): number => {
   const ratedOpponents = games.filter(g => g.opp_elo > 0);
   if (ratedOpponents.length === 0) return 0;
 
@@ -137,12 +134,9 @@ export const getAverageOpponentElo = (games) => {
 };
 
 /**
- * Calculate ELO rating difference bracket
- * @param {number} playerElo - Player's ELO
- * @param {number} opponentElo - Opponent's ELO
- * @returns {string} Bracket identifier: 'lower', 'similar', or 'higher'
+ * Calculate ELO rating difference bracket relative to the player.
  */
-export const getEloRatingBracket = (playerElo, opponentElo) => {
+export const getEloRatingBracket = (playerElo: number, opponentElo: number): EloRatingBracket => {
   const diff = opponentElo - playerElo;
 
   if (diff < -ELO_CONSTANTS.RATING_BRACKET_THRESHOLD) return 'lower';

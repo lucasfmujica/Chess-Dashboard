@@ -465,7 +465,6 @@ const OpeningsFlashcardsTab = () => {
     </div>
   );
 };
-};
 
 OpeningsFlashcardsTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.object).isRequired,

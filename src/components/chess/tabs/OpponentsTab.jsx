@@ -311,7 +311,6 @@ const OpponentsTab = ({
     </div>
   );
 };
-};
 
 OpponentsTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.object).isRequired,

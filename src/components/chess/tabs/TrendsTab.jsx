@@ -301,7 +301,6 @@ const TrendsTab = ({ formStats, streaks, monthlyStats }) => {
     </div>
   );
 };
-};
 
 TrendsTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.object).isRequired,

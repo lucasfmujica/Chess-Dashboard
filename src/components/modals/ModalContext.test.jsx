@@ -35,7 +35,7 @@ const TestComponent = () => {
 describe('ModalContext', () => {
   it('should throw error when useModal is used outside provider', () => {
     // Suppress console.error for this test
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(() => {
       render(<TestComponent />);

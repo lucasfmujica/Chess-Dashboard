@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ACHIEVEMENT_THRESHOLDS, DATE_CONFIG } from '../constants/chessConstants';
+import { ACHIEVEMENT_THRESHOLDS } from '../constants/chessConstants';
+import { getToday } from '../utils/chessHelpers';
 
 /**
  * Custom hook for goal projections, achievements, and milestones
@@ -19,7 +20,7 @@ export const useGoalsAndAchievements = (
   const goalProjections = useMemo(() => {
     const currentElo = playerInfo.current_elo;
     const eloGain = targetElo - currentElo;
-    const today = DATE_CONFIG.CURRENT_DATE;
+    const today = getToday();
     const target = new Date(targetDate);
     const daysRemaining = Math.max(0, Math.ceil((target - today) / (1000 * 60 * 60 * 24)));
     const monthsRemaining = (daysRemaining / 30).toFixed(1);

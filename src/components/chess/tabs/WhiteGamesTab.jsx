@@ -79,8 +79,8 @@ const WhiteGamesTab = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {whiteStats.openings.map((opening, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
+              {whiteStats.openings.map((opening) => (
+                <tr key={opening.eco} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-gray-900">{opening.name}</div>
                     <div className="text-xs text-gray-500">{opening.eco}</div>

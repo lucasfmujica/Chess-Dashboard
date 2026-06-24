@@ -88,8 +88,9 @@ export const GAME_SOURCES = {
 };
 
 // Date Configuration
+// NOTE: the current date now comes from getToday() in utils/chessHelpers.js
+// (single source of truth, mockable in tests) instead of a hardcoded constant.
 export const DATE_CONFIG = {
-  CURRENT_DATE: new Date(2025, 10, 15), // Saturday Nov 15, 2025 (month is 0-indexed)
   WEEK_START_DAY: 1, // Monday
 };
 

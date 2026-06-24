@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react';
 
+/** Event dispatched when a localStorage write fails (e.g. quota exceeded). */
+export const STORAGE_ERROR_EVENT = 'chess-dashboard:storage-error';
+
+/**
+ * Detect a quota-exceeded error across browsers (name varies by engine).
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+const isQuotaExceededError = (error) =>
+  error instanceof DOMException &&
+  (error.name === 'QuotaExceededError' ||
+    error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || // Firefox
+    error.code === 22 ||
+    error.code === 1014);
+
 /**
  * Custom hook for persisting state to localStorage
  * @param {string} key - The localStorage key
@@ -25,16 +40,25 @@ export const useLocalStorage = (key, initialValue) => {
   // Return a wrapped version of useState's setter function that ...
   // ... persists the new value to localStorage.
   const setValue = (value) => {
+    // Allow value to be a function so we have same API as useState
+    const valueToStore = value instanceof Function ? value(storedValue) : value;
+    // Update React state first so the UI stays responsive even if persistence fails.
+    setStoredValue(valueToStore);
+    // Persist to localStorage (this is the part that can throw on quota limits).
     try {
-      // Allow value to be a function so we have same API as useState
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      // Save state
-      setStoredValue(valueToStore);
-      // Save to local storage
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      // A more advanced implementation would handle the error case
       console.warn(`Error saving localStorage key "${key}":`, error);
+      // Surface quota errors so the user knows their data was not persisted,
+      // instead of losing it silently. A top-level listener shows a modal.
+      const message = isQuotaExceededError(error)
+        ? 'Your browser storage is full, so this change could not be saved permanently. Free up space (e.g. remove old imported games) to keep your data.'
+        : 'This change could not be saved to local storage and may be lost when you reload.';
+      window.dispatchEvent(
+        new CustomEvent(STORAGE_ERROR_EVENT, {
+          detail: { key, message, quotaExceeded: isQuotaExceededError(error) },
+        })
+      );
     }
   };
 

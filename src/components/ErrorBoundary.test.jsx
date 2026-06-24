@@ -14,7 +14,7 @@ const WorkingComponent = () => <div>Working Component</div>;
 describe('ErrorBoundary', () => {
   // Suppress console.error for these tests
   beforeAll(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {

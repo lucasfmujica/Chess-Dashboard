@@ -23,18 +23,21 @@ interface EnvironmentConfig {
   };
 }
 
+// Vite exposes env vars prefixed with VITE_ on import.meta.env.
+const viteEnv = import.meta.env as Record<string, string | undefined>;
+
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
-  return process.env[key] || defaultValue;
+  return viteEnv[key] || defaultValue;
 };
 
 const getEnvBool = (key: string, defaultValue: boolean = false): boolean => {
-  const value = process.env[key];
+  const value = viteEnv[key];
   if (value === undefined) return defaultValue;
   return value === 'true';
 };
 
 const getEnvNumber = (key: string, defaultValue: number = 0): number => {
-  const value = process.env[key];
+  const value = viteEnv[key];
   if (value === undefined) return defaultValue;
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultValue : parsed;
@@ -42,21 +45,21 @@ const getEnvNumber = (key: string, defaultValue: number = 0): number => {
 
 export const env: EnvironmentConfig = {
   app: {
-    name: getEnvVar('REACT_APP_NAME', 'Chess Dashboard'),
-    version: getEnvVar('REACT_APP_VERSION', '1.0.0'),
-    env: getEnvVar('REACT_APP_ENV', 'development') as EnvironmentConfig['app']['env'],
+    name: getEnvVar('VITE_APP_NAME', 'Chess Dashboard'),
+    version: getEnvVar('VITE_APP_VERSION', '1.0.0'),
+    env: getEnvVar('VITE_APP_ENV', import.meta.env.MODE) as EnvironmentConfig['app']['env'],
   },
   features: {
-    enableLichessSync: getEnvBool('REACT_APP_ENABLE_LICHESS_SYNC', true),
-    enableAnalytics: getEnvBool('REACT_APP_ENABLE_ANALYTICS', false),
-    enableDebugMode: getEnvBool('REACT_APP_ENABLE_DEBUG_MODE', false),
+    enableLichessSync: getEnvBool('VITE_ENABLE_LICHESS_SYNC', true),
+    enableAnalytics: getEnvBool('VITE_ENABLE_ANALYTICS', false),
+    enableDebugMode: getEnvBool('VITE_ENABLE_DEBUG_MODE', false),
   },
   storage: {
-    prefix: getEnvVar('REACT_APP_STORAGE_PREFIX', 'chess-dashboard'),
-    maxSize: getEnvNumber('REACT_APP_MAX_STORAGE_SIZE', 10485760), // 10MB default
+    prefix: getEnvVar('VITE_STORAGE_PREFIX', 'chess-dashboard'),
+    maxSize: getEnvNumber('VITE_MAX_STORAGE_SIZE', 10485760), // 10MB default
   },
   devTools: {
-    showComponentNames: getEnvBool('REACT_APP_SHOW_COMPONENT_NAMES', true),
+    showComponentNames: getEnvBool('VITE_SHOW_COMPONENT_NAMES', true),
   },
 };
 

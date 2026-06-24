@@ -107,7 +107,6 @@ const OpeningsTab = ({ allOpeningsStats }) => {
     </div>
   );
 };
-};
 
 OpeningsTab.propTypes = {
   games: PropTypes.arrayOf(PropTypes.object).isRequired,

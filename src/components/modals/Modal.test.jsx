@@ -4,11 +4,11 @@ import '@testing-library/jest-dom';
 import Modal from './Modal';
 
 describe('Modal', () => {
-  const mockOnConfirm = jest.fn();
-  const mockOnCancel = jest.fn();
+  const mockOnConfirm = vi.fn();
+  const mockOnCancel = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Alert Modal', () => {

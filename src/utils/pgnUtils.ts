@@ -3,20 +3,52 @@
  * Functions for parsing and importing PGN chess games
  */
 
+import type { Game, PlayerColor, GameResult } from '../types/chess';
+
+/** Intermediate shape extracted from a PGN game's headers. */
+export interface ParsedPgnGame {
+  whiteElo?: number;
+  blackElo?: number;
+  white?: string;
+  black?: string;
+  result?: string;
+  eco?: string;
+  tournament?: string;
+}
+
+/** Result of converting parsed PGN games into the internal format. */
+export interface PgnConversionResult {
+  games: Game[];
+  skippedCount: number;
+}
+
+/** Valid PGN result tokens. */
+const VALID_RESULTS = new Set(['1-0', '0-1', '1/2-1/2']);
+
 /**
- * Parse PGN text and extract game metadata
- * @param {string} pgnText - Raw PGN text containing one or more games
- * @returns {Array} Array of parsed game objects
+ * Parse an ELO string into a sane rating number.
+ * Returns 0 for missing/invalid/out-of-range values (treated as "unrated").
  */
-export const parsePGN = (pgnText) => {
+const parseElo = (value: string): number => {
+  const elo = parseInt(value, 10);
+  if (Number.isNaN(elo) || elo < 0 || elo > 4000) return 0;
+  return elo;
+};
+
+/**
+ * Parse PGN text and extract game metadata.
+ */
+export const parsePGN = (pgnText: string): ParsedPgnGame[] => {
   try {
-    const parsedGames = [];
+    if (typeof pgnText !== 'string' || !pgnText.trim()) return [];
+
+    const parsedGames: ParsedPgnGame[] = [];
     const gameBlocks = pgnText.split(/\n\n(?=\[Event)/);
 
     gameBlocks.forEach(block => {
       if (!block.trim()) return;
 
-      const game = {};
+      const game: ParsedPgnGame = {};
       const lines = block.split('\n');
 
       lines.forEach(line => {
@@ -24,8 +56,8 @@ export const parsePGN = (pgnText) => {
           const match = line.match(/\[(\w+)\s+"([^"]+)"\]/);
           if (match) {
             const [, key, value] = match;
-            if (key === 'WhiteElo') game.whiteElo = parseInt(value);
-            if (key === 'BlackElo') game.blackElo = parseInt(value);
+            if (key === 'WhiteElo') game.whiteElo = parseElo(value);
+            if (key === 'BlackElo') game.blackElo = parseElo(value);
             if (key === 'White') game.white = value;
             if (key === 'Black') game.black = value;
             if (key === 'Result') game.result = value;
@@ -35,31 +67,38 @@ export const parsePGN = (pgnText) => {
         }
       });
 
-      if (game.white && game.black) {
+      // Only keep games with both players and a recognized result.
+      if (game.white && game.black && game.result && VALID_RESULTS.has(game.result)) {
         parsedGames.push(game);
       }
     });
 
     return parsedGames;
   } catch (error) {
-    throw new Error(`Error parsing PGN: ${error.message}`);
+    throw new Error(`Error parsing PGN: ${(error as Error).message}`);
   }
 };
 
 /**
- * Convert parsed PGN games to internal game format
- * @param {Array} parsedGames - Games from parsePGN()
- * @param {string} playerName - Player's name as it appears in PGN
- * @param {number} playerElo - Player's ELO at the time of the tournament
- * @returns {Object} { games: Array, skippedCount: number }
+ * Convert parsed PGN games to internal game format.
+ * @param parsedGames Games from parsePGN()
+ * @param playerName Player's name as it appears in PGN
+ * @param playerElo Player's ELO at the time of the tournament
  */
-export const convertPGNGamesToInternal = (parsedGames, playerName, playerElo) => {
-  const formattedGames = [];
+export const convertPGNGamesToInternal = (
+  parsedGames: ParsedPgnGame[],
+  playerName: string,
+  playerElo: number
+): PgnConversionResult => {
+  const formattedGames: Game[] = [];
   let skippedGames = 0;
 
   parsedGames.forEach(game => {
     // Determine player's color and opponent
-    let color, oppName, oppElo, result;
+    let color: PlayerColor;
+    let oppName: string;
+    let oppElo: number;
+    let result: GameResult;
 
     if (game.white && game.white.toLowerCase().includes(playerName.toLowerCase())) {
       color = 'W';
@@ -106,6 +145,6 @@ export const convertPGNGamesToInternal = (parsedGames, playerName, playerElo) =>
 
   return {
     games: formattedGames,
-    skippedCount: skippedGames
+    skippedCount: skippedGames,
   };
 };
