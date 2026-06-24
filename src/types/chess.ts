@@ -94,3 +94,80 @@ export interface ColorPerformance {
 
 /** Rating bracket relative to the player. */
 export type EloRatingBracket = 'lower' | 'similar' | 'higher';
+
+/** Per-opening aggregate (across both colors) from useGameStats.allOpeningsStats. */
+export interface OpeningStat {
+  eco: string;
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  /** Score summary, e.g. '3.5/6'. */
+  score: string;
+  /** Win rate as a number, e.g. 58.3. */
+  winRate: number;
+  asWhite: number;
+  asBlack: number;
+}
+
+/** Per-tournament aggregate from useGameStats.tournamentStats. */
+export interface TournamentStat {
+  tournament: string;
+  name: string;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+  score: string;
+  performanceRating: number;
+  avgOppElo: number;
+  eloChange: number;
+  eloBefore: number;
+  eloAfter: number;
+  whitePerformance: number | '-';
+  blackPerformance: number | '-';
+}
+
+/** Kind of current streak. */
+export type StreakType = 'win' | 'loss' | 'unbeaten';
+
+/** Current streak state. */
+export interface StreakState {
+  type: StreakType | null;
+  count: number;
+}
+
+/** Summary of streaks from useTrendsAndAnalytics.streaks. */
+export interface StreaksSummary {
+  current: StreakState;
+  longestWin: number;
+  longestUnbeaten: number;
+}
+
+/** Per-tournament time-series entry from useTrendsAndAnalytics.monthlyStats. */
+export interface MonthlyStat {
+  tournament: string;
+  order: number;
+  month: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  percentage: number;
+  performanceRating: number;
+  elo: number;
+  eloChange: number;
+}
+
+/** A planned/upcoming tournament entry. */
+export interface UpcomingTournament {
+  id: number;
+  name: string;
+  club: string;
+  province: string;
+  startDate: string;
+  endDate: string;
+  chessResultsLink: string;
+}

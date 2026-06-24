@@ -1,6 +1,22 @@
 import { useMemo } from 'react';
+import type { Game } from '../types/chess';
 
-export const useStreaksData = (games) => {
+interface CalendarDay {
+  date: string;
+  games: number;
+  level: number;
+}
+
+interface WeekActivity {
+  week: string;
+  games: number;
+  active: boolean;
+}
+
+/**
+ * Compute streak, activity-calendar and weekly-activity data from games.
+ */
+export const useStreaksData = (games: Game[]) => {
   return useMemo(() => {
     if (!games || games.length === 0) {
       return {
@@ -11,10 +27,10 @@ export const useStreaksData = (games) => {
         currentLossStreak: 0,
         gamesThisWeek: 0,
         gamesThisMonth: 0,
-        avgGamesPerWeek: 0,
+        avgGamesPerWeek: '0.0',
         consistency: 0,
-        calendar: [],
-        weeklyActivity: []
+        calendar: [] as CalendarDay[],
+        weeklyActivity: [] as WeekActivity[],
       };
     }
 
@@ -33,7 +49,7 @@ export const useStreaksData = (games) => {
     const sortedGames = [...games].sort((a, b) => {
       const dateA = new Date(a.date || 0);
       const dateB = new Date(b.date || 0);
-      return dateB - dateA;
+      return dateB.getTime() - dateA.getTime();
     });
 
     // Calculate current streaks
@@ -102,13 +118,14 @@ export const useStreaksData = (games) => {
 
     // Since games don't have calendar dates, count games from the most recent tournament
     const uniqueTournaments = [...new Set(games.map(g => g.tournament))];
-    const mostRecentTournament = uniqueTournaments.length > 0 ? uniqueTournaments[uniqueTournaments.length - 1] : null;
+    const mostRecentTournament =
+      uniqueTournaments.length > 0 ? uniqueTournaments[uniqueTournaments.length - 1] : null;
     const gamesThisMonth = mostRecentTournament
       ? games.filter(g => g.tournament === mostRecentTournament).length
       : games.length;
 
     // Calculate weekly activity for the last 12 weeks
-    const weeklyActivity = [];
+    const weeklyActivity: WeekActivity[] = [];
     for (let i = 0; i < 12; i++) {
       const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
       const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
@@ -121,7 +138,7 @@ export const useStreaksData = (games) => {
       weeklyActivity.unshift({
         week: `Week ${12 - i}`,
         games: gamesInWeek,
-        active: gamesInWeek > 0
+        active: gamesInWeek > 0,
       });
     }
 
@@ -132,7 +149,7 @@ export const useStreaksData = (games) => {
     const consistency = Math.round((activeWeeks / 12) * 100);
 
     // Generate calendar data for last 12 weeks (84 days)
-    const calendar = [];
+    const calendar: CalendarDay[] = [];
     const startDate = new Date(now);
     startDate.setDate(startDate.getDate() - 83); // Go back 83 days (84 days total including today)
 
@@ -153,7 +170,8 @@ export const useStreaksData = (games) => {
       calendar.push({
         date: dateStr,
         games: gamesOnDay,
-        level: gamesOnDay === 0 ? 0 : gamesOnDay === 1 ? 1 : gamesOnDay <= 3 ? 2 : gamesOnDay <= 5 ? 3 : 4
+        level:
+          gamesOnDay === 0 ? 0 : gamesOnDay === 1 ? 1 : gamesOnDay <= 3 ? 2 : gamesOnDay <= 5 ? 3 : 4,
       });
     }
 
@@ -168,7 +186,7 @@ export const useStreaksData = (games) => {
       avgGamesPerWeek: avgGamesPerWeek.toFixed(1),
       consistency,
       calendar,
-      weeklyActivity
+      weeklyActivity,
     };
   }, [games]);
 };

@@ -1,16 +1,20 @@
 import { useMemo } from 'react';
+import type { TournamentStat } from '../types/chess';
 
-export const useTournamentStats = (tournamentStats) => {
+/**
+ * Aggregate summary across a list of tournament stats.
+ */
+export const useTournamentStats = (tournamentStats: TournamentStat[]) => {
   return useMemo(() => {
     if (!tournamentStats || tournamentStats.length === 0) {
       return {
         totalTournaments: 0,
         totalGames: 0,
         bestPerformance: 0,
-        averageScore: 0,
+        averageScore: 0 as number | string,
         totalWins: 0,
         totalDraws: 0,
-        totalLosses: 0
+        totalLosses: 0,
       };
     }
 
@@ -20,7 +24,7 @@ export const useTournamentStats = (tournamentStats) => {
     const totalWins = tournamentStats.reduce((sum, t) => sum + t.wins, 0);
     const totalDraws = tournamentStats.reduce((sum, t) => sum + t.draws, 0);
     const totalLosses = tournamentStats.reduce((sum, t) => sum + t.losses, 0);
-    const averageScore = ((totalWins + (totalDraws * 0.5)) / totalGames * 100).toFixed(1);
+    const averageScore: number | string = ((totalWins + totalDraws * 0.5) / totalGames * 100).toFixed(1);
 
     return {
       totalTournaments,
@@ -29,7 +33,7 @@ export const useTournamentStats = (tournamentStats) => {
       averageScore,
       totalWins,
       totalDraws,
-      totalLosses
+      totalLosses,
     };
   }, [tournamentStats]);
 };

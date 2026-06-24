@@ -1,21 +1,44 @@
 import { useMemo } from 'react';
-import { TOURNAMENT_DATA, TOURNAMENT_ORDER } from '../constants/chessConstants';
+import { TOURNAMENT_DATA, TOURNAMENT_ORDER, type TournamentDataEntry } from '../constants/chessConstants';
 import { calculateGameStats } from '../utils/eloCalculations';
+import type { Game, StreakState, StreakType } from '../types/chess';
+
+interface MonthBucket {
+  tournament: string;
+  order: number;
+  month: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  winRate: number;
+  percentage: number;
+  performanceRating: number;
+  elo: number;
+  eloChange: number;
+}
+
+interface TimeSlotBucket {
+  games: Game[];
+  wins: number;
+  draws: number;
+  losses: number;
+}
 
 /**
- * Custom hook for trends, streaks, and time-based analytics
+ * Custom hook for trends, streaks, and time-based analytics.
  */
-export const useTrendsAndAnalytics = (games, ratedGames) => {
+export const useTrendsAndAnalytics = (games: Game[], ratedGames: Game[]) => {
   // Monthly/Tournament statistics over time
   const monthlyStats = useMemo(() => {
-    const byMonth = {};
+    const byMonth: Record<string, MonthBucket> = {};
 
     TOURNAMENT_ORDER.forEach((tournament, idx) => {
       const tournamentGames = ratedGames.filter(g => g.tournament === tournament);
       if (tournamentGames.length === 0) return;
 
       const stats = calculateGameStats(tournamentGames);
-      const tournamentData = TOURNAMENT_DATA[tournament] || {};
+      const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[tournament] || {};
 
       byMonth[tournament] = {
         tournament,
@@ -38,7 +61,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
 
   // Recent form statistics
   const formStats = useMemo(() => {
-    const calculateForm = (lastN) => {
+    const calculateForm = (lastN: number) => {
       const recentGames = ratedGames.slice(-lastN);
       const wins = recentGames.filter(g => g.result === 'W').length;
       const draws = recentGames.filter(g => g.result === 'D').length;
@@ -51,7 +74,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
         draws,
         losses,
         score: `${score.toFixed(1)}/${recentGames.length}`,
-        percentage: recentGames.length > 0 ? ((score / recentGames.length) * 100).toFixed(1) : 0,
+        percentage: recentGames.length > 0 ? ((score / recentGames.length) * 100).toFixed(1) : '0',
         results: recentGames.map(g => g.result).reverse(),
         details: recentGames.map(g => g.result).reverse(), // Keep for backward compatibility
       };
@@ -65,7 +88,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
 
   // Win/loss streaks
   const streaks = useMemo(() => {
-    let currentStreak = { type: null, count: 0 };
+    const currentStreak: StreakState = { type: null, count: 0 };
     let longestWinStreak = 0;
     let longestUnbeatenStreak = 0;
     let currentWinStreak = 0;
@@ -90,8 +113,9 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
     // Calculate current streak
     for (let i = ratedGames.length - 1; i >= 0; i--) {
       const game = ratedGames[i];
+      const resultType: StreakType = game.result === 'L' ? 'loss' : game.result === 'W' ? 'win' : 'unbeaten';
       if (currentStreak.type === null) {
-        currentStreak.type = game.result === 'L' ? 'loss' : game.result === 'W' ? 'win' : 'unbeaten';
+        currentStreak.type = resultType;
         currentStreak.count = 1;
       } else if (
         (currentStreak.type === 'win' && game.result === 'W') ||
@@ -113,7 +137,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
 
   // Time of day statistics
   const timeOfDayStats = useMemo(() => {
-    const timeSlots = {
+    const timeSlots: Record<string, TimeSlotBucket> = {
       'Morning (9-12)': { games: [], wins: 0, draws: 0, losses: 0 },
       'Afternoon (13-17)': { games: [], wins: 0, draws: 0, losses: 0 },
       'Evening (18-20)': { games: [], wins: 0, draws: 0, losses: 0 },
@@ -124,7 +148,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
       if (!game.time) return;
 
       const hour = parseInt(game.time.split(':')[0]);
-      let slot;
+      let slot: string | undefined;
 
       if (hour >= 9 && hour <= 12) slot = 'Morning (9-12)';
       else if (hour >= 13 && hour <= 17) slot = 'Afternoon (13-17)';
@@ -145,8 +169,8 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
         wins: data.wins,
         draws: data.draws,
         losses: data.losses,
-        score: data.games.length > 0 ? ((data.wins + data.draws * 0.5) / data.games.length * 100).toFixed(1) : 0,
-        winRate: data.games.length > 0 ? ((data.wins / data.games.length) * 100).toFixed(1) : 0,
+        score: data.games.length > 0 ? ((data.wins + data.draws * 0.5) / data.games.length * 100).toFixed(1) : '0',
+        winRate: data.games.length > 0 ? ((data.wins / data.games.length) * 100).toFixed(1) : '0',
       }))
       .filter(slot => slot.total > 0);
   }, [ratedGames]);
@@ -155,7 +179,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
   const tournamentComparison = useMemo(() => {
     const ratedTournaments = games
       .filter(g => g.rated)
-      .reduce((acc, game) => {
+      .reduce<Record<string, Game[]>>((acc, game) => {
         if (!acc[game.tournament]) {
           acc[game.tournament] = [];
         }
@@ -174,7 +198,7 @@ export const useTrendsAndAnalytics = (games, ratedGames) => {
         ? Math.round(oppElos.reduce((a, b) => a + b, 0) / oppElos.length)
         : 0;
 
-      const tournamentData = TOURNAMENT_DATA[name] || {};
+      const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[name] || {};
       const playerElo = tournamentGames[0]?.elo || 0;
 
       return {

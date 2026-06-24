@@ -13,7 +13,15 @@ export const ELO_CONSTANTS = {
 };
 
 // Tournament Historical Data
-export const TOURNAMENT_DATA = {
+export interface TournamentDataEntry {
+  startElo: number;
+  eloChange: number;
+  performanceRating: number;
+  /** Optional display date; not present for current entries. */
+  date?: string;
+}
+
+export const TOURNAMENT_DATA: Record<string, TournamentDataEntry> = {
   'IRT Damian Reca': {
     startElo: 1651,
     eloChange: +76,

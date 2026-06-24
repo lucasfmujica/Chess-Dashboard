@@ -1,20 +1,42 @@
 import { useMemo } from 'react';
-import { ACHIEVEMENT_THRESHOLDS } from '../constants/chessConstants';
+import { ACHIEVEMENT_THRESHOLDS, OPENING_THRESHOLDS } from '../constants/chessConstants';
 import { getToday } from '../utils/chessHelpers';
+import type {
+  Game,
+  GameStats,
+  OpeningStat,
+  PlayerInfo,
+  TournamentStat,
+  StreaksSummary,
+  MonthlyStat,
+} from '../types/chess';
+
+interface Badge {
+  name: string;
+  icon: string;
+  earned: boolean;
+}
+
+interface Milestone {
+  title: string;
+  current: number | string;
+  target: number;
+  progress: string;
+}
 
 /**
- * Custom hook for goal projections, achievements, and milestones
+ * Custom hook for goal projections, achievements, and milestones.
  */
 export const useGoalsAndAchievements = (
-  playerInfo,
-  ratedGames,
-  overallStats,
-  tournamentStats,
-  allOpeningsStats,
-  streaks,
-  monthlyStats,
-  targetElo,
-  targetDate
+  playerInfo: PlayerInfo,
+  ratedGames: Game[],
+  overallStats: GameStats,
+  tournamentStats: TournamentStat[],
+  allOpeningsStats: OpeningStat[],
+  streaks: StreaksSummary,
+  monthlyStats: MonthlyStat[],
+  targetElo: number,
+  targetDate: string
 ) => {
   // Goal projections and ELO tracking
   const goalProjections = useMemo(() => {
@@ -22,11 +44,14 @@ export const useGoalsAndAchievements = (
     const eloGain = targetElo - currentElo;
     const today = getToday();
     const target = new Date(targetDate);
-    const daysRemaining = Math.max(0, Math.ceil((target - today) / (1000 * 60 * 60 * 24)));
+    const daysRemaining = Math.max(
+      0,
+      Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    );
     const monthsRemaining = (daysRemaining / 30).toFixed(1);
 
     // Calculate weighted ELO changes per tournament
-    const eloChanges = [];
+    const eloChanges: { change: number; weight: number }[] = [];
     const lagoPueloIndex = monthlyStats.findIndex(t => t.tournament === 'Abierto Lago Puelo');
 
     for (let i = 1; i < monthlyStats.length; i++) {
@@ -37,7 +62,7 @@ export const useGoalsAndAchievements = (
 
     const totalWeight = eloChanges.reduce((sum, e) => sum + e.weight, 0);
     const avgEloPerTournament = totalWeight > 0
-      ? eloChanges.reduce((sum, e) => sum + (e.change * e.weight), 0) / totalWeight
+      ? eloChanges.reduce((sum, e) => sum + e.change * e.weight, 0) / totalWeight
       : 0;
 
     const tournamentsNeeded = avgEloPerTournament !== 0
@@ -48,7 +73,7 @@ export const useGoalsAndAchievements = (
     const avgOppRating = 1850;
     const expectedScorePerGame = 1 / (1 + Math.pow(10, (avgOppRating - currentElo) / 400));
     const desiredGainPer9 = tournamentsNeeded > 0 ? eloGain / tournamentsNeeded : 0;
-    const pointsNeeded = Math.max(0, Math.min(9, (desiredGainPer9 / 20) + (expectedScorePerGame * 9)));
+    const pointsNeeded = Math.max(0, Math.min(9, desiredGainPer9 / 20 + expectedScorePerGame * 9));
 
     return {
       currentElo,
@@ -61,56 +86,41 @@ export const useGoalsAndAchievements = (
       pointsNeededPer9Games: pointsNeeded.toFixed(1),
       kFactor: 20,
       onTrack: avgEloPerTournament > 0 && tournamentsNeeded <= parseFloat(monthsRemaining),
-      projectedElo: currentElo + (avgEloPerTournament * parseFloat(monthsRemaining)),
+      projectedElo: currentElo + avgEloPerTournament * parseFloat(monthsRemaining),
     };
   }, [playerInfo.current_elo, targetElo, targetDate, monthlyStats]);
 
   // Achievements and badges
   const achievements = useMemo(() => {
-    const badges = [];
+    const badges: Badge[] = [];
 
     // Win streaks
     if (streaks.longestWin >= ACHIEVEMENT_THRESHOLDS.WIN_STREAK_MIN) {
-      badges.push({
-        name: `${streaks.longestWin}-Game Win Streak`,
-        icon: '🔥',
-        earned: true,
-      });
+      badges.push({ name: `${streaks.longestWin}-Game Win Streak`, icon: '🔥', earned: true });
     }
 
     // Beat higher rated opponents
     const beatenHigher = ratedGames.filter(g => g.result === 'W' && g.opp_elo > g.elo + 100).length;
     if (beatenHigher >= ACHIEVEMENT_THRESHOLDS.GIANT_SLAYER_WINS) {
-      badges.push({
-        name: `Giant Slayer (${beatenHigher} wins vs +100)`,
-        icon: '⚔️',
-        earned: true,
-      });
+      badges.push({ name: `Giant Slayer (${beatenHigher} wins vs +100)`, icon: '⚔️', earned: true });
     }
 
     // Performance milestones
     if (overallStats.performanceRating >= 1900) {
-      badges.push({
-        name: '1900+ Performance Rating',
-        icon: '🎯',
-        earned: true,
-      });
+      badges.push({ name: '1900+ Performance Rating', icon: '🎯', earned: true });
     }
 
     // Tournament success
     const tournamentWins = tournamentStats.filter(t => t.wins > t.losses).length;
     if (tournamentWins >= ACHIEVEMENT_THRESHOLDS.POSITIVE_TOURNAMENTS_MIN) {
-      badges.push({
-        name: `${tournamentWins} Positive Tournaments`,
-        icon: '🏆',
-        earned: true,
-      });
+      badges.push({ name: `${tournamentWins} Positive Tournaments`, icon: '🏆', earned: true });
     }
 
     // Opening mastery
     const masterOpenings = allOpeningsStats.filter(
-      o => o.games >= ACHIEVEMENT_THRESHOLDS.MASTERY_GAMES &&
-        o.winRate >= ACHIEVEMENT_THRESHOLDS.MASTERY_WIN_RATE
+      o =>
+        o.games >= OPENING_THRESHOLDS.MASTERY_GAMES &&
+        o.winRate >= OPENING_THRESHOLDS.MASTERY_WIN_RATE
     ).length;
     if (masterOpenings >= ACHIEVEMENT_THRESHOLDS.MASTER_OPENINGS_MIN) {
       badges.push({
@@ -134,7 +144,7 @@ export const useGoalsAndAchievements = (
 
   // Next milestones to achieve
   const nextMilestones = useMemo(() => {
-    const milestones = [];
+    const milestones: Milestone[] = [];
 
     // ELO milestones
     const nextEloMilestone = Math.ceil(playerInfo.current_elo / 50) * 50;

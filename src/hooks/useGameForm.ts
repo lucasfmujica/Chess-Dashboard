@@ -1,24 +1,38 @@
 import { useState, useMemo } from 'react';
+import type { ChangeEvent } from 'react';
+import type { Game, PlayerColor, GameResult } from '../types/chess';
+import type { ModalContextType } from '../components/modals/ModalContext';
+
+interface GameFormState {
+  tournament: string;
+  elo: string;
+  opp: string;
+  opp_elo: string;
+  color: PlayerColor;
+  result: GameResult;
+  eco: string;
+  rated: boolean;
+}
+
+type SetGames = (value: Game[] | ((prev: Game[]) => Game[])) => void;
+
+const EMPTY_FORM: GameFormState = {
+  tournament: '',
+  elo: '',
+  opp: '',
+  opp_elo: '',
+  color: 'W',
+  result: 'W',
+  eco: '',
+  rated: true,
+};
 
 /**
- * Custom hook for managing manual game entry form
- * @param {Array} games - Current games array
- * @param {Function} setGames - Function to update games
- * @param {Object} modal - Modal context for showing alerts
- * @returns {Object} Form state and handlers
+ * Custom hook for managing manual game entry form.
  */
-export const useGameForm = (games, setGames, modal) => {
+export const useGameForm = (games: Game[], setGames: SetGames, modal: ModalContextType) => {
   const [showManualEntry, setShowManualEntry] = useState(false);
-  const [gameForm, setGameForm] = useState({
-    tournament: '',
-    elo: '',
-    opp: '',
-    opp_elo: '',
-    color: 'W',
-    result: 'W',
-    eco: '',
-    rated: true,
-  });
+  const [gameForm, setGameForm] = useState<GameFormState>({ ...EMPTY_FORM });
 
   // Get unique tournament names for autocomplete
   const uniqueTournaments = useMemo(() => {
@@ -26,15 +40,14 @@ export const useGameForm = (games, setGames, modal) => {
     return tournaments.sort();
   }, [games]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setGameForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target;
+    const { name, value, type } = target;
+    const checked = (target as HTMLInputElement).checked;
+    setGameForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }) as GameFormState);
   };
 
-  const handleAddGame = async () => {
+  const handleAddGame = async (): Promise<boolean> => {
     // Validation
     if (!gameForm.tournament.trim()) {
       await modal.alert('Tournament name is required', 'Validation Error');
@@ -53,7 +66,7 @@ export const useGameForm = (games, setGames, modal) => {
       return false;
     }
 
-    const newGame = {
+    const newGame: Game = {
       elo: parseInt(gameForm.elo),
       color: gameForm.color,
       result: gameForm.result,
@@ -70,30 +83,16 @@ export const useGameForm = (games, setGames, modal) => {
 
     // Reset form (keep tournament and elo for convenience)
     setGameForm({
+      ...EMPTY_FORM,
       tournament: gameForm.tournament,
       elo: gameForm.elo,
-      opp: '',
-      opp_elo: '',
-      color: 'W',
-      result: 'W',
-      eco: '',
-      rated: true,
     });
 
     return true;
   };
 
   const resetForm = () => {
-    setGameForm({
-      tournament: '',
-      elo: '',
-      opp: '',
-      opp_elo: '',
-      color: 'W',
-      result: 'W',
-      eco: '',
-      rated: true,
-    });
+    setGameForm({ ...EMPTY_FORM });
     setShowManualEntry(false);
   };
 

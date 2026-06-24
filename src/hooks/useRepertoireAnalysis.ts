@@ -1,18 +1,36 @@
 import { useMemo } from 'react';
 import { ecoNames } from '../constants/ecoNames';
 import { OPENING_THRESHOLDS } from '../constants/chessConstants';
+import type { Game, OpeningStat, Repertoire, PlayerColor } from '../types/chess';
+
+interface OpponentOpeningBucket {
+  count: number;
+  wins: number;
+}
+
+interface OpeningRecommendation {
+  type: 'needs_work' | 'opponent_preparation';
+  opening: string;
+  eco: string;
+  reason: string;
+  priority: 'high' | 'medium';
+}
 
 /**
- * Custom hook for opening repertoire analysis and recommendations
+ * Custom hook for opening repertoire analysis and recommendations.
  */
-export const useRepertoireAnalysis = (ratedGames, allOpeningsStats, mainRepertoire) => {
+export const useRepertoireAnalysis = (
+  ratedGames: Game[],
+  allOpeningsStats: OpeningStat[],
+  mainRepertoire: Repertoire
+) => {
   // Opening repertoire analysis by color
   const openingRepertoireAnalysis = useMemo(() => {
-    const analyzeColor = (color, repertoire) => {
+    const analyzeColor = (color: PlayerColor, repertoire: string[]) => {
       const colorGames = ratedGames.filter(g => g.color === color);
 
       return allOpeningsStats
-        .filter(o => color === 'W' ? o.asWhite > 0 : o.asBlack > 0)
+        .filter(o => (color === 'W' ? o.asWhite > 0 : o.asBlack > 0))
         .map(opening => {
           const isMain = repertoire.includes(opening.eco);
           const games = color === 'W' ? opening.asWhite : opening.asBlack;
@@ -30,7 +48,8 @@ export const useRepertoireAnalysis = (ratedGames, allOpeningsStats, mainRepertoi
             draws,
             losses,
             winRate: parseFloat(winRate),
-            needsWork: games >= OPENING_THRESHOLDS.MIN_GAMES_FOR_ANALYSIS &&
+            needsWork:
+              games >= OPENING_THRESHOLDS.MIN_GAMES_FOR_ANALYSIS &&
               parseFloat(winRate) < OPENING_THRESHOLDS.LOW_SUCCESS_RATE,
           };
         })
@@ -45,7 +64,7 @@ export const useRepertoireAnalysis = (ratedGames, allOpeningsStats, mainRepertoi
 
   // Opening recommendations based on performance
   const openingRecommendations = useMemo(() => {
-    const recommendations = [];
+    const recommendations: OpeningRecommendation[] = [];
 
     // Find openings that need work
     [...openingRepertoireAnalysis.white, ...openingRepertoireAnalysis.black]
@@ -62,7 +81,7 @@ export const useRepertoireAnalysis = (ratedGames, allOpeningsStats, mainRepertoi
 
     // Find frequently faced openings as Black with poor results
     const blackOpenings = ratedGames.filter(g => g.color === 'B');
-    const opponentOpenings = {};
+    const opponentOpenings: Record<string, OpponentOpeningBucket> = {};
 
     blackOpenings.forEach(g => {
       if (!opponentOpenings[g.eco]) {
@@ -73,7 +92,7 @@ export const useRepertoireAnalysis = (ratedGames, allOpeningsStats, mainRepertoi
     });
 
     Object.entries(opponentOpenings)
-      .filter(([eco, stats]) => stats.count >= 2 && (stats.wins / stats.count) < 0.4)
+      .filter(([, stats]) => stats.count >= 2 && stats.wins / stats.count < 0.4)
       .forEach(([eco, stats]) => {
         recommendations.push({
           type: 'opponent_preparation',

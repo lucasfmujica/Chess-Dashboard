@@ -97,7 +97,7 @@ export const useComputedStats = (gameFilter) => {
   const ratedGames = useMemo(() => filteredGames.filter(g => g.rated), [filteredGames]);
 
   // Use custom hooks for complex calculations
-  const gameStats = useGameStats(games, filteredGames, ratedGames);
+  const gameStats = useGameStats(ratedGames);
   const trendsAndAnalytics = useTrendsAndAnalytics(games, ratedGames);
 
   const { mainRepertoire, targetElo, targetDate } = useGames();

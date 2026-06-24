@@ -1,17 +1,45 @@
 import { useMemo } from 'react';
 import { ecoNames } from '../constants/ecoNames';
-import { TOURNAMENT_DATA, TOURNAMENT_ORDER } from '../constants/chessConstants';
+import { TOURNAMENT_DATA, TOURNAMENT_ORDER, type TournamentDataEntry } from '../constants/chessConstants';
 import {
   calculateGameStats,
   getEloRatingBracket,
   calculateExpectedScore,
   getActualScore,
 } from '../utils/eloCalculations';
+import type { Game, EloRatingBracket } from '../types/chess';
+
+interface TournamentBucket {
+  games: Game[];
+  wins: number;
+  draws: number;
+  losses: number;
+}
+
+interface EcoBucket {
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  name: string;
+}
+
+interface AllEcoBucket extends EcoBucket {
+  color: Record<string, number>;
+}
+
+interface BracketBucket {
+  name: string;
+  games: Game[];
+  wins: number;
+  draws: number;
+  losses: number;
+}
 
 /**
- * Custom hook for calculating comprehensive game statistics
+ * Custom hook for calculating comprehensive game statistics.
  */
-export const useGameStats = (games, filteredGames, ratedGames) => {
+export const useGameStats = (ratedGames: Game[]) => {
   // Overall statistics
   const overallStats = useMemo(() => calculateGameStats(ratedGames), [ratedGames]);
 
@@ -20,14 +48,16 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
     let currentElo = 1651; // Starting ELO
     let ratedGameCount = 0; // Count of all rated games (including vs unrated opponents)
 
-    return ratedGames.map((game, idx) => {
+    return ratedGames.map((game) => {
       ratedGameCount++;
 
       // Use game's kFactor if available, otherwise determine by game count
       const kFactor = game.kFactor || (ratedGameCount <= 27 ? 40 : 20);
 
       // For unrated opponents (opp_elo === 0), use eloChange: 0
-      let expectedScore, actualScore, eloChange;
+      let expectedScore: number;
+      let actualScore: number;
+      let eloChange: number;
 
       if (game.opp_elo === 0) {
         // Game against unrated opponent - no ELO change
@@ -56,9 +86,9 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
 
       return {
         game: ratedGameCount,
-        eloBefore: eloBefore,
+        eloBefore,
         elo: currentElo,
-        eloChange: eloChange,
+        eloChange,
         tournament: game.tournament,
         opponent: game.opp,
         eco: game.eco,
@@ -66,23 +96,18 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
         expected: expectedScore,
         actual: actualScore,
         diff: actualScore - expectedScore,
-        kFactor: kFactor,
+        kFactor,
       };
     });
   }, [ratedGames]);
 
   // Tournament statistics with performance ratings
   const tournamentStats = useMemo(() => {
-    const byTournament = {};
+    const byTournament: Record<string, TournamentBucket> = {};
 
     ratedGames.forEach(game => {
       if (!byTournament[game.tournament]) {
-        byTournament[game.tournament] = {
-          games: [],
-          wins: 0,
-          draws: 0,
-          losses: 0,
-        };
+        byTournament[game.tournament] = { games: [], wins: 0, draws: 0, losses: 0 };
       }
       byTournament[game.tournament].games.push(game);
       if (game.result === 'W') byTournament[game.tournament].wins++;
@@ -102,7 +127,7 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
         const whiteStats = whiteGames.length > 0 ? calculateGameStats(whiteGames) : null;
         const blackStats = blackGames.length > 0 ? calculateGameStats(blackGames) : null;
 
-        const tournamentData = TOURNAMENT_DATA[tournament] || {};
+        const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[tournament] || {};
 
         return {
           tournament,
@@ -117,8 +142,8 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
           eloChange: tournamentData.eloChange || 0,
           eloBefore: tournamentData.startElo || 1651,
           eloAfter: (tournamentData.startElo || 1651) + (tournamentData.eloChange || 0),
-          whitePerformance: whiteStats?.performanceRating || '-',
-          blackPerformance: blackStats?.performanceRating || '-',
+          whitePerformance: whiteStats?.performanceRating ?? '-',
+          blackPerformance: blackStats?.performanceRating ?? '-',
         };
       });
   }, [ratedGames]);
@@ -160,7 +185,7 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
 
   // Opponent bracket statistics
   const opponentBracketStats = useMemo(() => {
-    const brackets = {
+    const brackets: Record<EloRatingBracket, BracketBucket> = {
       lower: { name: 'Lower rated (-100+)', games: [], wins: 0, draws: 0, losses: 0 },
       similar: { name: 'Similar (±100)', games: [], wins: 0, draws: 0, losses: 0 },
       higher: { name: 'Higher rated (+100+)', games: [], wins: 0, draws: 0, losses: 0 },
@@ -186,72 +211,51 @@ export const useGameStats = (games, filteredGames, ratedGames) => {
     }));
   }, [ratedGames]);
 
+  // Helper to build per-ECO opening stats for a set of single-color games
+  const buildColorStats = (colorGames: Game[]) => {
+    const stats = calculateGameStats(colorGames);
+
+    const ecoStats: Record<string, EcoBucket> = {};
+    colorGames.forEach(game => {
+      if (!ecoStats[game.eco]) {
+        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
+      }
+      ecoStats[game.eco].games++;
+      if (game.result === 'W') ecoStats[game.eco].wins++;
+      if (game.result === 'D') ecoStats[game.eco].draws++;
+      if (game.result === 'L') ecoStats[game.eco].losses++;
+    });
+
+    const openings = Object.entries(ecoStats)
+      .map(([eco, openingStats]) => ({
+        eco,
+        name: openingStats.name,
+        games: openingStats.games,
+        wins: openingStats.wins,
+        draws: openingStats.draws,
+        losses: openingStats.losses,
+        score: `${(openingStats.wins + openingStats.draws * 0.5).toFixed(1)}/${openingStats.games}`,
+        winRate: ((openingStats.wins / openingStats.games) * 100).toFixed(1),
+      }))
+      .sort((a, b) => b.games - a.games);
+
+    return { ...stats, openings };
+  };
+
   // Statistics by color
-  const whiteStats = useMemo(() => {
-    const whiteGames = ratedGames.filter(g => g.color === 'W');
-    const stats = calculateGameStats(whiteGames);
+  const whiteStats = useMemo(
+    () => buildColorStats(ratedGames.filter(g => g.color === 'W')),
+    [ratedGames] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
-    const ecoStats = {};
-    whiteGames.forEach(game => {
-      if (!ecoStats[game.eco]) {
-        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
-      }
-      ecoStats[game.eco].games++;
-      if (game.result === 'W') ecoStats[game.eco].wins++;
-      if (game.result === 'D') ecoStats[game.eco].draws++;
-      if (game.result === 'L') ecoStats[game.eco].losses++;
-    });
-
-    const openings = Object.entries(ecoStats)
-      .map(([eco, openingStats]) => ({
-        eco,
-        name: openingStats.name,
-        games: openingStats.games,
-        wins: openingStats.wins,
-        draws: openingStats.draws,
-        losses: openingStats.losses,
-        score: `${(openingStats.wins + openingStats.draws * 0.5).toFixed(1)}/${openingStats.games}`,
-        winRate: ((openingStats.wins / openingStats.games) * 100).toFixed(1),
-      }))
-      .sort((a, b) => b.games - a.games);
-
-    return { ...stats, openings };
-  }, [ratedGames]);
-
-  const blackStats = useMemo(() => {
-    const blackGames = ratedGames.filter(g => g.color === 'B');
-    const stats = calculateGameStats(blackGames);
-
-    const ecoStats = {};
-    blackGames.forEach(game => {
-      if (!ecoStats[game.eco]) {
-        ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
-      }
-      ecoStats[game.eco].games++;
-      if (game.result === 'W') ecoStats[game.eco].wins++;
-      if (game.result === 'D') ecoStats[game.eco].draws++;
-      if (game.result === 'L') ecoStats[game.eco].losses++;
-    });
-
-    const openings = Object.entries(ecoStats)
-      .map(([eco, openingStats]) => ({
-        eco,
-        name: openingStats.name,
-        games: openingStats.games,
-        wins: openingStats.wins,
-        draws: openingStats.draws,
-        losses: openingStats.losses,
-        score: `${(openingStats.wins + openingStats.draws * 0.5).toFixed(1)}/${openingStats.games}`,
-        winRate: ((openingStats.wins / openingStats.games) * 100).toFixed(1),
-      }))
-      .sort((a, b) => b.games - a.games);
-
-    return { ...stats, openings };
-  }, [ratedGames]);
+  const blackStats = useMemo(
+    () => buildColorStats(ratedGames.filter(g => g.color === 'B')),
+    [ratedGames] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // All openings statistics
   const allOpeningsStats = useMemo(() => {
-    const ecoStats = {};
+    const ecoStats: Record<string, AllEcoBucket> = {};
 
     ratedGames.forEach(game => {
       if (!ecoStats[game.eco]) {

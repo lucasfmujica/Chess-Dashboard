@@ -13,7 +13,7 @@ interface ModalState {
   onCancel: (() => void) | null;
 }
 
-interface ModalContextType {
+export interface ModalContextType {
   alert: (message: string, title?: string) => Promise<void>;
   confirm: (message: string, title?: string) => Promise<boolean>;
   prompt: (message: string, defaultValue?: string, title?: string) => Promise<string | null>;
