@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { BeakerIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../context/GamesContext';
+import type { Game } from '../../../types/chess';
 import GameViewer from '../GameViewer';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
 
@@ -14,6 +15,15 @@ interface LoadedGame {
 
 const headerValue = (text: string, key: string): string | undefined =>
   text.match(new RegExp(`\\[${key}\\s+"([^"]+)"\\]`))?.[1];
+
+/** Build the board's loaded-game state from a stored game + its movetext. */
+const toLoadedGame = (g: Game, pgn: string): LoadedGame => ({
+  pgn,
+  white: g.color === 'W' ? 'You' : g.opp,
+  black: g.color === 'B' ? 'You' : g.opp,
+  result: g.result === 'W' ? '1-0 / 0-1' : g.result === 'D' ? '½-½' : '',
+  orientation: g.color === 'B' ? 'black' : 'white',
+});
 
 /**
  * Full-page analysis board: load any game (pasted PGN or an imported game with
@@ -44,6 +54,10 @@ const AnalysisBoardTab = () => {
     const idx = parseInt(attachIndex, 10);
     const moves = attachText.trim();
     setGames(prev => prev.map((g, i) => (i === idx ? { ...g, pgn: moves || undefined } : g)));
+    // Immediately load the just-saved game onto the board so the user sees it
+    // replay (otherwise the board stays empty until they reselect the game).
+    const g = games[idx];
+    setLoaded(g && moves ? toLoadedGame(g, moves) : null);
   };
 
   const loadPaste = () => {
@@ -60,17 +74,7 @@ const AnalysisBoardTab = () => {
   const loadStored = (index: string) => {
     const idx = parseInt(index, 10);
     const g = games[idx];
-    if (!g?.pgn) {
-      setLoaded(null);
-      return;
-    }
-    setLoaded({
-      pgn: g.pgn,
-      white: g.color === 'W' ? 'You' : g.opp,
-      black: g.color === 'B' ? 'You' : g.opp,
-      result: g.result === 'W' ? '1-0 / 0-1' : g.result === 'D' ? '½-½' : '',
-      orientation: g.color === 'B' ? 'black' : 'white',
-    });
+    setLoaded(g?.pgn ? toLoadedGame(g, g.pgn) : null);
   };
 
   return (
