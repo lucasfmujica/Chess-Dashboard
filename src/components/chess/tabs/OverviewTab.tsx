@@ -87,6 +87,7 @@ const OverviewTab = ({
           subtitle={`${playerInfo.elo_change_last_tournament > 0 ? '+' : ''}${playerInfo.elo_change_last_tournament} last tournament`}
           icon={Trophy}
           trend={playerInfo.elo_change_last_tournament > 0 ? 'up' : 'down'}
+          trendData={ratedGames.map(g => g.elo).filter(e => e > 0)}
         />
         <StatCard
           title="Total Games"

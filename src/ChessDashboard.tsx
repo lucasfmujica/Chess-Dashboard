@@ -1,4 +1,6 @@
+import { lazy } from 'react';
 import { useModal } from './components/modals/ModalContext';
+import LazyTab from './components/LazyTab';
 import { useGames, useComputedStats } from './context/GamesContext';
 import { useUI } from './context/UIContext';
 import Sidebar from './components/Sidebar';
@@ -18,10 +20,10 @@ import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
-import GeographyTab from './components/chess/tabs/GeographyTab';
+const GeographyTab = lazy(() => import('./components/chess/tabs/GeographyTab'));
 import RecordsTab from './components/chess/tabs/RecordsTab';
 import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
-import AnalysisBoardTab from './components/chess/tabs/AnalysisBoardTab';
+const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { mergeGames } from './utils/lichessApi';
@@ -342,9 +344,9 @@ const ChessDashboard = () => {
             />
           )}
 
-          {activeTab === 'analysis-board' && <AnalysisBoardTab />}
+          {activeTab === 'analysis-board' && <LazyTab><AnalysisBoardTab /></LazyTab>}
 
-          {activeTab === 'geography' && <GeographyTab />}
+          {activeTab === 'geography' && <LazyTab><GeographyTab /></LazyTab>}
 
           {activeTab === 'openings-trainer' && <OpeningsFlashcardsTab />}
 

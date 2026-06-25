@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import GameViewer from '../components/chess/GameViewer';
+
+const GameViewer = lazy(() => import('../components/chess/GameViewer'));
 
 export interface GameViewerData {
   pgn?: string;
@@ -67,13 +68,15 @@ export const GameViewerProvider = ({ children }: { children: ReactNode }) => {
               </button>
             </div>
             <div className="p-5">
-              <GameViewer
-                pgn={data.pgn}
-                orientation={data.orientation}
-                white={data.white}
-                black={data.black}
-                result={data.result}
-              />
+              <Suspense fallback={<div className="py-16 text-center text-sm text-fg-muted">Loading board…</div>}>
+                <GameViewer
+                  pgn={data.pgn}
+                  orientation={data.orientation}
+                  white={data.white}
+                  black={data.black}
+                  result={data.result}
+                />
+              </Suspense>
             </div>
           </div>
         </div>

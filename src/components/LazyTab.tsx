@@ -39,7 +39,7 @@ const LazyTab = ({ children, fallback }: LazyTabProps) => {
 const TabLoadingFallback = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px]">
     <LoadingSpinner size="lg" color="indigo" />
-    <p className="mt-4 text-slate-600">Loading...</p>
+    <p className="mt-4 text-fg-muted">Loading…</p>
   </div>
 );
 

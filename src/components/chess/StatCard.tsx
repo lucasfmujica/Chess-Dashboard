@@ -8,13 +8,38 @@ interface StatCardProps {
   subtitle?: ReactNode;
   icon?: ComponentType<{ className?: string }>;
   trend?: Trend;
+  /** Optional series rendered as a small sparkline under the value. */
+  trendData?: number[];
 }
+
+/** Tiny inline SVG sparkline (no chart library); colored by its own direction. */
+const Sparkline = ({ data }: { data: number[] }) => {
+  if (data.length < 2) return null;
+  const W = 120;
+  const H = 28;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = max - min || 1;
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * W;
+      const y = H - ((v - min) / span) * H;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  const stroke = data[data.length - 1] >= data[0] ? 'rgb(var(--accent))' : 'rgb(var(--loss))';
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="mt-2 w-full h-7" aria-hidden="true">
+      <polyline points={points} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+};
 
 /**
  * Minimal, flat stat tile (Linear/Vercel style): hairline border, no shadow
  * or gradient, prominent tabular value, muted label.
  */
-const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) => {
+const StatCard = ({ title, value, subtitle, icon: Icon, trend, trendData }: StatCardProps) => {
   return (
     <div className="rounded-lg border border-hairline bg-surface p-5 transition-colors hover:border-fg-subtle/40">
       <div className="flex items-start justify-between gap-3">
@@ -43,6 +68,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) 
       </div>
 
       {subtitle && <p className="mt-1 text-xs text-fg-muted">{subtitle}</p>}
+      {trendData && <Sparkline data={trendData} />}
     </div>
   );
 };
