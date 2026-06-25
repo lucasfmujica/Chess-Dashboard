@@ -9,13 +9,19 @@ interface PersonalMovesProps {
   onPlay?: (san: string) => void;
 }
 
-/** What YOU have played from the current position, across your own games. */
-const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => (
+/**
+ * Moves played from the current position across your own games — your moves on
+ * your turn, your opponents' replies on theirs — each with your score.
+ */
+const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => {
+  // At any position it's one side to move, so all rows share `mine`.
+  const opponentsTurn = moves.length > 0 && !moves[0].mine;
+  return (
   <div className="rounded-lg border border-hairline bg-surface">
     <div className="px-4 py-2.5 border-b border-hairline flex items-center gap-2">
       <UserIcon className="w-5 h-5 text-accent" />
-      <h3 className="text-sm font-semibold text-fg">You play</h3>
-      <span className="text-xs text-fg-subtle">your repertoire, across all games</span>
+      <h3 className="text-sm font-semibold text-fg">{opponentsTurn ? 'Opponents played' : 'You play'}</h3>
+      <span className="text-xs text-fg-subtle">from this position, across your games</span>
     </div>
 
     {/* The actual move from the game/line you're viewing, so it's always visible
@@ -34,7 +40,7 @@ const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => (
       <p className="px-4 py-3 text-xs text-fg-muted">
         {playedMove
           ? 'None of your other games reached this position — only the move above, from the game you’re viewing.'
-          : 'You haven’t reached this position in your own games (with moves) yet.'}
+          : 'None of your games (with moves) reached this position.'}
       </p>
     ) : (
       <table className="w-full text-sm">
@@ -64,6 +70,7 @@ const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => (
       </table>
     )}
   </div>
-);
+  );
+};
 
 export default PersonalMoves;
