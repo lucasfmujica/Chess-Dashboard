@@ -14,6 +14,7 @@ import { useGameAnalysis } from '../../hooks/useGameAnalysis';
 import { useEngineSettings } from '../../hooks/useEngineSettings';
 import { useLocalEngine } from '../../hooks/useLocalEngine';
 import { useMyRepertoireMoves } from '../../hooks/useMyRepertoireMoves';
+import { useOpeningName } from '../../utils/openings';
 import type { MoveQuality } from '../../engine/analyzeGame';
 import MovesExplorer from './MovesExplorer';
 import EngineLines from './EngineLines';
@@ -91,6 +92,7 @@ const GameViewer = ({
   const [engineOn, setEngineOn] = useState(false);
   const engineState = useLocalEngine(fen, settings, showEngine && engineOn);
   const personalMoves = useMyRepertoireMoves(fen);
+  const opening = useOpeningName(fens, ply);
   const [flipped, setFlipped] = useState(false);
   const moveListRef = useRef<HTMLDivElement>(null);
 
@@ -245,6 +247,15 @@ const GameViewer = ({
             <span className="text-fg-subtle"> vs </span>
             <span className="font-semibold text-fg">{black || 'Black'}</span>
             {result && <span className="ml-2 text-fg-muted tabular-nums">{result}</span>}
+          </div>
+        )}
+
+        {/* Live opening name for the current position (offline dataset). */}
+        {opening && (
+          <div className="text-xs text-fg-muted">
+            <span className="font-medium text-fg-subtle tabular-nums">{opening.eco}</span>
+            {opening.eco && ' · '}
+            {opening.name}
           </div>
         )}
 

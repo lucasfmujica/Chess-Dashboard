@@ -3,6 +3,7 @@ import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@
 import { useGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
 import GameViewer from '../GameViewer';
+import GamesAnalysisList from '../GamesAnalysisList';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
 
 interface LoadedGame {
@@ -38,6 +39,8 @@ const AnalysisBoardTab = () => {
   const [pasteText, setPasteText] = useState('');
   const [attachIndex, setAttachIndex] = useState('');
   const [attachText, setAttachText] = useState('');
+  // Bumped after batch analysis so the accuracy trend re-reads cached results.
+  const [analysisRefreshKey, setAnalysisRefreshKey] = useState(0);
 
   // Games that actually carry moves.
   const playableGames = useMemo(
@@ -210,7 +213,7 @@ const AnalysisBoardTab = () => {
       </div>
 
       {/* Accuracy over analysed games */}
-      <AccuracyTrendCard />
+      <AccuracyTrendCard refreshKey={analysisRefreshKey} />
 
       {/* Board + explorer + analysis */}
       <div className="rounded-lg border border-hairline bg-surface p-5">
@@ -248,6 +251,13 @@ const AnalysisBoardTab = () => {
           showEngine
         />
       </div>
+
+      {/* All your games: results, opening, accuracy — click to load on the board */}
+      <GamesAnalysisList
+        onLoad={loadByIndex}
+        loadedIndex={loadedIndex}
+        onAnalyzed={() => setAnalysisRefreshKey(k => k + 1)}
+      />
     </div>
   );
 };

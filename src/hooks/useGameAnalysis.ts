@@ -26,6 +26,25 @@ const loadCache = (pgn?: string): GameAnalysis | null => {
 /** Read a previously-cached analysis for a game (null if not analysed yet). */
 export const getCachedAnalysis = (pgn?: string): GameAnalysis | null => loadCache(pgn);
 
+/**
+ * Analyse a game and persist it to the same cache `getCachedAnalysis` reads.
+ * Used for batch ("analyze all") runs. Returns null when there's nothing to do.
+ */
+export const analyzeAndCacheGame = async (
+  pgn: string,
+  fens: string[],
+  opts: { signal?: AbortSignal; onProgress?: (done: number, total: number) => void } = {}
+): Promise<GameAnalysis | null> => {
+  if (!pgn || fens.length < 2) return null;
+  const result = await analyzeGame(fens, opts);
+  try {
+    window.localStorage.setItem(cacheKey(pgn), JSON.stringify(result));
+  } catch {
+    /* cache best-effort */
+  }
+  return result;
+};
+
 export interface UseGameAnalysis {
   analysis: GameAnalysis | null;
   analyzing: boolean;

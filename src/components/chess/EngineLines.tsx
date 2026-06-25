@@ -24,7 +24,7 @@ const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }
       <div className="px-4 py-2.5 border-b border-hairline flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CpuChipIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-sm font-semibold text-fg">Stockfish</h3>
+          <h3 className="text-sm font-semibold text-fg">Stockfish 18</h3>
           {enabled && (
             <span className="text-xs text-fg-subtle tabular-nums">
               {state.analyzing ? `d${state.depth}…` : `depth ${state.depth}`}

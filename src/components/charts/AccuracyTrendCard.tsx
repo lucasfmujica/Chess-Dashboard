@@ -19,11 +19,16 @@ interface TrendPoint {
   label: string;
 }
 
+interface AccuracyTrendCardProps {
+  /** Bump to force a re-read of cached analyses (e.g. after a batch analyze). */
+  refreshKey?: number;
+}
+
 /**
  * Trend of your move accuracy across games that have been analysed with
  * Stockfish, plotted alongside your ELO at the time. Reads cached analyses.
  */
-const AccuracyTrendCard = () => {
+const AccuracyTrendCard = ({ refreshKey = 0 }: AccuracyTrendCardProps) => {
   const { games } = useGames();
 
   const points = useMemo<TrendPoint[]>(() => {
@@ -40,7 +45,8 @@ const AccuracyTrendCard = () => {
       });
     });
     return out.map((p, i) => ({ ...p, idx: i + 1 }));
-  }, [games]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [games, refreshKey]);
 
   const avg = points.length
     ? Math.round((points.reduce((s, p) => s + p.accuracy, 0) / points.length) * 10) / 10

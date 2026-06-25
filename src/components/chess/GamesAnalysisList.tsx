@@ -1,0 +1,294 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CpuChipIcon, MagnifyingGlassIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
+import { useGames } from '../../context/GamesContext';
+import { getCachedAnalysis, analyzeAndCacheGame } from '../../hooks/useGameAnalysis';
+import { loadOpeningsBook, deepestOpening } from '../../utils/openings';
+import { fensFromPgn } from '../../utils/chessReplay';
+import { ecoNames } from '../../constants/ecoNames';
+import type { Game } from '../../types/chess';
+
+interface GamesAnalysisListProps {
+  /** Load a game (by its index in `games`) onto the board. */
+  onLoad: (index: number) => void;
+  /** Index of the currently-loaded game, to highlight its row. */
+  loadedIndex: number | null;
+  /** Called after each game finishes analysing (to refresh the accuracy trend). */
+  onAnalyzed?: () => void;
+}
+
+type Book = Record<string, string>;
+type SortKey = 'order' | 'opponent' | 'result' | 'accuracy';
+
+interface Row {
+  index: number;
+  g: Game;
+  opening: string;
+  accuracy: number | null;
+  hasMoves: boolean;
+}
+
+const RESULT_META: Record<Game['result'], { label: string; cls: string }> = {
+  W: { label: 'Win', cls: 'text-win' },
+  L: { label: 'Loss', cls: 'text-loss' },
+  D: { label: 'Draw', cls: 'text-draw' },
+};
+
+const RESULT_RANK: Record<Game['result'], number> = { W: 0, D: 1, L: 2 };
+
+const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisListProps) => {
+  const { games } = useGames();
+  const [book, setBook] = useState<Book | null>(null);
+  const [query, setQuery] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>('order');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  // Bumped after each game is analysed so cached accuracy re-reads.
+  const [analyzedTick, setAnalyzedTick] = useState(0);
+  const [batch, setBatch] = useState<{ done: number; total: number; name: string } | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    loadOpeningsBook()
+      .then(b => active && setBook(b))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Opening name per game: prefer the position-based dataset, then any stored
+  // name, then the small ECO map, then the raw ECO code. Parsed once per
+  // games/book change (not on every analysis tick).
+  const openings = useMemo<string[]>(
+    () =>
+      games.map(g => {
+        if (book && g.pgn) {
+          const o = deepestOpening(fensFromPgn(g.pgn), book);
+          if (o) return o.name;
+        }
+        return g.opening || ecoNames[g.eco] || g.eco || '—';
+      }),
+    [games, book]
+  );
+
+  const rows = useMemo<Row[]>(() => {
+    void analyzedTick; // re-read cached analyses when this changes
+    return games.map((g, index) => {
+      const a = getCachedAnalysis(g.pgn);
+      const accuracy = a ? (g.color === 'W' ? a.accuracyWhite : a.accuracyBlack) : null;
+      return { index, g, opening: openings[index], accuracy, hasMoves: !!g.pgn };
+    });
+  }, [games, openings, analyzedTick]);
+
+  // Overall record across all games (independent of the search filter).
+  const record = useMemo(() => {
+    let w = 0,
+      d = 0,
+      l = 0;
+    games.forEach(g => {
+      if (g.result === 'W') w++;
+      else if (g.result === 'D') d++;
+      else l++;
+    });
+    const total = w + d + l;
+    const winRate = total ? Math.round(((w + d * 0.5) / total) * 100) : 0;
+    return { w, d, l, total, winRate };
+  }, [games]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const base = q
+      ? rows.filter(
+          r =>
+            r.g.opp.toLowerCase().includes(q) ||
+            r.opening.toLowerCase().includes(q) ||
+            r.g.tournament.toLowerCase().includes(q) ||
+            RESULT_META[r.g.result].label.toLowerCase().includes(q)
+        )
+      : rows.slice();
+
+    const dir = sortDir === 'asc' ? 1 : -1;
+    base.sort((a, b) => {
+      switch (sortKey) {
+        case 'opponent':
+          return dir * a.g.opp.localeCompare(b.g.opp);
+        case 'result':
+          return dir * (RESULT_RANK[a.g.result] - RESULT_RANK[b.g.result]);
+        case 'accuracy': {
+          const av = a.accuracy ?? -1;
+          const bv = b.accuracy ?? -1;
+          return dir * (av - bv);
+        }
+        default:
+          return dir * (a.index - b.index);
+      }
+    });
+    return base;
+  }, [rows, query, sortKey, sortDir]);
+
+  const pendingCount = useMemo(() => {
+    void analyzedTick;
+    return games.filter(g => g.pgn && !getCachedAnalysis(g.pgn)).length;
+  }, [games, analyzedTick]);
+
+  const analyzeAll = useCallback(async () => {
+    const list = games
+      .map((g, i) => ({ g, i }))
+      .filter(({ g }) => g.pgn && !getCachedAnalysis(g.pgn));
+    if (list.length === 0) return;
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setBatch({ done: 0, total: list.length, name: list[0].g.opp });
+
+    let done = 0;
+    for (const { g } of list) {
+      if (controller.signal.aborted) break;
+      setBatch({ done, total: list.length, name: g.opp });
+      try {
+        await analyzeAndCacheGame(g.pgn!, fensFromPgn(g.pgn), { signal: controller.signal });
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') break;
+        // Skip a game that fails to analyse and keep going.
+      }
+      done++;
+      setAnalyzedTick(t => t + 1);
+      onAnalyzed?.();
+      setBatch({ done, total: list.length, name: g.opp });
+    }
+    setBatch(null);
+    abortRef.current = null;
+  }, [games, onAnalyzed]);
+
+  const cancelBatch = useCallback(() => abortRef.current?.abort(), []);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir(key === 'accuracy' ? 'desc' : 'asc');
+    }
+  };
+
+  const SortableTh = ({ label, k, align = 'left' }: { label: string; k: SortKey; align?: 'left' | 'right' }) => (
+    <th
+      scope="col"
+      onClick={() => toggleSort(k)}
+      className={`px-3 py-2 ${align === 'right' ? 'text-right' : 'text-left'} text-[11px] font-medium uppercase tracking-wide text-fg-subtle cursor-pointer select-none hover:text-fg`}
+    >
+      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
+        {label}
+        <ChevronUpDownIcon className={`w-3.5 h-3.5 ${sortKey === k ? 'text-accent' : 'text-fg-subtle/50'}`} />
+      </span>
+    </th>
+  );
+
+  return (
+    <div className="rounded-lg border border-hairline bg-surface p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-fg">Your games</h3>
+          <p className="mt-0.5 text-sm text-fg-muted tabular-nums">
+            {record.total} games · <span className="text-win">{record.w}W</span>{' '}
+            <span className="text-draw">{record.d}D</span> <span className="text-loss">{record.l}L</span> ·{' '}
+            <span className="font-medium text-fg">{record.winRate}% win rate</span>
+          </p>
+        </div>
+
+        {batch ? (
+          <div className="flex items-center gap-3">
+            <div className="w-32 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+              <div
+                className="h-full bg-accent transition-all"
+                style={{ width: `${Math.round((batch.done / batch.total) * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs text-fg-muted tabular-nums">
+              {batch.done}/{batch.total} · {batch.name}
+            </span>
+            <button onClick={cancelBatch} className="text-xs text-fg-muted hover:text-fg">
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={analyzeAll}
+            disabled={pendingCount === 0}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+          >
+            <CpuChipIcon className="w-4 h-4" />
+            {pendingCount > 0 ? `Analyze all (${pendingCount})` : 'All analyzed'}
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4 relative">
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search opponent, opening, result…"
+          className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm pl-9 pr-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <div className="mt-4 max-h-[420px] overflow-y-auto rounded-lg border border-hairline">
+        <table className="w-full text-sm">
+          <thead className="bg-surface-2 sticky top-0 z-10">
+            <tr>
+              <SortableTh label="#" k="order" />
+              <SortableTh label="Opponent" k="opponent" />
+              <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-fg-subtle">Color</th>
+              <SortableTh label="Result" k="result" />
+              <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-fg-subtle">Opening</th>
+              <SortableTh label="Accuracy" k="accuracy" align="right" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-hairline">
+            {filtered.map(r => {
+              const meta = RESULT_META[r.g.result];
+              const isLoaded = r.index === loadedIndex;
+              return (
+                <tr
+                  key={r.index}
+                  onClick={() => r.hasMoves && onLoad(r.index)}
+                  title={r.hasMoves ? 'Load on the board' : 'No moves yet — add them above to analyse'}
+                  className={`${r.hasMoves ? 'cursor-pointer' : 'opacity-60'} hover:bg-surface-2 ${isLoaded ? 'bg-accent/10' : ''}`}
+                >
+                  <td className="px-3 py-2 text-fg-subtle tabular-nums">{r.index + 1}</td>
+                  <td className="px-3 py-2">
+                    <span className="text-fg">{r.g.opp}</span>
+                    {r.g.opp_elo > 0 && <span className="ml-1 text-xs text-fg-subtle tabular-nums">({r.g.opp_elo})</span>}
+                    {!r.hasMoves && <span className="ml-2 text-[10px] uppercase tracking-wide text-fg-subtle">no moves</span>}
+                  </td>
+                  <td className="px-3 py-2 text-fg-muted">{r.g.color === 'W' ? '⚪' : '⚫'}</td>
+                  <td className={`px-3 py-2 font-medium ${meta.cls}`}>{meta.label}</td>
+                  <td className="px-3 py-2 text-fg-muted truncate max-w-[260px]" title={r.opening}>{r.opening}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    {r.accuracy !== null ? (
+                      <span className="text-fg">{r.accuracy}%</span>
+                    ) : (
+                      <span className="text-fg-subtle">{r.hasMoves ? '—' : ''}</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-6 text-center text-sm text-fg-muted">No games match your search.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-xs text-fg-subtle">
+        Click a game to load it on the board. “Analyze all” runs Stockfish 18 over every game with moves — it can take a while and fills the accuracy trend.
+      </p>
+    </div>
+  );
+};
+
+export default GamesAnalysisList;
