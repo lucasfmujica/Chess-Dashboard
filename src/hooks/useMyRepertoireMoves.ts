@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Chess } from 'chess.js';
 import { sanitizePgn } from './useGameReplay';
 import { useGames } from '../context/GamesContext';
+import type { PlayerColor } from '../types/chess';
 
 export interface PersonalMove {
   san: string;
@@ -25,17 +26,23 @@ interface Bucket {
   mine: boolean;
 }
 
+type ColorIndex = Record<PlayerColor, Map<string, Map<string, Bucket>>>;
+
 /**
- * Builds an index of the moves played from each position across all of your
- * games that carry moves — both yours and your opponents' — with your result
- * attached, and returns the ones for the current FEN. This means the panel
- * populates on every ply: your moves on your turn, opponents' replies on theirs.
+ * Indexes the moves played from each position across your games that carry
+ * moves, kept SEPARATE by the colour you had in each game. Within one colour a
+ * position is unambiguous: on your turn the moves are yours, on the opponent's
+ * turn they're the replies you faced — never a mix of your white and black games
+ * (which would otherwise count opponents' moves as if they were yours).
+ *
+ * `color` selects which set ('W' = your games as White, 'B' = as Black). The
+ * win/draw/loss split is always from your perspective.
  */
-export const useMyRepertoireMoves = (fen: string): PersonalMove[] => {
+export const useMyRepertoireMoves = (fen: string, color: PlayerColor): PersonalMove[] => {
   const { games } = useGames();
 
-  const index = useMemo(() => {
-    const map = new Map<string, Map<string, Bucket>>();
+  const index = useMemo<ColorIndex>(() => {
+    const maps: ColorIndex = { W: new Map(), B: new Map() };
     games.forEach(g => {
       if (!g.pgn) return;
       const chess = new Chess();
@@ -44,8 +51,8 @@ export const useMyRepertoireMoves = (fen: string): PersonalMove[] => {
       } catch {
         return;
       }
-      const history = chess.history({ verbose: true });
-      history.forEach(m => {
+      const map = maps[g.color];
+      chess.history({ verbose: true }).forEach(m => {
         const moverIsPlayer = (m.color === 'w' && g.color === 'W') || (m.color === 'b' && g.color === 'B');
         const key = fenKey(m.before);
         let byMove = map.get(key);
@@ -61,11 +68,11 @@ export const useMyRepertoireMoves = (fen: string): PersonalMove[] => {
         byMove.set(m.san, bucket);
       });
     });
-    return map;
+    return maps;
   }, [games]);
 
   return useMemo(() => {
-    const byMove = index.get(fenKey(fen));
+    const byMove = index[color].get(fenKey(fen));
     if (!byMove) return [];
     return Array.from(byMove.entries())
       .map(([san, b]) => ({
@@ -78,5 +85,5 @@ export const useMyRepertoireMoves = (fen: string): PersonalMove[] => {
         mine: b.mine,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [index, fen]);
+  }, [index, fen, color]);
 };

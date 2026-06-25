@@ -91,7 +91,11 @@ const GameViewer = ({
   const [settings, setSettings] = useEngineSettings();
   const [engineOn, setEngineOn] = useState(false);
   const engineState = useLocalEngine(fen, settings, showEngine && engineOn);
-  const personalMoves = useMyRepertoireMoves(fen);
+  // Which of your games to show in the personal-moves panel: as White or Black.
+  // Defaults to the side you're viewing the board from.
+  const [personalColor, setPersonalColor] = useState<'W' | 'B'>(orientation === 'black' ? 'B' : 'W');
+  useEffect(() => setPersonalColor(orientation === 'black' ? 'B' : 'W'), [orientation]);
+  const personalMoves = useMyRepertoireMoves(fen, personalColor);
   const opening = useOpeningName(fens, ply);
   const [flipped, setFlipped] = useState(false);
   const moveListRef = useRef<HTMLDivElement>(null);
@@ -313,7 +317,13 @@ const GameViewer = ({
         {/* You vs Masters */}
         {showExplorer && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <PersonalMoves moves={personalMoves} playedMove={playedMove} onPlay={playMove} />
+            <PersonalMoves
+              moves={personalMoves}
+              playedMove={playedMove}
+              onPlay={playMove}
+              color={personalColor}
+              onColorChange={setPersonalColor}
+            />
             <MovesExplorer fen={fen} playedMove={playedMove} onPlayMove={playUci} />
           </div>
         )}
@@ -326,10 +336,12 @@ const GameViewer = ({
         )}
 
         {!isValid ? (
-          <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
-            {explorable
-              ? 'Drag a piece or click a move from the panels above to start exploring a line.'
-              : error || 'This game has no recorded moves to replay.'}
+          <div className={`rounded-lg border p-4 text-sm ${error ? 'border-loss/40 bg-loss/10 text-loss' : 'border-hairline bg-surface-2 text-fg-muted'}`}>
+            {error
+              ? `Couldn’t read this game’s moves: ${error}. The PGN may have a transcription error — re-paste it via “Add moves to a game”.`
+              : explorable
+                ? 'Drag a piece or click a move from the panels above to start exploring a line.'
+                : 'This game has no recorded moves to replay.'}
           </div>
         ) : (
           <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-y-auto">

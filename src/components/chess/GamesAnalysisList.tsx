@@ -24,7 +24,10 @@ interface Row {
   g: Game;
   opening: string;
   accuracy: number | null;
+  /** Has a PGN at all. */
   hasMoves: boolean;
+  /** PGN parses into at least one move (false = present but unreadable). */
+  playable: boolean;
 }
 
 const RESULT_META: Record<Game['result'], { label: string; cls: string }> = {
@@ -44,6 +47,8 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
   // Bumped after each game is analysed so cached accuracy re-reads.
   const [analyzedTick, setAnalyzedTick] = useState(0);
   const [batch, setBatch] = useState<{ done: number; total: number; name: string } | null>(null);
+  // Games that couldn't be analysed in the last batch (unreadable/errored).
+  const [failed, setFailed] = useState<string[]>([]);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -58,17 +63,19 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  // Opening name per game: prefer the position-based dataset, then any stored
-  // name, then the small ECO map, then the raw ECO code. Parsed once per
-  // games/book change (not on every analysis tick).
-  const openings = useMemo<string[]>(
+  // Opening name + parse status per game. Parsing the moves is the expensive
+  // part, so do it once per games/book change (not on every analysis tick).
+  const parsed = useMemo(
     () =>
       games.map(g => {
-        if (book && g.pgn) {
-          const o = deepestOpening(fensFromPgn(g.pgn), book);
-          if (o) return o.name;
+        const fens = g.pgn ? fensFromPgn(g.pgn) : [];
+        const playable = fens.length > 1;
+        let opening = g.opening || ecoNames[g.eco] || g.eco || '—';
+        if (book && playable) {
+          const o = deepestOpening(fens, book);
+          if (o) opening = o.name;
         }
-        return g.opening || ecoNames[g.eco] || g.eco || '—';
+        return { opening, playable };
       }),
     [games, book]
   );
@@ -78,9 +85,16 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
     return games.map((g, index) => {
       const a = getCachedAnalysis(g.pgn);
       const accuracy = a ? (g.color === 'W' ? a.accuracyWhite : a.accuracyBlack) : null;
-      return { index, g, opening: openings[index], accuracy, hasMoves: !!g.pgn };
+      return {
+        index,
+        g,
+        opening: parsed[index].opening,
+        accuracy,
+        hasMoves: !!g.pgn,
+        playable: parsed[index].playable,
+      };
     });
-  }, [games, openings, analyzedTick]);
+  }, [games, parsed, analyzedTick]);
 
   // Overall record across all games (independent of the search filter).
   const record = useMemo(() => {
@@ -128,39 +142,44 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
     return base;
   }, [rows, query, sortKey, sortDir]);
 
+  // Only games whose moves actually parse can be analysed.
   const pendingCount = useMemo(() => {
     void analyzedTick;
-    return games.filter(g => g.pgn && !getCachedAnalysis(g.pgn)).length;
-  }, [games, analyzedTick]);
+    return games.filter((g, i) => parsed[i].playable && !getCachedAnalysis(g.pgn)).length;
+  }, [games, parsed, analyzedTick]);
 
   const analyzeAll = useCallback(async () => {
     const list = games
       .map((g, i) => ({ g, i }))
-      .filter(({ g }) => g.pgn && !getCachedAnalysis(g.pgn));
+      .filter(({ g, i }) => parsed[i].playable && !getCachedAnalysis(g.pgn));
     if (list.length === 0) return;
 
     const controller = new AbortController();
     abortRef.current = controller;
+    setFailed([]);
     setBatch({ done: 0, total: list.length, name: list[0].g.opp });
 
     let done = 0;
+    const failures: string[] = [];
     for (const { g } of list) {
       if (controller.signal.aborted) break;
       setBatch({ done, total: list.length, name: g.opp });
       try {
-        await analyzeAndCacheGame(g.pgn!, fensFromPgn(g.pgn), { signal: controller.signal });
+        const res = await analyzeAndCacheGame(g.pgn!, fensFromPgn(g.pgn), { signal: controller.signal });
+        if (!res) failures.push(g.opp);
       } catch (e) {
         if ((e as Error)?.name === 'AbortError') break;
-        // Skip a game that fails to analyse and keep going.
+        failures.push(g.opp); // skip a game that errors and keep going
       }
       done++;
       setAnalyzedTick(t => t + 1);
       onAnalyzed?.();
       setBatch({ done, total: list.length, name: g.opp });
     }
+    setFailed(failures);
     setBatch(null);
     abortRef.current = null;
-  }, [games, onAnalyzed]);
+  }, [games, parsed, onAnalyzed]);
 
   const cancelBatch = useCallback(() => abortRef.current?.abort(), []);
 
@@ -254,7 +273,13 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
                 <tr
                   key={r.index}
                   onClick={() => r.hasMoves && onLoad(r.index)}
-                  title={r.hasMoves ? 'Load on the board' : 'No moves yet — add them above to analyse'}
+                  title={
+                    !r.hasMoves
+                      ? 'No moves yet — add them above to analyse'
+                      : r.playable
+                        ? 'Load on the board'
+                        : "Has a PGN but the moves can't be read — try re-pasting it"
+                  }
                   className={`${r.hasMoves ? 'cursor-pointer' : 'opacity-60'} hover:bg-surface-2 ${isLoaded ? 'bg-accent/10' : ''}`}
                 >
                   <td className="px-3 py-2 text-fg-subtle tabular-nums">{r.index + 1}</td>
@@ -262,6 +287,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
                     <span className="text-fg">{r.g.opp}</span>
                     {r.g.opp_elo > 0 && <span className="ml-1 text-xs text-fg-subtle tabular-nums">({r.g.opp_elo})</span>}
                     {!r.hasMoves && <span className="ml-2 text-[10px] uppercase tracking-wide text-fg-subtle">no moves</span>}
+                    {r.hasMoves && !r.playable && <span className="ml-2 text-[10px] uppercase tracking-wide text-loss">bad PGN</span>}
                   </td>
                   <td className="px-3 py-2 text-fg-muted">{r.g.color === 'W' ? '⚪' : '⚫'}</td>
                   <td className={`px-3 py-2 font-medium ${meta.cls}`}>{meta.label}</td>
@@ -284,6 +310,11 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
           </tbody>
         </table>
       </div>
+      {failed.length > 0 && (
+        <p className="mt-2 text-xs text-loss">
+          Couldn’t analyse {failed.length} game{failed.length === 1 ? '' : 's'} (unreadable moves): {failed.join(', ')}. Re-paste their PGN above.
+        </p>
+      )}
       <p className="mt-2 text-xs text-fg-subtle">
         Click a game to load it on the board. “Analyze all” runs Stockfish 18 over every game with moves — it can take a while and fills the accuracy trend.
       </p>

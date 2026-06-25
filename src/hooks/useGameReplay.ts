@@ -49,7 +49,8 @@ interface ParsedReplay {
 
 /**
  * Strip PGN constructs chess.js cannot parse in the movetext: comments
- * ({...} and ;...), recursive variations (...) and NAGs ($n).
+ * ({...} and ;...), recursive variations (...) and NAGs ($n), and normalise
+ * common OTB-PGN quirks (zeros for castling, move-suffix annotations).
  */
 export const sanitizePgn = (pgn: string): string => {
   let s = pgn
@@ -62,6 +63,12 @@ export const sanitizePgn = (pgn: string): string => {
     prev = s;
     s = s.replace(/\([^()]*\)/g, ' ');
   } while (s !== prev);
+  // Castling written with zeros (0-0-0 / 0-0) -> letters (O-O-O / O-O); long
+  // castle first so it isn't half-matched. Handles both ASCII '-' and en/em
+  // dashes that some exporters use.
+  s = s.replace(/0[-–—]0[-–—]0/g, 'O-O-O').replace(/0[-–—]0/g, 'O-O');
+  // Drop move-suffix annotations (!, ?, !!, ?!, …) attached to moves.
+  s = s.replace(/[!?]/g, '');
   return s.replace(/[ \t]+/g, ' ');
 };
 
