@@ -69,6 +69,12 @@ export const sanitizePgn = (pgn: string): string => {
   s = s.replace(/0[-–—]0[-–—]0/g, 'O-O-O').replace(/0[-–—]0/g, 'O-O');
   // Drop move-suffix annotations (!, ?, !!, ?!, …) attached to moves.
   s = s.replace(/[!?]/g, '');
+  // Normalise spaced game-termination markers (e.g. Lichess study exports write
+  // "1/2 - 1/2"); chess.js only accepts the canonical "1/2-1/2" / "1-0" / "0-1".
+  s = s
+    .replace(/1\s*\/\s*2\s*[-–—]\s*1\s*\/\s*2/g, '1/2-1/2')
+    .replace(/(^|\s)1\s*[-–—]\s*0(\s|$)/g, (_m, a, b) => `${a}1-0${b}`)
+    .replace(/(^|\s)0\s*[-–—]\s*1(\s|$)/g, (_m, a, b) => `${a}0-1${b}`);
   return s.replace(/[ \t]+/g, ' ');
 };
 
