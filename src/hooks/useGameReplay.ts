@@ -34,7 +34,7 @@ interface ParsedReplay {
  * Strip PGN constructs chess.js cannot parse in the movetext: comments
  * ({...} and ;...), recursive variations (...) and NAGs ($n).
  */
-const sanitizePgn = (pgn: string): string => {
+export const sanitizePgn = (pgn: string): string => {
   let s = pgn
     .replace(/\{[^}]*\}/g, ' ') // brace comments (e.g. clock/eval annotations)
     .replace(/;[^\n]*/g, ' ') // rest-of-line comments

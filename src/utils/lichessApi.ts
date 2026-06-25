@@ -31,6 +31,8 @@ export interface LichessRawGame {
   opening?: { eco?: string; name?: string };
   tournament?: { name?: string } | string;
   clock?: { initial: number; increment: number };
+  /** SAN movetext (present when requested with moves=true). */
+  moves?: string;
 }
 
 export interface LichessUserRating {
@@ -62,6 +64,7 @@ export const fetchLichessGames = async (
       max: max.toString(),
       rated: rated.toString(),
       perfType,
+      moves: 'true', // include SAN movetext so games are replayable/analysable
       pgnInJson: 'false',
       clocks: 'false',
       evals: 'false',
@@ -141,6 +144,7 @@ export const transformLichessGames = (lichessGames: LichessRawGame[], username: 
       timeControl: game.clock ? `${game.clock.initial / 60}+${game.clock.increment}` : 'unlimited',
       opening: game.opening?.name || 'Unknown Opening',
       source: 'lichess', // Mark as Lichess game
+      ...(game.moves ? { pgn: game.moves } : {}),
     };
   });
 };

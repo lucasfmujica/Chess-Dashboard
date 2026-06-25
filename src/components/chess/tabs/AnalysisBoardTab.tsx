@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BeakerIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../context/GamesContext';
 import GameViewer from '../GameViewer';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
@@ -20,15 +20,31 @@ const headerValue = (text: string, key: string): string | undefined =>
  * moves), step through it, see Stockfish accuracy/eval and what masters play.
  */
 const AnalysisBoardTab = () => {
-  const { games } = useGames();
+  const { games, setGames } = useGames();
   const [loaded, setLoaded] = useState<LoadedGame | null>(null);
   const [pasteText, setPasteText] = useState('');
+  const [attachIndex, setAttachIndex] = useState('');
+  const [attachText, setAttachText] = useState('');
 
   // Games that actually carry moves.
   const playableGames = useMemo(
     () => games.map((g, i) => ({ g, i })).filter(({ g }) => !!g.pgn),
     [games]
   );
+
+  // Pre-fill the editor with the selected game's existing moves.
+  const selectAttach = (index: string) => {
+    setAttachIndex(index);
+    const g = games[parseInt(index, 10)];
+    setAttachText(g?.pgn || '');
+  };
+
+  const saveMoves = () => {
+    if (attachIndex === '') return;
+    const idx = parseInt(attachIndex, 10);
+    const moves = attachText.trim();
+    setGames(prev => prev.map((g, i) => (i === idx ? { ...g, pgn: moves || undefined } : g)));
+  };
 
   const loadPaste = () => {
     if (!pasteText.trim()) return;
@@ -115,6 +131,53 @@ const AnalysisBoardTab = () => {
         </div>
       </div>
 
+      {/* Attach moves to an existing game (e.g. OTB games, which are header-only) */}
+      <div className="rounded-lg border border-hairline bg-surface p-5">
+        <div className="flex items-center gap-2">
+          <PlusCircleIcon className="w-5 h-5 text-accent" />
+          <h3 className="text-lg font-semibold text-fg">Add moves to a game</h3>
+        </div>
+        <p className="mt-1 text-sm text-fg-muted">
+          Your over-the-board games are saved without moves. Pick one and paste its PGN to make it
+          replayable and analysable (it then shows up above and feeds the accuracy trend).
+        </p>
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Game</label>
+            <select
+              value={attachIndex}
+              onChange={e => selectAttach(e.target.value)}
+              className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+            >
+              <option value="" disabled>Select a game…</option>
+              {games.map((g, i) => (
+                <option key={i} value={i}>
+                  {g.pgn ? '✓ ' : ''}{g.tournament} — vs {g.opp}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="lg:col-span-2">
+            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">PGN moves</label>
+            <textarea
+              value={attachText}
+              onChange={e => setAttachText(e.target.value)}
+              rows={3}
+              placeholder={'1. e4 e5 2. Nf3 Nc6 ...'}
+              disabled={attachIndex === ''}
+              className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y disabled:opacity-50"
+            />
+            <button
+              onClick={saveMoves}
+              disabled={attachIndex === ''}
+              className="mt-2 px-4 py-2 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Save moves
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Accuracy over analysed games */}
       <AccuracyTrendCard />
 
@@ -127,6 +190,7 @@ const AnalysisBoardTab = () => {
           result={loaded?.result}
           orientation={loaded?.orientation}
           showExplorer
+          showEngine
         />
       </div>
     </div>

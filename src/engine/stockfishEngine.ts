@@ -14,13 +14,45 @@ export interface PositionEval {
   bestMove?: string;
 }
 
+/** One MultiPV line from a live search (side-to-move perspective). */
+export interface EngineLineRaw {
+  multipv: number;
+  depth: number;
+  cp?: number;
+  mate?: number;
+  /** Principal variation in UCI. */
+  pv: string[];
+}
+
+export interface LiveAnalyzeOptions {
+  multipv: number;
+  mode: 'depth' | 'movetime';
+  depth: number;
+  movetimeMs: number;
+  hashMb?: number;
+}
+
 export class StockfishEngine {
   private worker: Worker | null = null;
   private ready = false;
   private listeners: ((line: string) => void)[] = [];
+  /** Serialises live searches so they don't overlap. */
+  private queue: Promise<unknown> = Promise.resolve();
 
   private post(cmd: string): void {
     this.worker?.postMessage(cmd);
+  }
+
+  /** Set a UCI option (e.g. Hash, MultiPV). */
+  setOption(name: string, value: string | number): void {
+    this.post(`setoption name ${name} value ${value}`);
+  }
+
+  /** Stop the current search and wait until the engine is idle again. */
+  private async stopAndSync(): Promise<void> {
+    this.post('stop');
+    this.post('isready');
+    await this.waitFor(l => l.includes('readyok'));
   }
 
   private onLine(line: string): void {
@@ -87,6 +119,52 @@ export class StockfishEngine {
       this.post('position fen ' + fen);
       this.post('go depth ' + depth);
     });
+  }
+
+  /**
+   * Stream a MultiPV search for a position. `onUpdate` fires as lines improve;
+   * resolves when the search ends. Calls are serialised so they never overlap.
+   */
+  analyzeLive(
+    fen: string,
+    opts: LiveAnalyzeOptions,
+    onUpdate: (lines: EngineLineRaw[]) => void
+  ): Promise<void> {
+    const run = async () => {
+      if (!this.ready) await this.init();
+      await this.stopAndSync();
+      if (opts.hashMb) this.setOption('Hash', opts.hashMb);
+      this.setOption('MultiPV', Math.max(1, opts.multipv));
+
+      const lines = new Map<number, EngineLineRaw>();
+      await new Promise<void>(resolveP => {
+        const listener = (line: string) => {
+          if (line.startsWith('info') && line.includes('multipv') && line.includes(' pv ')) {
+            const multipv = parseInt(line.match(/multipv (\d+)/)?.[1] ?? '1', 10);
+            const depth = parseInt(line.match(/ depth (\d+)/)?.[1] ?? '0', 10);
+            const mate = line.match(/score mate (-?\d+)/);
+            const cp = line.match(/score cp (-?\d+)/);
+            const pv = (line.match(/ pv (.+)$/)?.[1] ?? '').trim().split(/\s+/).filter(Boolean);
+            lines.set(multipv, {
+              multipv,
+              depth,
+              mate: mate ? parseInt(mate[1], 10) : undefined,
+              cp: mate ? undefined : cp ? parseInt(cp[1], 10) : undefined,
+              pv,
+            });
+            onUpdate([...lines.values()].sort((a, b) => a.multipv - b.multipv));
+          } else if (line.startsWith('bestmove')) {
+            this.listeners = this.listeners.filter(l => l !== listener);
+            resolveP();
+          }
+        };
+        this.listeners.push(listener);
+        this.post('position fen ' + fen);
+        this.post(opts.mode === 'movetime' ? `go movetime ${opts.movetimeMs}` : `go depth ${opts.depth}`);
+      });
+    };
+    this.queue = this.queue.then(run, run);
+    return this.queue as Promise<void>;
   }
 
   /** Stop any current search. */

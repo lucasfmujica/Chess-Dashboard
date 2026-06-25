@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { Chess } from 'chess.js';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -10,8 +11,14 @@ import {
 import { CpuChipIcon } from '@heroicons/react/24/outline';
 import { useGameReplay } from '../../hooks/useGameReplay';
 import { useGameAnalysis } from '../../hooks/useGameAnalysis';
+import { useEngineSettings } from '../../hooks/useEngineSettings';
+import { useLocalEngine } from '../../hooks/useLocalEngine';
+import { useMyRepertoireMoves } from '../../hooks/useMyRepertoireMoves';
 import type { MoveQuality } from '../../engine/analyzeGame';
 import MovesExplorer from './MovesExplorer';
+import EngineLines from './EngineLines';
+import PersonalMoves from './PersonalMoves';
+import EvalGraph from '../charts/EvalGraph';
 
 interface GameViewerProps {
   pgn?: string;
@@ -19,8 +26,10 @@ interface GameViewerProps {
   white?: string;
   black?: string;
   result?: string;
-  /** Show the Lichess masters opening explorer for the current position. */
+  /** Show the Lichess masters explorer + your own opening tree. */
   showExplorer?: boolean;
+  /** Show the live Stockfish engine panel + best-move arrow. */
+  showEngine?: boolean;
 }
 
 const QUALITY_META: Partial<Record<MoveQuality, { sym: string; cls: string }>> = {
@@ -59,10 +68,22 @@ const ControlButton = ({
   </button>
 );
 
-const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExplorer = false }: GameViewerProps) => {
+const GameViewer = ({
+  pgn,
+  orientation = 'white',
+  white,
+  black,
+  result,
+  showExplorer = false,
+  showEngine = false,
+}: GameViewerProps) => {
   const replay = useGameReplay(pgn);
   const { fen, fens, sans, ply, totalPlies, isValid, error, goTo, next, prev, first, last } = replay;
   const { analysis, analyzing, progress, error: analysisError, analyze, cancel } = useGameAnalysis(pgn, fens);
+  const [settings, setSettings] = useEngineSettings();
+  const [engineOn, setEngineOn] = useState(false);
+  const engineState = useLocalEngine(fen, settings, showEngine && engineOn);
+  const personalMoves = useMyRepertoireMoves(fen);
   const [flipped, setFlipped] = useState(false);
   const moveListRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +112,32 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExpl
     rows.push({ num: i / 2 + 1, white: sans[i], black: sans[i + 1] });
   }
 
-  // Eval bar (chess.com style)
+  // UCI of the move actually played from the current position (for the arrow + highlight).
+  const playedMove = sans[ply];
+  const playedUci = useMemo(() => {
+    if (!playedMove) return undefined;
+    try {
+      const move = new Chess(fen).move(playedMove);
+      return move ? move.from + move.to : undefined;
+    } catch {
+      return undefined;
+    }
+  }, [fen, playedMove]);
+
+  // Board arrows: engine best (green) + your move (muted).
+  const arrows = useMemo(() => {
+    const list: { startSquare: string; endSquare: string; color: string }[] = [];
+    const best = engineState.lines[0]?.firstUci;
+    if (showEngine && engineOn && best && best.length >= 4) {
+      list.push({ startSquare: best.slice(0, 2), endSquare: best.slice(2, 4), color: 'rgba(16,185,129,0.65)' });
+    }
+    if (playedUci) {
+      list.push({ startSquare: playedUci.slice(0, 2), endSquare: playedUci.slice(2, 4), color: 'rgba(100,116,139,0.55)' });
+    }
+    return list;
+  }, [engineState.lines, showEngine, engineOn, playedUci]);
+
+  // Eval bar
   const currentEval = analysis ? analysis.evals[ply] ?? 0 : 0;
   const whiteFraction = analysis ? winPct(currentEval) / 100 : 0.5;
   const flip = boardOrientation === 'black';
@@ -149,6 +195,7 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExpl
                 allowDragging: false,
                 showNotation: true,
                 animationDurationInMs: 150,
+                arrows,
               }}
             />
           </div>
@@ -178,7 +225,7 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExpl
         <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
       </div>
 
-      {/* Move list / analysis / explorer */}
+      {/* Right column: analysis, engine, compare, eval graph, move list */}
       <div className="flex-1 min-w-0 space-y-3">
         {(white || black) && (
           <div className="text-sm">
@@ -189,7 +236,7 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExpl
           </div>
         )}
 
-        {/* Analysis panel */}
+        {/* Full-game analysis (accuracy / blunders) */}
         {isValid && (
           <div className="rounded-lg border border-hairline bg-surface-2 p-3">
             {!analysis && !analyzing && (
@@ -225,15 +272,34 @@ const GameViewer = ({ pgn, orientation = 'white', white, black, result, showExpl
           </div>
         )}
 
-        {/* Opening explorer (masters) */}
-        {showExplorer && <MovesExplorer fen={fen} playedMove={sans[ply]} />}
+        {/* Whole-game evaluation curve */}
+        {analysis && <EvalGraph evals={analysis.evals} ply={ply} onSelect={goTo} />}
+
+        {/* Live engine */}
+        {showEngine && (
+          <EngineLines
+            state={engineState}
+            enabled={engineOn}
+            onToggle={() => setEngineOn(o => !o)}
+            settings={settings}
+            setSettings={setSettings}
+          />
+        )}
+
+        {/* You vs Masters */}
+        {showExplorer && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <PersonalMoves moves={personalMoves} playedMove={playedMove} />
+            <MovesExplorer fen={fen} playedMove={playedMove} />
+          </div>
+        )}
 
         {!isValid ? (
           <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
             {error || 'This game has no recorded moves to replay.'}
           </div>
         ) : (
-          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[360px] overflow-y-auto">
+          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-y-auto">
             <table className="w-full text-sm">
               <tbody>
                 {rows.map(row => {
