@@ -40,27 +40,33 @@ const GeoMap = ({ markers }: GeoMapProps) => {
 
   const { pathFor, projection } = useMemo(() => {
     const proj = geoMercator();
-    // Frame around the markers (with margin) or default to South America.
-    let region: Feature<Polygon>;
+    const extent: [[number, number], [number, number]] = [[PAD, PAD], [WIDTH - PAD, HEIGHT - PAD]];
+
     if (markers.length > 0) {
       const lngs = markers.map(m => m.coordinates[0]);
       const lats = markers.map(m => m.coordinates[1]);
-      const margin = 9;
-      region = bboxRegion(
-        Math.min(...lngs) - margin,
-        Math.min(...lats) - margin,
-        Math.max(...lngs) + margin,
-        Math.max(...lats) + margin
-      );
+      const centroid: [number, number] = [
+        lngs.reduce((a, b) => a + b, 0) / lngs.length,
+        lats.reduce((a, b) => a + b, 0) / lats.length,
+      ];
+      // Derive a base scale that tightly fits the marker points, then back off for
+      // breathing room and clamp so a tight cluster doesn't zoom to street level.
+      const points: FeatureCollection<Geometry> = {
+        type: 'FeatureCollection',
+        features: markers.map(m => ({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: m.coordinates } })),
+      };
+      proj.fitExtent(extent, points);
+      const fitted = proj.scale();
+      const scale = Math.min(Math.max(fitted * 0.5, 130), 1500);
+      proj.scale(scale).center(centroid).translate([WIDTH / 2, HEIGHT / 2]);
     } else {
-      region = bboxRegion(-74, -56, -52, -20); // Argentina-ish
+      proj.fitExtent(extent, bboxRegion(-74, -56, -52, -20)); // Argentina-ish default
     }
-    proj.fitExtent([[PAD, PAD], [WIDTH - PAD, HEIGHT - PAD]], region);
     return { pathFor: geoPath(proj), projection: proj };
   }, [markers]);
 
   const maxTotal = Math.max(1, ...markers.map(m => m.total));
-  const radius = (total: number) => 6 + (total / maxTotal) * 16;
+  const radius = (total: number) => 7 + (total / maxTotal) * 12;
 
   return (
     <div className="relative w-full">
@@ -96,9 +102,9 @@ const GeoMap = ({ markers }: GeoMapProps) => {
                 <circle
                   r={r}
                   fill="rgb(var(--accent))"
-                  fillOpacity={isHovered ? 0.95 : 0.7}
-                  stroke="rgb(var(--accent))"
-                  strokeWidth={isHovered ? 2 : 1}
+                  fillOpacity={isHovered ? 0.95 : 0.82}
+                  stroke="rgb(var(--surface))"
+                  strokeWidth={isHovered ? 3 : 2}
                 />
                 <text
                   textAnchor="middle"
