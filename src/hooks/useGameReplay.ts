@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+export type MoveInput = string | { from: string; to: string; promotion?: string };
 
 export interface GameReplay {
   /** FEN per position; index 0 is the start, index i is after ply i. */
@@ -14,7 +16,7 @@ export interface GameReplay {
   fen: string;
   /** Total number of plies (half-moves). */
   totalPlies: number;
-  /** Whether the PGN parsed into at least one legal move. */
+  /** Whether the line has at least one legal move. */
   isValid: boolean;
   error: string | null;
   goTo: (ply: number) => void;
@@ -22,6 +24,21 @@ export interface GameReplay {
   prev: () => void;
   first: () => void;
   last: () => void;
+  /** Play a move from the current position, extending/branching the line. */
+  playMove: (move: MoveInput) => boolean;
+  /** Restore the originally-loaded game. */
+  reset: () => void;
+  /** True when the current line diverges from the loaded game. */
+  isVariation: boolean;
+  /** First ply index where the line diverges from the loaded game. */
+  variationStart: number;
+}
+
+interface ReplayState {
+  fens: string[];
+  sans: string[];
+  ply: number;
+  error: string | null;
 }
 
 interface ParsedReplay {
@@ -68,25 +85,73 @@ const parsePgn = (pgn?: string): ParsedReplay => {
 };
 
 /**
- * Parse a PGN/movetext string and expose step-through replay state.
+ * Parse a PGN/movetext string and expose step-through replay state plus the
+ * ability to branch off into your own line (navigable analysis tree).
  */
 export const useGameReplay = (pgn?: string): GameReplay => {
-  const { fens, sans, error } = useMemo(() => parsePgn(pgn), [pgn]);
-  const totalPlies = sans.length;
-  const [ply, setPly] = useState(0);
+  const parsed = useMemo(() => parsePgn(pgn), [pgn]);
+  const originalRef = useRef(parsed);
+  const [state, setState] = useState<ReplayState>(() => ({ ...parsed, ply: 0 }));
 
-  // Reset to the start whenever the game changes.
+  // Reset to the loaded game whenever it changes.
   useEffect(() => {
-    setPly(0);
-  }, [pgn]);
+    originalRef.current = parsed;
+    setState({ ...parsed, ply: 0 });
+  }, [parsed]);
 
-  const clamp = useCallback((p: number) => Math.max(0, Math.min(totalPlies, p)), [totalPlies]);
+  const { fens, sans, ply, error } = state;
+  const totalPlies = sans.length;
 
-  const goTo = useCallback((p: number) => setPly(clamp(p)), [clamp]);
-  const next = useCallback(() => setPly(p => clamp(p + 1)), [clamp]);
-  const prev = useCallback(() => setPly(p => clamp(p - 1)), [clamp]);
-  const first = useCallback(() => setPly(0), []);
-  const last = useCallback(() => setPly(totalPlies), [totalPlies]);
+  const setPly = useCallback(
+    (fn: (p: number, len: number) => number) =>
+      setState(s => ({ ...s, ply: Math.max(0, Math.min(s.sans.length, fn(s.ply, s.sans.length))) })),
+    []
+  );
+
+  const goTo = useCallback((p: number) => setPly(() => p), [setPly]);
+  const next = useCallback(() => setPly(p => p + 1), [setPly]);
+  const prev = useCallback(() => setPly(p => p - 1), [setPly]);
+  const first = useCallback(() => setPly(() => 0), [setPly]);
+  const last = useCallback(() => setPly((_p, len) => len), [setPly]);
+
+  const playMove = useCallback((move: MoveInput): boolean => {
+    let ok = false;
+    setState(s => {
+      const chess = new Chess(s.fens[s.ply]);
+      let res = null;
+      try {
+        res = chess.move(move);
+      } catch {
+        res = null;
+      }
+      if (!res) return s;
+      ok = true;
+      // Following the existing next move: just advance.
+      if (s.sans[s.ply] === res.san) return { ...s, ply: s.ply + 1 };
+      // Otherwise branch: truncate at the current ply and append the new move.
+      return {
+        fens: [...s.fens.slice(0, s.ply + 1), chess.fen()],
+        sans: [...s.sans.slice(0, s.ply), res.san],
+        ply: s.ply + 1,
+        error: null,
+      };
+    });
+    return ok;
+  }, []);
+
+  const reset = useCallback(() => setState({ ...originalRef.current, ply: 0 }), []);
+
+  // Where the current line first diverges from the loaded game.
+  const original = originalRef.current.sans;
+  let variationStart = 0;
+  while (
+    variationStart < sans.length &&
+    variationStart < original.length &&
+    sans[variationStart] === original[variationStart]
+  ) {
+    variationStart++;
+  }
+  const isVariation = !(sans.length === original.length && variationStart === sans.length);
 
   return {
     fens,
@@ -101,5 +166,9 @@ export const useGameReplay = (pgn?: string): GameReplay => {
     prev,
     first,
     last,
+    playMove,
+    reset,
+    isVariation,
+    variationStart,
   };
 };

@@ -5,10 +5,12 @@ interface PersonalMovesProps {
   moves: PersonalMove[];
   /** Highlight the move actually played in the loaded game. */
   playedMove?: string;
+  /** Play this move into the line (navigable tree). */
+  onPlay?: (san: string) => void;
 }
 
 /** What YOU have played from the current position, across your own games. */
-const PersonalMoves = ({ moves, playedMove }: PersonalMovesProps) => (
+const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => (
   <div className="rounded-lg border border-hairline bg-surface">
     <div className="px-4 py-2.5 border-b border-hairline flex items-center gap-2">
       <UserIcon className="w-5 h-5 text-accent" />
@@ -24,7 +26,11 @@ const PersonalMoves = ({ moves, playedMove }: PersonalMovesProps) => (
           {moves.map(m => {
             const isPlayed = playedMove && m.san === playedMove;
             return (
-              <tr key={m.san} className={isPlayed ? 'bg-accent/10' : ''}>
+              <tr
+                key={m.san}
+                onClick={() => onPlay?.(m.san)}
+                className={`${onPlay ? 'cursor-pointer' : ''} hover:bg-surface-2 ${isPlayed ? 'bg-accent/10' : ''}`}
+              >
                 <td className="px-3 py-1.5">
                   <span className={`font-medium tabular-nums ${isPlayed ? 'text-accent' : 'text-fg'}`}>{m.san}</span>
                 </td>

@@ -78,8 +78,15 @@ const GameViewer = ({
   showEngine = false,
 }: GameViewerProps) => {
   const replay = useGameReplay(pgn);
-  const { fen, fens, sans, ply, totalPlies, isValid, error, goTo, next, prev, first, last } = replay;
+  const {
+    fen, fens, sans, ply, totalPlies, isValid, error,
+    goTo, next, prev, first, last, playMove, reset, isVariation, variationStart,
+  } = replay;
   const { analysis, analyzing, progress, error: analysisError, analyze, cancel } = useGameAnalysis(pgn, fens);
+  const explorable = showExplorer || showEngine;
+
+  const playUci = (uci: string): boolean =>
+    playMove({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci.length > 4 ? uci[4] : undefined });
   const [settings, setSettings] = useEngineSettings();
   const [engineOn, setEngineOn] = useState(false);
   const engineState = useLocalEngine(fen, settings, showEngine && engineOn);
@@ -137,9 +144,10 @@ const GameViewer = ({
     return list;
   }, [engineState.lines, showEngine, engineOn, playedUci]);
 
-  // Eval bar
-  const currentEval = analysis ? analysis.evals[ply] ?? 0 : 0;
-  const whiteFraction = analysis ? winPct(currentEval) / 100 : 0.5;
+  // Eval bar — only valid on mainline positions the full-game analysis covers.
+  const evalAvailable = !!analysis && (!isVariation || ply <= variationStart) && analysis.evals[ply] !== undefined;
+  const currentEval = evalAvailable ? analysis!.evals[ply] : 0;
+  const whiteFraction = evalAvailable ? winPct(currentEval) / 100 : 0.5;
   const flip = boardOrientation === 'black';
   const whiteWinning = currentEval >= 0;
   const labelAtBottom = whiteWinning !== flip;
@@ -147,15 +155,17 @@ const GameViewer = ({
   const evalLabel = isMate ? '#' : (Math.abs(currentEval) / 100).toFixed(1);
 
   const moveButton = (san: string, plyNum: number) => {
-    const q = analysis?.moves[plyNum - 1]?.quality;
+    const isVar = isVariation && plyNum - 1 >= variationStart;
+    const q = isVar ? undefined : analysis?.moves[plyNum - 1]?.quality;
     const meta = q ? QUALITY_META[q] : undefined;
     return (
       <button
         data-active={ply === plyNum}
         onClick={() => goTo(plyNum)}
         className={`px-2 py-0.5 rounded font-medium tabular-nums transition-colors ${
-          ply === plyNum ? 'bg-accent/15 text-accent' : 'text-fg hover:bg-surface-2'
+          ply === plyNum ? 'bg-accent/15 text-accent' : isVar ? 'text-fg-muted italic hover:bg-surface-2' : 'text-fg hover:bg-surface-2'
         }`}
+        title={isVar ? 'Variation move' : undefined}
       >
         {san}
         {meta && <sup className={`ml-0.5 font-bold ${meta.cls}`}>{meta.sym}</sup>}
@@ -177,7 +187,7 @@ const GameViewer = ({
               className="absolute left-0 right-0 bg-white transition-all duration-200"
               style={flip ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
             />
-            {analysis && (
+            {evalAvailable && (
               <span
                 className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-slate-900' : 'text-white'}`}
                 style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
@@ -192,10 +202,12 @@ const GameViewer = ({
               options={{
                 position: fen,
                 boardOrientation,
-                allowDragging: false,
+                allowDragging: explorable,
                 showNotation: true,
                 animationDurationInMs: 150,
                 arrows,
+                onPieceDrop: ({ sourceSquare, targetSquare }) =>
+                  targetSquare ? playMove({ from: sourceSquare, to: targetSquare, promotion: 'q' }) : false,
               }}
             />
           </div>
@@ -272,8 +284,8 @@ const GameViewer = ({
           </div>
         )}
 
-        {/* Whole-game evaluation curve */}
-        {analysis && <EvalGraph evals={analysis.evals} ply={ply} onSelect={goTo} />}
+        {/* Whole-game evaluation curve (mainline only) */}
+        {analysis && !isVariation && <EvalGraph evals={analysis.evals} ply={ply} onSelect={goTo} />}
 
         {/* Live engine */}
         {showEngine && (
@@ -283,20 +295,30 @@ const GameViewer = ({
             onToggle={() => setEngineOn(o => !o)}
             settings={settings}
             setSettings={setSettings}
+            onPlay={playUci}
           />
         )}
 
         {/* You vs Masters */}
         {showExplorer && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <PersonalMoves moves={personalMoves} playedMove={playedMove} />
-            <MovesExplorer fen={fen} playedMove={playedMove} />
+            <PersonalMoves moves={personalMoves} playedMove={playedMove} onPlay={playMove} />
+            <MovesExplorer fen={fen} playedMove={playedMove} onPlayMove={playUci} />
+          </div>
+        )}
+
+        {isVariation && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm">
+            <span className="text-accent">You’re exploring a variation.</span>
+            <button onClick={reset} className="font-medium text-accent hover:underline">← Back to game</button>
           </div>
         )}
 
         {!isValid ? (
           <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
-            {error || 'This game has no recorded moves to replay.'}
+            {explorable
+              ? 'Drag a piece or click a move from the panels above to start exploring a line.'
+              : error || 'This game has no recorded moves to replay.'}
           </div>
         ) : (
           <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-y-auto">

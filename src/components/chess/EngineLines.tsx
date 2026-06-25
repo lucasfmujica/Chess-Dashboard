@@ -9,11 +9,13 @@ interface EngineLinesProps {
   onToggle: () => void;
   settings: EngineSettings;
   setSettings: (s: EngineSettings) => void;
+  /** Play a line's first move into the board line (navigable tree). */
+  onPlay?: (uci: string) => void;
 }
 
 const HASH_OPTIONS = [16, 32, 64, 128, 256];
 
-const EngineLines = ({ state, enabled, onToggle, settings, setSettings }: EngineLinesProps) => {
+const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }: EngineLinesProps) => {
   const [showSettings, setShowSettings] = useState(false);
   const patch = (p: Partial<EngineSettings>) => setSettings({ ...settings, ...p });
 
@@ -99,7 +101,11 @@ const EngineLines = ({ state, enabled, onToggle, settings, setSettings }: Engine
       ) : (
         <ul className="divide-y divide-hairline">
           {state.lines.map(line => (
-            <li key={line.rank} className="px-4 py-1.5 flex items-baseline gap-3 text-sm">
+            <li
+              key={line.rank}
+              onClick={() => line.firstUci && onPlay?.(line.firstUci)}
+              className={`px-4 py-1.5 flex items-baseline gap-3 text-sm ${onPlay && line.firstUci ? 'cursor-pointer hover:bg-surface-2' : ''}`}
+            >
               <span className={`w-12 flex-shrink-0 font-semibold tabular-nums ${line.evalCp >= 0 ? 'text-fg' : 'text-loss'}`}>
                 {line.evalText}
               </span>
