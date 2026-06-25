@@ -82,21 +82,21 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
   };
 
   return (
-    <div className="p-6 border-2 border-indigo-200 rounded-lg shadow-md bg-gradient-to-r from-indigo-50 to-purple-50">
-      <h3 className="flex items-center mb-4 text-lg font-semibold text-indigo-900">
-        <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+    <div className="p-6 rounded-lg border border-hairline bg-surface">
+      <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
+        <svg className="w-5 h-5 mr-2 text-accent" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
         </svg>
         Lichess.org Integration
       </h3>
 
-      <p className="mb-4 text-sm text-indigo-800">
+      <p className="mb-4 text-sm text-fg-muted">
         Automatically import your recent games from Lichess.org
       </p>
 
       <div className="space-y-4">
         <div>
-          <label className="block mb-2 text-sm font-medium text-gray-700">
+          <label className="block mb-2 text-sm font-medium text-fg-muted">
             Lichess Username
           </label>
           <input
@@ -104,20 +104,20 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
             value={lichessUsername}
             onChange={(e) => setLichessUsername(e.target.value)}
             placeholder="Enter your Lichess username"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
             disabled={isSyncing}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-fg-muted">
               Max Games to Import
             </label>
             <select
               value={maxGames}
               onChange={(e) => setMaxGames(parseInt(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
               disabled={isSyncing}
             >
               <option value="20">20 games</option>
@@ -128,13 +128,13 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
           </div>
 
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
+            <label className="block mb-2 text-sm font-medium text-fg-muted">
               Game Types
             </label>
             <select
               value={perfType}
               onChange={(e) => setPerfType(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
               disabled={isSyncing}
             >
               <option value="classical,rapid,blitz">All (Classical, Rapid, Blitz)</option>
@@ -149,9 +149,9 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         <button
           onClick={handleSync}
           disabled={isSyncing || !lichessUsername.trim()}
-          className={`w-full px-6 py-3 text-white font-medium rounded-lg transition-colors ${isSyncing || !lichessUsername.trim()
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-indigo-600 hover:bg-indigo-700'
+          className={`w-full px-6 py-3 font-medium rounded-md transition-colors ${isSyncing || !lichessUsername.trim()
+            ? 'bg-surface-2 text-fg-subtle cursor-not-allowed'
+            : 'bg-fg text-app hover:opacity-90'
             }`}
         >
           {isSyncing ? (
@@ -168,10 +168,10 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         </button>
 
         {syncStatus && (
-          <div className={`p-4 rounded-lg ${syncStatus.type === 'success' ? 'bg-green-100 border border-green-300 text-green-800' :
-            syncStatus.type === 'error' ? 'bg-red-100 border border-red-300 text-red-800' :
-              syncStatus.type === 'warning' ? 'bg-yellow-100 border border-yellow-300 text-yellow-800' :
-                'bg-blue-100 border border-blue-300 text-blue-800'
+          <div className={`p-4 rounded-md border ${syncStatus.type === 'success' ? 'bg-win/10 border-win/30 text-win' :
+            syncStatus.type === 'error' ? 'bg-loss/10 border-loss/30 text-loss' :
+              syncStatus.type === 'warning' ? 'bg-draw/10 border-draw/30 text-draw' :
+                'bg-accent/10 border-accent/30 text-accent'
             }`}>
             <div className="flex items-start">
               <span className="mr-2 text-lg">
@@ -185,9 +185,9 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         )}
       </div>
 
-      <div className="p-4 mt-4 bg-white rounded-lg">
-        <h4 className="mb-2 text-sm font-semibold text-gray-700">How it works:</h4>
-        <ul className="space-y-1 text-xs text-gray-600 list-disc list-inside">
+      <div className="p-4 mt-4 rounded-md border border-hairline bg-surface-2">
+        <h4 className="mb-2 text-sm font-semibold text-fg">How it works:</h4>
+        <ul className="space-y-1 text-xs text-fg-muted list-disc list-inside">
           <li>Enter your Lichess username (case-insensitive)</li>
           <li>Select how many recent games to import</li>
           <li>Games will be automatically added to your dashboard</li>

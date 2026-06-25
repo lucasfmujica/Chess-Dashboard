@@ -1,4 +1,4 @@
-import { StarIcon, ChartBarIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { TrophyIcon, ScaleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 interface TournamentSummaryStats {
   totalWins: number;
@@ -17,7 +17,7 @@ const TournamentSummaryCards = ({ stats }: TournamentSummaryCardsProps) => {
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-surface-2 rounded-lg">
-              <StarIcon className="w-6 h-6 text-win" />
+              <TrophyIcon className="w-6 h-6 text-win" />
             </div>
           </div>
           <p className="text-sm font-medium text-fg-muted mb-1">Total Wins</p>
@@ -29,7 +29,7 @@ const TournamentSummaryCards = ({ stats }: TournamentSummaryCardsProps) => {
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-surface-2 rounded-lg">
-              <ChartBarIcon className="w-6 h-6 text-draw" />
+              <ScaleIcon className="w-6 h-6 text-draw" />
             </div>
           </div>
           <p className="text-sm font-medium text-fg-muted mb-1">Total Draws</p>
@@ -41,7 +41,7 @@ const TournamentSummaryCards = ({ stats }: TournamentSummaryCardsProps) => {
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-surface-2 rounded-lg">
-              <UsersIcon className="w-6 h-6 text-loss" />
+              <XCircleIcon className="w-6 h-6 text-loss" />
             </div>
           </div>
           <p className="text-sm font-medium text-fg-muted mb-1">Total Losses</p>
