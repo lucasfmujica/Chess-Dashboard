@@ -111,7 +111,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
     return Object.entries(ranges).map(([range, count]) => ({
       range,
       count,
-      fill: range.startsWith('+') ? '#10b981' : range.startsWith('-') ? '#ef4444' : '#6b7280'
+      fill: range.startsWith('+') ? 'rgb(var(--win))' : range.startsWith('-') ? 'rgb(var(--loss))' : 'rgb(var(--fg-subtle))'
     }));
   }, [eloHistory]);
 
@@ -197,11 +197,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2.5 bg-surface-2 rounded-lg">
-                <ArrowTrendingUpIcon className="w-5 h-5 text-emerald-600" />
+                <ArrowTrendingUpIcon className="w-5 h-5 text-win" />
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Best Game</p>
-            <p className="text-2xl font-bold text-emerald-600 tabular-nums">+{stats.biggestGain}</p>
+            <p className="text-2xl font-bold text-win tabular-nums">+{stats.biggestGain}</p>
           </div>
         </div>
 
@@ -210,11 +210,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2.5 bg-surface-2 rounded-lg">
-                <ArrowTrendingDownIcon className="w-5 h-5 text-rose-600" />
+                <ArrowTrendingDownIcon className="w-5 h-5 text-loss" />
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Worst Game</p>
-            <p className="text-2xl font-bold text-rose-600 tabular-nums">{stats.biggestLoss}</p>
+            <p className="text-2xl font-bold text-loss tabular-nums">{stats.biggestLoss}</p>
           </div>
         </div>
 
@@ -227,7 +227,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Avg Change</p>
-            <p className={`text-2xl font-bold tabular-nums ${stats.averageEloChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p className={`text-2xl font-bold tabular-nums ${stats.averageEloChange >= 0 ? 'text-win' : 'text-loss'}`}>
               {stats.averageEloChange >= 0 ? '+' : ''}{stats.averageEloChange.toFixed(1)}
             </p>
           </div>
@@ -238,11 +238,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2.5 bg-surface-2 rounded-lg">
-                <FireIcon className="w-5 h-5 text-emerald-600" />
+                <FireIcon className="w-5 h-5 text-win" />
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Rating Gains</p>
-            <p className="text-2xl font-bold text-emerald-600 tabular-nums">{stats.positiveGames}</p>
+            <p className="text-2xl font-bold text-win tabular-nums">{stats.positiveGames}</p>
           </div>
         </div>
 
@@ -251,11 +251,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2.5 bg-surface-2 rounded-lg">
-                <ChartBarIcon className="w-5 h-5 text-rose-600" />
+                <ChartBarIcon className="w-5 h-5 text-loss" />
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Rating Drops</p>
-            <p className="text-2xl font-bold text-rose-600 tabular-nums">{stats.negativeGames}</p>
+            <p className="text-2xl font-bold text-loss tabular-nums">{stats.negativeGames}</p>
           </div>
         </div>
       </div>
@@ -273,52 +273,52 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
             <ComposedChart data={eloHistory}>
               <defs>
                 <linearGradient id="eloAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                  <stop offset="5%" stopColor="rgb(var(--accent))" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="rgb(var(--accent))" stopOpacity={0.05}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeOpacity={0.5} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" strokeOpacity={0.5} />
               <XAxis
                 dataKey="game"
                 label={{ value: 'Game Number', position: 'insideBottom', offset: -8, style: { fontSize: 14, fontWeight: 600 } }}
-                stroke="#6b7280"
+                stroke="rgb(var(--fg-subtle))"
                 tick={{ fontSize: 12 }}
               />
               <YAxis
                 domain={[1400, 1950]}
                 label={{ value: 'ELO Rating', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
-                stroke="#6b7280"
+                stroke="rgb(var(--fg-subtle))"
                 tick={{ fontSize: 12 }}
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
-                    const changeColor = data.eloChange > 0 ? 'text-emerald-600' : data.eloChange < 0 ? 'text-rose-600' : 'text-gray-600';
-                    const changeBg = data.eloChange > 0 ? 'bg-emerald-50' : data.eloChange < 0 ? 'bg-rose-50' : 'bg-gray-50';
+                    const changeColor = data.eloChange > 0 ? 'text-win' : data.eloChange < 0 ? 'text-loss' : 'text-fg-muted';
+                    const changeBg = data.eloChange > 0 ? 'bg-win/10' : data.eloChange < 0 ? 'bg-loss/10' : 'bg-surface-2';
                     return (
-                      <div className="p-5 bg-white border-2 border-blue-100 rounded-2xl shadow-2xl backdrop-blur-sm">
+                      <div className="p-5 bg-surface border border-hairline rounded-lg shadow-lg">
                         <div className="flex items-center justify-between mb-3">
-                          <p className="text-xl font-bold text-gray-900">Game {data.game}</p>
+                          <p className="text-xl font-bold text-fg">Game {data.game}</p>
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${changeBg} ${changeColor}`}>
                             {data.eloChange > 0 ? '+' : ''}{data.eloChange}
                           </span>
                         </div>
-                        <p className="text-sm text-indigo-600 font-semibold mb-1">{data.tournament}</p>
-                        <p className="text-sm text-gray-700 font-medium mb-1">vs {data.opponent}</p>
-                        <p className="text-xs text-gray-500 mb-3">{data.opening}</p>
-                        <div className="pt-3 border-t-2 border-gray-100 space-y-2">
+                        <p className="text-sm text-accent font-semibold mb-1">{data.tournament}</p>
+                        <p className="text-sm text-fg-muted font-medium mb-1">vs {data.opponent}</p>
+                        <p className="text-xs text-fg-subtle mb-3">{data.opening}</p>
+                        <div className="pt-3 border-t-2 border-hairline space-y-2">
                           <div className="flex justify-between gap-8">
-                            <span className="text-sm text-gray-600 font-medium">Before:</span>
-                            <span className="text-sm font-bold text-gray-800">{data.eloBefore}</span>
+                            <span className="text-sm text-fg-muted font-medium">Before:</span>
+                            <span className="text-sm font-bold text-fg">{data.eloBefore}</span>
                           </div>
                           <div className="flex justify-between gap-8">
-                            <span className="text-sm text-gray-600 font-medium">After:</span>
-                            <span className="text-sm font-bold text-blue-600">{data.elo}</span>
+                            <span className="text-sm text-fg-muted font-medium">After:</span>
+                            <span className="text-sm font-bold text-accent">{data.elo}</span>
                           </div>
                           <div className="flex justify-between gap-8">
-                            <span className="text-sm text-gray-600 font-medium">K-factor:</span>
-                            <span className="text-sm font-semibold text-purple-600">{data.kFactor}</span>
+                            <span className="text-sm text-fg-muted font-medium">K-factor:</span>
+                            <span className="text-sm font-semibold text-accent">{data.kFactor}</span>
                           </div>
                         </div>
                       </div>
@@ -337,12 +337,12 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
               <Line
                 type="monotone"
                 dataKey="elo"
-                stroke="#3b82f6"
+                stroke="rgb(var(--accent))"
                 strokeWidth={3}
                 name="ELO Rating"
                 dot={(props) => {
                   const { cx, cy, payload } = props;
-                  const dotColor = payload.eloChange > 0 ? '#10b981' : payload.eloChange < 0 ? '#ef4444' : '#6b7280';
+                  const dotColor = payload.eloChange > 0 ? 'rgb(var(--win))' : payload.eloChange < 0 ? 'rgb(var(--loss))' : 'rgb(var(--fg-subtle))';
                   return (
                     <circle
                       cx={cx}
@@ -354,9 +354,9 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
                     />
                   );
                 }}
-                activeDot={{ r: 8, fill: '#2563eb', stroke: '#fff', strokeWidth: 3 }}
+                activeDot={{ r: 8, fill: 'rgb(var(--accent))', stroke: '#fff', strokeWidth: 3 }}
               />
-              <ReferenceLine y={stats.highestElo} stroke="#f59e0b" strokeDasharray="5 5" label={{ value: `Peak: ${stats.highestElo}`, position: 'right', fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }} />
+              <ReferenceLine y={stats.highestElo} stroke="rgb(var(--draw))" strokeDasharray="5 5" label={{ value: `Peak: ${stats.highestElo}`, position: 'right', fill: 'rgb(var(--draw))', fontSize: 12, fontWeight: 'bold' }} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -373,47 +373,47 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
             <BarChart data={eloHistory}>
               <defs>
                 <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.3}/>
+                  <stop offset="5%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.3}/>
                 </linearGradient>
                 <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                  <stop offset="5%" stopColor="rgb(var(--accent))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="rgb(var(--accent))" stopOpacity={0.3}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
               <XAxis
                 dataKey="game"
                 label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }}
-                stroke="#6b7280"
+                stroke="rgb(var(--fg-subtle))"
               />
               <YAxis
                 domain={[0, 1]}
                 label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
-                stroke="#6b7280"
+                stroke="rgb(var(--fg-subtle))"
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
-                    const diffColor = data.diff > 0 ? 'text-emerald-600' : 'text-rose-600';
+                    const diffColor = data.diff > 0 ? 'text-win' : 'text-loss';
                     return (
-                      <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
-                        <p className="font-bold text-gray-900 text-lg mb-2">Game {data.game}</p>
-                        <p className="text-sm text-gray-600 mb-3">{data.opening}</p>
+                      <div className="p-4 bg-surface border border-hairline rounded-lg shadow-lg">
+                        <p className="font-bold text-fg text-lg mb-2">Game {data.game}</p>
+                        <p className="text-sm text-fg-muted mb-3">{data.opening}</p>
                         <div className="space-y-1 mb-2">
                           <div className="flex justify-between gap-4">
-                            <span className="text-sm text-gray-600">Expected:</span>
-                            <span className="text-sm font-semibold text-gray-700">{data.expected.toFixed(2)}</span>
+                            <span className="text-sm text-fg-muted">Expected:</span>
+                            <span className="text-sm font-semibold text-fg-muted">{data.expected.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between gap-4">
-                            <span className="text-sm text-gray-600">Actual:</span>
-                            <span className="text-sm font-semibold text-blue-600">{data.actual.toFixed(2)}</span>
+                            <span className="text-sm text-fg-muted">Actual:</span>
+                            <span className="text-sm font-semibold text-accent">{data.actual.toFixed(2)}</span>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-gray-200">
                           <div className="flex justify-between gap-4">
-                            <span className="text-sm text-gray-600">Difference:</span>
+                            <span className="text-sm text-fg-muted">Difference:</span>
                             <span className={`text-sm font-bold ${diffColor}`}>
                               {data.diff > 0 ? '+' : ''}{data.diff.toFixed(2)}
                             </span>
@@ -444,27 +444,27 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={eloChangeDistribution}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
                 <XAxis
                   dataKey="range"
                   angle={-45}
                   textAnchor="end"
                   height={80}
                   tick={{ fontSize: 11 }}
-                  stroke="#6b7280"
+                  stroke="rgb(var(--fg-subtle))"
                 />
                 <YAxis
                   label={{ value: 'Games', angle: -90, position: 'insideLeft' }}
-                  stroke="#6b7280"
+                  stroke="rgb(var(--fg-subtle))"
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
-                          <p className="font-bold text-gray-900 text-lg mb-2">{data.range}</p>
-                          <p className="text-sm text-gray-600">Games: <span className="font-bold text-blue-600">{data.count}</span></p>
+                        <div className="p-4 bg-surface border border-hairline rounded-lg shadow-lg">
+                          <p className="font-bold text-fg text-lg mb-2">{data.range}</p>
+                          <p className="text-sm text-fg-muted">Games: <span className="font-bold text-accent">{data.count}</span></p>
                         </div>
                       );
                     }
@@ -490,32 +490,32 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
             </div>
             <ResponsiveContainer width="100%" height={getChartHeight('regular')}>
               <BarChart data={tournamentPerformance} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
                 <XAxis
                   type="number"
                   label={{ value: 'Total ELO Change', position: 'insideBottom', offset: -5 }}
-                  stroke="#6b7280"
+                  stroke="rgb(var(--fg-subtle))"
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
                   width={150}
                   tick={{ fontSize: 10 }}
-                  stroke="#6b7280"
+                  stroke="rgb(var(--fg-subtle))"
                 />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="p-4 bg-white border-0 rounded-xl shadow-xl">
-                          <p className="font-bold text-gray-900 text-base mb-2">{data.name}</p>
+                        <div className="p-4 bg-surface border border-hairline rounded-lg shadow-lg">
+                          <p className="font-bold text-fg text-base mb-2">{data.name}</p>
                           <div className="space-y-1">
-                            <p className="text-sm text-gray-600">Games: <span className="font-semibold text-gray-800">{data.games}</span></p>
-                            <p className="text-sm text-gray-600">Total Change: <span className={`font-bold ${data.totalChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{data.totalChange >= 0 ? '+' : ''}{data.totalChange}</span></p>
-                            <p className="text-sm text-gray-600">Avg/Game: <span className="font-semibold text-blue-600">{data.avgChange}</span></p>
+                            <p className="text-sm text-fg-muted">Games: <span className="font-semibold text-fg">{data.games}</span></p>
+                            <p className="text-sm text-fg-muted">Total Change: <span className={`font-bold ${data.totalChange >= 0 ? 'text-win' : 'text-loss'}`}>{data.totalChange >= 0 ? '+' : ''}{data.totalChange}</span></p>
+                            <p className="text-sm text-fg-muted">Avg/Game: <span className="font-semibold text-accent">{data.avgChange}</span></p>
                             <div className="pt-2 border-t border-gray-200 mt-2">
-                              <p className="text-xs text-gray-500">Start: {data.startElo} → End: {data.endElo}</p>
+                              <p className="text-xs text-fg-subtle">Start: {data.startElo} → End: {data.endElo}</p>
                             </div>
                           </div>
                         </div>
@@ -528,7 +528,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
                   {tournamentPerformance.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.totalChange >= 0 ? '#10b981' : '#ef4444'}
+                      fill={entry.totalChange >= 0 ? 'rgb(var(--win))' : 'rgb(var(--loss))'}
                     />
                   ))}
                 </Bar>

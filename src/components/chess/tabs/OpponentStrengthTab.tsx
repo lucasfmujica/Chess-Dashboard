@@ -352,28 +352,28 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
             <BarChart data={chartData} barGap={8}>
               <defs>
                 <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0.8}/>
+                  <stop offset="5%" stopColor="rgb(var(--accent))" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="rgb(var(--accent))" stopOpacity={0.55}/>
                 </linearGradient>
                 <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#64748b" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.6}/>
+                  <stop offset="95%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.35}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" opacity={0.5} />
               <XAxis
                 dataKey="bracket"
                 angle={-15}
                 textAnchor="end"
                 height={90}
                 tick={{ fontSize: 12, fontWeight: 600 }}
-                stroke="#64748b"
+                stroke="rgb(var(--fg-subtle))"
               />
               <YAxis
                 label={{ value: 'Score %', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
                 domain={[0, 100]}
                 tick={{ fontSize: 12 }}
-                stroke="#64748b"
+                stroke="rgb(var(--fg-subtle))"
               />
               <Tooltip
                 cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
