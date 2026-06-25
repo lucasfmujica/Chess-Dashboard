@@ -1,4 +1,4 @@
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import ResultsDonut from '../../charts/ResultsDonut';
 import { PlayIcon } from '@heroicons/react/24/solid';
 import type { Game, GameStats } from '../../../types/chess';
 import { useGameViewer } from '../../../context/GameViewerContext';
@@ -74,30 +74,8 @@ const WhiteGamesTab = ({
       </div>
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Results Distribution as White</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={[
-                { name: 'Wins', value: whiteStats.wins },
-                { name: 'Draws', value: whiteStats.draws },
-                { name: 'Losses', value: whiteStats.losses }
-              ]}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, value, percent }: { name?: string; value?: number; percent?: number }) => `${name}: ${value} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              <Cell fill="#10b981" />
-              <Cell fill="#f59e0b" />
-              <Cell fill="#ef4444" />
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
+        <h3 className="mb-4 text-lg font-semibold text-fg">Results distribution as White</h3>
+        <ResultsDonut wins={whiteStats.wins} draws={whiteStats.draws} losses={whiteStats.losses} />
       </div>
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
-import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import ResultsDonut from '../../charts/ResultsDonut';
 import GeoMap from '../../charts/GeoMap';
 import { useGames } from '../../../context/GamesContext';
 import { useGeographyStats } from '../../../hooks/useGeographyStats';
@@ -115,46 +116,8 @@ const OverviewTab = ({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Results Distribution */}
         <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-base font-semibold text-fg">Results Distribution</h3>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span className="text-fg-muted">Wins</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                <span className="text-fg-muted">Draws</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
-                <span className="text-fg-muted">Losses</span>
-              </span>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={getChartHeight('small')}>
-            <PieChart>
-              <Pie
-                data={[
-                  { name: 'Wins', value: overallStats.wins },
-                  { name: 'Draws', value: overallStats.draws },
-                  { name: 'Losses', value: overallStats.losses }
-                ]}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value, percent }) => `${name}: ${value} (${((percent ?? 0) * 100).toFixed(0)}%)`}
-                outerRadius={90}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                <Cell fill="#10b981" />
-                <Cell fill="#f59e0b" />
-                <Cell fill="#ef4444" />
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <h3 className="mb-4 text-base font-semibold text-fg">Results Distribution</h3>
+          <ResultsDonut wins={overallStats.wins} draws={overallStats.draws} losses={overallStats.losses} />
         </div>
 
         {/* Performance by Color */}

@@ -356,16 +356,16 @@ const ChessDashboard = () => {
 
           {activeTab === 'by-color' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
                 <button
                   onClick={() => setActiveTab('by-color-white')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
                 >
                   ⚪ White Games
                 </button>
                 <button
                   onClick={() => setActiveTab('by-color-black')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
                 >
                   ⚫ Black Games
                 </button>
@@ -384,16 +384,16 @@ const ChessDashboard = () => {
 
           {activeTab === 'by-color-white' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
                 <button
                   onClick={() => setActiveTab('by-color')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg"
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
                 >
                   ⚪ White Games
                 </button>
                 <button
                   onClick={() => setActiveTab('by-color-black')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
                 >
                   ⚫ Black Games
                 </button>
@@ -412,16 +412,16 @@ const ChessDashboard = () => {
 
           {activeTab === 'by-color-black' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200/60 p-2 inline-flex gap-2">
+              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
                 <button
                   onClick={() => setActiveTab('by-color')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all text-slate-700 hover:bg-slate-100"
+                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
                 >
                   ⚪ White Games
                 </button>
                 <button
                   onClick={() => setActiveTab('by-color-black')}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm transition-all bg-gradient-to-r from-gray-700 to-gray-900 text-white shadow-lg"
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
                 >
                   ⚫ Black Games
                 </button>
