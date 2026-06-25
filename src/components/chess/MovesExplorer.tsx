@@ -27,9 +27,18 @@ interface MovesExplorerProps {
 
 const pct = (part: number, total: number) => (total > 0 ? Math.round((part / total) * 100) : 0);
 
+/** Cache explorer results per position so stepping back/forth never refetches. */
+const explorerCache = new Map<string, ExplorerData>();
+
+const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 /**
  * Lichess masters opening explorer for the current position: what masters play,
  * with white/draw/black result rates. Public API, no key required.
+ *
+ * The explorer host is aggressively rate-limited (and occasionally returns
+ * auth/availability errors), so results are cached per position and rate-limit
+ * responses are retried with backoff before giving up.
  */
 const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
   const [data, setData] = useState<ExplorerData | null>(null);
@@ -37,23 +46,61 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Serve cached positions instantly, with no spinner or network call.
+    const cached = explorerCache.get(fen);
+    if (cached) {
+      setData(cached);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
-    const timer = setTimeout(async () => {
+    let cancelled = false;
+    const url = `https://explorer.lichess.ovh/masters?fen=${encodeURIComponent(fen)}&moves=12&topGames=0`;
+
+    const run = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const url = `https://explorer.lichess.ovh/masters?fen=${encodeURIComponent(fen)}&moves=12&topGames=0`;
-        const res = await fetch(url, { signal: controller.signal });
-        if (!res.ok) throw new Error(`Explorer error ${res.status}`);
-        const json = (await res.json()) as ExplorerData;
-        setData(json);
-      } catch (e) {
-        if ((e as Error).name !== 'AbortError') setError('Could not load master games.');
-      } finally {
+      // Retry a few times with backoff when Lichess rate-limits the explorer.
+      for (let attempt = 0; attempt < 4; attempt++) {
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          if (res.status === 429) {
+            await wait(800 * (attempt + 1));
+            continue;
+          }
+          if (!res.ok) throw new Error(String(res.status));
+          const json = (await res.json()) as ExplorerData;
+          explorerCache.set(fen, json);
+          if (!cancelled) {
+            setData(json);
+            setLoading(false);
+          }
+          return;
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') return;
+          if (attempt < 3) {
+            await wait(800 * (attempt + 1));
+            continue;
+          }
+          if (!cancelled) {
+            setError('Masters explorer is unavailable right now (Lichess). It’ll load when the service responds.');
+            setLoading(false);
+          }
+          return;
+        }
+      }
+      // Exhausted retries while being rate-limited.
+      if (!cancelled) {
+        setError('Masters explorer is busy (rate-limited) — try again in a moment.');
         setLoading(false);
       }
-    }, 250);
+    };
+
+    const timer = setTimeout(run, 250);
     return () => {
+      cancelled = true;
       controller.abort();
       clearTimeout(timer);
     };

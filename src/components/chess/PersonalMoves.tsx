@@ -15,10 +15,26 @@ const PersonalMoves = ({ moves, playedMove, onPlay }: PersonalMovesProps) => (
     <div className="px-4 py-2.5 border-b border-hairline flex items-center gap-2">
       <UserIcon className="w-5 h-5 text-accent" />
       <h3 className="text-sm font-semibold text-fg">You play</h3>
+      <span className="text-xs text-fg-subtle">your repertoire, across all games</span>
     </div>
+
+    {/* The actual move from the game/line you're viewing, so it's always visible
+        even when your repertoire has no data for this exact position. */}
+    {playedMove && (
+      <button
+        onClick={() => onPlay?.(playedMove)}
+        className={`w-full flex items-center justify-between px-4 py-2 border-b border-hairline text-sm ${onPlay ? 'cursor-pointer hover:bg-surface-2' : ''}`}
+      >
+        <span className="text-[11px] font-medium uppercase tracking-wide text-fg-subtle">This game</span>
+        <span className="font-medium tabular-nums text-accent">{playedMove}</span>
+      </button>
+    )}
+
     {moves.length === 0 ? (
       <p className="px-4 py-3 text-xs text-fg-muted">
-        You haven’t reached this position in your own games (with moves) yet.
+        {playedMove
+          ? 'None of your other games reached this position — only the move above, from the game you’re viewing.'
+          : 'You haven’t reached this position in your own games (with moves) yet.'}
       </p>
     ) : (
       <table className="w-full text-sm">

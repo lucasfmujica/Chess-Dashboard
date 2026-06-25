@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BeakerIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
 import GameViewer from '../GameViewer';
@@ -32,6 +32,9 @@ const toLoadedGame = (g: Game, pgn: string): LoadedGame => ({
 const AnalysisBoardTab = () => {
   const { games, setGames } = useGames();
   const [loaded, setLoaded] = useState<LoadedGame | null>(null);
+  // Index (into `games`) of the loaded stored game, so we can step ‹ prev/next ›.
+  // null when nothing is loaded or a pasted PGN (not part of the library) is shown.
+  const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
   const [pasteText, setPasteText] = useState('');
   const [attachIndex, setAttachIndex] = useState('');
   const [attachText, setAttachText] = useState('');
@@ -41,6 +44,27 @@ const AnalysisBoardTab = () => {
     () => games.map((g, i) => ({ g, i })).filter(({ g }) => !!g.pgn),
     [games]
   );
+
+  // Position of the loaded game within the playable list (for prev/next nav).
+  const playablePos = loadedIndex === null ? -1 : playableGames.findIndex(p => p.i === loadedIndex);
+
+  // Load a stored game by its index into `games`.
+  const loadByIndex = (idx: number) => {
+    const g = games[idx];
+    if (!g?.pgn) {
+      setLoaded(null);
+      setLoadedIndex(null);
+      return;
+    }
+    setLoaded(toLoadedGame(g, g.pgn));
+    setLoadedIndex(idx);
+  };
+
+  // Jump to a neighbouring game in the playable list.
+  const gotoPlayable = (pos: number) => {
+    const entry = playableGames[pos];
+    if (entry) loadByIndex(entry.i);
+  };
 
   // Pre-fill the editor with the selected game's existing moves.
   const selectAttach = (index: string) => {
@@ -57,7 +81,13 @@ const AnalysisBoardTab = () => {
     // Immediately load the just-saved game onto the board so the user sees it
     // replay (otherwise the board stays empty until they reselect the game).
     const g = games[idx];
-    setLoaded(g && moves ? toLoadedGame(g, moves) : null);
+    if (g && moves) {
+      setLoaded(toLoadedGame(g, moves));
+      setLoadedIndex(idx);
+    } else {
+      setLoaded(null);
+      setLoadedIndex(null);
+    }
   };
 
   const loadPaste = () => {
@@ -69,13 +99,10 @@ const AnalysisBoardTab = () => {
       result: headerValue(pasteText, 'Result'),
       orientation: 'white',
     });
+    setLoadedIndex(null); // pasted game isn't part of the library
   };
 
-  const loadStored = (index: string) => {
-    const idx = parseInt(index, 10);
-    const g = games[idx];
-    setLoaded(g?.pgn ? toLoadedGame(g, g.pgn) : null);
-  };
+  const loadStored = (index: string) => loadByIndex(parseInt(index, 10));
 
   return (
     <div className="space-y-6">
@@ -187,6 +214,30 @@ const AnalysisBoardTab = () => {
 
       {/* Board + explorer + analysis */}
       <div className="rounded-lg border border-hairline bg-surface p-5">
+        {/* Step between all your games with moves, without using the dropdown. */}
+        {playableGames.length > 0 && (
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-hairline bg-surface-2 px-3 py-2">
+            <button
+              onClick={() => gotoPlayable(playablePos < 0 ? 0 : playablePos - 1)}
+              disabled={playablePos <= 0}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm text-fg-muted hover:bg-surface hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeftIcon className="w-4 h-4" /> Prev game
+            </button>
+            <span className="text-xs text-fg-muted tabular-nums text-center min-w-0 truncate">
+              {playablePos >= 0
+                ? `Game ${playablePos + 1} of ${playableGames.length}`
+                : `${playableGames.length} game${playableGames.length === 1 ? '' : 's'} with moves`}
+            </span>
+            <button
+              onClick={() => gotoPlayable(playablePos < 0 ? 0 : playablePos + 1)}
+              disabled={playablePos >= playableGames.length - 1}
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm text-fg-muted hover:bg-surface hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next game <ChevronRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <GameViewer
           pgn={loaded?.pgn}
           white={loaded?.white}
