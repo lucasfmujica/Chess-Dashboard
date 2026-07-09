@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from './_db';
-import { requireApiKey } from './_auth';
-import type { GameInput } from './_gameMapper';
+import { sql } from './_db.js';
+import { requireApiKey } from './_auth.js';
+import type { GameInput } from './_gameMapper.js';
 
 interface MigratePayload {
   games?: GameInput[];

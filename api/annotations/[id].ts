@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_db';
-import { requireApiKey } from '../_auth';
-import { rowToAnnotation, type AnnotationRow } from '../_annotationMapper';
+import { sql } from '../_db.js';
+import { requireApiKey } from '../_auth.js';
+import { rowToAnnotation, type AnnotationRow } from '../_annotationMapper.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;

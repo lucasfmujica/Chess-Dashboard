@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_db';
-import { requireApiKey } from '../_auth';
-import { rowToGame, type GameRow } from '../_gameMapper';
+import { sql } from '../_db.js';
+import { requireApiKey } from '../_auth.js';
+import { rowToGame, type GameRow } from '../_gameMapper.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;

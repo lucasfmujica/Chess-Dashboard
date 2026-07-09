@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from './_db';
-import { requireApiKey } from './_auth';
+import { sql } from './_db.js';
+import { requireApiKey } from './_auth.js';
 
 interface ProfileRow {
   current_elo: number;
