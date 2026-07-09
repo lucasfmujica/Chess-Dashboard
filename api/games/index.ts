@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from '../_db.js';
 import { requireApiKey } from '../_auth.js';
 import { rowToGame, type GameRow, type GameInput } from '../_gameMapper.js';
+import { parsePgnDate, openingNameForEco } from '../_pgnMeta.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'GET') {
@@ -17,6 +18,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     for (const game of games) {
+      const playedDate = game.date ?? parsePgnDate(game.pgn);
+      const openingName = game.opening ?? openingNameForEco(game.eco);
       await sql`
         INSERT INTO games (
           lichess_game_id, source, color, result, elo, opponent, opponent_elo,
@@ -25,8 +28,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ) VALUES (
           ${game.gameId ?? null}, ${game.source ?? 'otb'}, ${game.color}, ${game.result},
           ${game.elo}, ${game.opp}, ${game.opp_elo ?? null}, ${game.eco ?? null},
-          ${game.opening ?? null}, ${game.tournament ?? null}, ${game.rated},
-          ${game.date ?? null}, ${game.time ?? null}, ${game.speed ?? null},
+          ${openingName}, ${game.tournament ?? null}, ${game.rated},
+          ${playedDate}, ${game.time ?? null}, ${game.speed ?? null},
           ${game.timeControl ?? null}, ${game.eloChange ?? null}, ${game.kFactor ?? null},
           ${game.pgn ?? null}, ${game.city ?? null}, ${game.country ?? null}
         )
