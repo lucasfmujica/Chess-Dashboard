@@ -16,8 +16,10 @@ export type GameSource = 'otb' | 'lichess';
 /** Lichess time-control family. */
 export type LichessSpeed = 'bullet' | 'blitz' | 'rapid' | 'classical' | 'correspondence';
 
-/** A single game record as stored in localStorage / context. */
+/** A single game record as stored in the database / context. */
 export interface Game {
+  /** Database row id. Absent for games that haven't been persisted yet. */
+  id?: string;
   /** Player's ELO at the time of the game. */
   elo: number;
   color: PlayerColor;
@@ -162,6 +164,52 @@ export interface MonthlyStat {
   performanceRating: number;
   elo: number;
   eloChange: number;
+}
+
+/** A single annotated key moment within a game. */
+export interface KeyMoment {
+  move: string;
+  symbol: string;
+  comment: string;
+}
+
+/** A user-saved annotated game. */
+export interface AnnotatedGame {
+  id: string;
+  createdAt: number;
+  gameName?: string;
+  opponent?: string;
+  date?: string;
+  opening?: string;
+  eco?: string;
+  result?: string;
+  rating?: number;
+  tags?: string[];
+  notes?: string;
+  keyMoments?: KeyMoment[];
+  /** Optional PGN moves so the game can be replayed/analysed. */
+  pgn?: string;
+}
+
+/** Color the opening is played as. */
+export type OpeningColor = 'white' | 'black';
+
+/** Difficulty bucket for an opening flashcard. */
+export type OpeningDifficulty = 'beginner' | 'intermediate' | 'advanced';
+
+/** A trainable opening flashcard with spaced-repetition metadata. */
+export interface OpeningCard {
+  id: string;
+  name: string;
+  moves: string;
+  fen: string;
+  color: OpeningColor;
+  difficulty: OpeningDifficulty;
+  reviewCount: number;
+  lastReviewed: number | null;
+  nextReview: number;
+  successRate: number;
+  totalAttempts: number;
 }
 
 /** A planned/upcoming tournament entry. */

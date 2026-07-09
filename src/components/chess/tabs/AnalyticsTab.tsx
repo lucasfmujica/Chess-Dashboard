@@ -48,7 +48,7 @@ interface AnalyticsTabProps {
   onRemoveLichessGames: () => void;
   lichessGamesCount: number;
   games: Game[];
-  setGames: (v: Game[] | ((p: Game[]) => Game[])) => void;
+  addManualGame: (game: Game) => Promise<void>;
 }
 
 const AnalyticsTab = ({
@@ -64,7 +64,7 @@ const AnalyticsTab = ({
   onRemoveLichessGames,
   lichessGamesCount,
   games,
-  setGames
+  addManualGame
 }: AnalyticsTabProps) => {
   // Modal functions
   const modal = useModal();
@@ -78,7 +78,7 @@ const AnalyticsTab = ({
     handleInputChange,
     handleAddGame,
     resetForm,
-  } = useGameForm(games, setGames, modal);
+  } = useGameForm(games, addManualGame, modal);
 
   // Handle add game with success message
   const handleAddGameWithMessage = async () => {

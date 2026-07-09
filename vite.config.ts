@@ -13,6 +13,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
+    proxy: {
+      // Local stand-in for Vercel's serverless functions; see scripts/dev-api-server.mts.
+      '/api': 'http://localhost:3001',
+    },
   },
   build: {
     // Keep the CRA output directory so existing deploy config keeps working.

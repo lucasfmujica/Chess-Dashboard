@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   DocumentTextIcon,
   PencilIcon,
@@ -11,32 +11,13 @@ import {
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { useModal } from '../../modals/ModalContext';
 import { useGameViewer } from '../../../context/GameViewerContext';
-import type { Game } from '../../../types/chess';
-
-/** A single annotated key moment within a game. */
-interface KeyMoment {
-  move: string;
-  symbol: string;
-  comment: string;
-}
-
-/** A user-saved annotated game stored in localStorage. */
-interface AnnotatedGame {
-  id: number;
-  createdAt: number;
-  gameName?: string;
-  opponent?: string;
-  date?: string;
-  opening?: string;
-  eco?: string;
-  result?: string;
-  rating?: number;
-  tags?: string[];
-  notes?: string;
-  keyMoments?: KeyMoment[];
-  /** Optional PGN moves so the game can be replayed/analysed. */
-  pgn?: string;
-}
+import type { Game, AnnotatedGame } from '../../../types/chess';
+import {
+  fetchAnnotations,
+  postAnnotation,
+  putAnnotation,
+  deleteAnnotation as deleteAnnotationApi,
+} from '../../../api/client';
 
 /** A selectable annotation tag definition. */
 interface AnnotationTag {
@@ -61,10 +42,13 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
   const modal = useModal();
   const { openGameViewer } = useGameViewer();
 
-  const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>(() => {
-    const stored = localStorage.getItem('chessDashboard_annotatedGames');
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>([]);
+
+  useEffect(() => {
+    fetchAnnotations()
+      .then(setAnnotatedGames)
+      .catch(err => console.error('Failed to load annotations', err));
+  }, []);
 
   const [selectedGame, setSelectedGame] = useState<Partial<AnnotatedGame> | null>(null);
   const [editingAnnotation, setEditingAnnotation] = useState<AnnotatedGame | null>(null);
@@ -96,27 +80,23 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
     { symbol: '=', label: 'Equal position', color: 'text-slate-500' }
   ];
 
-  const saveAnnotation = (annotation: Partial<AnnotatedGame>) => {
-    let updated: AnnotatedGame[];
+  const saveAnnotation = async (annotation: Partial<AnnotatedGame>) => {
     if (editingAnnotation) {
-      updated = annotatedGames.map(a => a.id === annotation.id ? (annotation as AnnotatedGame) : a);
+      const saved = await putAnnotation(editingAnnotation.id, annotation);
+      setAnnotatedGames(prev => prev.map(a => (a.id === saved.id ? saved : a)));
     } else {
-      annotation.id = Date.now();
-      annotation.createdAt = Date.now();
-      updated = [...annotatedGames, annotation as AnnotatedGame];
+      const saved = await postAnnotation(annotation);
+      setAnnotatedGames(prev => [...prev, saved]);
     }
-    setAnnotatedGames(updated);
-    localStorage.setItem('chessDashboard_annotatedGames', JSON.stringify(updated));
     setEditingAnnotation(null);
     setSelectedGame(null);
   };
 
-  const deleteAnnotation = async (id: number) => {
+  const deleteAnnotation = async (id: string) => {
     const confirmed = await modal.confirm('Delete this annotation?');
     if (confirmed) {
-      const updated = annotatedGames.filter(a => a.id !== id);
-      setAnnotatedGames(updated);
-      localStorage.setItem('chessDashboard_annotatedGames', JSON.stringify(updated));
+      await deleteAnnotationApi(id);
+      setAnnotatedGames(prev => prev.filter(a => a.id !== id));
     }
   };
 

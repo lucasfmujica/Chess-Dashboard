@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { analyzeGame } from '../engine/analyzeGame';
 import type { GameAnalysis } from '../engine/analyzeGame';
+import { postAnalysis } from '../api/client';
+import type { AnalysisEntry } from '../api/client';
 
 const DEPTH = 13;
 
@@ -11,20 +13,36 @@ const hash = (s: string): string => {
   return (h >>> 0).toString(36);
 };
 
-const cacheKey = (pgn: string): string => `chess-dashboard-analysis-${hash(pgn)}-d${DEPTH}`;
+const cacheKey = (pgn: string): string => `${hash(pgn)}-d${DEPTH}`;
 
-const loadCache = (pgn?: string): GameAnalysis | null => {
-  if (!pgn) return null;
-  try {
-    const raw = window.localStorage.getItem(cacheKey(pgn));
-    return raw ? (JSON.parse(raw) as GameAnalysis) : null;
-  } catch {
-    return null;
+/**
+ * In-memory analysis cache, backed by the database. Populated once at app
+ * startup (seedAnalysisCache, called from GamesProvider's mount effect) so
+ * that `getCachedAnalysis` — called synchronously in a loop over the whole
+ * games list by AccuracyTrendCard/GamesAnalysisList — stays synchronous
+ * without every call site needing to become async.
+ */
+const cache = new Map<string, GameAnalysis>();
+
+export const seedAnalysisCache = (entries: AnalysisEntry[]): void => {
+  for (const { pgnHash, analysis } of entries) {
+    cache.set(`${pgnHash}-d${analysis.depth}`, analysis);
   }
 };
 
+const getCached = (pgn?: string): GameAnalysis | null => {
+  if (!pgn) return null;
+  return cache.get(cacheKey(pgn)) ?? null;
+};
+
+const setCached = (pgn: string, result: GameAnalysis): void => {
+  cache.set(cacheKey(pgn), result);
+  // Fire-and-forget, matching the previous localStorage.setItem's own lack of awaiting.
+  postAnalysis(hash(pgn), result).catch(err => console.error('Failed to persist analysis', err));
+};
+
 /** Read a previously-cached analysis for a game (null if not analysed yet). */
-export const getCachedAnalysis = (pgn?: string): GameAnalysis | null => loadCache(pgn);
+export const getCachedAnalysis = (pgn?: string): GameAnalysis | null => getCached(pgn);
 
 /**
  * Analyse a game and persist it to the same cache `getCachedAnalysis` reads.
@@ -37,11 +55,7 @@ export const analyzeAndCacheGame = async (
 ): Promise<GameAnalysis | null> => {
   if (!pgn || fens.length < 2) return null;
   const result = await analyzeGame(fens, opts);
-  try {
-    window.localStorage.setItem(cacheKey(pgn), JSON.stringify(result));
-  } catch {
-    /* cache best-effort */
-  }
+  setCached(pgn, result);
   return result;
 };
 
@@ -56,11 +70,11 @@ export interface UseGameAnalysis {
 }
 
 /**
- * Manage on-demand Stockfish analysis for a game, with localStorage caching,
+ * Manage on-demand Stockfish analysis for a game, with cache lookup,
  * progress reporting and cancellation.
  */
 export const useGameAnalysis = (pgn: string | undefined, fens: string[]): UseGameAnalysis => {
-  const [analysis, setAnalysis] = useState<GameAnalysis | null>(() => loadCache(pgn));
+  const [analysis, setAnalysis] = useState<GameAnalysis | null>(() => getCached(pgn));
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +83,7 @@ export const useGameAnalysis = (pgn: string | undefined, fens: string[]): UseGam
   // Reset / load cache when the game changes.
   useEffect(() => {
     abortRef.current?.abort();
-    setAnalysis(loadCache(pgn));
+    setAnalysis(getCached(pgn));
     setAnalyzing(false);
     setProgress(0);
     setError(null);
@@ -95,11 +109,7 @@ export const useGameAnalysis = (pgn: string | undefined, fens: string[]): UseGam
       .then(result => {
         if (controller.signal.aborted) return;
         setAnalysis(result);
-        try {
-          window.localStorage.setItem(cacheKey(pgn), JSON.stringify(result));
-        } catch {
-          /* cache best-effort */
-        }
+        setCached(pgn, result);
       })
       .catch((e: unknown) => {
         if ((e as Error)?.name === 'AbortError') return;

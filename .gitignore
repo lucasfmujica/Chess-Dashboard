@@ -44,3 +44,4 @@ pnpm-debug.log*
 # ShipStudio metadata
 .shipstudio/
 /public/engine
+.vercel

@@ -2,7 +2,7 @@
  * Initial games data
  * Games ordered chronologically by tournament
  */
-import type { Game, PlayerInfo } from '../types/chess';
+import type { Game, PlayerInfo, OpeningCard } from '../types/chess';
 
 export const initialGames: Game[] = [
   // IRT Damian Reca (games 1-7) - Ends at 1727
@@ -78,3 +78,81 @@ export const playerInfo: PlayerInfo = {
   elo_change_last_tournament: -2,
   last_tournament: 'IRT Carnaval',
 };
+
+/** Seed set used only as the one-time database migration default (see
+ * GamesContext's readLegacyLocalStorage) — the Openings Trainer tab itself
+ * always reads from the database via fetchFlashcards(). */
+export const initialOpenings: Omit<OpeningCard, 'id'>[] = [
+  {
+    name: "Sicilian Defense - Najdorf",
+    moves: "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6",
+    fen: "rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 6",
+    color: "black",
+    difficulty: "advanced",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  },
+  {
+    name: "Italian Game - Main Line",
+    moves: "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
+    fen: "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R b KQkq - 0 4",
+    color: "white",
+    difficulty: "intermediate",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  },
+  {
+    name: "French Defense - Advance Variation",
+    moves: "1.e4 e6 2.d4 d5 3.e5",
+    fen: "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq - 0 3",
+    color: "black",
+    difficulty: "beginner",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  },
+  {
+    name: "Queen's Gambit Declined",
+    moves: "1.d4 d5 2.c4 e6 3.Nc3 Nf6",
+    fen: "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq - 0 4",
+    color: "black",
+    difficulty: "intermediate",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  },
+  {
+    name: "King's Indian Attack",
+    moves: "1.Nf3 d5 2.g3 Nf6 3.Bg2 c5 4.O-O Nc6 5.d3 e6",
+    fen: "r1bqkb1r/pp3ppp/2n1pn2/2pp4/8/3P1NP1/PPP1PPBP/RNBQ1RK1 w kq - 0 6",
+    color: "white",
+    difficulty: "intermediate",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  },
+  {
+    name: "Caro-Kann Defense - Classical",
+    moves: "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4",
+    fen: "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR b KQkq - 0 4",
+    color: "black",
+    difficulty: "intermediate",
+    reviewCount: 0,
+    lastReviewed: null,
+    nextReview: Date.now(),
+    successRate: 0,
+    totalAttempts: 0
+  }
+];

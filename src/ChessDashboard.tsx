@@ -26,7 +26,6 @@ import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
 import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
-import { mergeGames } from './utils/lichessApi';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 import type { Game } from './types/chess';
 import type { DayPlan } from './types/training';
@@ -35,7 +34,10 @@ const ChessDashboard = () => {
   const modal = useModal();
   const {
     games,
-    setGames,
+    syncLichessGames,
+    removeLichessGames,
+    importPgnGames,
+    addManualGame,
     playerInfo,
     mainRepertoire,
     setMainRepertoire,
@@ -104,10 +106,9 @@ const ChessDashboard = () => {
     nextMilestones,
   } = useComputedStats(gameFilter);
 
-  // Handler for Lichess game sync
-  const handleLichessSync = (transformedGames: Game[]) => {
-    const merged = mergeGames(games, transformedGames);
-    setGames(merged);
+  // Handler for Lichess game sync (server upserts by Lichess game id)
+  const handleLichessSync = async (transformedGames: Game[]) => {
+    await syncLichessGames(transformedGames);
   };
 
   // Handler to remove all Lichess games
@@ -119,8 +120,7 @@ const ChessDashboard = () => {
     }
     const confirmed = await modal.confirm(`Are you sure you want to remove all ${lichessCount} Lichess game${lichessCount !== 1 ? 's' : ''}? This action cannot be undone.`);
     if (confirmed) {
-      const otbGames = games.filter(g => g.source !== 'lichess');
-      setGames(otbGames);
+      await removeLichessGames();
     }
   };
 
@@ -223,7 +223,7 @@ const ChessDashboard = () => {
       );
 
       if (confirmImport) {
-        setGames(prev => [...prev, ...formattedGames]);
+        await importPgnGames(formattedGames);
         await modal.alert(`Successfully imported ${formattedGames.length} game(s)!`);
         setPgnText('');
         setShowPgnImport(false);
@@ -463,7 +463,7 @@ const ChessDashboard = () => {
               onRemoveLichessGames={handleRemoveLichessGames}
               lichessGamesCount={games.filter(g => g.source === 'lichess').length}
               games={games}
-              setGames={setGames}
+              addManualGame={addManualGame}
             />
           )}
 

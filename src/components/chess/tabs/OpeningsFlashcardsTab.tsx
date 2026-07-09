@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   SparklesIcon,
   ChartBarIcon,
@@ -8,121 +8,23 @@ import {
   BookOpenIcon
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
-
-/** Color the opening is played as. */
-type OpeningColor = 'white' | 'black';
-
-/** Difficulty bucket for an opening flashcard. */
-type OpeningDifficulty = 'beginner' | 'intermediate' | 'advanced';
-
-/** A trainable opening flashcard with spaced-repetition metadata. */
-interface OpeningCard {
-  id: number;
-  name: string;
-  moves: string;
-  fen: string;
-  color: OpeningColor;
-  difficulty: OpeningDifficulty;
-  reviewCount: number;
-  lastReviewed: number | null;
-  nextReview: number;
-  successRate: number;
-  totalAttempts: number;
-}
-
-// Sample opening positions - in a real app, this would come from a database
-const initialOpenings: OpeningCard[] = [
-  {
-    id: 1,
-    name: "Sicilian Defense - Najdorf",
-    moves: "1.e4 c5 2.Nf3 d6 3.d4 cxd4 4.Nxd4 Nf6 5.Nc3 a6",
-    fen: "rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 6",
-    color: "black",
-    difficulty: "advanced",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  },
-  {
-    id: 2,
-    name: "Italian Game - Main Line",
-    moves: "1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.c3",
-    fen: "r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/2P2N2/PP1P1PPP/RNBQK2R b KQkq - 0 4",
-    color: "white",
-    difficulty: "intermediate",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  },
-  {
-    id: 3,
-    name: "French Defense - Advance Variation",
-    moves: "1.e4 e6 2.d4 d5 3.e5",
-    fen: "rnbqkbnr/ppp2ppp/4p3/3pP3/3P4/8/PPP2PPP/RNBQKBNR b KQkq - 0 3",
-    color: "black",
-    difficulty: "beginner",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  },
-  {
-    id: 4,
-    name: "Queen's Gambit Declined",
-    moves: "1.d4 d5 2.c4 e6 3.Nc3 Nf6",
-    fen: "rnbqkb1r/ppp2ppp/4pn2/3p4/2PP4/2N5/PP2PPPP/R1BQKBNR w KQkq - 0 4",
-    color: "black",
-    difficulty: "intermediate",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  },
-  {
-    id: 5,
-    name: "King's Indian Attack",
-    moves: "1.Nf3 d5 2.g3 Nf6 3.Bg2 c5 4.O-O Nc6 5.d3 e6",
-    fen: "r1bqkb1r/pp3ppp/2n1pn2/2pp4/8/3P1NP1/PPP1PPBP/RNBQ1RK1 w kq - 0 6",
-    color: "white",
-    difficulty: "intermediate",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  },
-  {
-    id: 6,
-    name: "Caro-Kann Defense - Classical",
-    moves: "1.e4 c6 2.d4 d5 3.Nc3 dxe4 4.Nxe4",
-    fen: "rnbqkbnr/pp2pppp/2p5/8/3PN3/8/PPP2PPP/R1BQKBNR b KQkq - 0 4",
-    color: "black",
-    difficulty: "intermediate",
-    reviewCount: 0,
-    lastReviewed: null,
-    nextReview: Date.now(),
-    successRate: 0,
-    totalAttempts: 0
-  }
-];
+import type { OpeningCard } from '../../../types/chess';
+import { fetchFlashcards, putFlashcards } from '../../../api/client';
 
 type StudyMode = 'review' | 'learn';
-type ColorFilter = 'all' | OpeningColor;
-type DifficultyFilter = 'all' | OpeningDifficulty;
+type ColorFilter = 'all' | OpeningCard['color'];
+type DifficultyFilter = 'all' | OpeningCard['difficulty'];
 
 const OpeningsFlashcardsTab = () => {
   const modal = useModal();
 
-  const [openings, setOpenings] = useState<OpeningCard[]>(() => {
-    const stored = localStorage.getItem('chessDashboard_openings');
-    return stored ? JSON.parse(stored) : initialOpenings;
-  });
+  const [openings, setOpenings] = useState<OpeningCard[]>([]);
+
+  useEffect(() => {
+    fetchFlashcards()
+      .then(setOpenings)
+      .catch(err => console.error('Failed to load opening flashcards', err));
+  }, []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -172,7 +74,7 @@ const OpeningsFlashcardsTab = () => {
     return { total, dueToday, mastered, avgSuccessRate };
   }, [openings]);
 
-  const handleResponse = (correct: boolean) => {
+  const handleResponse = async (correct: boolean) => {
     if (!currentOpening) return;
 
     const updated = openings.map(opening => {
@@ -196,7 +98,7 @@ const OpeningsFlashcardsTab = () => {
     });
 
     setOpenings(updated);
-    localStorage.setItem('chessDashboard_openings', JSON.stringify(updated));
+    await putFlashcards(updated);
 
     setShowAnswer(false);
     setCurrentIndex((currentIndex + 1) % filteredOpenings.length);
@@ -214,7 +116,7 @@ const OpeningsFlashcardsTab = () => {
         totalAttempts: 0
       }));
       setOpenings(reset);
-      localStorage.setItem('chessDashboard_openings', JSON.stringify(reset));
+      await putFlashcards(reset);
       setCurrentIndex(0);
     }
   };

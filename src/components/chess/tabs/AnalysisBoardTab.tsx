@@ -31,13 +31,15 @@ const toLoadedGame = (g: Game, pgn: string): LoadedGame => ({
  * moves), step through it, see Stockfish accuracy/eval and what masters play.
  */
 const AnalysisBoardTab = () => {
-  const { games, setGames } = useGames();
+  const { games, updateGamePgn } = useGames();
   const [loaded, setLoaded] = useState<LoadedGame | null>(null);
   // Index (into `games`) of the loaded stored game, so we can step ‹ prev/next ›.
   // null when nothing is loaded or a pasted PGN (not part of the library) is shown.
   const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
   const [pasteText, setPasteText] = useState('');
-  const [attachIndex, setAttachIndex] = useState('');
+  // Selected game's stable database id (not array index — the array can be
+  // refetched/reordered after any write, so index isn't a safe identifier).
+  const [attachGameId, setAttachGameId] = useState('');
   const [attachText, setAttachText] = useState('');
   // Bumped after batch analysis so the accuracy trend re-reads cached results.
   const [analysisRefreshKey, setAnalysisRefreshKey] = useState(0);
@@ -70,27 +72,24 @@ const AnalysisBoardTab = () => {
   };
 
   // Pre-fill the editor with the selected game's existing moves.
-  const selectAttach = (index: string) => {
-    setAttachIndex(index);
-    const g = games[parseInt(index, 10)];
+  const selectAttach = (id: string) => {
+    setAttachGameId(id);
+    const g = games.find(g => g.id === id);
     setAttachText(g?.pgn || '');
   };
 
-  const saveMoves = () => {
-    if (attachIndex === '') return;
-    const idx = parseInt(attachIndex, 10);
+  const saveMoves = async () => {
+    if (!attachGameId) return;
     const moves = attachText.trim();
-    setGames(prev => prev.map((g, i) => (i === idx ? { ...g, pgn: moves || undefined } : g)));
+    const updated = await updateGamePgn(attachGameId, moves || undefined);
     // Immediately load the just-saved game onto the board so the user sees it
     // replay (otherwise the board stays empty until they reselect the game).
-    const g = games[idx];
-    if (g && moves) {
-      setLoaded(toLoadedGame(g, moves));
-      setLoadedIndex(idx);
+    if (moves) {
+      setLoaded(toLoadedGame(updated, moves));
     } else {
       setLoaded(null);
-      setLoadedIndex(null);
     }
+    setLoadedIndex(null);
   };
 
   const loadPaste = () => {
@@ -179,13 +178,13 @@ const AnalysisBoardTab = () => {
           <div>
             <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Game</label>
             <select
-              value={attachIndex}
+              value={attachGameId}
               onChange={e => selectAttach(e.target.value)}
               className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
             >
               <option value="" disabled>Select a game…</option>
-              {games.map((g, i) => (
-                <option key={i} value={i}>
+              {games.filter(g => g.id).map(g => (
+                <option key={g.id} value={g.id}>
                   {g.pgn ? '✓ ' : ''}{g.tournament} — vs {g.opp}
                 </option>
               ))}
@@ -198,12 +197,12 @@ const AnalysisBoardTab = () => {
               onChange={e => setAttachText(e.target.value)}
               rows={3}
               placeholder={'1. e4 e5 2. Nf3 Nc6 ...'}
-              disabled={attachIndex === ''}
+              disabled={!attachGameId}
               className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y disabled:opacity-50"
             />
             <button
               onClick={saveMoves}
-              disabled={attachIndex === ''}
+              disabled={!attachGameId}
               className="mt-2 px-4 py-2 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Save moves

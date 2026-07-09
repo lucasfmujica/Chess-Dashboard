@@ -14,8 +14,6 @@ interface GameFormState {
   rated: boolean;
 }
 
-type SetGames = (value: Game[] | ((prev: Game[]) => Game[])) => void;
-
 const EMPTY_FORM: GameFormState = {
   tournament: '',
   elo: '',
@@ -30,7 +28,7 @@ const EMPTY_FORM: GameFormState = {
 /**
  * Custom hook for managing manual game entry form.
  */
-export const useGameForm = (games: Game[], setGames: SetGames, modal: ModalContextType) => {
+export const useGameForm = (games: Game[], addManualGame: (game: Game) => Promise<void>, modal: ModalContextType) => {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [gameForm, setGameForm] = useState<GameFormState>({ ...EMPTY_FORM });
 
@@ -79,7 +77,7 @@ export const useGameForm = (games: Game[], setGames: SetGames, modal: ModalConte
       time: '00:00',
     };
 
-    setGames(prev => [...prev, newGame]);
+    await addManualGame(newGame);
 
     // Reset form (keep tournament and elo for convenience)
     setGameForm({

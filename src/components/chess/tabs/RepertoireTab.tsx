@@ -32,9 +32,9 @@ interface RepertoireTabProps {
   openingRecommendations: OpeningRecommendation[];
   openingRepertoireAnalysis: OpeningRepertoireAnalysis;
   mainRepertoire: Repertoire;
-  setMainRepertoire: (value: Repertoire | ((prev: Repertoire) => Repertoire)) => void;
+  setMainRepertoire: (value: Repertoire) => Promise<void>;
   openingHeroes: OpeningHeroes;
-  setOpeningHeroes: (value: OpeningHeroes | ((prev: OpeningHeroes) => OpeningHeroes)) => void;
+  setOpeningHeroes: (value: OpeningHeroes) => Promise<void>;
 }
 
 const RepertoireTab = ({
