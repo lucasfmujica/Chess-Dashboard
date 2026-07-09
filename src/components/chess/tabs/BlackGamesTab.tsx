@@ -2,6 +2,8 @@ import ResultsDonut from '../../charts/ResultsDonut';
 import { PlayIcon } from '@heroicons/react/24/solid';
 import type { Game, GameStats } from '../../../types/chess';
 import { useGameViewer } from '../../../context/GameViewerContext';
+import { useGameFilters } from '../../../hooks/useGameFilters';
+import GameFiltersBar from '../GameFiltersBar';
 
 interface StatCardProps {
   title: string;
@@ -54,6 +56,26 @@ const BlackGamesTab = ({
   ecoNames
 }: BlackGamesTabProps) => {
   const { openGameViewer } = useGameViewer();
+  const blackGamesAll = games
+    .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
+    .filter(game => game.color === 'B');
+  const {
+    query,
+    setQuery,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    resultFilter,
+    setResultFilter,
+    hasActiveFilters,
+    clearFilters,
+    filteredItems: blackGames,
+  } = useGameFilters(blackGamesAll, {
+    date: g => g.date,
+    result: g => g.result,
+    searchText: g => `${g.opp} ${ecoNames[g.eco] || g.eco} ${g.tournament}`,
+  });
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -100,13 +122,13 @@ const BlackGamesTab = ({
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{opening.games}</td>
                   <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="text-green-600">{opening.wins}</span>-
-                    <span className="text-yellow-600">{opening.draws}</span>-
-                    <span className="text-red-600">{opening.losses}</span>
+                    <span className="text-win">{opening.wins}</span>-
+                    <span className="text-draw">{opening.draws}</span>-
+                    <span className="text-loss">{opening.losses}</span>
                   </td>
                   <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{opening.score}</td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-win' : 'text-loss'}`}>
                       {opening.winRate}%
                     </span>
                   </td>
@@ -119,6 +141,20 @@ const BlackGamesTab = ({
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">
         <h3 className="mb-4 text-lg font-semibold text-fg">All Games as Black</h3>
+        <div className="mb-4">
+          <GameFiltersBar
+            query={query}
+            onQueryChange={setQuery}
+            dateFrom={dateFrom}
+            onDateFromChange={setDateFrom}
+            dateTo={dateTo}
+            onDateToChange={setDateTo}
+            resultFilter={resultFilter}
+            onResultFilterChange={setResultFilter}
+            hasActiveFilters={hasActiveFilters}
+            onClear={clearFilters}
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-surface-2">
@@ -170,10 +206,6 @@ const BlackGamesTab = ({
             </thead>
             <tbody className="bg-surface divide-y divide-hairline">
               {(() => {
-                const blackGames = games
-                  .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
-                  .filter(game => game.color === 'B');
-
                 const sortedGames = [...blackGames].sort((a, b) => {
                   let compareA: number | string;
                   let compareB: number | string;
@@ -210,9 +242,9 @@ const BlackGamesTab = ({
                     <td className="px-4 py-3 text-sm text-fg">{game.opp}</td>
                     <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo || 'Unrated'}</td>
                     <td className="px-4 py-3 text-sm text-center">
-                      <span className={`px-2 py-1 rounded font-semibold ${game.result === 'W' ? 'bg-emerald-100 text-emerald-700' :
-                        game.result === 'D' ? 'bg-amber-100 text-amber-700' :
-                          'bg-rose-100 text-rose-700'
+                      <span className={`px-2 py-1 rounded font-semibold ${game.result === 'W' ? 'bg-win/10 text-win' :
+                        game.result === 'D' ? 'bg-draw/10 text-draw' :
+                          'bg-loss/10 text-loss'
                         }`}>
                         {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
                       </span>
@@ -243,6 +275,11 @@ const BlackGamesTab = ({
                   </tr>
                 ));
               })()}
+              {blackGames.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-6 text-center text-sm text-fg-muted">No games match your filters.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

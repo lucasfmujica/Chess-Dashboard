@@ -8,13 +8,14 @@ import {
   ChevronDoubleRightIcon,
   ArrowsUpDownIcon,
 } from '@heroicons/react/24/solid';
-import { CpuChipIcon } from '@heroicons/react/24/outline';
+import { CpuChipIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { useGameReplay } from '../../hooks/useGameReplay';
 import { useGameAnalysis } from '../../hooks/useGameAnalysis';
 import { useEngineSettings } from '../../hooks/useEngineSettings';
 import { useLocalEngine } from '../../hooks/useLocalEngine';
 import { useMyRepertoireMoves } from '../../hooks/useMyRepertoireMoves';
 import { useOpeningName } from '../../utils/openings';
+import { downloadFile } from '../../utils/exportUtils';
 import type { MoveQuality } from '../../engine/analyzeGame';
 import MovesExplorer from './MovesExplorer';
 import EngineLines from './EngineLines';
@@ -224,6 +225,21 @@ const GameViewer = ({
           <ControlButton onClick={() => setFlipped(f => !f)} label="Flip board">
             <ArrowsUpDownIcon className="w-4 h-4" />
           </ControlButton>
+          {pgn && (
+            <ControlButton
+              onClick={() => {
+                const headers = [
+                  `[White "${white || '?'}"]`,
+                  `[Black "${black || '?'}"]`,
+                  `[Result "${result || '*'}"]`,
+                ].join('\n');
+                downloadFile(`${headers}\n\n${pgn.trim()}`, 'game.pgn', 'application/x-chess-pgn');
+              }}
+              label="Download PGN"
+            >
+              <ArrowDownTrayIcon className="w-4 h-4" />
+            </ControlButton>
+          )}
           <ControlButton onClick={first} disabled={ply === 0} label="First move">
             <ChevronDoubleLeftIcon className="w-4 h-4" />
           </ControlButton>

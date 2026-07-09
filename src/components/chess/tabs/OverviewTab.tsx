@@ -1,10 +1,12 @@
 import type { ComponentType } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/solid';
 import ResultsDonut from '../../charts/ResultsDonut';
 import GeoMap from '../../charts/GeoMap';
 import { useGames } from '../../../context/GamesContext';
 import { useGeographyStats } from '../../../hooks/useGeographyStats';
-import StatCard from '../StatCard';
+import { useCountUp } from '../../../hooks/useCountUp';
+import StatCard, { Sparkline } from '../StatCard';
 import { getChartHeight } from '../../../utils/chartUtils';
 import type { Game, GameStats, PlayerInfo, TournamentStat } from '../../../types/chess';
 
@@ -44,7 +46,6 @@ interface OverviewTabProps {
   tournamentStats: TournamentStat[];
   bestResults: ResultEntry[];
   worstResults: ResultEntry[];
-  Trophy: ComponentType<{ className?: string }>;
   Swords: ComponentType<{ className?: string }>;
   Target: ComponentType<{ className?: string }>;
   TrendingUp: ComponentType<{ className?: string }>;
@@ -59,13 +60,13 @@ const OverviewTab = ({
   tournamentStats,
   bestResults,
   worstResults,
-  Trophy,
   Swords,
   Target,
   TrendingUp
 }: OverviewTabProps) => {
   const { tournamentLocations } = useGames();
   const geo = useGeographyStats(ratedGames, tournamentLocations);
+  const animatedElo = useCountUp(playerInfo.current_elo);
 
   // Generate ELO progress timeline from tournament stats (use starting ELO for each tournament)
   const eloTimeline = tournamentStats && tournamentStats.length > 0 ?
@@ -75,41 +76,64 @@ const OverviewTab = ({
       performanceRating: t.performanceRating
     })) : [];
 
+  const eloSpark = ratedGames.map(g => g.elo).filter(e => e > 0);
+  const eloUp = playerInfo.elo_change_last_tournament > 0;
+
   // Extract numeric score from whiteStats and blackStats
   const whiteScore = whiteStats.score || '0/0';
   const blackScore = blackStats.score || '0/0';
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Current ELO"
-          value={playerInfo.current_elo}
-          subtitle={`${playerInfo.elo_change_last_tournament > 0 ? '+' : ''}${playerInfo.elo_change_last_tournament} last tournament`}
-          icon={Trophy}
-          trend={playerInfo.elo_change_last_tournament > 0 ? 'up' : 'down'}
-          trendData={ratedGames.map(g => g.elo).filter(e => e > 0)}
-        />
-        <StatCard
-          title="Total Games"
-          value={overallStats.total}
-          subtitle={`Win rate: ${overallStats.winRate}%`}
-          icon={Swords}
-        />
-        <StatCard
-          title="Performance Rating"
-          value={overallStats.performanceRating}
-          subtitle={`Score: ${overallStats.actualScore}/${overallStats.total}`}
-          icon={Target}
-          trend={overallStats.performanceRating > playerInfo.current_elo ? 'up' : 'down'}
-        />
-        <StatCard
-          title="Expected vs Actual"
-          value={overallStats.actualScore}
-          subtitle={`Expected: ${overallStats.expectedScore}`}
-          icon={TrendingUp}
-          trend={parseFloat(overallStats.actualScore) > parseFloat(overallStats.expectedScore) ? 'up' : 'down'}
-        />
+      {/* Hero: current ELO */}
+      <div className="rounded-lg border border-hairline bg-surface p-8">
+        <div className="flex flex-wrap items-end justify-between gap-8">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">Current ELO</p>
+            <div className="mt-2 flex items-baseline gap-3">
+              <span className="text-6xl font-bold tracking-tight tabular-nums text-fg">{animatedElo}</span>
+              <span className={`inline-flex items-center gap-1 text-sm font-semibold ${eloUp ? 'text-win' : 'text-loss'}`}>
+                {eloUp ? <ArrowTrendingUpIcon className="w-4 h-4" /> : <ArrowTrendingDownIcon className="w-4 h-4" />}
+                {eloUp ? '+' : ''}{playerInfo.elo_change_last_tournament} last tournament
+              </span>
+            </div>
+          </div>
+          {eloSpark.length > 1 && (
+            <div className="w-full sm:w-56">
+              <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1">Last {eloSpark.length} rated games</p>
+              <Sparkline data={eloSpark} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Secondary stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <div className="stagger-item">
+          <StatCard
+            title="Total Games"
+            value={overallStats.total}
+            subtitle={`Win rate: ${overallStats.winRate}%`}
+            icon={Swords}
+          />
+        </div>
+        <div className="stagger-item">
+          <StatCard
+            title="Performance Rating"
+            value={overallStats.performanceRating}
+            subtitle={`Score: ${overallStats.actualScore}/${overallStats.total}`}
+            icon={Target}
+            trend={overallStats.performanceRating > playerInfo.current_elo ? 'up' : 'down'}
+          />
+        </div>
+        <div className="stagger-item">
+          <StatCard
+            title="Expected vs Actual"
+            value={overallStats.actualScore}
+            subtitle={`Expected: ${overallStats.expectedScore}`}
+            icon={TrendingUp}
+            trend={parseFloat(overallStats.actualScore) > parseFloat(overallStats.expectedScore) ? 'up' : 'down'}
+          />
+        </div>
       </div>
 
       {/* Charts Section */}
@@ -145,7 +169,7 @@ const OverviewTab = ({
                 <p className="text-xs font-semibold text-fg-muted tabular-nums">
                   {whiteStats.wins}W • {whiteStats.draws}D • {whiteStats.losses}L
                 </p>
-                <p className="text-sm font-bold text-blue-600 tabular-nums">{whiteStats.winRate}% win rate</p>
+                <p className="text-sm font-bold text-blue-600 dark:text-blue-400 tabular-nums">{whiteStats.winRate}% win rate</p>
               </div>
             </div>
 
@@ -191,13 +215,20 @@ const OverviewTab = ({
           {eloTimeline.length > 0 ? (
             <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
               <LineChart data={eloTimeline}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="#64748b" tick={{ fontSize: 11 }} />
-                <YAxis domain={['auto', 'auto']} stroke="#64748b" tick={{ fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
+                <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 11 }} />
+                <YAxis domain={['auto', 'auto']} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgb(var(--surface))',
+                    borderRadius: '12px',
+                    border: '1px solid rgb(var(--border))',
+                    color: 'rgb(var(--fg))',
+                  }}
+                />
                 <Legend />
-                <Line type="monotone" dataKey="elo" stroke="#3b82f6" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: '#3b82f6' }} activeDot={{ r: 7 }} />
-                <Line type="monotone" dataKey="performanceRating" stroke="#10b981" strokeWidth={2} name="Performance" dot={{ r: 4, fill: '#10b981' }} strokeDasharray="5 5" />
+                <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: 'rgb(var(--accent))' }} activeDot={{ r: 7 }} />
+                <Line type="monotone" dataKey="performanceRating" stroke="rgb(var(--win))" strokeWidth={2} name="Performance" dot={{ r: 4, fill: 'rgb(var(--win))' }} strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -224,20 +255,20 @@ const OverviewTab = ({
       {/* Best and Worst Results */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Best Results */}
-        <div className="p-6 bg-surface rounded-lg border border-hairline">
-          <h3 className="mb-4 text-lg font-semibold text-emerald-700">🏆 Top 3 Wins</h3>
+        <div className="p-6 bg-surface rounded-lg border border-hairline stagger-item">
+          <h3 className="mb-4 text-lg font-semibold text-win">🏆 Top 3 Wins</h3>
           <p className="mb-4 text-sm text-fg-muted">Biggest upsets - victories against higher-rated opponents</p>
           <div className="space-y-3">
             {bestResults && bestResults.length > 0 ? (
               bestResults.map((result, idx) => (
-                <div key={idx} className="p-4 border border-emerald-200 rounded-lg bg-emerald-50">
+                <div key={idx} className="p-4 border border-win/20 rounded-lg bg-win/10">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-slate-900">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-emerald-700 bg-emerald-200 rounded tabular-nums">
+                    <span className="font-semibold text-fg">{result.opponent}</span>
+                    <span className="px-2 py-1 text-xs font-bold text-win bg-win/20 rounded tabular-nums">
                       +{result.diff} ELO
                     </span>
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-fg-muted">
                     <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
@@ -245,7 +276,7 @@ const OverviewTab = ({
                     <div className="mt-1">
                       <span className="font-medium">{result.color === 'W' ? '⚪' : '⚫'} {result.opening}</span>
                     </div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-fg-subtle">
                       {result.tournament}
                     </div>
                   </div>
@@ -258,20 +289,20 @@ const OverviewTab = ({
         </div>
 
         {/* Worst Results */}
-        <div className="p-6 bg-surface rounded-lg border border-hairline">
-          <h3 className="mb-4 text-lg font-semibold text-rose-700">⚠️ Top 3 Losses to Study</h3>
+        <div className="p-6 bg-surface rounded-lg border border-hairline stagger-item">
+          <h3 className="mb-4 text-lg font-semibold text-loss">⚠️ Top 3 Losses to Study</h3>
           <p className="mb-4 text-sm text-fg-muted">Losses against lower-rated opponents - learning opportunities</p>
           <div className="space-y-3">
             {worstResults && worstResults.length > 0 ? (
               worstResults.map((result, idx) => (
-                <div key={idx} className="p-4 border border-rose-200 rounded-lg bg-rose-50">
+                <div key={idx} className="p-4 border border-loss/20 rounded-lg bg-loss/10">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-slate-900">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-rose-700 bg-rose-200 rounded tabular-nums">
+                    <span className="font-semibold text-fg">{result.opponent}</span>
+                    <span className="px-2 py-1 text-xs font-bold text-loss bg-loss/20 rounded tabular-nums">
                       {result.diff > 0 ? `+${result.diff}` : result.diff} ELO
                     </span>
                   </div>
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-fg-muted">
                     <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
@@ -279,7 +310,7 @@ const OverviewTab = ({
                     <div className="mt-1">
                       <span className="font-medium">{result.color === 'W' ? '⚪' : '⚫'} {result.opening}</span>
                     </div>
-                    <div className="mt-1 text-xs text-slate-500">
+                    <div className="mt-1 text-xs text-fg-subtle">
                       {result.tournament}
                     </div>
                   </div>

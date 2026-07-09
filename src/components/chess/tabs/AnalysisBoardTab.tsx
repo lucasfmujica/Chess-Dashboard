@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
 import GameViewer from '../GameViewer';
@@ -43,6 +43,9 @@ const AnalysisBoardTab = () => {
   const [attachText, setAttachText] = useState('');
   // Bumped after batch analysis so the accuracy trend re-reads cached results.
   const [analysisRefreshKey, setAnalysisRefreshKey] = useState(0);
+  // The load/attach utility panel starts collapsed so the board is the first thing seen.
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [toolsTab, setToolsTab] = useState<'load' | 'attach'>('load');
 
   // Games that actually carry moves.
   const playableGames = useMemo(
@@ -108,114 +111,139 @@ const AnalysisBoardTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="rounded-lg border border-hairline bg-surface p-5">
-        <div className="flex items-center gap-2">
-          <BeakerIcon className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-semibold text-fg">Analysis board</h2>
-        </div>
-        <p className="mt-1 text-sm text-fg-muted">
-          Replay a game, flip the board, see what Stockfish thinks (accuracy, blunders, evaluation)
-          and what masters play from each position.
-        </p>
+      {/* Load / attach — collapsed by default so the board is the first thing seen */}
+      <div className="rounded-lg border border-hairline bg-surface">
+        <button
+          onClick={() => setToolsOpen(o => !o)}
+          className="w-full flex items-center justify-between gap-2 px-5 py-4 text-left"
+          aria-expanded={toolsOpen}
+        >
+          <span className="flex items-center gap-2">
+            <BeakerIcon className="w-5 h-5 text-accent" />
+            <span>
+              <span className="text-lg font-semibold text-fg">Load a game</span>
+              <span className="block text-sm text-fg-muted">Paste a PGN, pick an imported game, or add moves to an OTB game</span>
+            </span>
+          </span>
+          <ChevronDownIcon className={`w-5 h-5 text-fg-subtle shrink-0 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
+        </button>
 
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Paste a PGN</label>
-            <textarea
-              value={pasteText}
-              onChange={e => setPasteText(e.target.value)}
-              rows={3}
-              placeholder={'[Event "..."]\n\n1. e4 e5 2. Nf3 Nc6 ...'}
-              className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y"
-            />
-            <button
-              onClick={loadPaste}
-              disabled={!pasteText.trim()}
-              className="mt-2 px-4 py-2 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-            >
-              Load PGN
-            </button>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">
-              Or pick an imported game
-            </label>
-            {playableGames.length > 0 ? (
-              <select
-                onChange={e => loadStored(e.target.value)}
-                defaultValue=""
-                className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+        {toolsOpen && (
+          <div className="px-5 pb-5">
+            <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface-2 p-1 mb-4">
+              <button
+                onClick={() => setToolsTab('load')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${toolsTab === 'load' ? 'bg-surface text-fg' : 'text-fg-muted hover:text-fg'}`}
               >
-                <option value="" disabled>Select a game…</option>
-                {playableGames.map(({ g, i }) => (
-                  <option key={i} value={i}>
-                    {g.tournament} — vs {g.opp}
-                  </option>
-                ))}
-              </select>
+                Load game
+              </button>
+              <button
+                onClick={() => setToolsTab('attach')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${toolsTab === 'attach' ? 'bg-surface text-fg' : 'text-fg-muted hover:text-fg'}`}
+              >
+                Attach moves
+              </button>
+            </div>
+
+            {toolsTab === 'load' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Paste a PGN</label>
+                  <textarea
+                    value={pasteText}
+                    onChange={e => setPasteText(e.target.value)}
+                    rows={3}
+                    placeholder={'[Event "..."]\n\n1. e4 e5 2. Nf3 Nc6 ...'}
+                    className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y"
+                  />
+                  <button
+                    onClick={loadPaste}
+                    disabled={!pasteText.trim()}
+                    className="mt-2 px-4 py-2 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                  >
+                    Load PGN
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">
+                    Or pick an imported game
+                  </label>
+                  {playableGames.length > 0 ? (
+                    <select
+                      onChange={e => loadStored(e.target.value)}
+                      defaultValue=""
+                      className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+                    >
+                      <option value="" disabled>Select a game…</option>
+                      {playableGames.map(({ g, i }) => (
+                        <option key={i} value={i}>
+                          {g.tournament} — vs {g.opp}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm text-fg-muted">
+                      No games with moves yet. Import a PGN (with moves) from Analytics, then they appear here.
+                    </p>
+                  )}
+                </div>
+              </div>
             ) : (
-              <p className="text-sm text-fg-muted">
-                No games with moves yet. Import a PGN (with moves) from Analytics, then they appear here.
-              </p>
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <PlusCircleIcon className="w-4 h-4 text-accent" />
+                  <p className="text-sm text-fg-muted">
+                    Your over-the-board games are saved without moves. Pick one and paste its PGN to make it
+                    replayable and analysable.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Game</label>
+                    <select
+                      value={attachGameId}
+                      onChange={e => selectAttach(e.target.value)}
+                      className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+                    >
+                      <option value="" disabled>Select a game…</option>
+                      {games.filter(g => g.id).map(g => (
+                        <option key={g.id} value={g.id}>
+                          {g.pgn ? '✓ ' : ''}{g.tournament} — vs {g.opp}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">PGN moves</label>
+                    <textarea
+                      value={attachText}
+                      onChange={e => setAttachText(e.target.value)}
+                      rows={3}
+                      placeholder={'1. e4 e5 2. Nf3 Nc6 ...'}
+                      disabled={!attachGameId}
+                      className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y disabled:opacity-50"
+                    />
+                    <button
+                      onClick={saveMoves}
+                      disabled={!attachGameId}
+                      className="mt-2 px-4 py-2 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Save moves
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Attach moves to an existing game (e.g. OTB games, which are header-only) */}
-      <div className="rounded-lg border border-hairline bg-surface p-5">
-        <div className="flex items-center gap-2">
-          <PlusCircleIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-lg font-semibold text-fg">Add moves to a game</h3>
-        </div>
-        <p className="mt-1 text-sm text-fg-muted">
-          Your over-the-board games are saved without moves. Pick one and paste its PGN to make it
-          replayable and analysable (it then shows up above and feeds the accuracy trend).
-        </p>
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Game</label>
-            <select
-              value={attachGameId}
-              onChange={e => selectAttach(e.target.value)}
-              className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
-            >
-              <option value="" disabled>Select a game…</option>
-              {games.filter(g => g.id).map(g => (
-                <option key={g.id} value={g.id}>
-                  {g.pgn ? '✓ ' : ''}{g.tournament} — vs {g.opp}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="lg:col-span-2">
-            <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">PGN moves</label>
-            <textarea
-              value={attachText}
-              onChange={e => setAttachText(e.target.value)}
-              rows={3}
-              placeholder={'1. e4 e5 2. Nf3 Nc6 ...'}
-              disabled={!attachGameId}
-              className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y disabled:opacity-50"
-            />
-            <button
-              onClick={saveMoves}
-              disabled={!attachGameId}
-              className="mt-2 px-4 py-2 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Save moves
-            </button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Accuracy over analysed games */}
       <AccuracyTrendCard refreshKey={analysisRefreshKey} />
 
-      {/* Board + explorer + analysis */}
-      <div className="rounded-lg border border-hairline bg-surface p-5">
+      {/* Board + explorer + analysis — the visual hero of this tab */}
+      <div className="rounded-xl border border-hairline bg-surface p-6 shadow-sm">
         {/* Step between all your games with moves, without using the dropdown. */}
         {playableGames.length > 0 && (
           <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-hairline bg-surface-2 px-3 py-2">

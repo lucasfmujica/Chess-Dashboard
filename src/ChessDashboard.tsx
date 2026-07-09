@@ -327,6 +327,7 @@ const ChessDashboard = () => {
           </div>
 
           {/* Tab Content */}
+          <div key={activeTab} className="animate-fadeIn">
           {activeTab === 'overview' && (
             <OverviewTab
               playerInfo={playerInfo}
@@ -338,7 +339,6 @@ const ChessDashboard = () => {
               tournamentStats={tournamentStats}
               bestResults={bestResults}
               worstResults={worstResults}
-              Trophy={TrophyIcon}
               Swords={Swords}
               Target={ScaleIcon}
               TrendingUp={ArrowTrendingUpIcon}
@@ -530,6 +530,7 @@ const ChessDashboard = () => {
               monthlyStats={monthlyStats}
             />
           )}
+          </div>
         </div>
       </div>
     </div>

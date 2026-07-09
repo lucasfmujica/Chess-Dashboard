@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CpuChipIcon, MagnifyingGlassIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
+import { CpuChipIcon, ChevronUpDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../context/GamesContext';
 import { getCachedAnalysis, analyzeAndCacheGame } from '../../hooks/useGameAnalysis';
+import { useGameFilters } from '../../hooks/useGameFilters';
 import { loadOpeningsBook, deepestOpening } from '../../utils/openings';
 import { fensFromPgn } from '../../utils/chessReplay';
 import { ecoNames } from '../../constants/ecoNames';
+import { gamesToPGN, gamesToCSV, downloadFile } from '../../utils/exportUtils';
+import GameFiltersBar from './GameFiltersBar';
 import type { Game } from '../../types/chess';
 
 interface GamesAnalysisListProps {
@@ -41,7 +44,6 @@ const RESULT_RANK: Record<Game['result'], number> = { W: 0, D: 1, L: 2 };
 const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisListProps) => {
   const { games } = useGames();
   const [book, setBook] = useState<Book | null>(null);
-  const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('order');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   // Bumped after each game is analysed so cached accuracy re-reads.
@@ -49,6 +51,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
   const [batch, setBatch] = useState<{ done: number; total: number; name: string } | null>(null);
   // Games that couldn't be analysed in the last batch (unreadable/errored).
   const [failed, setFailed] = useState<string[]>([]);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -111,18 +114,26 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
     return { w, d, l, total, winRate };
   }, [games]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const base = q
-      ? rows.filter(
-          r =>
-            r.g.opp.toLowerCase().includes(q) ||
-            r.opening.toLowerCase().includes(q) ||
-            r.g.tournament.toLowerCase().includes(q) ||
-            RESULT_META[r.g.result].label.toLowerCase().includes(q)
-        )
-      : rows.slice();
+  const {
+    query,
+    setQuery,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
+    resultFilter,
+    setResultFilter,
+    hasActiveFilters,
+    clearFilters,
+    filteredItems: searchedRows,
+  } = useGameFilters(rows, {
+    date: r => r.g.date,
+    result: r => r.g.result,
+    searchText: r => `${r.g.opp} ${r.opening} ${r.g.tournament} ${RESULT_META[r.g.result].label}`,
+  });
 
+  const filtered = useMemo(() => {
+    const base = searchedRows.slice();
     const dir = sortDir === 'asc' ? 1 : -1;
     base.sort((a, b) => {
       switch (sortKey) {
@@ -140,7 +151,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
       }
     });
     return base;
-  }, [rows, query, sortKey, sortDir]);
+  }, [searchedRows, sortKey, sortDir]);
 
   // Only games whose moves actually parse can be analysed.
   const pendingCount = useMemo(() => {
@@ -232,24 +243,64 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
             </button>
           </div>
         ) : (
-          <button
-            onClick={analyzeAll}
-            disabled={pendingCount === 0}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-          >
-            <CpuChipIcon className="w-4 h-4" />
-            {pendingCount > 0 ? `Analyze all (${pendingCount})` : 'All analyzed'}
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(s => !s)}
+                disabled={filtered.length === 0}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ArrowDownTrayIcon className="w-4 h-4" />
+                Export
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 mt-1 w-40 rounded-md border border-hairline bg-surface shadow-lg z-20 py-1">
+                  <button
+                    onClick={() => {
+                      downloadFile(gamesToPGN(filtered.map(r => r.g)), 'games.pgn', 'application/x-chess-pgn');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-fg hover:bg-surface-2"
+                  >
+                    PGN ({filtered.length})
+                  </button>
+                  <button
+                    onClick={() => {
+                      downloadFile(gamesToCSV(filtered.map(r => r.g)), 'games.csv', 'text/csv');
+                      setShowExportMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-fg hover:bg-surface-2"
+                  >
+                    CSV ({filtered.length})
+                  </button>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={analyzeAll}
+              disabled={pendingCount === 0}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            >
+              <CpuChipIcon className="w-4 h-4" />
+              {pendingCount > 0 ? `Analyze all (${pendingCount})` : 'All analyzed'}
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="mt-4 relative">
-        <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search opponent, opening, result…"
-          className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm pl-9 pr-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+      <div className="mt-4">
+        <GameFiltersBar
+          query={query}
+          onQueryChange={setQuery}
+          dateFrom={dateFrom}
+          onDateFromChange={setDateFrom}
+          dateTo={dateTo}
+          onDateToChange={setDateTo}
+          resultFilter={resultFilter}
+          onResultFilterChange={setResultFilter}
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+          searchPlaceholder="Search opponent, opening, tournament…"
         />
       </div>
 

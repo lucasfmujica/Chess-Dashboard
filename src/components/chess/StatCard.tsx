@@ -13,7 +13,7 @@ interface StatCardProps {
 }
 
 /** Tiny inline SVG sparkline (no chart library); colored by its own direction. */
-const Sparkline = ({ data }: { data: number[] }) => {
+export const Sparkline = ({ data }: { data: number[] }) => {
   if (data.length < 2) return null;
   const W = 120;
   const H = 28;
