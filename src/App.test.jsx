@@ -20,6 +20,8 @@ vi.mock('./api/client', () => ({
   putRepertoire: vi.fn(),
   fetchOpeningHeroes: vi.fn().mockResolvedValue({}),
   putOpeningHeroes: vi.fn(),
+  fetchTournamentLocations: vi.fn().mockResolvedValue({}),
+  putTournamentLocations: vi.fn(),
   fetchAnalyses: vi.fn().mockResolvedValue([]),
   postAnalysis: vi.fn(),
   fetchAnnotations: vi.fn().mockResolvedValue([]),

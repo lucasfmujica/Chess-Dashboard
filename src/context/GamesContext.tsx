@@ -18,6 +18,8 @@ import {
   putRepertoire,
   fetchOpeningHeroes,
   putOpeningHeroes,
+  fetchTournamentLocations,
+  putTournamentLocations,
   fetchAnalyses,
   postAnalysis,
   postMigrate,
@@ -35,6 +37,9 @@ const MIGRATION_FLAG_KEY = 'chess-dashboard-migrated-to-db';
 // (not postMigrate) so it isn't blocked by that endpoint's "games table
 // already has data" idempotency guard on a retry.
 const ANALYSIS_MIGRATION_FLAG_KEY = 'chess-dashboard-analyses-migrated-to-db';
+// Also independent, for the same reason: added after the main migration
+// already ran for existing users, so it can't ride on that endpoint's guard.
+const LOCATIONS_MIGRATION_FLAG_KEY = 'chess-dashboard-tournament-locations-migrated-to-db';
 
 /** A localStorage-backed setter (value or updater fn). */
 type Updater<T> = (value: T | ((prev: T) => T)) => void;
@@ -54,6 +59,9 @@ interface GamesContextValue {
   setMainRepertoire: (value: Repertoire) => Promise<void>;
   openingHeroes: Record<string, string[]>;
   setOpeningHeroes: (value: Record<string, string[]>) => Promise<void>;
+  /** User overrides: tournament name -> city key (see constants/locations). */
+  tournamentLocations: Record<string, string>;
+  setTournamentLocations: (value: Record<string, string>) => Promise<void>;
 
   targetElo: number;
   setTargetElo: Updater<number>;
@@ -69,10 +77,6 @@ interface GamesContextValue {
 
   upcomingTournaments: UpcomingTournament[];
   setUpcomingTournaments: Updater<UpcomingTournament[]>;
-
-  /** User overrides: tournament name -> city key (see constants/locations). */
-  tournamentLocations: Record<string, string>;
-  setTournamentLocations: Updater<Record<string, string>>;
 }
 
 const GamesContext = createContext<GamesContextValue | null>(null);
@@ -146,6 +150,23 @@ const migrateAnalysisCacheIfNeeded = async () => {
   safeSetItem(ANALYSIS_MIGRATION_FLAG_KEY, '1');
 };
 
+/** Uploads the localStorage tournament->city override map to the DB, once. */
+const migrateTournamentLocationsIfNeeded = async () => {
+  if (safeGetItem(LOCATIONS_MIGRATION_FLAG_KEY)) return;
+  const raw = safeGetItem('chess-dashboard-tournament-locations');
+  if (raw) {
+    try {
+      const locations = JSON.parse(raw) as Record<string, string>;
+      if (locations && Object.keys(locations).length > 0) {
+        await putTournamentLocations(locations);
+      }
+    } catch {
+      /* malformed cache entry, nothing to migrate */
+    }
+  }
+  safeSetItem(LOCATIONS_MIGRATION_FLAG_KEY, '1');
+};
+
 export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -154,6 +175,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const [playerInfo, setPlayerInfo] = useState<PlayerInfo>(initialPlayerInfo);
   const [mainRepertoire, setMainRepertoireState] = useState<Repertoire>({ white: [], black: [] });
   const [openingHeroes, setOpeningHeroesState] = useState<Record<string, string[]>>({});
+  const [tournamentLocations, setTournamentLocationsState] = useState<Record<string, string>>({});
 
   // Goals State (persisted locally — planning data, not "chess data" a query would target)
   const [targetElo, setTargetElo] = useLocalStorage<number>('chess-dashboard-target-elo', DEFAULTS.TARGET_ELO);
@@ -166,9 +188,6 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
 
   // Upcoming Tournaments State (persisted locally)
   const [upcomingTournaments, setUpcomingTournaments] = useLocalStorage<UpcomingTournament[]>('chess-dashboard-upcoming-tournaments', []);
-
-  // Per-tournament location overrides (persisted locally)
-  const [tournamentLocations, setTournamentLocations] = useLocalStorage<Record<string, string>>('chess-dashboard-tournament-locations', {});
 
   useEffect(() => {
     let cancelled = false;
@@ -188,12 +207,14 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
           safeSetItem(MIGRATION_FLAG_KEY, '1');
         }
         await migrateAnalysisCacheIfNeeded();
+        await migrateTournamentLocationsIfNeeded();
 
-        const [gamesData, profileData, repertoireData, heroesData, analysesData] = await Promise.all([
+        const [gamesData, profileData, repertoireData, heroesData, locationsData, analysesData] = await Promise.all([
           fetchGames(),
           fetchProfile(),
           fetchRepertoire(),
           fetchOpeningHeroes(),
+          fetchTournamentLocations(),
           fetchAnalyses(),
         ]);
         if (cancelled) return;
@@ -202,6 +223,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
         setPlayerInfo(profileData ?? initialPlayerInfo);
         setMainRepertoireState(repertoireData);
         setOpeningHeroesState(heroesData);
+        setTournamentLocationsState(locationsData);
         seedAnalysisCache(analysesData);
         setReady(true);
       } catch (err) {
@@ -249,6 +271,10 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
 
   const setOpeningHeroes = async (value: Record<string, string[]>) => {
     setOpeningHeroesState(await putOpeningHeroes(value));
+  };
+
+  const setTournamentLocations = async (value: Record<string, string>) => {
+    setTournamentLocationsState(await putTournamentLocations(value));
   };
 
   const value: GamesContextValue = {

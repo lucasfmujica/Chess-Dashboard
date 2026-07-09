@@ -83,6 +83,13 @@ CREATE TABLE IF NOT EXISTS annotated_games (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Manual tournament -> city-key overrides for the Geography tab (the
+-- default tournament->city guess lives in code, constants/locations.ts).
+CREATE TABLE IF NOT EXISTS tournament_locations (
+  tournament TEXT PRIMARY KEY,
+  city_key TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS opening_flashcards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,

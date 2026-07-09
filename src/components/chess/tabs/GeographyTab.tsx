@@ -19,12 +19,10 @@ const GeographyTab = () => {
   }, [filteredGames, tournamentLocations]);
 
   const assignCity = (tournament: string, cityKey: string) => {
-    setTournamentLocations(prev => {
-      const next = { ...prev };
-      if (cityKey) next[tournament] = cityKey;
-      else delete next[tournament];
-      return next;
-    });
+    const next = { ...tournamentLocations };
+    if (cityKey) next[tournament] = cityKey;
+    else delete next[tournament];
+    setTournamentLocations(next);
   };
 
   const best = geo.byCity[0];

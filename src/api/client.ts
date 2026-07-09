@@ -56,6 +56,11 @@ export const fetchOpeningHeroes = () => apiFetch<Record<string, string[]>>('/ope
 export const putOpeningHeroes = (heroes: Record<string, string[]>) =>
   apiFetch<Record<string, string[]>>('/opening-heroes', { method: 'PUT', body: JSON.stringify(heroes) });
 
+// Tournament -> city overrides (Geography tab)
+export const fetchTournamentLocations = () => apiFetch<Record<string, string>>('/tournament-locations');
+export const putTournamentLocations = (locations: Record<string, string>) =>
+  apiFetch<Record<string, string>>('/tournament-locations', { method: 'PUT', body: JSON.stringify(locations) });
+
 // Analysis cache
 export interface AnalysisEntry {
   pgnHash: string;
