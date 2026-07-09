@@ -69,15 +69,15 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
 
   // Symbols for notation
   const symbols: NotationSymbol[] = [
-    { symbol: '!', label: 'Good move', color: 'text-emerald-600' },
-    { symbol: '!!', label: 'Brilliant move', color: 'text-emerald-700' },
-    { symbol: '?', label: 'Mistake', color: 'text-amber-600' },
-    { symbol: '??', label: 'Blunder', color: 'text-rose-600' },
-    { symbol: '!?', label: 'Interesting move', color: 'text-indigo-600' },
-    { symbol: '?!', label: 'Dubious move', color: 'text-amber-700' },
-    { symbol: '±', label: 'White is better', color: 'text-slate-600' },
-    { symbol: '∓', label: 'Black is better', color: 'text-slate-800' },
-    { symbol: '=', label: 'Equal position', color: 'text-slate-500' }
+    { symbol: '!', label: 'Good move', color: 'text-emerald-600 dark:text-emerald-400' },
+    { symbol: '!!', label: 'Brilliant move', color: 'text-emerald-700 dark:text-emerald-400' },
+    { symbol: '?', label: 'Mistake', color: 'text-amber-600 dark:text-amber-400' },
+    { symbol: '??', label: 'Blunder', color: 'text-rose-600 dark:text-rose-400' },
+    { symbol: '!?', label: 'Interesting move', color: 'text-indigo-600 dark:text-blue-400' },
+    { symbol: '?!', label: 'Dubious move', color: 'text-amber-700 dark:text-amber-400' },
+    { symbol: '±', label: 'White is better', color: 'text-fg-muted' },
+    { symbol: '∓', label: 'Black is better', color: 'text-fg' },
+    { symbol: '=', label: 'Equal position', color: 'text-fg-subtle' }
   ];
 
   const saveAnnotation = async (annotation: Partial<AnnotatedGame>) => {

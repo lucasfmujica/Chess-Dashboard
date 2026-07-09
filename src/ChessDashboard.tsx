@@ -24,7 +24,25 @@ const GeographyTab = lazy(() => import('./components/chess/tabs/GeographyTab'));
 import RecordsTab from './components/chess/tabs/RecordsTab';
 import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
-import { Swords, Target, TrendingUp, Trophy } from './components/icons/ChessIcons';
+import {
+  Squares2X2Icon,
+  CpuChipIcon,
+  ArrowTrendingUpIcon,
+  TrophyIcon,
+  UserGroupIcon,
+  GlobeAmericasIcon,
+  BookOpenIcon,
+  AcademicCapIcon,
+  DocumentTextIcon,
+  StarIcon,
+  ChartBarSquareIcon,
+  FireIcon,
+  BeakerIcon,
+  LightBulbIcon,
+  FlagIcon,
+  ScaleIcon,
+} from '@heroicons/react/24/outline';
+import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 import type { Game } from './types/chess';
@@ -235,22 +253,22 @@ const ChessDashboard = () => {
 
   // Navigation tabs configuration
   const navigationTabs = [
-    { id: 'overview', label: 'Overview', icon: '📊' },
-    { id: 'analysis-board', label: 'Analysis Board', icon: '🧠' },
-    { id: 'rating', label: 'ELO Progress', icon: '📈' },
-    { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
-    { id: 'opponent-analysis', label: 'Opponent Analysis', icon: '⚔️' },
-    { id: 'geography', label: 'Geography', icon: '🌎' },
-    { id: 'by-color', label: 'By Color', icon: '♟️' },
-    { id: 'repertoire', label: 'Repertoire', icon: '🎯' },
-    { id: 'openings-trainer', label: 'Opening Trainer', icon: '🃏' },
-    { id: 'annotations', label: 'Game Library', icon: '📝' },
-    { id: 'achievements', label: 'Achievements', icon: '🏅' },
-    { id: 'records', label: 'Records', icon: '⭐' },
-    { id: 'streaks', label: 'Streaks', icon: '🔥' },
-    { id: 'analytics', label: 'Analytics', icon: '🔬' },
-    { id: 'training', label: 'Training Plan', icon: '💡' },
-    { id: 'goals', label: 'Goals', icon: '🎖️' },
+    { id: 'overview', label: 'Overview', icon: Squares2X2Icon },
+    { id: 'analysis-board', label: 'Analysis Board', icon: CpuChipIcon },
+    { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
+    { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
+    { id: 'opponent-analysis', label: 'Opponent Analysis', icon: UserGroupIcon },
+    { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
+    { id: 'by-color', label: 'By Color', icon: ByColorPieces },
+    { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
+    { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
+    { id: 'annotations', label: 'Game Library', icon: DocumentTextIcon },
+    { id: 'achievements', label: 'Achievements', icon: StarIcon },
+    { id: 'records', label: 'Records', icon: ChartBarSquareIcon },
+    { id: 'streaks', label: 'Streaks', icon: FireIcon },
+    { id: 'analytics', label: 'Analytics', icon: BeakerIcon },
+    { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
+    { id: 'goals', label: 'Goals', icon: FlagIcon },
   ];
 
   return (
@@ -320,10 +338,10 @@ const ChessDashboard = () => {
               tournamentStats={tournamentStats}
               bestResults={bestResults}
               worstResults={worstResults}
-              Trophy={Trophy}
+              Trophy={TrophyIcon}
               Swords={Swords}
-              Target={Target}
-              TrendingUp={TrendingUp}
+              Target={ScaleIcon}
+              TrendingUp={ArrowTrendingUpIcon}
             />
           )}
 

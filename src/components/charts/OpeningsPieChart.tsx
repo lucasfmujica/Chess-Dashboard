@@ -1,6 +1,6 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const COLORS = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'];
+const COLORS = ['rgb(var(--win))', 'rgb(var(--draw))', 'rgb(var(--loss))', '#3b82f6', '#8b5cf6'];
 
 interface OpeningSlice {
   name: string;
@@ -14,8 +14,8 @@ interface OpeningsPieChartProps {
 
 const OpeningsPieChart = ({ data, title = "Opening Distribution" }: OpeningsPieChartProps) => {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h3 className="mb-4 text-lg font-semibold">{title}</h3>
+    <div className="p-6 bg-surface rounded-lg border border-hairline">
+      <h3 className="mb-4 text-lg font-semibold text-fg">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie

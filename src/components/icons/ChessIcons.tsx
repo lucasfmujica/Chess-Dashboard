@@ -2,14 +2,7 @@ interface IconProps {
   className?: string;
 }
 
-export const Trophy = ({ className }: IconProps) => (
-  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" /><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-    <path d="M4 22h16" /><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-  </svg>
-);
+/** Chess-specific glyphs with no heroicons equivalent. */
 
 export const Swords = ({ className }: IconProps) => (
   <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,20 +13,14 @@ export const Swords = ({ className }: IconProps) => (
   </svg>
 );
 
-export const Target = ({ className }: IconProps) => (
+/** Two facing pawns, for the "By Color" (White/Black games) nav item. */
+export const ByColorPieces = ({ className }: IconProps) => (
   <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-  </svg>
-);
-
-export const TrendingUp = ({ className }: IconProps) => (
-  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
-  </svg>
-);
-
-export const TrendingDown = ({ className }: IconProps) => (
-  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" />
+    <circle cx="7" cy="6" r="2" fill="currentColor" />
+    <path d="M5 12l1-4h2l1 4" />
+    <path d="M4.5 12h5l.5 6h-6z" />
+    <circle cx="17" cy="6" r="2" />
+    <path d="M15 12l1-4h2l1 4" />
+    <path d="M14.5 12h5l.5 6h-6z" />
   </svg>
 );

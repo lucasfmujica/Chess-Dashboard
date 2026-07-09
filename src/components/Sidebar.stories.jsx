@@ -1,4 +1,5 @@
 import React from 'react';
+import { Squares2X2Icon, ArrowTrendingUpIcon, TrophyIcon, BeakerIcon } from '@heroicons/react/24/outline';
 import Sidebar from './Sidebar';
 
 export default {
@@ -15,10 +16,10 @@ const mockPlayerInfo = {
 };
 
 const mockNavigationTabs = [
-  { id: 'overview', label: 'Overview', icon: '📊' },
-  { id: 'rating', label: 'ELO Progress', icon: '📈' },
-  { id: 'tournaments', label: 'Tournaments', icon: '🏆' },
-  { id: 'analytics', label: 'Analytics', icon: '🔬' },
+  { id: 'overview', label: 'Overview', icon: Squares2X2Icon },
+  { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
+  { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
+  { id: 'analytics', label: 'Analytics', icon: BeakerIcon },
 ];
 
 const mockFilteredGames = [

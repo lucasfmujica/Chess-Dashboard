@@ -48,8 +48,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full bg-white rounded-2xl shadow-2xl border border-red-200/60 overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950 dark:via-orange-950 dark:to-yellow-950 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full bg-surface rounded-2xl shadow-2xl border border-red-200/60 dark:border-red-800/60 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-red-500 to-orange-600 p-6">
               <div className="flex items-center gap-3">
@@ -82,31 +82,31 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
             {/* Content */}
             <div className="p-6 space-y-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h2 className="text-sm font-semibold text-red-900 mb-2">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg p-4">
+                <h2 className="text-sm font-semibold text-red-900 dark:text-red-300 mb-2">
                   Error Details:
                 </h2>
-                <p className="text-sm text-red-700 font-mono break-words">
+                <p className="text-sm text-red-700 dark:text-red-400 font-mono break-words">
                   {this.state.error && this.state.error.toString()}
                 </p>
               </div>
 
               {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <details className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                  <summary className="text-sm font-semibold text-slate-900 cursor-pointer hover:text-slate-700">
+                <details className="bg-surface-2 border border-hairline rounded-lg p-4">
+                  <summary className="text-sm font-semibold text-fg cursor-pointer hover:text-fg-muted">
                     Stack Trace (Development Mode)
                   </summary>
-                  <pre className="mt-3 text-xs text-slate-600 overflow-x-auto whitespace-pre-wrap break-words">
+                  <pre className="mt-3 text-xs text-fg-muted overflow-x-auto whitespace-pre-wrap break-words">
                     {this.state.errorInfo.componentStack}
                   </pre>
                 </details>
               )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">
+              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
                   What you can do:
                 </h3>
-                <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
                   <li>Try refreshing the page</li>
                   <li>Clear your browser cache and local storage</li>
                   <li>Check your internet connection</li>
@@ -141,7 +141,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 </button>
                 <button
                   onClick={() => window.history.back()}
-                  className="px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all duration-200"
+                  className="px-6 py-3 bg-surface-2 text-fg-muted font-semibold rounded-xl hover:bg-surface transition-all duration-200"
                   aria-label="Go back to previous page"
                 >
                   Go Back

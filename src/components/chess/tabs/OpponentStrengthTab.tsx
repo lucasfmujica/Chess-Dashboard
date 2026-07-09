@@ -160,7 +160,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-fg-muted">Performance</span>
-                <span className={`font-semibold ${bracket.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-semibold ${bracket.performance >= 0 ? 'text-win' : 'text-loss'}`}>
                   {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
                 </span>
               </div>
@@ -289,7 +289,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                         <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.elo}</td>
                         <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo}</td>
                         <td className="px-4 py-2 text-sm text-center tabular-nums">
-                          <span className={`font-medium ${eloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                          <span className={`font-medium ${eloDiff >= 0 ? 'text-orange-600 dark:text-orange-400' : 'text-win'}`}>
                             {eloDiff >= 0 ? '+' : ''}{eloDiff}
                           </span>
                         </td>
@@ -302,9 +302,9 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                         </td>
                         <td className="px-4 py-2 text-sm text-center">
                           <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            game.result === 'W' ? 'bg-green-100 text-green-800' :
-                            game.result === 'D' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
+                            game.result === 'W' ? 'bg-win/10 text-win' :
+                            game.result === 'D' ? 'bg-draw/10 text-draw' :
+                            'bg-loss/10 text-loss'
                           }`}>
                             {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
                           </span>
@@ -326,9 +326,9 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
               Score: <span className="font-semibold tabular-nums">{selectedBracket.score}/{selectedBracket.games}</span> ({selectedBracket.scorePercentage}%)
             </div>
             <div className="flex gap-4">
-              <span className="text-green-600">W: {selectedBracket.wins}</span>
-              <span className="text-yellow-600">D: {selectedBracket.draws}</span>
-              <span className="text-red-600">L: {selectedBracket.losses}</span>
+              <span className="text-win">W: {selectedBracket.wins}</span>
+              <span className="text-draw">D: {selectedBracket.draws}</span>
+              <span className="text-loss">L: {selectedBracket.losses}</span>
             </div>
           </div>
         </div>
@@ -397,7 +397,7 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                           <div className="pt-2 mt-2 border-t border-hairline">
                             <div className="flex items-center justify-between gap-6">
                               <span className="text-sm font-semibold text-fg-muted">Performance:</span>
-                              <span className={`text-lg font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                              <span className={`text-lg font-bold ${isPositive ? 'text-win' : 'text-loss'}`}>
                                 {isPositive ? '+' : ''}{performance}%
                               </span>
                             </div>
@@ -475,24 +475,24 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
                     <span className="underline decoration-dotted decoration-fg-subtle">{bracket.games}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="text-green-600">{bracket.wins}</span>-
-                    <span className="text-yellow-600">{bracket.draws}</span>-
-                    <span className="text-red-600">{bracket.losses}</span>
+                    <span className="text-win">{bracket.wins}</span>-
+                    <span className="text-draw">{bracket.draws}</span>-
+                    <span className="text-loss">{bracket.losses}</span>
                   </td>
                   <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{bracket.score}</td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold tabular-nums ${bracket.winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-semibold tabular-nums ${bracket.winRate >= 50 ? 'text-win' : 'text-loss'}`}>
                       {bracket.winRate}%
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{bracket.expectedPercentage}%</td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-bold tabular-nums ${bracket.performance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`font-bold tabular-nums ${bracket.performance >= 0 ? 'text-win' : 'text-loss'}`}>
                       {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-medium tabular-nums ${bracket.avgEloDiff >= 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                    <span className={`font-medium tabular-nums ${bracket.avgEloDiff >= 0 ? 'text-orange-600 dark:text-orange-400' : 'text-win'}`}>
                       {bracket.avgEloDiff >= 0 ? '+' : ''}{bracket.avgEloDiff}
                     </span>
                   </td>
@@ -557,9 +557,9 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
 
             if (isOverperforming) {
               return (
-                <div key={idx} className="p-4 bg-green-100 border border-green-300 rounded-lg">
-                  <p className="font-semibold text-green-900">✓ Strength: {bracket.label}</p>
-                  <p className="text-sm text-green-800">
+                <div key={idx} className="p-4 bg-win/10 border border-win/30 rounded-lg">
+                  <p className="font-semibold text-win">✓ Strength: {bracket.label}</p>
+                  <p className="text-sm text-win">
                     You're performing {bracket.performance}% above expectations in this bracket!
                     Your {bracket.scorePercentage}% score exceeds the expected {bracket.expectedPercentage}%.
                   </p>
@@ -567,9 +567,9 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
               );
             } else if (isUnderperforming) {
               return (
-                <div key={idx} className="p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
-                  <p className="font-semibold text-yellow-900">⚠ Area for Improvement: {bracket.label}</p>
-                  <p className="text-sm text-yellow-800">
+                <div key={idx} className="p-4 bg-draw/10 border border-draw/30 rounded-lg">
+                  <p className="font-semibold text-draw">⚠ Area for Improvement: {bracket.label}</p>
+                  <p className="text-sm text-draw">
                     You're performing {Math.abs(bracket.performance)}% below expectations.
                     Focus on improving results against {bracket.label.toLowerCase()} opponents.
                   </p>

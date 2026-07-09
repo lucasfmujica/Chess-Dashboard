@@ -1,11 +1,12 @@
-import type { Dispatch, SetStateAction } from 'react';
+import type { ComponentType, Dispatch, SetStateAction } from 'react';
+import { CheckCircleIcon, ChevronDoubleLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { Game, PlayerInfo } from '../types/chess';
 import ThemeToggle from './ThemeToggle';
 
 interface NavigationTab {
   id: string;
   label: string;
-  icon: string;
+  icon: ComponentType<{ className?: string }>;
 }
 
 interface SidebarProps {
@@ -42,9 +43,7 @@ const Sidebar = ({
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-2.5 ${isSidebarCollapsed ? 'lg:justify-center lg:w-full' : ''}`}>
             <div className="flex items-center justify-center w-8 h-8 bg-fg rounded-md">
-              <svg className="w-5 h-5 text-app" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <CheckCircleIcon className="w-5 h-5 text-app" aria-hidden="true" />
             </div>
             {!isSidebarCollapsed && (
               <div>
@@ -58,9 +57,7 @@ const Sidebar = ({
             className="lg:hidden p-2 rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
             aria-label="Close mobile menu"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <XMarkIcon className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
@@ -87,9 +84,10 @@ const Sidebar = ({
             aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <svg className={`w-5 h-5 transition-transform ${isSidebarCollapsed ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
+            <ChevronDoubleLeftIcon
+              className={`w-5 h-5 transition-transform duration-300 ${isSidebarCollapsed ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
@@ -103,16 +101,16 @@ const Sidebar = ({
               setActiveTab(tab.id);
               setIsMobileMenuOpen(false);
             }}
-            className={`relative w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+            className={`relative w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:rounded-full before:bg-accent before:transition-opacity before:duration-200 ${
               activeTab === tab.id
-                ? 'bg-surface-2 text-fg before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:rounded-full before:bg-accent'
-                : 'text-fg-muted hover:bg-surface-2 hover:text-fg'
+                ? 'bg-surface-2 text-fg before:opacity-100'
+                : 'text-fg-muted hover:bg-surface-2 hover:text-fg before:opacity-0'
             } ${isSidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
             aria-label={`Navigate to ${tab.label}`}
             aria-current={activeTab === tab.id ? 'page' : undefined}
             title={isSidebarCollapsed ? tab.label : ''}
           >
-            <span className="text-base" aria-hidden="true">{tab.icon}</span>
+            <tab.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
             {!isSidebarCollapsed && <span>{tab.label}</span>}
           </button>
         ))}

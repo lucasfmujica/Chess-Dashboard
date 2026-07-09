@@ -21,8 +21,8 @@ interface EloProgressionChartProps {
 
 const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h3 className="mb-4 text-lg font-semibold">ELO Progression</h3>
+    <div className="p-6 bg-surface rounded-lg border border-hairline">
+      <h3 className="mb-4 text-lg font-semibold text-fg">ELO Progression</h3>
       <ResponsiveContainer width="100%" height={400}>
         <LineChart data={eloHistory}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -33,12 +33,12 @@ const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className="p-3 bg-white border border-gray-300 rounded shadow">
-                    <p className="font-semibold">Game {data.game}</p>
-                    <p className="text-sm text-gray-600">{data.tournament}</p>
-                    <p className="text-sm">vs {data.opponent}</p>
-                    <p className="text-sm text-gray-500">{data.opening}</p>
-                    <p className="font-medium">ELO: {data.elo}</p>
+                  <div className="p-3 bg-surface border border-hairline rounded shadow">
+                    <p className="font-semibold text-fg">Game {data.game}</p>
+                    <p className="text-sm text-fg-muted">{data.tournament}</p>
+                    <p className="text-sm text-fg">vs {data.opponent}</p>
+                    <p className="text-sm text-fg-subtle">{data.opening}</p>
+                    <p className="font-medium text-fg">ELO: {data.elo}</p>
                   </div>
                 );
               }
@@ -46,7 +46,7 @@ const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
             }}
           />
           <Legend />
-          <Line type="monotone" dataKey="elo" stroke="#3b82f6" strokeWidth={2} name="ELO" dot={{ r: 3 }} />
+          <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={2} name="ELO" dot={{ r: 3 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>

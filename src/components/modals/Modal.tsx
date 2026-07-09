@@ -87,9 +87,9 @@ const Modal: React.FC<ModalProps> = ({
     switch (type) {
       case 'alert':
         return (
-          <div className="p-3 bg-blue-100 rounded-full">
+          <div className="p-3 bg-blue-100 dark:bg-blue-500/20 rounded-full">
             <svg
-              className="w-6 h-6 text-blue-600"
+              className="w-6 h-6 text-blue-600 dark:text-blue-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -106,9 +106,9 @@ const Modal: React.FC<ModalProps> = ({
         );
       case 'confirm':
         return (
-          <div className="p-3 bg-yellow-100 rounded-full">
+          <div className="p-3 bg-yellow-100 dark:bg-yellow-500/20 rounded-full">
             <svg
-              className="w-6 h-6 text-yellow-600"
+              className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -125,9 +125,9 @@ const Modal: React.FC<ModalProps> = ({
         );
       case 'prompt':
         return (
-          <div className="p-3 bg-emerald-100 rounded-full">
+          <div className="p-3 bg-emerald-100 dark:bg-emerald-500/20 rounded-full">
             <svg
-              className="w-6 h-6 text-emerald-600"
+              className="w-6 h-6 text-emerald-600 dark:text-emerald-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -164,7 +164,7 @@ const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
+        <div className="relative bg-surface rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
           {/* Header */}
           <div className="p-6 pb-4">
             <div className="flex items-start gap-4">
@@ -172,7 +172,7 @@ const Modal: React.FC<ModalProps> = ({
               <div className="flex-1">
                 <h3
                   id="modal-title"
-                  className="text-lg font-semibold text-slate-900"
+                  className="text-lg font-semibold text-fg"
                 >
                   {title}
                 </h3>
@@ -180,11 +180,11 @@ const Modal: React.FC<ModalProps> = ({
               {type !== 'alert' && (
                 <button
                   onClick={handleCancel}
-                  className="p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="p-1 rounded-lg hover:bg-surface-2 transition-colors"
                   aria-label="Close modal"
                 >
                   <svg
-                    className="w-5 h-5 text-slate-400"
+                    className="w-5 h-5 text-fg-subtle"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -206,7 +206,7 @@ const Modal: React.FC<ModalProps> = ({
             <div className="px-6 pb-6">
               <p
                 id="modal-description"
-                className="text-slate-600 text-sm whitespace-pre-wrap"
+                className="text-fg-muted text-sm whitespace-pre-wrap"
               >
                 {message}
               </p>
@@ -217,19 +217,19 @@ const Modal: React.FC<ModalProps> = ({
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="mt-4 w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  className="mt-4 w-full px-4 py-2 bg-surface border border-hairline text-fg rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
                   aria-label="Input field"
                 />
               )}
             </div>
 
             {/* Actions */}
-            <div className="bg-slate-50 px-6 py-4 rounded-b-2xl flex gap-3 justify-end">
+            <div className="bg-surface-2 px-6 py-4 rounded-b-2xl flex gap-3 justify-end">
               {type === 'confirm' && (
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-fg-muted bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors"
                   aria-label="Cancel"
                 >
                   Cancel
@@ -239,7 +239,7 @@ const Modal: React.FC<ModalProps> = ({
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-fg-muted bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors"
                   aria-label="Cancel"
                 >
                   Cancel
