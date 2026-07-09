@@ -19,14 +19,22 @@ import {
   fetchOpeningHeroes,
   putOpeningHeroes,
   fetchAnalyses,
+  postAnalysis,
   postMigrate,
 } from '../api/client';
 import type { Game, PlayerInfo, Repertoire, UpcomingTournament, AnnotatedGame, OpeningCard } from '../types/chess';
+import type { GameAnalysis } from '../engine/analyzeGame';
 import type { WeeklyPlans } from '../types/training';
 import type { GameFilter } from './UIContext';
 import { LoadingSpinner } from '../components/LoadingSkeleton';
 
 const MIGRATION_FLAG_KEY = 'chess-dashboard-migrated-to-db';
+// Separate flag: the Stockfish analysis cache uses its own dynamic keys
+// (one per analysed game), so it's migrated independently of the main
+// games/repertoire/etc. migration above, and via postAnalysis directly
+// (not postMigrate) so it isn't blocked by that endpoint's "games table
+// already has data" idempotency guard on a retry.
+const ANALYSIS_MIGRATION_FLAG_KEY = 'chess-dashboard-analyses-migrated-to-db';
 
 /** A localStorage-backed setter (value or updater fn). */
 type Updater<T> = (value: T | ((prev: T) => T)) => void;
@@ -115,6 +123,29 @@ const readLegacyLocalStorage = () => {
   };
 };
 
+/** Uploads any localStorage-cached Stockfish analyses (chess-dashboard-analysis-<hash>-d<depth>) to the DB, once. */
+const migrateAnalysisCacheIfNeeded = async () => {
+  if (safeGetItem(ANALYSIS_MIGRATION_FLAG_KEY)) return;
+  try {
+    const keys = Object.keys(window.localStorage).filter(k => /^chess-dashboard-analysis-.+-d\d+$/.test(k));
+    for (const key of keys) {
+      const match = key.match(/^chess-dashboard-analysis-(.+)-d\d+$/);
+      const pgnHash = match?.[1];
+      const raw = safeGetItem(key);
+      if (!pgnHash || !raw) continue;
+      try {
+        const analysis = JSON.parse(raw) as GameAnalysis;
+        await postAnalysis(pgnHash, analysis);
+      } catch {
+        /* skip a malformed cache entry, keep going */
+      }
+    }
+  } catch {
+    /* localStorage unavailable; nothing to migrate */
+  }
+  safeSetItem(ANALYSIS_MIGRATION_FLAG_KEY, '1');
+};
+
 export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -156,6 +187,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
           });
           safeSetItem(MIGRATION_FLAG_KEY, '1');
         }
+        await migrateAnalysisCacheIfNeeded();
 
         const [gamesData, profileData, repertoireData, heroesData, analysesData] = await Promise.all([
           fetchGames(),
