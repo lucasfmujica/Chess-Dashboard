@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
+import type { Square } from 'chess.js';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -89,6 +90,90 @@ const GameViewer = ({
 
   const playUci = (uci: string): boolean =>
     playMove({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci.length > 4 ? uci[4] : undefined });
+
+  // Click-to-move (alternative to dragging): first click selects a piece and
+  // highlights its legal destinations, second click plays the move.
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  // A pawn move that reached the last rank, awaiting the player's piece choice.
+  const [pendingPromotion, setPendingPromotion] = useState<{ from: string; to: string } | null>(null);
+
+  const legalTargets = useMemo(() => {
+    if (!selectedSquare) return [];
+    try {
+      return new Chess(fen).moves({ square: selectedSquare as Square, verbose: true }).map((m): string => m.to);
+    } catch {
+      return [];
+    }
+  }, [fen, selectedSquare]);
+
+  const needsPromotion = (from: string, to: string): boolean => {
+    try {
+      return new Chess(fen).moves({ square: from as Square, verbose: true }).some(m => m.to === to && m.promotion);
+    } catch {
+      return false;
+    }
+  };
+
+  // Clear any pending click-selection whenever the position changes from
+  // elsewhere (stepping through moves, loading a new game, etc).
+  useEffect(() => {
+    setSelectedSquare(null);
+    setPendingPromotion(null);
+  }, [ply, pgn]);
+
+  // Whose turn it is right now — only pieces of this color are selectable.
+  const sideToMove: 'w' | 'b' = fen.split(' ')[1] === 'b' ? 'b' : 'w';
+
+  const handleSquareClick = ({ square, piece }: { square: string; piece: { pieceType: string } | null }) => {
+    if (!explorable || pendingPromotion) return;
+    const isMovable = !!piece && piece.pieceType[0] === sideToMove;
+    if (!selectedSquare) {
+      if (isMovable) setSelectedSquare(square);
+      return;
+    }
+    if (square === selectedSquare) {
+      setSelectedSquare(null);
+      return;
+    }
+    if (legalTargets.includes(square)) {
+      if (needsPromotion(selectedSquare, square)) {
+        setPendingPromotion({ from: selectedSquare, to: square });
+      } else {
+        playMove({ from: selectedSquare, to: square });
+      }
+      setSelectedSquare(null);
+      return;
+    }
+    // Not a legal destination — reselect if it's another one of your own pieces.
+    setSelectedSquare(isMovable ? square : null);
+  };
+
+  const choosePromotion = (promotion: string) => {
+    if (!pendingPromotion) return;
+    playMove({ from: pendingPromotion.from, to: pendingPromotion.to, promotion });
+    setPendingPromotion(null);
+  };
+
+  const squareStyles = useMemo(() => {
+    const styles: Record<string, React.CSSProperties> = {};
+    if (selectedSquare) {
+      styles[selectedSquare] = { boxShadow: 'inset 0 0 0 3px rgba(59,130,246,0.7)' };
+      legalTargets.forEach(sq => {
+        styles[sq] = { background: 'radial-gradient(circle, rgba(59,130,246,0.55) 22%, transparent 25%)' };
+      });
+    }
+    return styles;
+  }, [selectedSquare, legalTargets]);
+
+  // `sideToMove` still reflects the promoting side here — `fen` hasn't
+  // changed yet while the picker is up, since the move isn't played until
+  // a piece is chosen.
+  const PROMOTION_CHOICES: { code: string; glyph: string; label: string }[] = [
+    { code: 'q', glyph: sideToMove === 'w' ? '♕' : '♛', label: 'Queen' },
+    { code: 'r', glyph: sideToMove === 'w' ? '♖' : '♜', label: 'Rook' },
+    { code: 'b', glyph: sideToMove === 'w' ? '♗' : '♝', label: 'Bishop' },
+    { code: 'n', glyph: sideToMove === 'w' ? '♘' : '♞', label: 'Knight' },
+  ];
   const [settings, setSettings] = useEngineSettings();
   const [engineOn, setEngineOn] = useState(false);
   const engineState = useLocalEngine(fen, settings, showEngine && engineOn);
@@ -204,7 +289,7 @@ const GameViewer = ({
             )}
           </div>
 
-          <div className="flex-1 rounded-lg overflow-hidden border border-hairline">
+          <div className="relative flex-1 rounded-lg overflow-hidden border border-hairline">
             <Chessboard
               options={{
                 position: fen,
@@ -213,10 +298,45 @@ const GameViewer = ({
                 showNotation: true,
                 animationDurationInMs: 150,
                 arrows,
-                onPieceDrop: ({ sourceSquare, targetSquare }) =>
-                  targetSquare ? playMove({ from: sourceSquare, to: targetSquare, promotion: 'q' }) : false,
+                squareStyles,
+                onSquareClick: handleSquareClick,
+                onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                  if (!targetSquare) return false;
+                  if (needsPromotion(sourceSquare, targetSquare)) {
+                    setPendingPromotion({ from: sourceSquare, to: targetSquare });
+                    return false;
+                  }
+                  return playMove({ from: sourceSquare, to: targetSquare });
+                },
               }}
             />
+
+            {pendingPromotion && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+                <div className="rounded-lg border border-hairline bg-surface p-3 shadow-lg">
+                  <p className="mb-2 text-center text-xs font-medium text-fg-muted">Promote to</p>
+                  <div className="flex gap-1.5">
+                    {PROMOTION_CHOICES.map(({ code, glyph, label }) => (
+                      <button
+                        key={code}
+                        onClick={() => choosePromotion(code)}
+                        aria-label={`Promote to ${label}`}
+                        title={label}
+                        className="flex h-11 w-11 items-center justify-center rounded-md border border-hairline bg-surface-2 text-3xl leading-none hover:bg-accent/15 hover:border-accent/40 transition-colors"
+                      >
+                        {glyph}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setPendingPromotion(null)}
+                    className="mt-2 w-full text-center text-xs text-fg-muted hover:text-fg"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -256,7 +376,9 @@ const GameViewer = ({
             <ChevronDoubleRightIcon className="w-4 h-4" />
           </ControlButton>
         </div>
-        <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
+        <p className="mt-2 text-center text-xs text-fg-subtle">
+          Use ← → to step, Home/End to jump{explorable && ' · click or drag a piece to explore a line'}
+        </p>
       </div>
 
       {/* Right column: analysis, engine, compare, eval graph, move list */}

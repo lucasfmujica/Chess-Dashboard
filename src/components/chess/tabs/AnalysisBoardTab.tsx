@@ -184,7 +184,7 @@ const AnalysisBoardTab = () => {
                     </select>
                   ) : (
                     <p className="text-sm text-fg-muted">
-                      No games with moves yet. Import a PGN (with moves) from Analytics, then they appear here.
+                      No games with moves yet. Import a PGN (with moves) from Overview, then they appear here.
                     </p>
                   )}
                 </div>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import OpeningComparisonChart from '../../charts/OpeningComparisonChart';
+import OpeningHeroesGallery from './repertoire/OpeningHeroesGallery';
 import type { Repertoire } from '../../../types/chess';
 
 interface OpeningRecommendation {
@@ -46,28 +46,6 @@ const RepertoireTab = ({
   openingHeroes,
   setOpeningHeroes
 }: RepertoireTabProps) => {
-  const [selectedOpening, setSelectedOpening] = useState<string | null>(null);
-  const [newHeroName, setNewHeroName] = useState('');
-
-  const addHero = (eco: string) => {
-    if (!newHeroName.trim()) return;
-    const updated: OpeningHeroes = { ...openingHeroes };
-    if (!updated[eco]) updated[eco] = [];
-    if (!updated[eco].includes(newHeroName.trim())) {
-      updated[eco].push(newHeroName.trim());
-      setOpeningHeroes(updated);
-    }
-    setNewHeroName('');
-  };
-
-  const removeHero = (eco: string, heroName: string) => {
-    const updated: OpeningHeroes = { ...openingHeroes };
-    if (updated[eco]) {
-      updated[eco] = updated[eco].filter(h => h !== heroName);
-      if (updated[eco].length === 0) delete updated[eco];
-      setOpeningHeroes(updated);
-    }
-  };
   return (
     <div className="space-y-6">
       <OpeningComparisonChart white={openingRepertoireAnalysis.white} black={openingRepertoireAnalysis.black} />
@@ -101,147 +79,13 @@ const RepertoireTab = ({
       </div>
 
       {/* Opening Heroes Section */}
-      <div className="p-6 border border-hairline rounded-lg bg-surface">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
-          <span className="mr-2 text-2xl">⭐</span>
-          Opening Heroes
-          <span className="ml-2 px-2 py-0.5 text-xs bg-accent text-accent-fg rounded-full">NEW</span>
-        </h3>
-        <p className="text-sm text-fg-muted mb-4">
-          Track which top players you're following for each opening in your repertoire.
-          Add players to study their games in ChessBase or other databases.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* White Openings Heroes */}
-          <div className="bg-surface-2 rounded-lg p-4 border border-hairline">
-            <h4 className="font-semibold text-sm mb-3 text-fg">⚪ White Openings</h4>
-            <div className="space-y-3">
-              {openingRepertoireAnalysis.white.map((opening) => {
-                return (
-                  <div key={opening.eco} className="border border-hairline rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-xs text-fg">{opening.name}</p>
-                        <p className="text-xs text-fg-muted">{opening.eco} • {opening.games} games</p>
-                      </div>
-                      <button
-                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
-                        className="text-xs px-2 py-1 border border-hairline bg-surface hover:bg-surface-2 text-fg rounded transition-colors"
-                      >
-                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
-                      </button>
-                    </div>
-
-                    {selectedOpening === opening.eco && (
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={newHeroName}
-                          onChange={(e) => setNewHeroName(e.target.value)}
-                          placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
-                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
-                        />
-                        <button
-                          onClick={() => addHero(opening.eco)}
-                          className="text-xs px-3 py-1 bg-fg text-app rounded hover:opacity-90 transition-opacity"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    )}
-
-                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {openingHeroes[opening.eco].map((hero, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-2 border border-hairline text-fg text-xs rounded-full"
-                          >
-                            {hero}
-                            <button
-                              onClick={() => removeHero(opening.eco, hero)}
-                              className="hover:text-loss"
-                              title="Remove"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Black Openings Heroes */}
-          <div className="bg-surface-2 rounded-lg p-4 border border-hairline">
-            <h4 className="font-semibold text-sm mb-3 text-fg">⚫ Black Defenses</h4>
-            <div className="space-y-3">
-              {openingRepertoireAnalysis.black.map((opening) => {
-                return (
-                  <div key={opening.eco} className="border border-hairline rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-xs text-fg">{opening.name}</p>
-                        <p className="text-xs text-fg-muted">{opening.eco} • {opening.games} games</p>
-                      </div>
-                      <button
-                        onClick={() => setSelectedOpening(selectedOpening === opening.eco ? null : opening.eco)}
-                        className="text-xs px-2 py-1 border border-hairline bg-surface hover:bg-surface-2 text-fg rounded transition-colors"
-                      >
-                        {selectedOpening === opening.eco ? 'Cancel' : '+ Add Hero'}
-                      </button>
-                    </div>
-
-                    {selectedOpening === opening.eco && (
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={newHeroName}
-                          onChange={(e) => setNewHeroName(e.target.value)}
-                          placeholder="Enter player name..."
-                          className="flex-1 text-xs px-2 py-1 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
-                          onKeyPress={(e) => e.key === 'Enter' && addHero(opening.eco)}
-                        />
-                        <button
-                          onClick={() => addHero(opening.eco)}
-                          className="text-xs px-3 py-1 bg-fg text-app rounded hover:opacity-90 transition-opacity"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    )}
-
-                    {openingHeroes[opening.eco] && openingHeroes[opening.eco].length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {openingHeroes[opening.eco].map((hero, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-2 border border-hairline text-fg text-xs rounded-full"
-                          >
-                            {hero}
-                            <button
-                              onClick={() => removeHero(opening.eco, hero)}
-                              className="hover:text-loss"
-                              title="Remove"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      <OpeningHeroesGallery
+        openingHeroes={openingHeroes}
+        setOpeningHeroes={setOpeningHeroes}
+        mainRepertoire={mainRepertoire}
+        whiteOpenings={openingRepertoireAnalysis.white}
+        blackOpenings={openingRepertoireAnalysis.black}
+      />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="p-6 bg-surface rounded-lg border border-hairline">

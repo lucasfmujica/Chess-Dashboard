@@ -365,7 +365,7 @@ const OverviewTab = ({
           </div>
           <div className="p-4 text-center bg-surface-2 rounded-lg">
             <div className="text-2xl font-bold text-fg tabular-nums">
-              {((parseFloat(overallStats.actualScore) / overallStats.total) * 100).toFixed(0)}%
+              {overallStats.total > 0 ? ((parseFloat(overallStats.actualScore) / overallStats.total) * 100).toFixed(0) : '0'}%
             </div>
             <div className="text-sm text-fg-muted">Score Rate</div>
           </div>
