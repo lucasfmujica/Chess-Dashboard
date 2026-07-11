@@ -1,12 +1,14 @@
+import { useState } from 'react';
 import type { ComponentType } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/solid';
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import ResultsDonut from '../../charts/ResultsDonut';
-import GeoMap from '../../charts/GeoMap';
-import { useGames } from '../../../context/GamesContext';
-import { useGeographyStats } from '../../../hooks/useGeographyStats';
 import { useCountUp } from '../../../hooks/useCountUp';
+import { useGameForm } from '../../../hooks/useGameForm';
+import { useModal } from '../../modals/ModalContext';
 import StatCard, { Sparkline } from '../StatCard';
+import ManualGameEntry from './analytics/ManualGameEntry';
+import PgnImport from './analytics/PgnImport';
 import { getChartHeight } from '../../../utils/chartUtils';
 import type { Game, GameStats, PlayerInfo, TournamentStat } from '../../../types/chess';
 
@@ -49,6 +51,17 @@ interface OverviewTabProps {
   Swords: ComponentType<{ className?: string }>;
   Target: ComponentType<{ className?: string }>;
   TrendingUp: ComponentType<{ className?: string }>;
+  games: Game[];
+  addManualGame: (game: Game) => Promise<void>;
+  showPgnImport: boolean;
+  setShowPgnImport: React.Dispatch<React.SetStateAction<boolean>>;
+  pgnText: string;
+  setPgnText: React.Dispatch<React.SetStateAction<string>>;
+  handlePgnImport: () => void;
+  LichessSyncPanel: ComponentType<Record<string, unknown>>;
+  onLichessSync: (games: Game[]) => void;
+  onRemoveLichessGames: () => void;
+  lichessGamesCount: number;
 }
 
 const OverviewTab = ({
@@ -62,11 +75,37 @@ const OverviewTab = ({
   worstResults,
   Swords,
   Target,
-  TrendingUp
+  TrendingUp,
+  games,
+  addManualGame,
+  showPgnImport,
+  setShowPgnImport,
+  pgnText,
+  setPgnText,
+  handlePgnImport,
+  LichessSyncPanel,
+  onLichessSync,
+  onRemoveLichessGames,
+  lichessGamesCount
 }: OverviewTabProps) => {
-  const { tournamentLocations } = useGames();
-  const geo = useGeographyStats(ratedGames, tournamentLocations);
   const animatedElo = useCountUp(playerInfo.current_elo);
+  const modal = useModal();
+  const [showAddGames, setShowAddGames] = useState(false);
+  const {
+    showManualEntry,
+    setShowManualEntry,
+    gameForm,
+    uniqueTournaments,
+    handleInputChange,
+    handleAddGame,
+    resetForm,
+  } = useGameForm(games, addManualGame, modal);
+
+  const handleAddGameWithMessage = async () => {
+    if (await handleAddGame()) {
+      await modal.alert('Game added successfully!');
+    }
+  };
 
   // Generate ELO progress timeline from tournament stats (use starting ELO for each tournament)
   const eloTimeline = tournamentStats && tournamentStats.length > 0 ?
@@ -201,55 +240,40 @@ const OverviewTab = ({
         </div>
       </div>
 
-      {/* ELO Progress and Map */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-surface-2 rounded-lg">
-              <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <h3 className="text-base font-semibold text-fg">ELO Progress Timeline</h3>
+      {/* ELO Progress */}
+      <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="p-2 bg-surface-2 rounded-lg">
+            <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
           </div>
-          {eloTimeline.length > 0 ? (
-            <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
-              <LineChart data={eloTimeline}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
-                <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 11 }} />
-                <YAxis domain={['auto', 'auto']} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgb(var(--surface))',
-                    borderRadius: '12px',
-                    border: '1px solid rgb(var(--border))',
-                    color: 'rgb(var(--fg))',
-                  }}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: 'rgb(var(--accent))' }} activeDot={{ r: 7 }} />
-                <Line type="monotone" dataKey="performanceRating" stroke="rgb(var(--win))" strokeWidth={2} name="Performance" dot={{ r: 4, fill: 'rgb(var(--win))' }} strokeDasharray="5 5" />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64 text-fg-muted">
-              <p>No tournament data available</p>
-            </div>
-          )}
+          <h3 className="text-base font-semibold text-fg">ELO Progress Timeline</h3>
         </div>
-
-        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="p-2 bg-surface-2 rounded-lg">
-              <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-fg">Tournament Locations</h3>
+        {eloTimeline.length > 0 ? (
+          <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
+            <LineChart data={eloTimeline}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
+              <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 11 }} />
+              <YAxis domain={['auto', 'auto']} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgb(var(--surface))',
+                  borderRadius: '12px',
+                  border: '1px solid rgb(var(--border))',
+                  color: 'rgb(var(--fg))',
+                }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: 'rgb(var(--accent))' }} activeDot={{ r: 7 }} />
+              <Line type="monotone" dataKey="performanceRating" stroke="rgb(var(--win))" strokeWidth={2} name="Performance" dot={{ r: 4, fill: 'rgb(var(--win))' }} strokeDasharray="5 5" />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex items-center justify-center h-64 text-fg-muted">
+            <p>No tournament data available</p>
           </div>
-          <GeoMap markers={geo.byCity} />
-        </div>
+        )}
       </div>
 
       {/* Best and Worst Results */}
@@ -346,6 +370,66 @@ const OverviewTab = ({
             <div className="text-sm text-fg-muted">Score Rate</div>
           </div>
         </div>
+      </div>
+
+      {/* Add / Import Games */}
+      <div className="rounded-lg border border-hairline bg-surface">
+        <button
+          onClick={() => setShowAddGames(prev => !prev)}
+          className="flex w-full items-center justify-between p-6 text-left"
+        >
+          <div>
+            <h3 className="text-lg font-semibold text-fg">Add / Import Games</h3>
+            <p className="mt-1 text-sm text-fg-muted">Manual entry, PGN import, or sync from Lichess</p>
+          </div>
+          {showAddGames ? <ChevronUpIcon className="w-5 h-5 text-fg-muted" /> : <ChevronDownIcon className="w-5 h-5 text-fg-muted" />}
+        </button>
+        {showAddGames && (
+          <div className="space-y-4 px-6 pb-6">
+            <ManualGameEntry
+              showManualEntry={showManualEntry}
+              setShowManualEntry={setShowManualEntry}
+              gameForm={gameForm}
+              uniqueTournaments={uniqueTournaments}
+              handleInputChange={handleInputChange}
+              handleAddGame={handleAddGameWithMessage}
+              resetForm={resetForm}
+            />
+
+            <PgnImport
+              showPgnImport={showPgnImport}
+              setShowPgnImport={setShowPgnImport}
+              pgnText={pgnText}
+              setPgnText={setPgnText}
+              handlePgnImport={handlePgnImport}
+            />
+
+            {LichessSyncPanel && (
+              <div className="space-y-4">
+                <LichessSyncPanel onSyncComplete={onLichessSync} />
+
+                {lichessGamesCount > 0 && (
+                  <div className="p-4 border border-hairline rounded-lg bg-surface-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-semibold text-fg">Remove Imported Games</h4>
+                        <p className="text-xs text-fg-muted mt-1">
+                          You have {lichessGamesCount} Lichess game{lichessGamesCount !== 1 ? 's' : ''} imported
+                        </p>
+                      </div>
+                      <button
+                        onClick={onRemoveLichessGames}
+                        className="px-4 py-2 text-sm font-medium text-loss border border-hairline bg-surface hover:bg-surface-2 rounded-lg transition-colors"
+                      >
+                        Remove All Lichess Games
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,34 @@
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartHeight } from '../../../utils/chartUtils';
+import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
+import TournamentComparison from './analytics/TournamentComparison';
 import type { Game } from '../../../types/chess';
+
+/** Per time-of-day-slot aggregate row. */
+interface TimeOfDayStat {
+  time: string;
+  total: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  winRate: string;
+}
+
+/** A single entry from useTrendsAndAnalytics.tournamentComparison. */
+interface TournamentComparisonEntry {
+  name: string;
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: number;
+  avgOppElo: number;
+  playerElo: number;
+  eloChange: number;
+  performance: number | null;
+}
 
 /** Per-bracket aggregate computed from rated games. */
 interface BracketAnalysis {
@@ -30,9 +57,11 @@ interface SortConfig {
 interface OpponentStrengthTabProps {
   games: Game[];
   currentElo: number;
+  timeOfDayStats: TimeOfDayStat[];
+  tournamentComparison: TournamentComparisonEntry[];
 }
 
-const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
+const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: OpponentStrengthTabProps) => {
   const [selectedBracket, setSelectedBracket] = useState<BracketAnalysis | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'desc' });
   const strengthAnalysis = useMemo<BracketAnalysis[]>(() => {
@@ -543,6 +572,12 @@ const OpponentStrengthTab = ({ games }: OpponentStrengthTabProps) => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Time of Day Performance */}
+      <TimeOfDayPerformance timeOfDayStats={timeOfDayStats} />
+
+      {/* Tournament Comparison */}
+      <TournamentComparison tournamentComparison={tournamentComparison} />
 
       {/* Insights */}
       <div className="p-6 rounded-lg border border-hairline bg-surface-2">

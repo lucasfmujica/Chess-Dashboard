@@ -212,6 +212,32 @@ export interface OpeningCard {
   totalAttempts: number;
 }
 
+/** A prepared opening line for tournament study — plan, trap and review notes. */
+export interface RepertoireLine {
+  id: string;
+  createdAt: number;
+  color: 'W' | 'B';
+  /** What this line is a reply to, e.g. '1.e4', '1.c4 e5', 'anti-Sicilian Bb5'. */
+  vsMove?: string;
+  eco?: string;
+  lineName?: string;
+  /** Moves up to the critical tabiya, in SAN. */
+  movesSan?: string;
+  /** FEN of the critical position. */
+  keyFen?: string;
+  /** The plan, in one sentence. */
+  plan?: string;
+  /** The golden rule / trap to avoid. */
+  goldenRule?: string;
+  /** 1 = close out first. */
+  priority?: number;
+  /** Self-assessed confidence, 1-5. */
+  confidence?: number;
+  lichessUrl?: string;
+  lastReviewed?: number;
+  notes?: string;
+}
+
 /** A planned/upcoming tournament entry. */
 export interface UpcomingTournament {
   id: number;

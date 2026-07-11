@@ -1,6 +1,6 @@
 import ResultsDonut from '../../charts/ResultsDonut';
 import { PlayIcon } from '@heroicons/react/24/solid';
-import type { Game, GameStats } from '../../../types/chess';
+import type { Game, GameStats, PlayerColor } from '../../../types/chess';
 import { useGameViewer } from '../../../context/GameViewerContext';
 import { useGameFilters } from '../../../hooks/useGameFilters';
 import GameFiltersBar from '../GameFiltersBar';
@@ -36,29 +36,32 @@ type ColorStats = GameStats & { openings: ColorOpeningStat[] };
 type SortBy = 'date' | 'opponent' | 'result';
 type SortOrder = 'asc' | 'desc';
 
-interface BlackGamesTabProps {
-  blackStats: ColorStats;
-  blackSortBy: SortBy;
-  setBlackSortBy: (v: SortBy) => void;
-  blackSortOrder: SortOrder;
-  setBlackSortOrder: (v: SortOrder) => void;
+interface ColorGamesTabProps {
+  color: PlayerColor;
+  colorStats: ColorStats;
+  sortBy: SortBy;
+  setSortBy: (v: SortBy) => void;
+  sortOrder: SortOrder;
+  setSortOrder: (v: SortOrder) => void;
   games: Game[];
   ecoNames: Record<string, string>;
 }
 
-const BlackGamesTab = ({
-  blackStats,
-  blackSortBy,
-  setBlackSortBy,
-  blackSortOrder,
-  setBlackSortOrder,
+const ColorGamesTab = ({
+  color,
+  colorStats,
+  sortBy,
+  setSortBy,
+  sortOrder,
+  setSortOrder,
   games,
   ecoNames
-}: BlackGamesTabProps) => {
+}: ColorGamesTabProps) => {
   const { openGameViewer } = useGameViewer();
-  const blackGamesAll = games
+  const colorLabel = color === 'W' ? 'White' : 'Black';
+  const colorGamesAll = games
     .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
-    .filter(game => game.color === 'B');
+    .filter(game => game.color === color);
   const {
     query,
     setQuery,
@@ -70,8 +73,8 @@ const BlackGamesTab = ({
     setResultFilter,
     hasActiveFilters,
     clearFilters,
-    filteredItems: blackGames,
-  } = useGameFilters(blackGamesAll, {
+    filteredItems: colorGames,
+  } = useGameFilters(colorGamesAll, {
     date: g => g.date,
     result: g => g.result,
     searchText: g => `${g.opp} ${ecoNames[g.eco] || g.eco} ${g.tournament}`,
@@ -80,28 +83,28 @@ const BlackGamesTab = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <StatCard
-          title="Games as Black"
-          value={blackStats.total}
-          subtitle={`Win rate: ${blackStats.winRate}%`}
+          title={`Games as ${colorLabel}`}
+          value={colorStats.total}
+          subtitle={`Win rate: ${colorStats.winRate}%`}
         />
         <StatCard
           title="Score"
-          value={blackStats.score}
-          subtitle={`${blackStats.wins}W ${blackStats.draws}D ${blackStats.losses}L`}
+          value={colorStats.score}
+          subtitle={`${colorStats.wins}W ${colorStats.draws}D ${colorStats.losses}L`}
         />
         <StatCard
           title="Performance Rating"
-          value={blackStats.performanceRating}
+          value={colorStats.performanceRating}
         />
       </div>
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Results distribution as Black</h3>
-        <ResultsDonut wins={blackStats.wins} draws={blackStats.draws} losses={blackStats.losses} />
+        <h3 className="mb-4 text-lg font-semibold text-fg">Results distribution as {colorLabel}</h3>
+        <ResultsDonut wins={colorStats.wins} draws={colorStats.draws} losses={colorStats.losses} />
       </div>
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Openings as Black</h3>
+        <h3 className="mb-4 text-lg font-semibold text-fg">Openings as {colorLabel}</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-surface-2">
@@ -114,7 +117,7 @@ const BlackGamesTab = ({
               </tr>
             </thead>
             <tbody className="bg-surface divide-y divide-hairline">
-              {blackStats.openings.map((opening) => (
+              {colorStats.openings.map((opening) => (
                 <tr key={opening.eco} className="hover:bg-surface-2">
                   <td className="px-6 py-4 text-sm">
                     <div className="font-medium text-fg">{opening.name}</div>
@@ -140,7 +143,7 @@ const BlackGamesTab = ({
       </div>
 
       <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">All Games as Black</h3>
+        <h3 className="mb-4 text-lg font-semibold text-fg">All Games as {colorLabel}</h3>
         <div className="mb-4">
           <GameFiltersBar
             query={query}
@@ -163,41 +166,41 @@ const BlackGamesTab = ({
                   scope="col"
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
-                    if (blackSortBy === 'date') {
-                      setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    if (sortBy === 'date') {
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                     } else {
-                      setBlackSortBy('date');
-                      setBlackSortOrder('desc');
+                      setSortBy('date');
+                      setSortOrder('desc');
                     }
                   }}
                 >
-                  Game # {blackSortBy === 'date' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Game # {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">My ELO</th>
                 <th
                   scope="col"
                   className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
-                    if (blackSortBy === 'opponent') {
-                      setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    if (sortBy === 'opponent') {
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                     } else {
-                      setBlackSortBy('opponent');
-                      setBlackSortOrder('asc');
+                      setSortBy('opponent');
+                      setSortOrder('asc');
                     }
                   }}
                 >
-                  Opponent {blackSortBy === 'opponent' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Opponent {sortBy === 'opponent' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">Opp ELO</th>
                 <th
                   scope="col"
                   className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
                   onClick={() => {
-                    setBlackSortBy('result');
-                    setBlackSortOrder(blackSortOrder === 'asc' ? 'desc' : 'asc');
+                    setSortBy('result');
+                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                   }}
                 >
-                  Result {blackSortBy === 'result' && (blackSortOrder === 'asc' ? '↑' : '↓')}
+                  Result {sortBy === 'result' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Opening</th>
                 <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Tournament</th>
@@ -206,11 +209,11 @@ const BlackGamesTab = ({
             </thead>
             <tbody className="bg-surface divide-y divide-hairline">
               {(() => {
-                const sortedGames = [...blackGames].sort((a, b) => {
+                const sortedGames = [...colorGames].sort((a, b) => {
                   let compareA: number | string;
                   let compareB: number | string;
 
-                  switch (blackSortBy) {
+                  switch (sortBy) {
                     case 'date':
                       compareA = a.gameNumber;
                       compareB = b.gameNumber;
@@ -230,8 +233,8 @@ const BlackGamesTab = ({
                       compareB = b.gameNumber;
                   }
 
-                  if (compareA < compareB) return blackSortOrder === 'asc' ? -1 : 1;
-                  if (compareA > compareB) return blackSortOrder === 'asc' ? 1 : -1;
+                  if (compareA < compareB) return sortOrder === 'asc' ? -1 : 1;
+                  if (compareA > compareB) return sortOrder === 'asc' ? 1 : -1;
                   return 0;
                 });
 
@@ -259,9 +262,9 @@ const BlackGamesTab = ({
                         <button
                           onClick={() => openGameViewer({
                             pgn: game.pgn,
-                            orientation: 'black',
-                            white: game.opp,
-                            black: 'You',
+                            orientation: color === 'W' ? 'white' : 'black',
+                            white: color === 'W' ? 'You' : game.opp,
+                            black: color === 'W' ? game.opp : 'You',
                             title: game.tournament,
                           })}
                           aria-label={`Replay game vs ${game.opp}`}
@@ -275,7 +278,7 @@ const BlackGamesTab = ({
                   </tr>
                 ));
               })()}
-              {blackGames.length === 0 && (
+              {colorGames.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-6 text-center text-sm text-fg-muted">No games match your filters.</td>
                 </tr>
@@ -288,4 +291,4 @@ const BlackGamesTab = ({
   );
 };
 
-export default BlackGamesTab;
+export default ColorGamesTab;

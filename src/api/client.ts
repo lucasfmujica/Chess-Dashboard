@@ -4,6 +4,7 @@ import type {
   Repertoire,
   AnnotatedGame,
   OpeningCard,
+  RepertoireLine,
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 
@@ -78,6 +79,15 @@ export const putAnnotation = (id: string, annotation: Partial<AnnotatedGame>) =>
   apiFetch<AnnotatedGame>(`/annotations/${id}`, { method: 'PUT', body: JSON.stringify(annotation) });
 export const deleteAnnotation = (id: string) =>
   apiFetch<{ ok: true }>(`/annotations/${id}`, { method: 'DELETE' });
+
+// Repertoire prep lines (tournament study)
+export const fetchRepertoireLines = () => apiFetch<RepertoireLine[]>('/repertoire-lines');
+export const postRepertoireLine = (line: Partial<RepertoireLine>) =>
+  apiFetch<RepertoireLine>('/repertoire-lines', { method: 'POST', body: JSON.stringify(line) });
+export const putRepertoireLine = (id: string, line: Partial<RepertoireLine>) =>
+  apiFetch<RepertoireLine>(`/repertoire-lines/${id}`, { method: 'PUT', body: JSON.stringify(line) });
+export const deleteRepertoireLine = (id: string) =>
+  apiFetch<{ ok: true }>(`/repertoire-lines/${id}`, { method: 'DELETE' });
 
 // Opening flashcards
 export const fetchFlashcards = () => apiFetch<OpeningCard[]>('/flashcards');

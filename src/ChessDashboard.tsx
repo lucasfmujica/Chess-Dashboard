@@ -7,8 +7,7 @@ import Sidebar from './components/Sidebar';
 import MobileHeader from './components/MobileHeader';
 import GameFilter from './components/GameFilter';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
-import AnalyticsTab from './components/chess/tabs/AnalyticsTab';
-import BlackGamesTab from './components/chess/tabs/BlackGamesTab';
+import ColorGamesTab from './components/chess/tabs/ColorGamesTab';
 import GoalsTab from './components/chess/tabs/GoalsTab';
 import OpponentStrengthTab from './components/chess/tabs/OpponentStrengthTab';
 import OverviewTab from './components/chess/tabs/OverviewTab';
@@ -16,31 +15,29 @@ import RatingTab from './components/chess/tabs/RatingTab';
 import RepertoireTab from './components/chess/tabs/RepertoireTab';
 import TournamentsTab from './components/chess/tabs/TournamentsTab';
 import TrainingTab from './components/chess/tabs/TrainingTab';
-import WhiteGamesTab from './components/chess/tabs/WhiteGamesTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
-import AchievementsTab from './components/chess/tabs/AchievementsTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
 const GeographyTab = lazy(() => import('./components/chess/tabs/GeographyTab'));
 import RecordsTab from './components/chess/tabs/RecordsTab';
 import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
+import TournamentPrepTab from './components/chess/tabs/TournamentPrepTab';
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
   ArrowTrendingUpIcon,
   TrophyIcon,
-  UserGroupIcon,
   GlobeAmericasIcon,
   BookOpenIcon,
   AcademicCapIcon,
   DocumentTextIcon,
-  StarIcon,
   ChartBarSquareIcon,
   FireIcon,
   BeakerIcon,
   LightBulbIcon,
   FlagIcon,
   ScaleIcon,
+  ClipboardDocumentCheckIcon,
 } from '@heroicons/react/24/outline';
 import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
@@ -257,18 +254,17 @@ const ChessDashboard = () => {
     { id: 'analysis-board', label: 'Analysis Board', icon: CpuChipIcon },
     { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
     { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
-    { id: 'opponent-analysis', label: 'Opponent Analysis', icon: UserGroupIcon },
+    { id: 'opponent-analysis', label: 'Performance', icon: BeakerIcon },
     { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
     { id: 'by-color', label: 'By Color', icon: ByColorPieces },
     { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
+    { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
     { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
     { id: 'annotations', label: 'Game Library', icon: DocumentTextIcon },
-    { id: 'achievements', label: 'Achievements', icon: StarIcon },
     { id: 'records', label: 'Records', icon: ChartBarSquareIcon },
     { id: 'streaks', label: 'Streaks', icon: FireIcon },
-    { id: 'analytics', label: 'Analytics', icon: BeakerIcon },
-    { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
     { id: 'goals', label: 'Goals', icon: FlagIcon },
+    { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
   ];
 
   return (
@@ -342,6 +338,17 @@ const ChessDashboard = () => {
               Swords={Swords}
               Target={ScaleIcon}
               TrendingUp={ArrowTrendingUpIcon}
+              games={games}
+              addManualGame={addManualGame}
+              showPgnImport={showPgnImport}
+              setShowPgnImport={setShowPgnImport}
+              pgnText={pgnText}
+              setPgnText={setPgnText}
+              handlePgnImport={handlePgnImport}
+              LichessSyncPanel={LichessSyncPanel}
+              onLichessSync={handleLichessSync}
+              onRemoveLichessGames={handleRemoveLichessGames}
+              lichessGamesCount={games.filter(g => g.source === 'lichess').length}
             />
           )}
 
@@ -359,6 +366,8 @@ const ChessDashboard = () => {
             <OpponentStrengthTab
               games={games}
               currentElo={playerInfo.current_elo}
+              timeOfDayStats={timeOfDayStats}
+              tournamentComparison={tournamentComparison}
             />
           )}
 
@@ -372,87 +381,49 @@ const ChessDashboard = () => {
             <RecordsTab games={ratedGames} eloHistory={eloHistory} />
           )}
 
-          {activeTab === 'by-color' && (
+          {(activeTab === 'by-color' || activeTab === 'by-color-white' || activeTab === 'by-color-black') && (
             <div className="space-y-6">
               <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
                 <button
                   onClick={() => setActiveTab('by-color-white')}
-                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab !== 'by-color-black' ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
+                  }`}
                 >
                   ⚪ White Games
                 </button>
                 <button
                   onClick={() => setActiveTab('by-color-black')}
-                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'by-color-black' ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
+                  }`}
                 >
                   ⚫ Black Games
                 </button>
               </div>
-              <WhiteGamesTab
-                whiteStats={whiteStats}
-                whiteSortBy={whiteSortBy}
-                setWhiteSortBy={setWhiteSortBy}
-                whiteSortOrder={whiteSortOrder}
-                setWhiteSortOrder={setWhiteSortOrder}
-                games={games}
-                ecoNames={ecoNames}
-              />
-            </div>
-          )}
-
-          {activeTab === 'by-color-white' && (
-            <div className="space-y-6">
-              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
-                <button
-                  onClick={() => setActiveTab('by-color')}
-                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
-                >
-                  ⚪ White Games
-                </button>
-                <button
-                  onClick={() => setActiveTab('by-color-black')}
-                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
-                >
-                  ⚫ Black Games
-                </button>
-              </div>
-              <WhiteGamesTab
-                whiteStats={whiteStats}
-                whiteSortBy={whiteSortBy}
-                setWhiteSortBy={setWhiteSortBy}
-                whiteSortOrder={whiteSortOrder}
-                setWhiteSortOrder={setWhiteSortOrder}
-                games={games}
-                ecoNames={ecoNames}
-              />
-            </div>
-          )}
-
-          {activeTab === 'by-color-black' && (
-            <div className="space-y-6">
-              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
-                <button
-                  onClick={() => setActiveTab('by-color')}
-                  className="px-4 py-2 rounded-md text-sm font-medium text-fg-muted hover:bg-surface-2 transition-colors"
-                >
-                  ⚪ White Games
-                </button>
-                <button
-                  onClick={() => setActiveTab('by-color-black')}
-                  className="px-4 py-2 rounded-md text-sm font-medium bg-surface-2 text-fg transition-colors"
-                >
-                  ⚫ Black Games
-                </button>
-              </div>
-              <BlackGamesTab
-                blackStats={blackStats}
-                blackSortBy={blackSortBy}
-                setBlackSortBy={setBlackSortBy}
-                blackSortOrder={blackSortOrder}
-                setBlackSortOrder={setBlackSortOrder}
-                games={games}
-                ecoNames={ecoNames}
-              />
+              {activeTab === 'by-color-black' ? (
+                <ColorGamesTab
+                  color="B"
+                  colorStats={blackStats}
+                  sortBy={blackSortBy}
+                  setSortBy={setBlackSortBy}
+                  sortOrder={blackSortOrder}
+                  setSortOrder={setBlackSortOrder}
+                  games={games}
+                  ecoNames={ecoNames}
+                />
+              ) : (
+                <ColorGamesTab
+                  color="W"
+                  colorStats={whiteStats}
+                  sortBy={whiteSortBy}
+                  setSortBy={setWhiteSortBy}
+                  sortOrder={whiteSortOrder}
+                  setSortOrder={setWhiteSortOrder}
+                  games={games}
+                  ecoNames={ecoNames}
+                />
+              )}
             </div>
           )}
 
@@ -467,23 +438,7 @@ const ChessDashboard = () => {
             />
           )}
 
-          {activeTab === 'analytics' && (
-            <AnalyticsTab
-              showPgnImport={showPgnImport}
-              setShowPgnImport={setShowPgnImport}
-              pgnText={pgnText}
-              setPgnText={setPgnText}
-              handlePgnImport={handlePgnImport}
-              timeOfDayStats={timeOfDayStats}
-              tournamentComparison={tournamentComparison}
-              LichessSyncPanel={LichessSyncPanel}
-              onLichessSync={handleLichessSync}
-              onRemoveLichessGames={handleRemoveLichessGames}
-              lichessGamesCount={games.filter(g => g.source === 'lichess').length}
-              games={games}
-              addManualGame={addManualGame}
-            />
-          )}
+          {activeTab === 'tournament-prep' && <TournamentPrepTab />}
 
           {activeTab === 'training' && (
             <TrainingTab
@@ -517,10 +472,6 @@ const ChessDashboard = () => {
 
           {activeTab === 'annotations' && (
             <GameAnnotationTab games={filteredGames} />
-          )}
-
-          {activeTab === 'achievements' && (
-            <AchievementsTab games={filteredGames} />
           )}
 
           {activeTab === 'streaks' && (

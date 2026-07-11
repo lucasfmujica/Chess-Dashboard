@@ -90,6 +90,26 @@ CREATE TABLE IF NOT EXISTS tournament_locations (
   city_key TEXT NOT NULL
 );
 
+-- Prepared opening lines for tournament study (plan/trap notes per line),
+-- distinct from `repertoire` (just an ECO allow-list per color).
+CREATE TABLE IF NOT EXISTS repertoire_lines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  color CHAR(1) NOT NULL CHECK (color IN ('W','B')),
+  vs_move TEXT,
+  eco TEXT,
+  line_name TEXT,
+  moves_san TEXT,
+  key_fen TEXT,
+  plan TEXT,
+  golden_rule TEXT,
+  priority INTEGER,
+  confidence INTEGER CHECK (confidence BETWEEN 1 AND 5),
+  lichess_url TEXT,
+  last_reviewed TIMESTAMPTZ,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS opening_flashcards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,

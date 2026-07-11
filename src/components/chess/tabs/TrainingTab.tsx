@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
 import { useModal } from '../../modals/ModalContext';
-import MotivationalQuote from './training/MotivationalQuote';
 import WeekNavigator from './training/WeekNavigator';
 import DayCard from './training/DayCard';
 import QuickTemplates from './training/QuickTemplates';
@@ -26,29 +25,6 @@ interface TrainingTabProps {
   exportToGoogleCalendar: (date: string, dayPlan: DayPlan, note: string) => void;
 }
 
-const motivationalQuotes = [
-  { text: "The pawns are the soul of chess.", author: "Philidor" },
-  { text: "Chess is the struggle against error.", author: "Tarrasch" },
-  { text: "Help your pieces so they can help you.", author: "Morphy" },
-  { text: "When you see a good move, look for a better one.", author: "Lasker" },
-  { text: "Chess is 99% tactics.", author: "Teichmann" },
-  { text: "Every chess master was once a beginner.", author: "Irving Chernev" },
-  { text: "The blunders are all there on the board, waiting to be made.", author: "Savielly Tartakower" },
-  { text: "You have to have the fighting spirit. You have to force moves and take chances.", author: "Bobby Fischer" },
-  { text: "The hardest game to win is a won game.", author: "Emanuel Lasker" },
-  { text: "Even a poor plan is better than no plan at all.", author: "Mikhail Chigorin" },
-  { text: "I don't believe in psychology. I believe in good moves.", author: "Bobby Fischer" },
-  { text: "Strategy requires thought, tactics require observation.", author: "Max Euwe" },
-  { text: "The pin is mightier than the sword.", author: "Fred Reinfeld" },
-  { text: "A bad plan is better than none at all.", author: "Frank Marshall" },
-  { text: "Alekhine is a poet who creates a work of art out of something that would hardly inspire another man to send home a picture post card.", author: "Max Euwe" },
-  { text: "I have come to the conclusion that I cannot improve on Alekhine's play. I may as well give up chess.", author: "Max Euwe" },
-  { text: "Life is too short for chess.", author: "Lord Byron" },
-  { text: "Chess is mental torture.", author: "Garry Kasparov" },
-  { text: "Chess is the art of analysis.", author: "Mikhail Botvinnik" },
-  { text: "No one ever won a game by resigning.", author: "Savielly Tartakower" }
-];
-
 const TrainingTab = ({
   currentWeek,
   setCurrentWeek,
@@ -66,18 +42,6 @@ const TrainingTab = ({
 }: TrainingTabProps) => {
   const modal = useModal();
   const [completedActivities, setCompletedActivities] = useState<Record<string, boolean>>({});
-  const [showMotivation, setShowMotivation] = useState(true);
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-
-  const currentQuote = motivationalQuotes[currentQuoteIndex];
-
-  const nextQuote = () => {
-    setCurrentQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
-  };
-
-  const prevQuote = () => {
-    setCurrentQuoteIndex((prev) => (prev - 1 + motivationalQuotes.length) % motivationalQuotes.length);
-  };
 
   const weekStats = getWeekStats(weeklyPlans, currentWeek);
   const weekDates = getWeekDates(currentWeek);
@@ -195,17 +159,6 @@ const TrainingTab = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Header with Quote */}
-      <MotivationalQuote
-        currentQuote={currentQuote}
-        currentQuoteIndex={currentQuoteIndex}
-        totalQuotes={motivationalQuotes.length}
-        onPrevQuote={prevQuote}
-        onNextQuote={nextQuote}
-        onClose={() => setShowMotivation(false)}
-        show={showMotivation}
-      />
-
       {/* Week Navigator & Stats */}
       <WeekNavigator
         currentWeek={currentWeek}
