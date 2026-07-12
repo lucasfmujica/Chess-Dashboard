@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_db.js';
-import { requireApiKey } from '../_auth.js';
-import { rowToRepertoireLine, type RepertoireLineRow } from '../_repertoireLineMapper.js';
+import { sql } from './_db.js';
+import { requireApiKey } from './_auth.js';
+import { rowToRepertoireLine, type RepertoireLineRow } from './_repertoireLineMapper.js';
 
 interface RepertoireLineInput {
   color: 'W' | 'B';
@@ -20,10 +20,9 @@ interface RepertoireLineInput {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const idParam = req.query.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const { id } = req.query;
 
-  if (id) {
+  if (typeof id === 'string') {
     if (req.method === 'PUT') {
       if (!requireApiKey(req, res)) return;
       const l = req.body as RepertoireLineInput;

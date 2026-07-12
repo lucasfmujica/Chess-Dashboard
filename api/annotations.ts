@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_db.js';
-import { requireApiKey } from '../_auth.js';
-import { rowToAnnotation, type AnnotationRow } from '../_annotationMapper.js';
+import { sql } from './_db.js';
+import { requireApiKey } from './_auth.js';
+import { rowToAnnotation, type AnnotationRow } from './_annotationMapper.js';
 
 interface AnnotationInput {
   gameName?: string;
@@ -18,10 +18,9 @@ interface AnnotationInput {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const idParam = req.query.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const { id } = req.query;
 
-  if (id) {
+  if (typeof id === 'string') {
     if (req.method === 'PUT') {
       if (!requireApiKey(req, res)) return;
       const a = req.body as AnnotationInput;

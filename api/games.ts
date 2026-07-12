@@ -1,14 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sql } from '../_db.js';
-import { requireApiKey } from '../_auth.js';
-import { rowToGame, type GameRow, type GameInput } from '../_gameMapper.js';
-import { parsePgnDate, openingNameForEco } from '../_pgnMeta.js';
+import { sql } from './_db.js';
+import { requireApiKey } from './_auth.js';
+import { rowToGame, type GameRow, type GameInput } from './_gameMapper.js';
+import { parsePgnDate, openingNameForEco } from './_pgnMeta.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const idParam = req.query.id;
-  const id = Array.isArray(idParam) ? idParam[0] : idParam;
+  const { id } = req.query;
 
-  if (id) {
+  if (typeof id === 'string') {
     if (req.method === 'PATCH') {
       if (!requireApiKey(req, res)) return;
       const { pgn } = req.body as { pgn?: string | null };
@@ -80,6 +79,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ deleted: deleted.length });
   }
 
-  res.setHeader('Allow', 'GET, POST, DELETE');
+  res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
   return res.status(405).json({ error: 'Method not allowed' });
 }

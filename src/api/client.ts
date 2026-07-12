@@ -33,7 +33,10 @@ export const fetchGames = () => apiFetch<Game[]>('/games');
 export const postGames = (games: Game[]) =>
   apiFetch<{ inserted: number }>('/games', { method: 'POST', body: JSON.stringify(games) });
 export const patchGamePgn = (id: string, pgn: string | undefined) =>
-  apiFetch<Game>(`/games/${id}`, { method: 'PATCH', body: JSON.stringify({ pgn: pgn ?? null }) });
+  apiFetch<Game>(`/games?id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ pgn: pgn ?? null }),
+  });
 export const deleteGamesBySource = (source: string) =>
   apiFetch<{ deleted: number }>(`/games?source=${encodeURIComponent(source)}`, { method: 'DELETE' });
 
@@ -76,18 +79,24 @@ export const fetchAnnotations = () => apiFetch<AnnotatedGame[]>('/annotations');
 export const postAnnotation = (annotation: Partial<AnnotatedGame>) =>
   apiFetch<AnnotatedGame>('/annotations', { method: 'POST', body: JSON.stringify(annotation) });
 export const putAnnotation = (id: string, annotation: Partial<AnnotatedGame>) =>
-  apiFetch<AnnotatedGame>(`/annotations/${id}`, { method: 'PUT', body: JSON.stringify(annotation) });
+  apiFetch<AnnotatedGame>(`/annotations?id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(annotation),
+  });
 export const deleteAnnotation = (id: string) =>
-  apiFetch<{ ok: true }>(`/annotations/${id}`, { method: 'DELETE' });
+  apiFetch<{ ok: true }>(`/annotations?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 // Repertoire prep lines (tournament study)
 export const fetchRepertoireLines = () => apiFetch<RepertoireLine[]>('/repertoire-lines');
 export const postRepertoireLine = (line: Partial<RepertoireLine>) =>
   apiFetch<RepertoireLine>('/repertoire-lines', { method: 'POST', body: JSON.stringify(line) });
 export const putRepertoireLine = (id: string, line: Partial<RepertoireLine>) =>
-  apiFetch<RepertoireLine>(`/repertoire-lines/${id}`, { method: 'PUT', body: JSON.stringify(line) });
+  apiFetch<RepertoireLine>(`/repertoire-lines?id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(line),
+  });
 export const deleteRepertoireLine = (id: string) =>
-  apiFetch<{ ok: true }>(`/repertoire-lines/${id}`, { method: 'DELETE' });
+  apiFetch<{ ok: true }>(`/repertoire-lines?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 // Opening flashcards
 export const fetchFlashcards = () => apiFetch<OpeningCard[]>('/flashcards');
