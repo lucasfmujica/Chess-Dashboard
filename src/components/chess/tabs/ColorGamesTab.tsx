@@ -4,20 +4,7 @@ import type { Game, GameStats, PlayerColor } from '../../../types/chess';
 import { useGameViewer } from '../../../context/GameViewerContext';
 import { useGameFilters } from '../../../hooks/useGameFilters';
 import GameFiltersBar from '../GameFiltersBar';
-
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-}
-
-const StatCard = ({ title, value, subtitle }: StatCardProps) => (
-  <div className="p-6 bg-surface rounded-lg border border-hairline">
-    <h3 className="mb-2 text-sm text-fg-muted">{title}</h3>
-    <div className="text-3xl font-bold text-accent tabular-nums">{value}</div>
-    {subtitle && <p className="text-sm text-fg-muted">{subtitle}</p>}
-  </div>
-);
+import StatCard from '../../ui/StatCard';
 
 /** Per-opening aggregate row attached to colored game stats. */
 interface ColorOpeningStat {

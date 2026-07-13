@@ -157,9 +157,9 @@ const GameViewer = ({
   const squareStyles = useMemo(() => {
     const styles: Record<string, React.CSSProperties> = {};
     if (selectedSquare) {
-      styles[selectedSquare] = { boxShadow: 'inset 0 0 0 3px rgba(59,130,246,0.7)' };
+      styles[selectedSquare] = { boxShadow: 'inset 0 0 0 3px rgb(var(--board-highlight) / 0.75)' };
       legalTargets.forEach(sq => {
-        styles[sq] = { background: 'radial-gradient(circle, rgba(59,130,246,0.55) 22%, transparent 25%)' };
+        styles[sq] = { background: 'radial-gradient(circle, rgb(var(--board-highlight) / 0.5) 22%, transparent 25%)' };
       });
     }
     return styles;
@@ -228,10 +228,10 @@ const GameViewer = ({
     const list: { startSquare: string; endSquare: string; color: string }[] = [];
     const best = engineState.lines[0]?.firstUci;
     if (showEngine && engineOn && best && best.length >= 4) {
-      list.push({ startSquare: best.slice(0, 2), endSquare: best.slice(2, 4), color: 'rgba(16,185,129,0.65)' });
+      list.push({ startSquare: best.slice(0, 2), endSquare: best.slice(2, 4), color: 'rgb(var(--board-highlight) / 0.65)' });
     }
     if (playedUci) {
-      list.push({ startSquare: playedUci.slice(0, 2), endSquare: playedUci.slice(2, 4), color: 'rgba(100,116,139,0.55)' });
+      list.push({ startSquare: playedUci.slice(0, 2), endSquare: playedUci.slice(2, 4), color: 'rgb(var(--fg-muted) / 0.55)' });
     }
     return list;
   }, [engineState.lines, showEngine, engineOn, playedUci]);
@@ -271,17 +271,19 @@ const GameViewer = ({
       <div className="w-full lg:w-[460px] flex-shrink-0">
         <div className="flex gap-2">
           {/* Eval bar */}
+          {/* Eval bar — black/white sides are semantic (not theme-driven), so
+              use zinc-* which the dark-mode compatibility layer never remaps. */}
           <div
-            className="relative w-7 rounded-md overflow-hidden border border-hairline bg-slate-900"
+            className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900"
             title={analysis ? `Evaluation ${formatEval(currentEval)} (White's perspective)` : 'Run analysis to see the evaluation'}
           >
             <div
-              className="absolute left-0 right-0 bg-white transition-all duration-200"
+              className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
               style={flip ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
             />
             {evalAvailable && (
               <span
-                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-slate-900' : 'text-white'}`}
+                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-zinc-900' : 'text-zinc-100'}`}
                 style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
               >
                 {evalLabel}
@@ -299,6 +301,8 @@ const GameViewer = ({
                 animationDurationInMs: 150,
                 arrows,
                 squareStyles,
+                lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
+                darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
                 onSquareClick: handleSquareClick,
                 onPieceDrop: ({ sourceSquare, targetSquare }) => {
                   if (!targetSquare) return false;

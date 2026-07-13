@@ -119,26 +119,27 @@ const TimeOfDayPerformance = ({ timeOfDayStats }: TimeOfDayPerformanceProps) => 
             <BarChart data={timeOfDayStats}>
               <defs>
                 <linearGradient id="colorWins" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor="rgb(var(--win))" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="rgb(var(--win))" stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorDraws" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor="rgb(var(--draw))" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="rgb(var(--draw))" stopOpacity={0.7}/>
                 </linearGradient>
                 <linearGradient id="colorLosses" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.7}/>
+                  <stop offset="5%" stopColor="rgb(var(--loss))" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="rgb(var(--loss))" stopOpacity={0.7}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="time" stroke="#64748b" style={{ fontSize: '12px', fontWeight: 600 }} />
-              <YAxis stroke="#64748b" style={{ fontSize: '12px', fontWeight: 600 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
+              <XAxis dataKey="time" stroke="rgb(var(--fg-muted))" style={{ fontSize: '12px', fontWeight: 600 }} />
+              <YAxis stroke="rgb(var(--fg-muted))" style={{ fontSize: '12px', fontWeight: 600 }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
+                  backgroundColor: 'rgb(var(--surface))',
+                  border: '1px solid rgb(var(--border))',
+                  borderRadius: '8px',
+                  color: 'rgb(var(--fg))',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />

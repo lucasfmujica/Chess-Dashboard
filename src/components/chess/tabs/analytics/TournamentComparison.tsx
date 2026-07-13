@@ -130,34 +130,35 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
             <LineChart data={tournamentComparison}>
               <defs>
                 <linearGradient id="gradientPlayerElo" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="rgb(var(--cat-2))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="rgb(var(--cat-2))" stopOpacity={0.1}/>
                 </linearGradient>
                 <linearGradient id="gradientOppElo" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="rgb(var(--cat-4))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="rgb(var(--cat-4))" stopOpacity={0.1}/>
                 </linearGradient>
                 <linearGradient id="gradientPerformance" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="rgb(var(--cat-1))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="rgb(var(--cat-1))" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
               <XAxis
                 dataKey="name"
-                stroke="#64748b"
+                stroke="rgb(var(--fg-muted))"
                 tick={{ fontSize: 11 }}
                 angle={-15}
                 textAnchor="end"
                 height={80}
                 style={{ fontWeight: 600 }}
               />
-              <YAxis stroke="#64748b" domain={[1600, 2100]} style={{ fontSize: '12px', fontWeight: 600 }} />
+              <YAxis stroke="rgb(var(--fg-muted))" domain={[1600, 2100]} style={{ fontSize: '12px', fontWeight: 600 }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
+                  backgroundColor: 'rgb(var(--surface))',
+                  border: '1px solid rgb(var(--border))',
+                  borderRadius: '8px',
+                  color: 'rgb(var(--fg))',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />
@@ -165,7 +166,7 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
               <Area
                 type="monotone"
                 dataKey="playerElo"
-                stroke="#3b82f6"
+                stroke="rgb(var(--cat-2))"
                 fill="url(#gradientPlayerElo)"
                 name="Your ELO"
                 strokeWidth={3}
@@ -173,20 +174,20 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
               <Line
                 type="monotone"
                 dataKey="avgOppElo"
-                stroke="#8b5cf6"
+                stroke="rgb(var(--cat-4))"
                 name="Avg Opponent"
                 strokeWidth={2}
                 strokeDasharray="5 5"
-                dot={{ fill: '#8b5cf6', r: 4 }}
+                dot={{ fill: 'rgb(var(--cat-4))', r: 4 }}
               />
               <Line
                 type="monotone"
                 dataKey="performance"
-                stroke="#10b981"
+                stroke="rgb(var(--cat-1))"
                 name="Performance"
                 strokeWidth={3}
                 connectNulls
-                dot={{ fill: '#10b981', r: 5 }}
+                dot={{ fill: 'rgb(var(--cat-1))', r: 5 }}
               />
             </LineChart>
           </ResponsiveContainer>

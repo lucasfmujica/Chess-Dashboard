@@ -248,23 +248,43 @@ const ChessDashboard = () => {
     }
   };
 
-  // Navigation tabs configuration
-  const navigationTabs = [
-    { id: 'overview', label: 'Overview', icon: Squares2X2Icon },
-    { id: 'analysis-board', label: 'Analysis Board', icon: CpuChipIcon },
-    { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
-    { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
-    { id: 'opponent-analysis', label: 'Performance', icon: BeakerIcon },
-    { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
-    { id: 'by-color', label: 'By Color', icon: ByColorPieces },
-    { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
-    { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
-    { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
-    { id: 'annotations', label: 'Game Library', icon: DocumentTextIcon },
-    { id: 'records', label: 'Records', icon: ChartBarSquareIcon },
-    { id: 'streaks', label: 'Streaks', icon: FireIcon },
-    { id: 'goals', label: 'Goals', icon: FlagIcon },
-    { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
+  // Navigation grouped into sections for a clearer information architecture.
+  const navigationSections = [
+    {
+      section: 'Play & Review',
+      items: [
+        { id: 'overview', label: 'Overview', icon: Squares2X2Icon },
+        { id: 'analysis-board', label: 'Analysis Board', icon: CpuChipIcon },
+        { id: 'annotations', label: 'Game Library', icon: DocumentTextIcon },
+      ],
+    },
+    {
+      section: 'Analytics',
+      items: [
+        { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
+        { id: 'opponent-analysis', label: 'Performance', icon: BeakerIcon },
+        { id: 'by-color', label: 'By Color', icon: ByColorPieces },
+        { id: 'records', label: 'Records', icon: ChartBarSquareIcon },
+        { id: 'streaks', label: 'Streaks', icon: FireIcon },
+      ],
+    },
+    {
+      section: 'Study & Prep',
+      items: [
+        { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
+        { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
+        { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
+        { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
+        { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
+      ],
+    },
+    {
+      section: 'Progress',
+      items: [
+        { id: 'goals', label: 'Goals', icon: FlagIcon },
+        { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
+      ],
+    },
   ];
 
   return (
@@ -286,7 +306,7 @@ const ChessDashboard = () => {
         setIsSidebarCollapsed={setIsSidebarCollapsed}
         playerInfo={playerInfo}
         filteredGames={filteredGames}
-        navigationTabs={navigationTabs}
+        navigationSections={navigationSections}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />

@@ -27,7 +27,14 @@ const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
         <LineChart data={eloHistory}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="game" label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }} />
-          <YAxis domain={[1400, 1950]} label={{ value: 'ELO', angle: -90, position: 'insideLeft' }} />
+          <YAxis
+            domain={[
+              (min: number) => Math.floor((min - 30) / 50) * 50,
+              (max: number) => Math.ceil((max + 30) / 50) * 50,
+            ]}
+            allowDataOverflow={false}
+            label={{ value: 'ELO', angle: -90, position: 'insideLeft' }}
+          />
           <Tooltip
             content={({ active, payload }) => {
               if (active && payload && payload.length) {

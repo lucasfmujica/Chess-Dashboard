@@ -9,6 +9,11 @@ interface NavigationTab {
   icon: ComponentType<{ className?: string }>;
 }
 
+interface NavigationSection {
+  section: string;
+  items: NavigationTab[];
+}
+
 interface SidebarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
@@ -16,7 +21,7 @@ interface SidebarProps {
   setIsSidebarCollapsed: Dispatch<SetStateAction<boolean>>;
   playerInfo: PlayerInfo;
   filteredGames: Game[];
-  navigationTabs: NavigationTab[];
+  navigationSections: NavigationSection[];
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
 }
@@ -28,10 +33,12 @@ const Sidebar = ({
   setIsSidebarCollapsed,
   playerInfo,
   filteredGames,
-  navigationTabs,
+  navigationSections,
   activeTab,
   setActiveTab,
 }: SidebarProps) => {
+  // A nav item is active for its own id and any sub-tab (e.g. by-color-white).
+  const isActive = (id: string) => activeTab === id || activeTab.startsWith(`${id}-`);
   return (
     <aside
       className={`fixed top-0 left-0 h-full bg-surface border-r border-hairline z-50 transition-all duration-300 ease-in-out overflow-y-auto ${
@@ -92,27 +99,41 @@ const Sidebar = ({
         </div>
       </div>
 
-      {/* Navigation Items */}
-      <nav className={`p-3 space-y-0.5 ${isSidebarCollapsed ? 'lg:px-2' : ''}`} aria-label="Main navigation">
-        {navigationTabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              setActiveTab(tab.id);
-              setIsMobileMenuOpen(false);
-            }}
-            className={`relative w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:rounded-full before:bg-accent before:transition-opacity before:duration-200 ${
-              activeTab === tab.id
-                ? 'bg-surface-2 text-fg before:opacity-100'
-                : 'text-fg-muted hover:bg-surface-2 hover:text-fg before:opacity-0'
-            } ${isSidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
-            aria-label={`Navigate to ${tab.label}`}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-            title={isSidebarCollapsed ? tab.label : ''}
-          >
-            <tab.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-            {!isSidebarCollapsed && <span>{tab.label}</span>}
-          </button>
+      {/* Navigation Items — grouped into sections */}
+      <nav className={`p-3 ${isSidebarCollapsed ? 'lg:px-2' : ''}`} aria-label="Main navigation">
+        {navigationSections.map((group, gi) => (
+          <div key={group.section} className={gi > 0 ? 'mt-4' : ''}>
+            {isSidebarCollapsed ? (
+              gi > 0 && <div className="mx-2 mb-2 border-t border-hairline lg:block hidden" aria-hidden="true" />
+            ) : (
+              <p className="px-3 mb-1.5 text-label">{group.section}</p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map(tab => {
+                const active = isActive(tab.id);
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`relative w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:rounded-full before:bg-accent before:transition-opacity before:duration-200 ${
+                      active
+                        ? 'bg-surface-2 text-fg before:opacity-100'
+                        : 'text-fg-muted hover:bg-surface-2 hover:text-fg before:opacity-0'
+                    } ${isSidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}`}
+                    aria-label={`Navigate to ${tab.label}`}
+                    aria-current={active ? 'page' : undefined}
+                    title={isSidebarCollapsed ? tab.label : ''}
+                  >
+                    <tab.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                    {!isSidebarCollapsed && <span>{tab.label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </nav>
     </aside>

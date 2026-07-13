@@ -1,6 +1,6 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-const COLORS = ['rgb(var(--win))', 'rgb(var(--draw))', 'rgb(var(--loss))', '#3b82f6', '#8b5cf6'];
+const COLORS = ['rgb(var(--win))', 'rgb(var(--draw))', 'rgb(var(--loss))', 'rgb(var(--cat-2))', 'rgb(var(--cat-4))'];
 
 interface OpeningSlice {
   name: string;
@@ -25,7 +25,7 @@ const OpeningsPieChart = ({ data, title = "Opening Distribution" }: OpeningsPieC
             labelLine={false}
             label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
             outerRadius={100}
-            fill="#8884d8"
+            fill="rgb(var(--cat-1))"
             dataKey="value"
           >
             {data.map((_entry, index) => (

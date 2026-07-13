@@ -164,7 +164,7 @@ const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-surface rounded-2xl shadow-2xl max-w-md w-full transform transition-all">
+        <div className="relative bg-surface rounded-lg border border-hairline shadow-xl max-w-md w-full transform transition-all">
           {/* Header */}
           <div className="p-6 pb-4">
             <div className="flex items-start gap-4">

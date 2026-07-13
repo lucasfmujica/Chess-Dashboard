@@ -78,7 +78,7 @@ const AccuracyTrendCard = ({ refreshKey = 0 }: AccuracyTrendCardProps) => {
               <YAxis yAxisId="acc" domain={[0, 100]} tickLine={false} width={36} />
               <YAxis yAxisId="elo" orientation="right" domain={['dataMin - 30', 'dataMax + 30']} tickLine={false} width={44} />
               <Tooltip />
-              <Line yAxisId="elo" type="monotone" dataKey="elo" stroke="#64748b" strokeWidth={1.5} dot={false} name="ELO" />
+              <Line yAxisId="elo" type="monotone" dataKey="elo" stroke="rgb(var(--fg-muted))" strokeWidth={1.5} dot={false} name="ELO" />
               <Line yAxisId="acc" type="monotone" dataKey="accuracy" stroke="rgb(var(--accent))" strokeWidth={2} dot={{ r: 3 }} name="Accuracy %" />
             </ComposedChart>
           </ResponsiveContainer>
