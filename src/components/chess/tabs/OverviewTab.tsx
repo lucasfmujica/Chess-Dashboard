@@ -110,7 +110,8 @@ const OverviewTab = ({
   // Generate ELO progress timeline from tournament stats (use starting ELO for each tournament)
   const eloTimeline = tournamentStats && tournamentStats.length > 0 ?
     tournamentStats.map((t) => ({
-      tournament: t.name.length > 15 ? t.name.substring(0, 15) + '...' : t.name,
+      tournament: t.name.length > 15 ? t.name.substring(0, 15) + '…' : t.name,
+      fullTournament: t.name,
       elo: t.eloBefore || playerInfo.current_elo,
       performanceRating: t.performanceRating
     })) : [];
@@ -186,56 +187,43 @@ const OverviewTab = ({
         {/* Performance by Color */}
         <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
           <h3 className="text-base font-semibold text-fg mb-6">Performance by Color</h3>
-          <div className="space-y-6">
-            {/* White Pieces */}
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-surface rounded-lg">
-                    <span className="text-2xl">⚪</span>
+          <div className="space-y-4">
+            {[
+              { label: 'White Pieces', dot: 'bg-white border border-fg-subtle', stats: whiteStats, score: whiteScore },
+              { label: 'Black Pieces', dot: 'bg-zinc-900 dark:bg-zinc-100', stats: blackStats, score: blackScore },
+            ].map(({ label, dot, stats, score }) => {
+              const total = stats.wins + stats.draws + stats.losses || 1;
+              const winPct = (stats.wins / total) * 100;
+              const drawPct = (stats.draws / total) * 100;
+              const lossPct = (stats.losses / total) * 100;
+              const rate = parseFloat(stats.winRate) || 0;
+              return (
+                <div key={label} className="p-4 bg-surface-2 rounded-lg border border-hairline">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
+                      <span className="text-xs font-semibold text-fg-muted uppercase tracking-wide">{label}</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-semibold text-fg tabular-nums">{score}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold tabular-nums ${rate >= 50 ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}`}>
+                        {stats.winRate}%
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-bold text-fg-muted uppercase tracking-wide">White Pieces</span>
-                </div>
-                <span className="text-lg font-bold text-fg tabular-nums">{whiteScore}</span>
-              </div>
-              <div className="w-full h-3 bg-surface-2 rounded-full overflow-hidden">
-                <div
-                  className="h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000"
-                  style={{ width: `${whiteStats.winRate}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-fg-muted tabular-nums">
-                  {whiteStats.wins}W • {whiteStats.draws}D • {whiteStats.losses}L
-                </p>
-                <p className="text-sm font-bold text-blue-600 dark:text-blue-400 tabular-nums">{whiteStats.winRate}% win rate</p>
-              </div>
-            </div>
-
-            {/* Black Pieces */}
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-surface rounded-lg">
-                    <span className="text-2xl">⚫</span>
+                  <div className="flex w-full h-2 rounded-full overflow-hidden bg-surface">
+                    <div className="h-full bg-win transition-all duration-1000" style={{ width: `${winPct}%` }} />
+                    <div className="h-full bg-draw transition-all duration-1000" style={{ width: `${drawPct}%` }} />
+                    <div className="h-full bg-loss transition-all duration-1000" style={{ width: `${lossPct}%` }} />
                   </div>
-                  <span className="text-sm font-bold text-fg-muted uppercase tracking-wide">Black Pieces</span>
+                  <div className="flex items-center gap-4 mt-2.5 text-xs font-medium text-fg-subtle">
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-win" />{stats.wins}W</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-draw" />{stats.draws}D</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-loss" />{stats.losses}L</span>
+                  </div>
                 </div>
-                <span className="text-lg font-bold text-fg tabular-nums">{blackScore}</span>
-              </div>
-              <div className="w-full h-3 bg-surface-2 rounded-full overflow-hidden">
-                <div
-                  className="h-3 bg-gradient-to-r from-slate-600 to-slate-800 rounded-full transition-all duration-1000"
-                  style={{ width: `${blackStats.winRate}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs font-semibold text-fg-muted tabular-nums">
-                  {blackStats.wins}W • {blackStats.draws}D • {blackStats.losses}L
-                </p>
-                <p className="text-sm font-bold text-fg-muted tabular-nums">{blackStats.winRate}% win rate</p>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -252,21 +240,28 @@ const OverviewTab = ({
         </div>
         {eloTimeline.length > 0 ? (
           <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
-            <LineChart data={eloTimeline}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" />
-              <XAxis dataKey="tournament" angle={-15} textAnchor="end" height={70} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 11 }} />
-              <YAxis domain={['auto', 'auto']} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 12 }} />
+            <LineChart data={eloTimeline} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" vertical={false} />
+              <XAxis dataKey="tournament" angle={-25} textAnchor="end" height={62} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 11, fill: 'rgb(var(--fg-subtle))' }} axisLine={{ stroke: 'rgb(var(--border))' }} tickLine={false} />
+              <YAxis domain={['auto', 'auto']} stroke="rgb(var(--fg-subtle))" tick={{ fontSize: 12, fill: 'rgb(var(--fg-subtle))' }} axisLine={false} tickLine={false} width={48} />
               <Tooltip
+                labelFormatter={(_, payload) => payload?.[0]?.payload?.fullTournament ?? ''}
                 contentStyle={{
                   backgroundColor: 'rgb(var(--surface))',
                   borderRadius: '12px',
                   border: '1px solid rgb(var(--border))',
                   color: 'rgb(var(--fg))',
+                  fontSize: '13px',
                 }}
+                labelStyle={{ color: 'rgb(var(--fg-muted))', fontWeight: 600, marginBottom: 4 }}
               />
-              <Legend />
-              <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={3} name="ELO Rating" dot={{ r: 5, fill: 'rgb(var(--accent))' }} activeDot={{ r: 7 }} />
-              <Line type="monotone" dataKey="performanceRating" stroke="rgb(var(--win))" strokeWidth={2} name="Performance" dot={{ r: 4, fill: 'rgb(var(--win))' }} strokeDasharray="5 5" />
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: '12px', color: 'rgb(var(--fg-muted))', paddingTop: '12px' }}
+              />
+              <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={2.5} name="ELO Rating" dot={{ r: 4, strokeWidth: 0, fill: 'rgb(var(--accent))' }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="performanceRating" stroke="rgb(var(--draw))" strokeWidth={2} name="Performance" dot={{ r: 3, strokeWidth: 0, fill: 'rgb(var(--draw))' }} strokeDasharray="5 5" />
             </LineChart>
           </ResponsiveContainer>
         ) : (
