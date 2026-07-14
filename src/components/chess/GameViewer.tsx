@@ -33,6 +33,12 @@ interface GameViewerProps {
   showExplorer?: boolean;
   /** Show the live Stockfish engine panel + best-move arrow. */
   showEngine?: boolean;
+  /**
+   * Grow the board on large viewports instead of staying fixed at 460px.
+   * Only safe when the parent gives the board room to grow (the full
+   * Analysis Board page) — the game-replay modal stays at the compact size.
+   */
+  wide?: boolean;
 }
 
 const QUALITY_META: Partial<Record<MoveQuality, { sym: string; cls: string }>> = {
@@ -79,6 +85,7 @@ const GameViewer = ({
   result,
   showExplorer = false,
   showEngine = false,
+  wide = false,
 }: GameViewerProps) => {
   const replay = useGameReplay(pgn);
   const {
@@ -272,7 +279,9 @@ const GameViewer = ({
   return (
     <div className="flex flex-col lg:flex-row gap-5">
       {/* Board + eval bar + controls */}
-      <div className="w-full lg:w-[460px] flex-shrink-0">
+      <div
+        className={`w-full flex-shrink-0 ${wide ? 'lg:w-[460px] xl:w-[540px] 2xl:w-[620px]' : 'lg:w-[460px]'}`}
+      >
         <div className="flex gap-2">
           {/* Eval bar */}
           {/* Eval bar — black/white sides are semantic (not theme-driven), so
@@ -394,7 +403,7 @@ const GameViewer = ({
       </div>
 
       {/* Right column: analysis, engine, compare, eval graph, move list */}
-      <div className="flex-1 min-w-0 space-y-3">
+      <div className={`flex-1 min-w-0 space-y-3 ${wide ? 'xl:max-w-[640px]' : ''}`}>
         {(white || black) && (
           <div className="text-sm">
             <span className="font-semibold text-fg">{white || 'White'}</span>
@@ -464,9 +473,10 @@ const GameViewer = ({
           />
         )}
 
-        {/* You vs Masters */}
+        {/* You vs Masters — give Masters more room when you barely have any
+            games of your own from this position, instead of a half-empty box. */}
         {showExplorer && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className={`grid grid-cols-1 gap-3 ${personalMoves.length > 1 ? 'md:grid-cols-2' : 'md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]'}`}>
             <PersonalMoves
               moves={personalMoves}
               playedMove={playedMove}

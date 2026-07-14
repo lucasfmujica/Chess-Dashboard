@@ -276,6 +276,7 @@ const AnalysisBoardTab = () => {
           orientation={loaded?.orientation}
           showExplorer
           showEngine
+          wide
         />
       </div>
 
