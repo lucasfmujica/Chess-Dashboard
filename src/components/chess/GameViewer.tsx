@@ -18,6 +18,7 @@ import { useMyRepertoireMoves } from '../../hooks/useMyRepertoireMoves';
 import { useOpeningName } from '../../utils/openings';
 import { downloadFile } from '../../utils/exportUtils';
 import type { MoveQuality } from '../../engine/analyzeGame';
+import { winPct, formatEval } from '../../utils/evalFormat';
 import MovesExplorer from './MovesExplorer';
 import EngineLines from './EngineLines';
 import PersonalMoves from './PersonalMoves';
@@ -45,14 +46,6 @@ const QUALITY_META: Partial<Record<MoveQuality, { sym: string; cls: string }>> =
   blunder: { sym: '??', cls: 'text-loss' },
   mistake: { sym: '?', cls: 'text-draw' },
   inaccuracy: { sym: '?!', cls: 'text-fg-subtle' },
-};
-
-const winPct = (cp: number): number => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
-
-const formatEval = (cp: number): string => {
-  if (Math.abs(cp) >= 9000) return cp > 0 ? '#' : '-#';
-  const v = cp / 100;
-  return (v > 0 ? '+' : '') + v.toFixed(1);
 };
 
 const ControlButton = ({

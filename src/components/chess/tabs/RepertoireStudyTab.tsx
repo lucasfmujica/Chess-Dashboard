@@ -32,8 +32,8 @@ const RepertoireStudyTab = () => {
   const chapter = chapters[index];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5">
-      <div className="lg:hidden">
+    <div className="flex flex-col xl:flex-row gap-5 xl:h-[calc(100vh-160px)]">
+      <div className="xl:hidden">
         <button
           onClick={() => setMobileListOpen(o => !o)}
           className="w-full flex items-center justify-between rounded-lg border border-hairline bg-surface px-3 py-2.5 text-left"
@@ -57,11 +57,11 @@ const RepertoireStudyTab = () => {
         )}
       </div>
 
-      <div className="hidden lg:block w-80 flex-shrink-0 lg:h-[528px] xl:h-[608px] 2xl:h-[728px] overflow-y-auto">
+      <div className="hidden xl:block w-80 flex-shrink-0 xl:h-full overflow-y-auto">
         <StudyChapterList chapters={chapters} selectedIndex={index} onSelect={setSelectedIndex} />
       </div>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 xl:h-full">
         <StudyChapterReader chapter={chapter} />
       </div>
     </div>
