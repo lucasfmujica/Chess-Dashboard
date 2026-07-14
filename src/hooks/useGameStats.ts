@@ -56,27 +56,32 @@ export const useGameStats = (ratedGames: Game[]) => {
 
       // Use game's kFactor if available, otherwise determine by game count
       const kFactor = game.kFactor || (ratedGameCount <= 27 ? 40 : 20);
-      const eloBefore = currentElo;
 
       let expectedScore: number;
       let actualScore: number;
       let eloChange: number;
       let elo: number;
+      let eloBefore: number;
 
       if (game.source === 'lichess' && game.elo) {
-        // Lichess reports the real post-game rating for every game, so trust it
-        // directly instead of estimating with the OTB K-factor formula below.
+        // Lichess reports the real post-game rating and the real rating change for
+        // every game — each entry is self-contained ground truth, so derive eloBefore
+        // from it directly instead of chaining off the running estimate (which would
+        // drift, and doesn't apply across the OTB/online rating-pool boundary anyway).
+        elo = game.elo;
+        eloChange = game.eloChange ?? 0;
+        eloBefore = elo - eloChange;
         actualScore = getActualScore(game.result);
         expectedScore = game.opp_elo ? calculateExpectedScore(eloBefore, game.opp_elo) : 0.5;
-        elo = game.elo;
-        eloChange = elo - eloBefore;
       } else if (game.opp_elo === 0) {
+        eloBefore = currentElo;
         // Game against unrated opponent - no ELO change
         expectedScore = 0.5; // Neutral expectation for display
         actualScore = getActualScore(game.result);
         eloChange = 0;
         elo = eloBefore + eloChange;
       } else {
+        eloBefore = currentElo;
         // Calculate expected score using ELO formula
         expectedScore = calculateExpectedScore(eloBefore, game.opp_elo);
         actualScore = getActualScore(game.result);

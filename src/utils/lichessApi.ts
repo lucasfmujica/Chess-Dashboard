@@ -18,7 +18,10 @@ export interface FetchLichessOptions {
 
 interface LichessPlayer {
   user?: { name?: string; id?: string };
+  /** Rating BEFORE this game (Lichess convention — matches the PGN WhiteElo/BlackElo tags). */
   rating?: number;
+  /** Rating change from this specific game. Only present when fetched with ratingDiff=true. */
+  ratingDiff?: number;
 }
 
 /** Shape of a Lichess game as returned by the public API (fields we use). */
@@ -69,6 +72,7 @@ export const fetchLichessGames = async (
       clocks: 'false',
       evals: 'false',
       opening: 'true',
+      ratingDiff: 'true', // needed to derive the real post-game rating (Lichess's `rating` field is pre-game)
     });
 
     if (max != null) params.append('max', max.toString());
@@ -129,8 +133,14 @@ export const transformLichessGames = (lichessGames: LichessRawGame[], username: 
     const tournamentName =
       typeof game.tournament === 'string' ? game.tournament : game.tournament?.name;
 
+    // Lichess's `rating` field is the player's rating BEFORE the game; add ratingDiff
+    // to get the real post-game rating, which is what the app displays/plots as `elo`.
+    const ratingBefore = playerData.rating || 0;
+    const ratingDiff = playerData.ratingDiff ?? 0;
+
     return {
-      elo: playerData.rating || 0,
+      elo: ratingBefore + ratingDiff,
+      eloChange: ratingDiff,
       color: isWhite ? 'W' : 'B',
       result,
       opp: opponentData.user?.name || 'Anonymous',
