@@ -34,7 +34,9 @@ const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 /**
  * Lichess masters opening explorer for the current position: what masters play,
- * with white/draw/black result rates. Public API, no key required.
+ * with white/draw/black result rates. Lichess now requires an OAuth2 token on
+ * this endpoint, so requests go through our `/api/explorer` proxy, which holds
+ * the token server-side.
  *
  * The explorer host is aggressively rate-limited (and occasionally returns
  * auth/availability errors), so results are cached per position and rate-limit
@@ -57,7 +59,7 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
 
     const controller = new AbortController();
     let cancelled = false;
-    const url = `https://explorer.lichess.ovh/masters?fen=${encodeURIComponent(fen)}&moves=12&topGames=0`;
+    const url = `/api/explorer?fen=${encodeURIComponent(fen)}&moves=12&topGames=0`;
 
     const run = async () => {
       setLoading(true);
