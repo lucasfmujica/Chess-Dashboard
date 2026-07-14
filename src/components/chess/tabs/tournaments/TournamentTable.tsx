@@ -39,11 +39,11 @@ const TournamentTable = ({ tournamentStats }: TournamentTableProps) => {
                   <td className="px-6 py-4 text-sm font-bold text-center text-fg tabular-nums">{t.score}</td>
                   <td className="px-6 py-4 text-sm text-center tabular-nums">
                     <div className="flex items-center justify-center gap-1">
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-emerald-100 text-emerald-700 font-semibold text-xs">{t.wins}</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded bg-win/12 text-win font-semibold text-xs">{t.wins}</span>
                       <span className="text-fg-subtle">-</span>
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-amber-100 text-amber-700 font-semibold text-xs">{t.draws}</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded bg-draw/12 text-draw font-semibold text-xs">{t.draws}</span>
                       <span className="text-fg-subtle">-</span>
-                      <span className="inline-flex items-center px-2 py-1 rounded bg-rose-100 text-rose-700 font-semibold text-xs">{t.losses}</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded bg-loss/12 text-loss font-semibold text-xs">{t.losses}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-center text-fg-muted font-medium tabular-nums">{t.avgOppElo}</td>
@@ -56,8 +56,8 @@ const TournamentTable = ({ tournamentStats }: TournamentTableProps) => {
                   <td className="px-6 py-4 text-sm text-center text-fg-muted font-medium tabular-nums">{t.blackPerformance}</td>
                   <td className="px-6 py-4 text-sm font-bold text-center tabular-nums">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-bold ${
-                      t.eloChange > 0 ? 'bg-emerald-100 text-emerald-700' :
-                      t.eloChange < 0 ? 'bg-rose-100 text-rose-700' : 'bg-surface-2 text-fg-muted'
+                      t.eloChange > 0 ? 'bg-win/12 text-win' :
+                      t.eloChange < 0 ? 'bg-loss/12 text-loss' : 'bg-surface-2 text-fg-muted'
                     }`}>
                       {t.eloChange > 0 ? '+' : ''}{t.eloChange}
                     </span>

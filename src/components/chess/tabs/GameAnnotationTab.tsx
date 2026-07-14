@@ -279,7 +279,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                     onClick={() => setSelectedGame({ ...selectedGame, rating })}
                     className={`p-3 rounded-lg transition-all ${
                       (selectedGame.rating || 0) >= rating
-                        ? 'bg-yellow-100 text-yellow-600'
+                        ? 'bg-draw/12 text-draw'
                         : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
                     }`}
                   >
@@ -384,7 +384,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                           const updated = (selectedGame.keyMoments || []).filter((_, i) => i !== idx);
                           setSelectedGame({ ...selectedGame, keyMoments: updated });
                         }}
-                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
@@ -476,7 +476,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                     </button>
                     <button
                       onClick={() => deleteAnnotation(annotation.id)}
-                      className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
                     >
                       <TrashIcon className="w-5 h-5" />
                     </button>
@@ -506,7 +506,7 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                     {annotation.keyMoments.slice(0, 3).map((moment, idx) => (
                       <div key={idx} className="p-2 bg-surface-2 rounded-lg text-sm">
                         <span className="font-mono font-bold text-accent">{moment.move}</span>
-                        {moment.symbol && <span className="ml-2 font-bold text-emerald-600">{moment.symbol}</span>}
+                        {moment.symbol && <span className="ml-2 font-bold text-win">{moment.symbol}</span>}
                         {moment.comment && <span className="ml-2 text-fg-muted">— {moment.comment}</span>}
                       </div>
                     ))}

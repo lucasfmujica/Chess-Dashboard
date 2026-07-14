@@ -261,7 +261,7 @@ const TournamentPrepTab = () => {
                       onClick={() => setSelectedLine({ ...selectedLine, confidence: rating })}
                       className={`p-2 rounded-lg transition-all ${
                         (selectedLine.confidence || 0) >= rating
-                          ? 'bg-yellow-100 text-yellow-600'
+                          ? 'bg-draw/12 text-draw'
                           : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
                       }`}
                     >
@@ -363,7 +363,7 @@ const TournamentPrepTab = () => {
                       </button>
                       <button
                         onClick={() => removeLine(line.id)}
-                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>

@@ -189,7 +189,7 @@ const OverviewTab = ({
           <h3 className="text-base font-semibold text-fg mb-6">Performance by Color</h3>
           <div className="space-y-4">
             {[
-              { label: 'White Pieces', dot: 'bg-white border border-fg-subtle', stats: whiteStats, score: whiteScore },
+              { label: 'White Pieces', dot: 'bg-white dark:bg-surface border border-fg-subtle', stats: whiteStats, score: whiteScore },
               { label: 'Black Pieces', dot: 'bg-zinc-900 dark:bg-zinc-100', stats: blackStats, score: blackScore },
             ].map(({ label, dot, stats, score }) => {
               const total = stats.wins + stats.draws + stats.losses || 1;

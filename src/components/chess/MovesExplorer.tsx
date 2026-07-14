@@ -150,9 +150,9 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex h-3.5 w-full max-w-[180px] overflow-hidden rounded-sm border border-hairline tabular-nums text-[9px] leading-[14px] text-center">
-                        <div className="bg-white text-slate-900" style={{ width: `${pct(m.white, g)}%` }}>{pct(m.white, g) >= 12 ? pct(m.white, g) : ''}</div>
-                        <div className="bg-slate-400 text-slate-900" style={{ width: `${pct(m.draws, g)}%` }}>{pct(m.draws, g) >= 12 ? pct(m.draws, g) : ''}</div>
-                        <div className="bg-slate-900 text-white" style={{ width: `${pct(m.black, g)}%` }}>{pct(m.black, g) >= 12 ? pct(m.black, g) : ''}</div>
+                        <div className="bg-zinc-100 text-zinc-900" style={{ width: `${pct(m.white, g)}%` }}>{pct(m.white, g) >= 12 ? pct(m.white, g) : ''}</div>
+                        <div className="bg-zinc-400 text-zinc-900" style={{ width: `${pct(m.draws, g)}%` }}>{pct(m.draws, g) >= 12 ? pct(m.draws, g) : ''}</div>
+                        <div className="bg-zinc-800 text-zinc-100" style={{ width: `${pct(m.black, g)}%` }}>{pct(m.black, g) >= 12 ? pct(m.black, g) : ''}</div>
                       </div>
                     </td>
                   </tr>

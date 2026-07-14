@@ -50,8 +50,8 @@ const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }: For
                 key={idx}
                 className={`flex-1 h-2 rounded-full ${
                   result === 'W' ? 'bg-green-500' :
-                  result === 'D' ? 'bg-yellow-500' :
-                  'bg-red-500'
+                  result === 'D' ? 'bg-draw' :
+                  'bg-loss'
                 }`}
                 title={result === 'W' ? 'Win' : result === 'D' ? 'Draw' : 'Loss'}
               />

@@ -180,7 +180,7 @@ const GoalsTab = ({
             </div>
             <h3 className="text-sm font-bold text-fg-muted uppercase">ELO Needed</h3>
           </div>
-          <p className={`text-5xl font-bold mb-2 tabular-nums ${goalProjections.eloGain > 0 ? 'text-fg' : 'text-emerald-600'}`}>
+          <p className={`text-5xl font-bold mb-2 tabular-nums ${goalProjections.eloGain > 0 ? 'text-fg' : 'text-win'}`}>
             {goalProjections.eloGain > 0 ? '+' : ''}{goalProjections.eloGain}
           </p>
           <p className="text-sm text-fg-muted tabular-nums">
@@ -203,14 +203,14 @@ const GoalsTab = ({
 
         <div className="bg-surface-2 rounded-lg border border-hairline p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`p-2 rounded-xl bg-surface ${goalProjections.onTrack ? 'text-emerald-600' : 'text-amber-600'}`}>
+            <div className={`p-2 rounded-xl bg-surface ${goalProjections.onTrack ? 'text-win' : 'text-draw'}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={goalProjections.onTrack ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" : "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"} />
               </svg>
             </div>
             <h3 className="text-sm font-bold text-fg-muted uppercase">Status</h3>
           </div>
-          <p className={`text-4xl font-bold mb-2 ${goalProjections.onTrack ? 'text-emerald-600' : 'text-amber-600'}`}>
+          <p className={`text-4xl font-bold mb-2 ${goalProjections.onTrack ? 'text-win' : 'text-draw'}`}>
             {goalProjections.onTrack ? '✓ On Track' : '⚠ Push Hard'}
           </p>
           <p className="text-sm text-fg-muted">
@@ -251,7 +251,7 @@ const GoalsTab = ({
 
               <div className="flex items-center justify-between p-4 bg-surface-2 rounded-lg border border-hairline">
                 <span className="font-medium text-fg-muted">Projected ELO at Current Pace</span>
-                <span className={`text-2xl font-bold tabular-nums ${goalProjections.projectedElo >= targetElo ? 'text-emerald-600' : 'text-amber-600'}`}>
+                <span className={`text-2xl font-bold tabular-nums ${goalProjections.projectedElo >= targetElo ? 'text-win' : 'text-draw'}`}>
                   {Math.round(goalProjections.projectedElo)}
                 </span>
               </div>
@@ -360,7 +360,7 @@ const GoalsTab = ({
             <div key={idx} className="bg-surface-2 rounded-lg p-5 border border-hairline">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${parseFloat(milestone.progress) >= 100 ? 'bg-emerald-500 text-white' : 'bg-surface text-fg-subtle'}`}>
+                  <div className={`p-2 rounded-lg ${parseFloat(milestone.progress) >= 100 ? 'bg-accent text-accent-fg' : 'bg-surface text-fg-subtle'}`}>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={parseFloat(milestone.progress) >= 100 ? "M5 13l4 4L19 7" : "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"} />
                     </svg>

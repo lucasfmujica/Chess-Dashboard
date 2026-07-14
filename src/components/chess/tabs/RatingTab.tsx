@@ -184,7 +184,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
           <div className="p-6">
             <div className="flex items-center justify-between mb-3">
               <div className="p-2.5 bg-surface-2 rounded-lg">
-                <TrophyIcon className="w-5 h-5 text-amber-600" />
+                <TrophyIcon className="w-5 h-5 text-draw" />
               </div>
             </div>
             <p className="text-xs font-medium text-fg-muted mb-1 uppercase tracking-wide">Peak Rating</p>
@@ -411,7 +411,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
                             <span className="text-sm font-semibold text-accent">{data.actual.toFixed(2)}</span>
                           </div>
                         </div>
-                        <div className="pt-2 border-t border-gray-200">
+                        <div className="pt-2 border-t border-hairline">
                           <div className="flex justify-between gap-4">
                             <span className="text-sm text-fg-muted">Difference:</span>
                             <span className={`text-sm font-bold ${diffColor}`}>
@@ -514,7 +514,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
                             <p className="text-sm text-fg-muted">Games: <span className="font-semibold text-fg">{data.games}</span></p>
                             <p className="text-sm text-fg-muted">Total Change: <span className={`font-bold ${data.totalChange >= 0 ? 'text-win' : 'text-loss'}`}>{data.totalChange >= 0 ? '+' : ''}{data.totalChange}</span></p>
                             <p className="text-sm text-fg-muted">Avg/Game: <span className="font-semibold text-accent">{data.avgChange}</span></p>
-                            <div className="pt-2 border-t border-gray-200 mt-2">
+                            <div className="pt-2 border-t border-hairline mt-2">
                               <p className="text-xs text-fg-subtle">Start: {data.startElo} → End: {data.endElo}</p>
                             </div>
                           </div>

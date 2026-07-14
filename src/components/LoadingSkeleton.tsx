@@ -54,11 +54,12 @@ export const LoadingSpinner = ({ size = 'md', color = 'indigo' }: LoadingSpinner
     xl: 'w-16 h-16'
   };
 
+  // Single-accent design system: every spinner variant resolves to the accent.
   const colorClasses: Record<SpinnerColor, string> = {
-    indigo: 'text-indigo-600',
-    blue: 'text-blue-600',
-    emerald: 'text-emerald-600',
-    purple: 'text-purple-600'
+    indigo: 'text-accent',
+    blue: 'text-accent',
+    emerald: 'text-accent',
+    purple: 'text-accent'
   };
 
   return (

@@ -163,67 +163,9 @@
 }
 
 /* ============================================================
-   Transitional dark-mode compatibility layer.
-   Existing components use hard-coded light utilities (bg-white,
-   slate/gray text & borders). Until each tab is restyled with
-   semantic tokens, map the common neutrals so the whole app is
-   usable in dark mode. (Higher specificity than single utilities,
-   so no !important needed.)
-   ============================================================ */
-@layer utilities {
-  .dark .bg-white { background-color: rgb(var(--surface)); }
-  .dark .bg-slate-50,
-  .dark .bg-gray-50,
-  .dark .bg-slate-100,
-  .dark .bg-gray-100 { background-color: rgb(var(--surface-2)); }
-
-  .dark .text-slate-900,
-  .dark .text-gray-900,
-  .dark .text-slate-800,
-  .dark .text-gray-800 { color: rgb(var(--fg)); }
-  .dark .text-slate-700,
-  .dark .text-gray-700,
-  .dark .text-slate-600,
-  .dark .text-gray-600,
-  .dark .text-slate-500,
-  .dark .text-gray-500 { color: rgb(var(--fg-muted)); }
-
-  .dark .border-slate-200,
-  .dark .border-gray-200,
-  .dark .border-slate-100,
-  .dark .border-gray-100,
-  .dark .border-slate-300,
-  .dark .border-gray-300 { border-color: rgb(var(--border)); }
-
-  .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
-  .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--border)); }
-
-  .dark .hover\:bg-slate-50:hover,
-  .dark .hover\:bg-gray-50:hover,
-  .dark .hover\:bg-slate-100:hover,
-  .dark .hover\:bg-gray-100:hover { background-color: rgb(var(--surface-2)); }
-
-  /* Soft accent surfaces -> dark translucent tints */
-  .dark .bg-emerald-50, .dark .bg-emerald-100, .dark .bg-green-50, .dark .bg-green-100 { background-color: rgb(16 185 129 / 0.12); }
-  .dark .bg-blue-50, .dark .bg-blue-100, .dark .bg-indigo-50, .dark .bg-indigo-100, .dark .bg-sky-50, .dark .bg-sky-100 { background-color: rgb(59 130 246 / 0.12); }
-  .dark .bg-amber-50, .dark .bg-amber-100, .dark .bg-yellow-50, .dark .bg-yellow-100, .dark .bg-orange-50, .dark .bg-orange-100 { background-color: rgb(245 158 11 / 0.12); }
-  .dark .bg-rose-50, .dark .bg-rose-100, .dark .bg-red-50, .dark .bg-red-100 { background-color: rgb(244 63 94 / 0.12); }
-  .dark .bg-purple-50, .dark .bg-purple-100, .dark .bg-violet-50, .dark .bg-violet-100, .dark .bg-fuchsia-50, .dark .bg-fuchsia-100 { background-color: rgb(168 85 247 / 0.12); }
-  .dark .bg-teal-50, .dark .bg-teal-100, .dark .bg-cyan-50, .dark .bg-cyan-100 { background-color: rgb(20 184 166 / 0.12); }
-
-  /* Brighten accent text for contrast on dark surfaces */
-  .dark .text-emerald-600, .dark .text-emerald-700, .dark .text-emerald-800, .dark .text-green-600, .dark .text-green-700 { color: rgb(52 211 153); }
-  .dark .text-blue-600, .dark .text-blue-700, .dark .text-indigo-600, .dark .text-indigo-700, .dark .text-sky-600 { color: rgb(96 165 250); }
-  .dark .text-amber-600, .dark .text-amber-700, .dark .text-yellow-600, .dark .text-orange-600, .dark .text-orange-700 { color: rgb(251 191 36); }
-  .dark .text-rose-600, .dark .text-rose-700, .dark .text-red-600, .dark .text-red-700 { color: rgb(251 113 133); }
-  .dark .text-purple-600, .dark .text-purple-700, .dark .text-violet-600 { color: rgb(192 132 252); }
-  .dark .text-teal-600, .dark .text-teal-700, .dark .text-cyan-600 { color: rgb(45 212 191); }
-}
-
-/* ============================================================
    Recharts dark theming (centralized — themes every chart's
    grid / axes / legend without per-component changes). Custom
-   tooltips use bg-white and are handled by the layer above.
+   tooltips are styled inline with semantic tokens per chart.
    ============================================================ */
 .dark .recharts-cartesian-grid line { stroke: rgb(var(--border)); }
 .dark .recharts-cartesian-axis line,
