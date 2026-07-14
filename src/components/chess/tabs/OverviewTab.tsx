@@ -69,8 +69,7 @@ interface OverviewTabProps {
   overallStats: GameStats;
   whiteStats: ColorStats;
   blackStats: ColorStats;
-  ratedGames: Game[];
-  eloHistory: unknown[];
+  eloHistory: { elo: number }[];
   tournamentStats: TournamentStat[];
   bestResults: ResultEntry[];
   worstResults: ResultEntry[];
@@ -129,7 +128,7 @@ const OverviewTab = ({
   overallStats,
   whiteStats,
   blackStats,
-  ratedGames,
+  eloHistory,
   tournamentStats,
   bestResults,
   worstResults,
@@ -181,7 +180,10 @@ const OverviewTab = ({
       performanceRating: t.performanceRating
     })) : [];
 
-  const eloSpark = ratedGames.map(g => g.elo).filter(e => e > 0);
+  // Per-game (not per-tournament) progression: `game.elo` is the same flat value
+  // for every game within one OTB tournament, which plotted directly looks like a
+  // staircase. `eloHistory[i].elo` recomputes a smooth incremental value per game.
+  const eloSpark = eloHistory.slice(-45).map(h => h.elo).filter(e => e > 0);
   const eloUp = playerInfo.elo_change_last_tournament > 0;
 
   // Extract numeric score from whiteStats and blackStats

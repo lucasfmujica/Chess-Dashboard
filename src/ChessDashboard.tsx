@@ -360,7 +360,6 @@ const ChessDashboard = () => {
               overallStats={overallStats}
               whiteStats={whiteStats}
               blackStats={blackStats}
-              ratedGames={ratedGames}
               eloHistory={eloHistory}
               tournamentStats={tournamentStats}
               bestResults={bestResults}
