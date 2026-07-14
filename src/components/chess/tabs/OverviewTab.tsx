@@ -7,6 +7,10 @@ import { useCountUp } from '../../../hooks/useCountUp';
 import { useGameForm } from '../../../hooks/useGameForm';
 import { useModal } from '../../modals/ModalContext';
 import StatCard, { Sparkline } from '../StatCard';
+import { Card, CardHeader } from '../../ui/Card';
+import Badge from '../../ui/Badge';
+import Button from '../../ui/Button';
+import { PieceGlyph } from '../../ui/PieceGlyph';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import { getChartHeight } from '../../../utils/chartUtils';
@@ -123,28 +127,28 @@ const OverviewTab = ({
   const whiteScore = whiteStats.score || '0/0';
   const blackScore = blackStats.score || '0/0';
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn">
       {/* Hero: current ELO */}
-      <div className="rounded-lg border border-hairline bg-surface p-8">
+      <Card className="p-8">
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">Current ELO</p>
+            <p className="text-label">Current ELO</p>
             <div className="mt-2 flex items-baseline gap-3">
-              <span className="text-6xl font-bold tracking-tight tabular-nums text-fg">{animatedElo}</span>
-              <span className={`inline-flex items-center gap-1 text-sm font-semibold ${eloUp ? 'text-win' : 'text-loss'}`}>
-                {eloUp ? <ArrowTrendingUpIcon className="w-4 h-4" /> : <ArrowTrendingDownIcon className="w-4 h-4" />}
+              <span className="text-6xl font-semibold tracking-tight tabular-nums text-fg">{animatedElo}</span>
+              <Badge tone={eloUp ? 'win' : 'loss'}>
+                {eloUp ? <ArrowTrendingUpIcon className="w-3.5 h-3.5" /> : <ArrowTrendingDownIcon className="w-3.5 h-3.5" />}
                 {eloUp ? '+' : ''}{playerInfo.elo_change_last_tournament} last tournament
-              </span>
+              </Badge>
             </div>
           </div>
           {eloSpark.length > 1 && (
             <div className="w-full sm:w-56">
-              <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1">Last {eloSpark.length} rated games</p>
+              <p className="text-label mb-1">Last {eloSpark.length} rated games</p>
               <Sparkline data={eloSpark} />
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Secondary stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -179,19 +183,19 @@ const OverviewTab = ({
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Results Distribution */}
-        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <h3 className="mb-4 text-base font-semibold text-fg">Results Distribution</h3>
+        <Card>
+          <CardHeader title="Results Distribution" className="mb-4" />
           <ResultsDonut wins={overallStats.wins} draws={overallStats.draws} losses={overallStats.losses} />
-        </div>
+        </Card>
 
         {/* Performance by Color */}
-        <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-          <h3 className="text-base font-semibold text-fg mb-6">Performance by Color</h3>
+        <Card>
+          <CardHeader title="Performance by Color" className="mb-5" />
           <div className="space-y-4">
             {[
-              { label: 'White Pieces', dot: 'bg-white dark:bg-surface border border-fg-subtle', stats: whiteStats, score: whiteScore },
-              { label: 'Black Pieces', dot: 'bg-zinc-900 dark:bg-zinc-100', stats: blackStats, score: blackScore },
-            ].map(({ label, dot, stats, score }) => {
+              { label: 'White Pieces', color: 'W' as const, stats: whiteStats, score: whiteScore },
+              { label: 'Black Pieces', color: 'B' as const, stats: blackStats, score: blackScore },
+            ].map(({ label, color, stats, score }) => {
               const total = stats.wins + stats.draws + stats.losses || 1;
               const winPct = (stats.wins / total) * 100;
               const drawPct = (stats.draws / total) * 100;
@@ -201,14 +205,12 @@ const OverviewTab = ({
                 <div key={label} className="p-4 bg-surface-2 rounded-lg border border-hairline">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
-                      <span className="text-xs font-semibold text-fg-muted uppercase tracking-wide">{label}</span>
+                      <PieceGlyph color={color} size={10} />
+                      <span className="text-label">{label}</span>
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-semibold text-fg tabular-nums">{score}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold tabular-nums ${rate >= 50 ? 'bg-win/10 text-win' : 'bg-loss/10 text-loss'}`}>
-                        {stats.winRate}%
-                      </span>
+                      <Badge tone={rate >= 50 ? 'win' : 'loss'}>{stats.winRate}%</Badge>
                     </div>
                   </div>
                   <div className="flex w-full h-2 rounded-full overflow-hidden bg-surface">
@@ -225,19 +227,12 @@ const OverviewTab = ({
               );
             })}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* ELO Progress */}
-      <div className="bg-surface rounded-lg border border-hairline p-6 card-hover">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="p-2 bg-surface-2 rounded-lg">
-            <svg className="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
-          </div>
-          <h3 className="text-base font-semibold text-fg">ELO Progress Timeline</h3>
-        </div>
+      <Card>
+        <CardHeader title="ELO Progress Timeline" subtitle="Rating vs. performance across tournaments" className="mb-6" />
         {eloTimeline.length > 0 ? (
           <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
             <LineChart data={eloTimeline} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
@@ -269,31 +264,29 @@ const OverviewTab = ({
             <p>No tournament data available</p>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Best and Worst Results */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Best Results */}
-        <div className="p-6 bg-surface rounded-lg border border-hairline stagger-item">
-          <h3 className="mb-4 text-lg font-semibold text-win">🏆 Top 3 Wins</h3>
-          <p className="mb-4 text-sm text-fg-muted">Biggest upsets - victories against higher-rated opponents</p>
+        <Card>
+          <CardHeader title="Top 3 Wins" subtitle="Biggest upsets — wins vs. higher-rated opponents" className="mb-4" />
           <div className="space-y-3">
             {bestResults && bestResults.length > 0 ? (
               bestResults.map((result, idx) => (
                 <div key={idx} className="p-4 border border-win/20 rounded-lg bg-win/10">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-fg">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-win bg-win/20 rounded tabular-nums">
-                      +{result.diff} ELO
-                    </span>
+                    <Badge tone="win">+{result.diff} ELO</Badge>
                   </div>
                   <div className="text-sm text-fg-muted">
                     <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
                     </div>
-                    <div className="mt-1">
-                      <span className="font-medium">{result.color === 'W' ? '⚪' : '⚫'} {result.opening}</span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <PieceGlyph color={result.color === 'W' ? 'W' : 'B'} size={10} />
+                      <span className="font-medium text-fg">{result.opening}</span>
                     </div>
                     <div className="mt-1 text-xs text-fg-subtle">
                       {result.tournament}
@@ -305,29 +298,27 @@ const OverviewTab = ({
               <p className="text-sm text-fg-muted">No wins recorded yet</p>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Worst Results */}
-        <div className="p-6 bg-surface rounded-lg border border-hairline stagger-item">
-          <h3 className="mb-4 text-lg font-semibold text-loss">⚠️ Top 3 Losses to Study</h3>
-          <p className="mb-4 text-sm text-fg-muted">Losses against lower-rated opponents - learning opportunities</p>
+        <Card>
+          <CardHeader title="Top 3 Losses to Study" subtitle="Losses vs. lower-rated opponents — learning spots" className="mb-4" />
           <div className="space-y-3">
             {worstResults && worstResults.length > 0 ? (
               worstResults.map((result, idx) => (
                 <div key={idx} className="p-4 border border-loss/20 rounded-lg bg-loss/10">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-fg">{result.opponent}</span>
-                    <span className="px-2 py-1 text-xs font-bold text-loss bg-loss/20 rounded tabular-nums">
-                      {result.diff > 0 ? `+${result.diff}` : result.diff} ELO
-                    </span>
+                    <Badge tone="loss">{result.diff > 0 ? `+${result.diff}` : result.diff} ELO</Badge>
                   </div>
                   <div className="text-sm text-fg-muted">
                     <div className="flex justify-between tabular-nums">
                       <span>Your ELO: {result.elo}</span>
                       <span>Opp ELO: {result.oppElo}</span>
                     </div>
-                    <div className="mt-1">
-                      <span className="font-medium">{result.color === 'W' ? '⚪' : '⚫'} {result.opening}</span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <PieceGlyph color={result.color === 'W' ? 'W' : 'B'} size={10} />
+                      <span className="font-medium text-fg">{result.opening}</span>
                     </div>
                     <div className="mt-1 text-xs text-fg-subtle">
                       {result.tournament}
@@ -339,36 +330,36 @@ const OverviewTab = ({
               <p className="text-sm text-fg-muted">No losses recorded yet</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Additional Stats Summary */}
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Quick Stats Summary</h3>
+      <Card>
+        <CardHeader title="Quick Stats Summary" className="mb-4" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.wins}</div>
+            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.wins}</div>
             <div className="text-sm text-fg-muted">Total Wins</div>
           </div>
           <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.draws}</div>
+            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.draws}</div>
             <div className="text-sm text-fg-muted">Total Draws</div>
           </div>
           <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-bold text-fg tabular-nums">{overallStats.losses}</div>
+            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.losses}</div>
             <div className="text-sm text-fg-muted">Total Losses</div>
           </div>
           <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-bold text-fg tabular-nums">
+            <div className="text-2xl font-semibold text-fg tabular-nums">
               {overallStats.total > 0 ? ((parseFloat(overallStats.actualScore) / overallStats.total) * 100).toFixed(0) : '0'}%
             </div>
             <div className="text-sm text-fg-muted">Score Rate</div>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Add / Import Games */}
-      <div className="rounded-lg border border-hairline bg-surface">
+      <Card flush>
         <button
           onClick={() => setShowAddGames(prev => !prev)}
           className="flex w-full items-center justify-between p-6 text-left"
@@ -412,12 +403,9 @@ const OverviewTab = ({
                           You have {lichessGamesCount} Lichess game{lichessGamesCount !== 1 ? 's' : ''} imported
                         </p>
                       </div>
-                      <button
-                        onClick={onRemoveLichessGames}
-                        className="px-4 py-2 text-sm font-medium text-loss border border-hairline bg-surface hover:bg-surface-2 rounded-lg transition-colors"
-                      >
+                      <Button variant="danger" onClick={onRemoveLichessGames}>
                         Remove All Lichess Games
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -425,7 +413,7 @@ const OverviewTab = ({
             )}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 };

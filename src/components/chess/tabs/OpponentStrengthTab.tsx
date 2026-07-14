@@ -3,6 +3,9 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { getChartHeight } from '../../../utils/chartUtils';
 import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
 import TournamentComparison from './analytics/TournamentComparison';
+import { Card, CardHeader } from '../../ui/Card';
+import Badge, { resultTone } from '../../ui/Badge';
+import { PieceGlyph } from '../../ui/PieceGlyph';
 import type { Game } from '../../../types/chess';
 
 /** Per time-of-day-slot aggregate row. */
@@ -69,11 +72,11 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
 
     // Define ELO brackets based on rating difference (opp_elo - player_elo at time of game)
     const brackets = [
-      { label: 'Much Lower (-200+)', minDiff: -Infinity, maxDiff: -200, color: '#10b981' },
-      { label: 'Lower (-100 to -199)', minDiff: -199, maxDiff: -100, color: '#22c55e' },
-      { label: 'Similar (±99)', minDiff: -99, maxDiff: 99, color: '#3b82f6' },
-      { label: 'Higher (+100 to +199)', minDiff: 100, maxDiff: 199, color: '#f59e0b' },
-      { label: 'Much Higher (+200+)', minDiff: 200, maxDiff: Infinity, color: '#ef4444' },
+      { label: 'Much Lower (-200+)', minDiff: -Infinity, maxDiff: -200, color: 'rgb(var(--win))' },
+      { label: 'Lower (-100 to -199)', minDiff: -199, maxDiff: -100, color: 'rgb(var(--cat-6))' },
+      { label: 'Similar (±99)', minDiff: -99, maxDiff: 99, color: 'rgb(var(--cat-2))' },
+      { label: 'Higher (+100 to +199)', minDiff: 100, maxDiff: 199, color: 'rgb(var(--draw))' },
+      { label: 'Much Higher (+200+)', minDiff: 200, maxDiff: Infinity, color: 'rgb(var(--loss))' },
     ];
 
     const analysis = brackets.map(bracket => {
@@ -162,12 +165,9 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
           <div
             key={idx}
             className={`p-6 bg-surface border rounded-lg cursor-pointer transition-colors hover:bg-surface-2 ${
-              selectedBracket?.label === bracket.label ? 'ring-1 ring-offset-1' : ''
+              selectedBracket?.label === bracket.label ? 'ring-2 ring-accent' : ''
             }`}
-            style={{
-              borderColor: bracket.color,
-              ...(selectedBracket?.label === bracket.label && { ringColor: bracket.color })
-            }}
+            style={{ borderColor: bracket.color }}
             onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
           >
             <div className="flex items-start justify-between mb-3">
@@ -210,16 +210,14 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
 
       {/* Games Detail Panel */}
       {selectedBracket && (
-        <div className="p-6 bg-surface border rounded-lg" style={{ borderColor: selectedBracket.color }}>
+        <div className="p-6 bg-surface border border-hairline rounded-lg">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: selectedBracket.color }}></div>
-              <h3 className="text-lg font-semibold text-fg">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedBracket.color }}></div>
+              <h3 className="text-h3 text-fg">
                 Games vs {selectedBracket.label}
               </h3>
-              <span className="px-2 py-1 text-xs font-semibold text-white rounded tabular-nums" style={{ backgroundColor: selectedBracket.color }}>
-                {selectedBracket.games} games
-              </span>
+              <Badge tone="neutral">{selectedBracket.games} games</Badge>
             </div>
             <button
               onClick={() => setSelectedBracket(null)}
@@ -323,20 +321,15 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            game.color === 'W' ? 'bg-surface border border-hairline text-fg' : 'bg-gray-800 text-white'
-                          }`}>
+                          <span className="inline-flex items-center gap-1.5 text-fg-muted">
+                            <PieceGlyph color={game.color === 'W' ? 'W' : 'B'} size={10} />
                             {game.color === 'W' ? 'White' : 'Black'}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            game.result === 'W' ? 'bg-win/10 text-win' :
-                            game.result === 'D' ? 'bg-draw/10 text-draw' :
-                            'bg-loss/10 text-loss'
-                          }`}>
+                          <Badge tone={resultTone(game.result)}>
                             {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-2 text-sm text-fg-muted">{game.eco || '-'}</td>
                         <td className="px-4 py-2 text-sm text-fg-muted truncate max-w-[200px]" title={game.tournament}>
@@ -363,20 +356,14 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
         </div>
       )}
 
-      {/* Performance vs Expected Chart - Enhanced */}
-      <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-surface-2 rounded-xl">
-              <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-fg">Performance vs Expected Score</h3>
-              <p className="text-fg-muted text-sm">Analysis by opponent strength bracket</p>
-            </div>
-          </div>
+      {/* Performance vs Expected Chart */}
+      <Card>
+        <div>
+          <CardHeader
+            title="Performance vs Expected Score"
+            subtitle="Analysis by opponent strength bracket"
+            className="mb-6"
+          />
           <ResponsiveContainer width="100%" height={getChartHeight('large')}>
             <BarChart data={chartData} barGap={8}>
               <defs>
@@ -405,7 +392,7 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
                 stroke="rgb(var(--fg-subtle))"
               />
               <Tooltip
-                cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                cursor={{ fill: 'rgb(var(--accent) / 0.08)' }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
@@ -463,12 +450,12 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
 
       {/* Detailed Breakdown Table */}
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
+      <Card>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-fg">Detailed Strength Analysis</h3>
+          <h3 className="text-h3 text-fg">Detailed Strength Analysis</h3>
           <span className="text-xs text-fg-subtle">Click any row to view games</span>
         </div>
         <div className="overflow-x-auto">
@@ -530,11 +517,11 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       {/* Results vs Opponent Rating Scatter */}
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Results by Opponent Rating Difference</h3>
+      <Card>
+        <CardHeader title="Results by Opponent Rating Difference" className="mb-4" />
         <ResponsiveContainer width="100%" height={getChartHeight('small')}>
           <LineChart data={strengthTrend}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -567,11 +554,11 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
               }}
             />
             <Legend />
-            <Line yAxisId="left" type="monotone" dataKey="result" stroke="#10b981" strokeWidth={2} name="Result %" dot={{ r: 3 }} />
-            <Line yAxisId="right" type="monotone" dataKey="eloDiff" stroke="#6366f1" strokeWidth={2} name="ELO Diff" dot={{ r: 3 }} />
+            <Line yAxisId="left" type="monotone" dataKey="result" stroke="rgb(var(--win))" strokeWidth={2} name="Result %" dot={{ r: 3 }} />
+            <Line yAxisId="right" type="monotone" dataKey="eloDiff" stroke="rgb(var(--cat-4))" strokeWidth={2} name="ELO Diff" dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* Time of Day Performance */}
       <TimeOfDayPerformance timeOfDayStats={timeOfDayStats} />
@@ -580,11 +567,8 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
       <TournamentComparison tournamentComparison={tournamentComparison} />
 
       {/* Insights */}
-      <div className="p-6 rounded-lg border border-hairline bg-surface-2">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
-          <span className="mr-2 text-2xl">💡</span>
-          Insights & Recommendations
-        </h3>
+      <Card>
+        <CardHeader title="Insights & Recommendations" subtitle="Brackets where you over- or under-perform (min. 5 games)" className="mb-4" />
         <div className="space-y-3">
           {strengthAnalysis.filter(b => b.games >= 5).map((bracket, idx) => {
             const isOverperforming = bracket.performance > 5;
@@ -614,7 +598,7 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
             return null;
           })}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

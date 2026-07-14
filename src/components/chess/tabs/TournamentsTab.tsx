@@ -6,7 +6,7 @@ import TournamentHeroSection from './tournaments/TournamentHeroSection';
 import TournamentSummaryCards from './tournaments/TournamentSummaryCards';
 import TournamentTable from './tournaments/TournamentTable';
 import PerformanceChart from './tournaments/PerformanceChart';
-import type { TournamentStat, UpcomingTournament } from '../../../types/chess';
+import type { Game, TournamentStat, UpcomingTournament } from '../../../types/chess';
 
 interface TournamentsTabProps {
   tournamentStats: TournamentStat[];
@@ -14,9 +14,10 @@ interface TournamentsTabProps {
   setUpcomingTournaments: (
     value: UpcomingTournament[] | ((prev: UpcomingTournament[]) => UpcomingTournament[])
   ) => void;
+  ratedGames: Game[];
 }
 
-const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments }: TournamentsTabProps) => {
+const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTournaments, ratedGames }: TournamentsTabProps) => {
   const modal = useModal();
   const stats = useTournamentStats(tournamentStats);
 
@@ -57,7 +58,7 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
       <TournamentSummaryCards stats={stats} />
 
       {/* Tournament Table */}
-      <TournamentTable tournamentStats={tournamentStats} />
+      <TournamentTable tournamentStats={tournamentStats} ratedGames={ratedGames} />
 
       {/* Performance Chart */}
       <PerformanceChart tournamentStats={tournamentStats} />

@@ -379,6 +379,7 @@ const ChessDashboard = () => {
               tournamentStats={tournamentStats}
               upcomingTournaments={upcomingTournaments}
               setUpcomingTournaments={setUpcomingTournaments}
+              ratedGames={ratedGames}
             />
           )}
 

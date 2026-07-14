@@ -5,6 +5,8 @@ import { useGameViewer } from '../../../context/GameViewerContext';
 import { useGameFilters } from '../../../hooks/useGameFilters';
 import GameFiltersBar from '../GameFiltersBar';
 import StatCard from '../../ui/StatCard';
+import { Card, CardHeader } from '../../ui/Card';
+import Badge, { resultTone } from '../../ui/Badge';
 
 /** Per-opening aggregate row attached to colored game stats. */
 interface ColorOpeningStat {
@@ -85,52 +87,17 @@ const ColorGamesTab = ({
         />
       </div>
 
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Results distribution as {colorLabel}</h3>
+      <Card>
+        <CardHeader title={`Results distribution as ${colorLabel}`} className="mb-4" />
         <ResultsDonut wins={colorStats.wins} draws={colorStats.draws} losses={colorStats.losses} />
-      </div>
+      </Card>
 
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">Openings as {colorLabel}</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-surface-2">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-hairline">
-              {colorStats.openings.map((opening) => (
-                <tr key={opening.eco} className="hover:bg-surface-2">
-                  <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-fg">{opening.name}</div>
-                    <div className="text-xs text-fg-muted">{opening.eco}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{opening.games}</td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="text-win">{opening.wins}</span>-
-                    <span className="text-draw">{opening.draws}</span>-
-                    <span className="text-loss">{opening.losses}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{opening.score}</td>
-                  <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-win' : 'text-loss'}`}>
-                      {opening.winRate}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="p-6 bg-surface rounded-lg border border-hairline">
-        <h3 className="mb-4 text-lg font-semibold text-fg">All Games as {colorLabel}</h3>
+      <Card>
+        <CardHeader
+          title={`All Games as ${colorLabel}`}
+          subtitle="Filter and replay your games"
+          className="mb-4"
+        />
         <div className="mb-4">
           <GameFiltersBar
             query={query}
@@ -232,12 +199,9 @@ const ColorGamesTab = ({
                     <td className="px-4 py-3 text-sm text-fg">{game.opp}</td>
                     <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo || 'Unrated'}</td>
                     <td className="px-4 py-3 text-sm text-center">
-                      <span className={`px-2 py-1 rounded font-semibold ${game.result === 'W' ? 'bg-win/10 text-win' :
-                        game.result === 'D' ? 'bg-draw/10 text-draw' :
-                          'bg-loss/10 text-loss'
-                        }`}>
+                      <Badge tone={resultTone(game.result)}>
                         {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-fg-muted">
                       <div>{ecoNames[game.eco] || game.eco}</div>
@@ -273,7 +237,46 @@ const ColorGamesTab = ({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
+
+      <Card>
+        <CardHeader title={`Openings as ${colorLabel}`} className="mb-4" />
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead className="bg-surface-2">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
+                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
+              </tr>
+            </thead>
+            <tbody className="bg-surface divide-y divide-hairline">
+              {colorStats.openings.map((opening) => (
+                <tr key={opening.eco} className="hover:bg-surface-2">
+                  <td className="px-6 py-4 text-sm">
+                    <div className="font-medium text-fg">{opening.name}</div>
+                    <div className="text-xs text-fg-muted">{opening.eco}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{opening.games}</td>
+                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
+                    <span className="text-win">{opening.wins}</span>-
+                    <span className="text-draw">{opening.draws}</span>-
+                    <span className="text-loss">{opening.losses}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{opening.score}</td>
+                  <td className="px-6 py-4 text-sm text-center">
+                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-win' : 'text-loss'}`}>
+                      {opening.winRate}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 };
