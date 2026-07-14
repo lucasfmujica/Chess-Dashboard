@@ -19,6 +19,8 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [maxGames, setMaxGames] = useState(50);
   const [perfType, setPerfType] = useState('classical,rapid,blitz');
+  const [sinceDate, setSinceDate] = useState('');
+  const [untilDate, setUntilDate] = useState('');
 
   // Cleanup timer when success status is set
   useEffect(() => {
@@ -44,10 +46,17 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
     try {
       const { fetchLichessGames, transformLichessGames } = await import('../../utils/lichessApi');
 
+      // A date range implies "everything in that window", so the max-games cap is ignored.
+      const hasDateRange = Boolean(sinceDate || untilDate);
+      const since = sinceDate ? new Date(`${sinceDate}T00:00:00`).getTime() : null;
+      const until = untilDate ? new Date(`${untilDate}T23:59:59`).getTime() : null;
+
       const lichessGames = await fetchLichessGames(lichessUsername, {
-        max: maxGames,
+        max: hasDateRange || maxGames === 0 ? null : maxGames,
         perfType,
         rated: true,
+        since,
+        until,
       });
 
       if (lichessGames.length === 0) {
@@ -118,12 +127,13 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
               value={maxGames}
               onChange={(e) => setMaxGames(parseInt(e.target.value))}
               className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
-              disabled={isSyncing}
+              disabled={isSyncing || Boolean(sinceDate || untilDate)}
             >
               <option value="20">20 games</option>
               <option value="50">50 games</option>
               <option value="100">100 games</option>
               <option value="200">200 games</option>
+              <option value="0">No limit</option>
             </select>
           </div>
 
@@ -144,7 +154,41 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
               <option value="bullet">Bullet only</option>
             </select>
           </div>
+
+          <div>
+            <label className="block mb-2 text-sm font-medium text-fg-muted">
+              From date (optional)
+            </label>
+            <input
+              type="date"
+              value={sinceDate}
+              onChange={(e) => setSinceDate(e.target.value)}
+              max={untilDate || undefined}
+              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              disabled={isSyncing}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-2 text-sm font-medium text-fg-muted">
+              To date (optional)
+            </label>
+            <input
+              type="date"
+              value={untilDate}
+              onChange={(e) => setUntilDate(e.target.value)}
+              min={sinceDate || undefined}
+              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              disabled={isSyncing}
+            />
+          </div>
         </div>
+
+        {(sinceDate || untilDate) && (
+          <p className="text-xs text-fg-subtle">
+            A date range ignores the "Max Games" cap — every matching game in the range is imported.
+          </p>
+        )}
 
         <button
           onClick={handleSync}
@@ -189,8 +233,8 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         <h4 className="mb-2 text-sm font-semibold text-fg">How it works:</h4>
         <ul className="space-y-1 text-xs text-fg-muted list-disc list-inside">
           <li>Enter your Lichess username (case-insensitive)</li>
-          <li>Select how many recent games to import</li>
-          <li>Games will be automatically added to your dashboard</li>
+          <li>Select how many recent games to import, or set a date range to grab everything in that window</li>
+          <li>Games will be automatically added to your dashboard as "Online" — they won't mix with OTB games</li>
           <li>Only rated games are imported</li>
           <li>Duplicate games are automatically detected and merged</li>
         </ul>

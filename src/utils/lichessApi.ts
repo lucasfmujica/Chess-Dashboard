@@ -8,7 +8,8 @@ import type { Game, GameResult, LichessSpeed } from '../types/chess';
 const LICHESS_API_BASE = 'https://lichess.org/api';
 
 export interface FetchLichessOptions {
-  max?: number;
+  /** Max games to fetch. Pass null/undefined for no limit (streams everything matching the filters). */
+  max?: number | null;
   rated?: boolean;
   perfType?: string;
   since?: number | null;
@@ -61,7 +62,6 @@ export const fetchLichessGames = async (
 
   try {
     const params = new URLSearchParams({
-      max: max.toString(),
       rated: rated.toString(),
       perfType,
       moves: 'true', // include SAN movetext so games are replayable/analysable
@@ -71,6 +71,7 @@ export const fetchLichessGames = async (
       opening: 'true',
     });
 
+    if (max != null) params.append('max', max.toString());
     if (since) params.append('since', since.toString());
     if (until) params.append('until', until.toString());
 
