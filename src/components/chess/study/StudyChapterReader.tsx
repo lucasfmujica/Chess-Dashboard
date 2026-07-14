@@ -8,12 +8,13 @@ import {
   ChevronDoubleRightIcon,
   ArrowUturnLeftIcon,
 } from '@heroicons/react/24/solid';
-import { ArrowTopRightOnSquareIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import Badge from '../../ui/Badge';
 import { useStudyLineNavigation } from '../../../hooks/useStudyLineNavigation';
 import { useLocalEngine } from '../../../hooks/useLocalEngine';
 import { useEngineSettings } from '../../../hooks/useEngineSettings';
 import { winPct, formatEval } from '../../../utils/evalFormat';
+import EngineLines from '../EngineLines';
 import StudyMoveList from './StudyMoveList';
 import type { StudyChapter } from '../../../utils/studyPgn';
 
@@ -52,7 +53,7 @@ const ControlButton = ({
 const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
   const nav = useStudyLineNavigation(chapter.mainline);
   const [flipped, setFlipped] = useState(false);
-  const [settings] = useEngineSettings();
+  const [settings, setSettings] = useEngineSettings();
   const [engineOn, setEngineOn] = useState(false);
   const engineState = useLocalEngine(nav.fen, settings, engineOn);
   const { header } = chapter;
@@ -123,13 +124,6 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
           <ControlButton onClick={() => setFlipped(f => !f)} label="Flip board">
             <ArrowsUpDownIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton
-            onClick={() => setEngineOn(o => !o)}
-            active={engineOn}
-            label={engineOn ? 'Turn off engine' : 'Turn on engine'}
-          >
-            <CpuChipIcon className="w-4 h-4" />
-          </ControlButton>
           <ControlButton onClick={nav.resetToMainlineStart} disabled={nav.atStart} label="First move">
             <ChevronDoubleLeftIcon className="w-4 h-4" />
           </ControlButton>
@@ -149,11 +143,6 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
           )}
         </div>
         <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
-        {engineOn && (
-          <p className="mt-1 text-center text-xs text-fg-subtle tabular-nums">
-            {engineState.analyzing ? 'Analyzing… ' : ''}depth {engineState.depth || 0} · threads {settings.threads}
-          </p>
-        )}
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col xl:h-full">
@@ -173,6 +162,16 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
               </a>
             )}
           </div>
+        </div>
+
+        <div className="mt-3 flex-shrink-0">
+          <EngineLines
+            state={engineState}
+            enabled={engineOn}
+            onToggle={() => setEngineOn(o => !o)}
+            settings={settings}
+            setSettings={setSettings}
+          />
         </div>
 
         <div className="mt-3 flex-1 xl:min-h-0 overflow-y-auto rounded-lg border border-hairline bg-surface p-3">
