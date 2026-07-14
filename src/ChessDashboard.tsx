@@ -23,6 +23,8 @@ import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab
 import TournamentPrepTab from './components/chess/tabs/TournamentPrepTab';
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
 const RepertoireStudyTab = lazy(() => import('./components/chess/tabs/RepertoireStudyTab'));
+const BlunderDrillsTab = lazy(() => import('./components/chess/tabs/BlunderDrillsTab'));
+const OpponentPrepTab = lazy(() => import('./components/chess/tabs/OpponentPrepTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
@@ -40,6 +42,8 @@ import {
   FlagIcon,
   ScaleIcon,
   ClipboardDocumentCheckIcon,
+  ExclamationTriangleIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
@@ -277,7 +281,9 @@ const ChessDashboard = () => {
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
         { id: 'repertoire-study', label: 'Repertoire Study', icon: RectangleStackIcon },
         { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
+        { id: 'blunder-drills', label: 'Blunder Drills', icon: ExclamationTriangleIcon },
         { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
+        { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
         { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
       ],
@@ -471,6 +477,10 @@ const ChessDashboard = () => {
           {activeTab === 'repertoire-study' && <LazyTab><RepertoireStudyTab /></LazyTab>}
 
           {activeTab === 'tournament-prep' && <TournamentPrepTab />}
+
+          {activeTab === 'blunder-drills' && <LazyTab><BlunderDrillsTab /></LazyTab>}
+
+          {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
 
           {activeTab === 'training' && (
             <TrainingTab

@@ -10,6 +10,8 @@ interface PersonalMovesProps {
   /** Which of your games to show: as White ('W') or as Black ('B'). */
   color: 'W' | 'B';
   onColorChange: (color: 'W' | 'B') => void;
+  /** Whose games these are, for the panel copy — defaults to "You" (e.g. pass a rival's name for opponent prep). */
+  subject?: string;
 }
 
 /**
@@ -18,15 +20,18 @@ interface PersonalMovesProps {
  * with your score. The colour toggle keeps your white and black games separate
  * (like Lichess's player explorer) so opponents' moves are never shown as yours.
  */
-const PersonalMoves = ({ moves, playedMove, onPlay, color, onColorChange }: PersonalMovesProps) => {
+const PersonalMoves = ({ moves, playedMove, onPlay, color, onColorChange, subject = 'You' }: PersonalMovesProps) => {
   // Within one colour a position is one side to move, so all rows share `mine`.
   const opponentsTurn = moves.length > 0 && !moves[0].mine;
+  const subjectIsYou = subject === 'You';
   return (
   <div className="rounded-lg border border-hairline bg-surface">
     <div className="px-4 py-2.5 border-b border-hairline flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 min-w-0">
         <UserIcon className="w-5 h-5 text-accent flex-shrink-0" />
-        <h3 className="text-sm font-semibold text-fg truncate">{opponentsTurn ? 'Opponents played' : 'You play'}</h3>
+        <h3 className="text-sm font-semibold text-fg truncate">
+          {opponentsTurn ? `${subjectIsYou ? subject : `${subject}'s opponents`} played` : `${subject} play${subjectIsYou ? '' : 's'}`}
+        </h3>
         <span className="text-xs text-fg-subtle truncate">as {color === 'W' ? 'White' : 'Black'}</span>
       </div>
       <div className="flex items-center rounded-md border border-hairline overflow-hidden flex-shrink-0">

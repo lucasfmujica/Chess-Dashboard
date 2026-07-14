@@ -11,6 +11,7 @@ import { useModal } from '../../modals/ModalContext';
 import type { RepertoireLine } from '../../../types/chess';
 import { fetchRepertoireLines, putRepertoireLine } from '../../../api/client';
 import { ecoNames } from '../../../constants/ecoNames';
+import { isDue as srsIsDue, nextReviewAt as srsNextReviewAt, nudgeConfidence } from '../../../utils/srs';
 import { Card } from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
@@ -21,20 +22,11 @@ import { PieceLabel } from '../../ui/PieceGlyph';
 type StudyMode = 'review' | 'all';
 type ColorFilter = 'all' | 'W' | 'B';
 
-const DAY = 24 * 60 * 60 * 1000;
-
-/** Spaced-repetition interval (days) keyed by self-assessed confidence 1-5. */
-const CONFIDENCE_DAYS: Record<number, number> = { 1: 1, 2: 3, 3: 7, 4: 14, 5: 30 };
-
-const reviewIntervalMs = (confidence?: number) => (CONFIDENCE_DAYS[confidence ?? 1] ?? 1) * DAY;
-
 /** A line is due when never reviewed, or its confidence-based interval has elapsed. */
-const isDue = (line: RepertoireLine, now: number) =>
-  !line.lastReviewed || now - line.lastReviewed >= reviewIntervalMs(line.confidence);
+const isDue = (line: RepertoireLine, now: number) => srsIsDue(line.lastReviewed, line.confidence, now);
 
 /** Sort key: never-reviewed (0) first, then by soonest next-review time. */
-const nextReviewAt = (line: RepertoireLine) =>
-  line.lastReviewed ? line.lastReviewed + reviewIntervalMs(line.confidence) : 0;
+const nextReviewAt = (line: RepertoireLine) => srsNextReviewAt(line.lastReviewed, line.confidence);
 
 const lineName = (line: RepertoireLine) =>
   line.lineName || (line.eco ? ecoNames[line.eco] || line.eco : '') || 'Unnamed line';
@@ -78,9 +70,7 @@ const OpeningsFlashcardsTab = () => {
 
   const handleResponse = async (correct: boolean) => {
     if (!current) return;
-    const nudged = correct
-      ? Math.min(5, (current.confidence ?? 3) + 1)
-      : Math.max(1, (current.confidence ?? 3) - 1);
+    const nudged = nudgeConfidence(current.confidence, correct);
     const updated: RepertoireLine = { ...current, confidence: nudged, lastReviewed: Date.now() };
 
     setLines(prev => prev.map(l => (l.id === current.id ? updated : l)));

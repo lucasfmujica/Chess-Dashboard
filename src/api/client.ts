@@ -5,8 +5,10 @@ import type {
   AnnotatedGame,
   OpeningCard,
   RepertoireLine,
+  ScoutingTarget,
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
+import type { MinedBlunder, BlunderDrill } from '../types/blunders';
 
 const API_KEY = import.meta.env.VITE_API_SECRET as string | undefined;
 
@@ -102,6 +104,37 @@ export const deleteRepertoireLine = (id: string) =>
 export const fetchFlashcards = () => apiFetch<OpeningCard[]>('/flashcards');
 export const putFlashcards = (cards: OpeningCard[]) =>
   apiFetch<OpeningCard[]>('/flashcards', { method: 'PUT', body: JSON.stringify(cards) });
+
+// Blunder drills (mined from the player's own analyzed games)
+export const fetchBlunderDrills = () => apiFetch<BlunderDrill[]>('/blunder-drills');
+export const postBlunderDrills = (drills: MinedBlunder[]) =>
+  apiFetch<{ inserted: number }>('/blunder-drills', { method: 'POST', body: JSON.stringify(drills) });
+export interface BlunderDrillPatch {
+  confidence?: number;
+  lastReviewed?: number;
+  reviewCount?: number;
+  solvedCount?: number;
+  archived?: boolean;
+}
+export const putBlunderDrill = (id: string, patch: BlunderDrillPatch) =>
+  apiFetch<BlunderDrill>(`/blunder-drills?id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  });
+export const deleteBlunderDrill = (id: string) =>
+  apiFetch<{ ok: true }>(`/blunder-drills?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+// Scouting targets (Opponent Prep)
+export const fetchScoutingTargets = () => apiFetch<ScoutingTarget[]>('/scouting-targets');
+export const postScoutingTarget = (target: Partial<ScoutingTarget>) =>
+  apiFetch<ScoutingTarget>('/scouting-targets', { method: 'POST', body: JSON.stringify(target) });
+export const putScoutingTarget = (id: string, target: Partial<ScoutingTarget>) =>
+  apiFetch<ScoutingTarget>(`/scouting-targets?id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(target),
+  });
+export const deleteScoutingTarget = (id: string) =>
+  apiFetch<{ ok: true }>(`/scouting-targets?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 // One-time migration
 export interface MigratePayload {

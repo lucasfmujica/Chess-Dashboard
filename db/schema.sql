@@ -110,6 +110,41 @@ CREATE TABLE IF NOT EXISTS repertoire_lines (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Mined blunders/mistakes from the player's own games (bestMoveUci comes from
+-- the Stockfish batch analysis already cached in game_analyses), drilled with
+-- the same confidence-based SRS as repertoire_lines, plus solve-mode counters.
+CREATE TABLE IF NOT EXISTS blunder_drills (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  game_id UUID REFERENCES games(id) ON DELETE CASCADE,
+  ply INTEGER NOT NULL,
+  fen_before TEXT NOT NULL,
+  played_san TEXT NOT NULL,
+  best_move_uci TEXT NOT NULL,
+  cp_loss INTEGER NOT NULL,
+  eval_before INTEGER NOT NULL,
+  eval_after INTEGER NOT NULL,
+  confidence INTEGER CHECK (confidence BETWEEN 1 AND 5),
+  last_reviewed TIMESTAMPTZ,
+  review_count INTEGER NOT NULL DEFAULT 0,
+  solved_count INTEGER NOT NULL DEFAULT 0,
+  archived BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (game_id, ply)
+);
+CREATE INDEX IF NOT EXISTS blunder_drills_game_id_idx ON blunder_drills (game_id);
+
+-- Rivals being scouted before a tournament round. Their actual games are
+-- fetched live from Lichess client-side, not duplicated here.
+CREATE TABLE IF NOT EXISTS scouting_targets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  lichess_username TEXT,
+  tournament TEXT,
+  notes TEXT,
+  last_scouted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS opening_flashcards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,

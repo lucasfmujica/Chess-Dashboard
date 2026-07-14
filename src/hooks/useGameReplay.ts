@@ -41,7 +41,7 @@ interface ReplayState {
   error: string | null;
 }
 
-interface ParsedReplay {
+export interface ParsedReplay {
   fens: string[];
   sans: string[];
   error: string | null;
@@ -78,7 +78,8 @@ export const sanitizePgn = (pgn: string): string => {
   return s.replace(/[ \t]+/g, ' ');
 };
 
-const parsePgn = (pgn?: string): ParsedReplay => {
+/** Parse a PGN into per-ply FENs/SANs (index 0 = start position). Exported for reuse outside the hook (e.g. blunder mining). */
+export const parsePgn = (pgn?: string): ParsedReplay => {
   if (!pgn || !pgn.trim()) {
     return { fens: [STARTING_FEN], sans: [], error: null };
   }

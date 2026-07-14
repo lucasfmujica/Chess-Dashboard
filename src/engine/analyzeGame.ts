@@ -10,6 +10,8 @@ export interface MoveAnalysis {
   /** Centipawn loss for the mover (>= 0). */
   cpLoss: number;
   quality: MoveQuality;
+  /** Engine's suggested move (UCI) from the position before this move was played. */
+  bestMoveUci?: string;
 }
 
 export interface GameAnalysis {
@@ -75,10 +77,12 @@ export const analyzeGame = async (
   try {
     await engine.init();
     const evals: number[] = [];
+    const bestMoves: (string | undefined)[] = [];
     for (let i = 0; i < fens.length; i++) {
       if (signal?.aborted) throw new DOMException('Analysis cancelled', 'AbortError');
       const res = await engine.evaluate(fens[i], depth);
       evals.push(toWhiteCp(res.cp, res.mate, sideToMoveIsWhite(fens[i])));
+      bestMoves.push(res.bestMove);
       onProgress?.(i + 1, fens.length);
     }
 
@@ -102,7 +106,7 @@ export const analyzeGame = async (
       const acc = moveAccuracy(winPct(beforeMover), winPct(afterMover));
       (moverIsWhite ? whiteAcc : blackAcc).push(acc);
 
-      moves.push({ ply: m + 1, evalCp: evals[m + 1], cpLoss, quality });
+      moves.push({ ply: m + 1, evalCp: evals[m + 1], cpLoss, quality, bestMoveUci: bestMoves[m] });
     }
 
     return {

@@ -238,6 +238,17 @@ export interface RepertoireLine {
   notes?: string;
 }
 
+/** A rival being scouted before a tournament round. */
+export interface ScoutingTarget {
+  id: string;
+  createdAt: number;
+  name: string;
+  lichessUsername?: string;
+  tournament?: string;
+  notes?: string;
+  lastScoutedAt?: number;
+}
+
 /** A planned/upcoming tournament entry. */
 export interface UpcomingTournament {
   id: number;
