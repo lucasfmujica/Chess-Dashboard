@@ -1,0 +1,604 @@
+[Event "01 BLANCAS - vs 1...Nf6 (doble fianchetto)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A14"]
+[Opening "English Opening: Agincourt Defense, Neo-Catalan Declined"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "01 BLANCAS - vs 1...Nf6 (doble fianchetto)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/97OVBWp0"]
+
+1. c4 Nf6 2. g3 e6 3. Bg2 d5 4. Nf3 Be7 5. O-O O-O 6. b3 c5 7. Bb2 Nc6 8. e3 b6 9. Nc3 Bb7 10. cxd5 Nxd5 { QUÉ QUIERO EN ESTA POSICIÓN
+Mi plan es simple: presionar d5, tomar cxd5 en el momento justo, y recién después romper con d4 para abrirle la diagonal larga al Bb2. Regla de oro: no apurar d4 — primero termino el desarrollo. Las casillas que mando son d5 y e5. Él va a buscar ...Ne4 o ...e5: las freno con la presión Bg2+Nc3 sobre d5 y con e3 sólido.
+CAMBIOS DE PIEZAS
+El Bg2 no se cambia nunca: es la apertura entera. El Bb2 solo si a cambio gano control de e5. Su pieza problema es el Bc8, que quedó encerrado atrás de ...e6: no se lo libero con cambios gratis ni le abro la diagonal c8-h3. Cuando d4 abra la posición, mis alfiles llegan primero — esa es toda la lógica del capítulo. Esta familia (A15/A14) es mi mejor score: 61% online (50 partidas) y 64% OTB.
+PARA PROFUNDIZAR (capítulos DEL LIBRO, no de mi repertorio)
+Esto es el "QGD Set-up" de Marin Vol. 2. Ramas: 6...c5 = cap. 22 (mi línea exacta); ...b6 sin ...c5 = cap. 21; 6...c6 = cap. 20; si me juega ...d4 (Benoni invertida) = cap. 23; líneas principales 9...dxc4 = cap. 24 y 9...Bb7 = cap. 25 (mi línea sigue por ahí).
+McDonald (cap. 8): el jugador de Gambito de Dama contra la Inglesa quiere sacar el Bc8 ANTES de ...e6. Si ya jugó ...e6 con el alfil adentro (mi tabiya), ese alfil es su problema para toda la partida.
+Orden de jugadas (Marin V3, p. 12): mi 2.g3 esquiva el Erizo — con 2.Nf3 e6 3.Nc3 b6 el erizo entra entero. Por eso el fianchetto va primero. } *
+
+
+[Event "02 BLANCAS - vs 1...e5 con ...Nc6 o ...Bc5 (EL PROBLEMA)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A26"]
+[Opening "English Opening: King's English Variation, Closed System, Full Symmetry"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "02 BLANCAS - vs 1...e5 con ...Nc6 o ...Bc5 (EL PROBLEMA)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/ojfSZywC"]
+
+1. c4 e5 2. Nc3 { REGLA DE ORO
+Contra 1...e5, SIEMPRE 2.Nc3 antes de g3/Bg2. Mi costumbre de fianchettar automático me costó caro: 3-0-6 (33%) tras 2.g3 Nc6 y 17% tras 2.g3 Bc5. Primero el caballo, después el fianchetto.
+MAPA vs 1...e5 (capítulos de MI repertorio)
+...Nf6 + ...Bc5 = cap. 29 (Karpov). ...Nf6 + ...Bb4 = cap. 30 (Rossolimo invertida). ...f5 / ...c6 / ...d6 = cap. 31 (menores). ...Nf6 + ...d5 = cap. 03 (Dragón invertido). } 2... Nc6 (2... Bc5 3. Nf3 { golpeando e5 } 3... Nc6 4. e3 { y d4 gana tiempo sobre el Bc5 } 4... Nf6 5. d4 exd4 6. exd4 Bb4 7. Bd2 { comodo: el alfil negro perdio dos tiempos }) (2... Nf6) 3. g3 g6 4. Bg2 Bg7 5. d3 d6 6. Rb1 a5 7. a3 Nf6 8. b4 axb4 9. axb4 O-O 10. b5 Ne7 { MI PLAN
+Expansión b4-b5 en el flanco de dama mientras el Bg2 y el Nc3 controlan d5. Esa es la partida: yo corro en la dama, él intenta en el rey.
+PLAN B: EL MURO BOTVINNIK (si me vienen preparados)
+Si el rival conoce el plan b4-b5, tengo la misma casa de mi cap. 08: jugar 5.e4 en vez de 5.d3, con Nge2 y d3 detrás (Marin GM3 caps. 13-18, McDonald caps. 5 y 7). Por qué funciona: e4 le saca el veneno al asalto típico ...Nh5 + ...f5-f4 + ...g5; Nge2 suma control de f4 (y si hace falta, juego f4 YO primero y le congelo los peones); y en la práctica mi casilla d5 vale más que su d4 — Nd5! es el salto que justifica todo el esquema. } *
+
+
+[Event "03 BLANCAS - vs 1...e5 con ...Nf6 (Dragon invertido)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A29"]
+[Opening "English Opening: King's English Variation, Four Knights Variation, Fianchetto Line, with Nb6"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "03 BLANCAS - vs 1...e5 con ...Nf6 (Dragon invertido)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/tLjaKZ6x"]
+
+1. c4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. g3 d5 5. cxd5 Nxd5 6. Bg2 Nb6 7. O-O Be7 8. a3 { ORDEN FINO (Marin GM3, caps. 20-25)
+a3 va ANTES de d3. La secuencia es a3 → b4 → Rb1, y recién después d3. } 8... O-O 9. b4 Be6 10. Rb1 f6 11. d3 a5 12. b5 Nd4 13. Nxd4 exd4 14. Na4 { POR QUÉ ESTE ORDEN (verificado con motor)
+Con la Rb1 ya puesta, 14...Bd5 15.Nxb6 mantiene el equilibrio dinámico y me deja el juego en la columna c y la gran diagonal. OJO: mi orden viejo (d3 en la 8, sin Rb1) permitía 13...Nd5! molesto (-0.3). Por eso la torre va antes. } 14... Bd5 15. Nxb6 Bxg2 16. Kxg2 cxb6 { PLAN GENERAL
+Es una Siciliana con un tiempo de más. Expansión a3+b4-b5 pateando al Nc6, Bb2, y d4 solo cuando esté tácticamente justificado. Truco temático a favor: Nxe5! cuando la gran diagonal quede cargada contra c6/d5. Mi score acá: 58% — mi mejor rama contra 1...e5. (Marin caps. 20-25, McDonald cap. 6.)
+DOCTRINA FINA (McDonald cap. 6)
+Su pieza problema es el Nc6: vive en la intersección del Bg2 con mi torre en e1 o dama en c2. Toda la expansión b4-b5 existe para desalojarlo y ganar e5.
+Decisión de torre: Rb1 apoya b4 (mi orden); Rc1 presiona la columna c. Elegir UNA, con plan.
+Filosofía del tiempo (Bronstein vía McDonald): tengo el tiempo de más pero él no piensa atacarme — no forzar, mejorar piezas.
+Errores típicos del rival para castigar: ...Nd7 rutinario sin plan; ...c6 tapando la diagonal (le disloca el flanco de dama: aprieto b7 por la columna b); y ofrecer cambios de menores que me dejan alfil bueno contra caballo malo.
+REGLA DE FINALES: con sus peones fijos en casillas negras (a7/b6), el final de mi Bg2 contra su caballo está ganado estratégicamente — puedo cambiar damas y torres sin miedo ahí. } *
+
+
+[Event "04 BLANCAS - vs 1...c5 (simetrica)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A39"]
+[Opening "English Opening: Symmetrical Variation, Mecking Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "04 BLANCAS - vs 1...c5 (simetrica)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/XdS14SZ6"]
+
+1. c4 c5 2. g3 (2. Nf3 g6 3. d4 cxd4 4. Nxd4 Nc6 5. e4 Nf6 6. Nc3 d6 7. Be2 { OPCIÓN: MAROCZY CON BLANCAS vía transposición (Karpov-Kavalek, Niza 1974, está en EDAMI I)
+Juego la estructura que ya domino de negras, pero del lado lindo: Nc2 o b3 para sostener, f3, Bh6 cambiando su dragón, presión por la columna c. Cero estudio extra: es el mismo pack. }) 2... g6 3. Bg2 Bg7 4. Nc3 Nc6 5. Nf3 Nf6 (5... e6 6. O-O (6. d4 cxd4 7. Nb5 Qb6 (7... d5 8. cxd5 exd5 9. Nfxd4 a6 10. Nxc6 bxc6 11. Nd4 Ne7) 8. Qa4) 6... Nge7 7. d3 O-O 8. Bg5 h6 9. Bd2 d5) 6. O-O O-O 7. d4 cxd4 8. Nxd4 { MI PLAN
+d4 en un golpe cuando el desarrollo está completo; alternativa posicional: Rb1+a3+b4. Contra setups Erizo (...b6+...e6): armar e4+d4 sin apuro. Score: 65% online, mi segunda mejor respuesta. (McDonald caps. 1-3.)
+VEREDICTO DE MARIN V3
+En la simétrica "las negras están sencillamente a tiempo de menos" y mi iniciativa es SIN RIESGO. Mi 2.g3 es exactamente el orden de Marin: esquiva el Erizo que entra con 2.Nf3.
+LA TABIYA CERRADA (5 movimientos simétricos)
+Es el "mutuo zugzwang" de Gheorghiu: casi toda jugada razonable es un compromiso que orienta al rival. Tengo DOS planes: minar c5 con a3+b4, o preparar d4 con Nf3 (mi elección) o e3+Nge2.
+PROHIBIDO el a3 prematuro sin desarrollo: tras 5.a3 a6 6.Rb1 Rb8 7.b4 cxb4 8.axb4 b5! la simetría le alcanza para igualar.
+QUÉ DICE EL LIBRO POR RAMA (caps. de Marin V3)
+- Desvíos tempranos sin ...Nf6 (tipo 5...d6): juego enérgico y quedo arriba (cap. 3).
+- El que mantiene la tensión pierde tiempos (cap. 6).
+- La única línea consistente de negras es 8...Nxd4 (cap. 7) — mi línea principal la permite: ESTUDIARLA PRIMERO.
+- Las abiertas con ...Nf6+...d5 "no son ninguna diversión para las negras" (caps. 8-10).
+- Todo esquema flexible con ...e6 termina en erizo inferior o Catalana cómoda (caps. 11-15).
+SI EL ERIZO APARECE IGUAL por otro orden (McDonald cap. 3)
+Doble tarea: frenar ...b6-b5 Y contener el centro. El cambio de damas normalmente ME favorece en esa estructura. No jugar f4 sin medir su ...e6-e5 temático.
+PSICOLOGÍA (Suba vía McDonald)
+Mi posición "ideal" solo puede empeorar si floto: cada jugada mía tiene que restringir una ruptura concreta. } *
+
+
+[Event "05 BLANCAS - vs 1...e6 (Agincourt / Neo-Catalan)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A14"]
+[Opening "English Opening: Agincourt Defense, Neo-Catalan Declined"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "05 BLANCAS - vs 1...e6 (Agincourt / Neo-Catalan)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/SJs6xYCK"]
+
+1. c4 e6 2. g3 d5 (2... f5 3. Bg2 Nf6 4. Nf3 d5 5. O-O Bd6 6. b3 Qe7 7. Bb2 O-O 8. Qc1 b6 9. Ba3 Bxa3 10. Qxa3 Qxa3 11. Nxa3 { STONEWALL vía 1...e6 (mi partida vs msostar)
+El Stonewall vive de dos cosas: su Bd6 y el ataque al rey. La receta es quitarle las dos:
+1. Cambiar los alfiles de casillas negras con b3+Ba3 (si frena con ...Qe7, meto Qc1 e insisto).
+2. Después, cambiar damas si puedo.
+Esta línea muestra el final completo: sin su Bd6 y sin damas, e5 es mío para siempre y toda su estructura de casillas negras queda floja. }) 3. Bg2 Nf6 4. Nf3 Be7 5. O-O O-O 6. b3 c5 7. Bb2 Nc6 (7... d4 8. e3 d3 (8... dxe3) (8... Nc6)) 8. e3 { TRANSPONE AL CAPÍTULO 01
+Misma carilla, mismo plan: d5 y e5 son las casillas, el Bg2 es intocable, d4 solo con desarrollo completo. Score: 72% online (13-0-5) — mi MEJOR respuesta. La estructura e6+d5 que me daba miedo es en realidad mi fortaleza medida.
+Excepción: contra el Stonewall el mapa cambia — la casilla es e5 y la pieza a eliminar es SU Bd6 (ver variante 2...f5).
+POR QUÉ FUNCIONA (McDonald cap. 8, mismo diagnóstico que el cap. 01)
+Al jugar 1...e6 metió el Bc8 adentro de la cadena ANTES de decidirle destino. Ese alfil pasivo es la razón estructural de mi 72%. Mi único deber: no liberárselo.
+MAPA DE DESVÍOS (Marin V2, "Anti-QG Systems" — capítulos del libro)
+Triángulo ...c6+...e6 = caps. 13-14. Sistema Georgiano = cap. 15. ...dxc4 temprano = caps. 12/16/18. ...b5 rápido = cap. 17. } *
+
+
+[Event "06 BLANCAS - vs 1...c6 (anti-Slav de Marin)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A11"]
+[Opening "Réti Opening: Anglo-Slav Variation, with g3"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "06 BLANCAS - vs 1...c6 (anti-Slav de Marin)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/3UONdlL2"]
+
+1. c4 c6 2. g3 d5 3. Nf3 Nf6 4. Bg2 dxc4 5. O-O Nbd7 (5... b5 6. a4 Bb7 7. b3 cxb3 8. Qxb3 a6 9. Ba3 { LÍNEA DEL LIBRO (Marin V2, cap. 3)
+Presión sobre b5/c6 y las casillas negras; a las negras les cuesta enrocar. }) 6. Na3 Nb6 7. Qc2 { REGLA DE ORO (Marin)
+No apurarse a recuperar c4. La secuencia es O-O, Na3, Qc2 — y el peón vuelve solo, con ventaja de desarrollo. Mi 82% online contra 1...c6 confirma que esta estructura me queda cómoda.
+DOCTRINA (Marin V2, caps. 2-5)
+Casillas e5 y c5 para mis caballos; el Bg2 muerde la cadena c6-b5-a8 toda la partida. Su idea es sostener c4 con ...b5: mi palanca es a4 (y b3 si hace falta).
+CAMBIOS: no cambiar el Bg2 ni regalar el Na3 — ese caballo recupera c4 vía Naxc4 con ventaja de desarrollo. } 7... Be6 8. Ng5 Qd7 9. b3! cxb3 10. axb3 Bg4!? 11. Nc4! Nxc4 12. Qxc4 e6 13. Bb2 Bh5 14. Ra5 { CORREGIDO V7 (Marin V2, cap. 3, variante D1)
+Esta es mi línea real tras 7...Be6. (El comentario viejo de 9.Ba3 / Vukanovic-Barle pertenecía por error a la rama 5...b5, un orden distinto, y quedaba fuera del árbol.)
+Acá el libro se abre en dos ramas de igualdad dinámica, D11 y D12, ambas en la página 43. Si esta línea me aparece en la práctica, revisarlas ahí — esta versión del repertorio no llega más lejos. } 14... Be7 (14... Bg6 { D12, la otra rama del libro con la misma idea: retirar el alfil manteniendo la igualdad }) *
+
+
+[Event "07 BLANCAS - vs 1...f5 (Holandesa)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A10"]
+[Opening "English Opening: Anglo-Dutch Defense"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "07 BLANCAS - vs 1...f5 (Holandesa)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/ETnWnkAh"]
+
+1. c4 f5 (1... e6 2. g3 f5 3. Bg2 Nf6 { REGLA DE ORO contra el Stonewall: no hay apuro. Sin su Bd6, e5 es mío para siempre. El final tras 9...Bxa3 10.Qxa3 Qxa3 11.Nxa3 es exactamente el que las negras odian acá. } 4. Nf3 d5 5. O-O Bd6 6. b3 Qe7 7. Bb2 O-O 8. Qc1 b6 9. Ba3 Bxa3 10. Qxa3 Qxa3 11. Nxa3 { PLAN ANTI-STONEWALL
+El Stonewall vive de su Bd6 y del ataque al rey. Le quito las dos cosas: cambio los alfiles de casillas negras con b3+Ba3 (si frena con ...Qe7, Qc1 e insisto), y después las damas si puedo. Este es el final completo: le quedan solo los agujeros, y e5 es mío. }) 2. Nc3 Nf6 3. g3 g6 4. Bg2 Bg7 5. d3 d6 6. e4 { PLAN: la ruptura e4 desarma la Holandesa antes de que arme el ataque. } 6... fxe4 (6... O-O 7. Nge2 e5 8. O-O Nc6) 7. dxe4 O-O 8. Nge2 { MI PLAN
+El Bg2 muerde b7 y e4-e5 viene. Es mi fuga secundaria (43% en 7 partidas): con este esquema claro alcanza. (Marin V2 cap. 28, Anti-Dutch.)
+DOCTRINA
+La Holandesa vive del muro f5 y del ataque; cada cambio de peones centrales le AIREA el rey — por eso e4 rápido. Tras fxe4+dxe4, mis casillas son e5 y la diagonal h1-a8 (b7 cuelga crónico).
+CAMBIOS: Bg2 intocable. Contra la Leningrado (...g6) no cambio alfiles de g: su Bg7 muerde d4, pero mi e5 vale más.
+McDONALD cap. 9 (veredicto: "la Stonewall no resiste bien la Inglesa")
+Su receta complementa la mía del Ba3: NUNCA d4 — d3 reservando e4!, y tras ...Bd6+...O-O el golpe 8.e4! ya incomoda (8...fxe4 9.dxe4 dxe4 10.Ng5 recupera con ventaja). Mis caballos terminan en d4 y e5 como puestos eternos.
+Contra la Leningrado, mi 2.Nc3+e4 transpone al Botvinnik del cap. 08. McDonald recomienda a las NEGRAS el plan ...fxe4 + ...c5: esperarlo, no sorprenderse.
+Arma sorpresa que existe (no la necesito): 2.b3 con idea Bb2xf6, dañándole el flanco rey a cambio del par. } *
+
+
+[Event "08 BLANCAS - vs 1...g6 y 1...d6 (esquemas KID)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A10"]
+[Opening "English Opening: Great Snake Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "08 BLANCAS - vs 1...g6 y 1...d6 (esquemas KID)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/Bk9TfOtY"]
+
+1. c4 g6 2. Nc3 Bg7 3. g3 Nf6 4. Bg2 O-O 5. e4 d6 6. Nge2 e5 7. O-O Nc6 8. d3 { ESQUEMA BOTVINNIK: c4+e4+d3, Nge2, y elijo f4 o d4 según lo que arme el rival. Sólido y fácil de recordar a 12+3. Mi 80-100% actual contra ...g6/...d6: no necesita más que esto. (Marin V2 cap. 27 para refinar.)
+DOCTRINA (mi propia regla de clase)
+El muro c4+d3+e4 existe para CONTROLAR d5 y f5. Por eso Nge2 y no Nf3: el caballo no estorba al f4 y cubre d4, que es el costo estructural del muro.
+Ruptura según el rival: si ataca en el flanco rey → f4 primero; si va al de dama → d4 o Rb1+b4.
+CAMBIOS: nunca el Bg2. El Be3 se cambia feliz por su Bg7 vía Qd2+Bh6, cuando mi d4 esté cubierto.
+POR QUÉ EL MURO (McDonald cap. 7 — el capítulo ES mi sistema)
+Propósito declarado: RESTRINGIR el asalto temático ...Nh5 + ...f5-f4 + ...g5 que mata a las Inglesas "normales" contra el indio de rey (a McDonald le dieron mate por jugarla sin e4).
+Nge2 además suma un SEGUNDO control de f4 — y si hace falta, juego f2-f4 YO primero y le congelo la avalancha.
+En la práctica mi d5 vale más que su d4: Nd5! en el corazón del centro es el salto que justifica encerrar el Bg2.
+PSICOLOGÍA: las negras suelen arruinar su propia posición intentando minar una fortaleza ultrasólida. Mi trabajo es no darles ganchos y dejar que se estrellen. } *
+
+
+[Event "09 NEGRAS vs e4 - Dragon Acelerado Bc4 (DRILL DE ORDEN)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B35"]
+[Opening "Sicilian Defense: Accelerated Dragon, Modern Bc4 Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "09 NEGRAS vs e4 - Dragon Acelerado Bc4 (DRILL DE ORDEN)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/UdrRwpXw"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. Nc3 Bg7 6. Be3 Nf6 7. Bc4 (7. Nxc6 bxc6 8. e5 Ng8 { REGLA EDAMI II: recapturo bxc6 (dxc6 es floja). Contra e5, ...Ng8! con ...f6 después. OJO: 8...Nd5? 9.Nxd5 cxd5 10.Qxd5 le regala todo. }) (7. f3 O-O (7... Qb6) 8. Qd2 (8. Bc4 Qb6 9. Bb3 Nxe4 10. Nd5) 8... d5 { Contra el intento estilo Yugoslavo: ...d5 DE UN GOLPE iguala — la joya del orden acelerado. EDAMI II y Lalić (cap. 1) coinciden: 7.f3 y 7.Qd2 quedan prácticamente refutadas por ...d5 rápido. OJO: acá 7...Qb6? es ERROR SERIO por 8.Nf5! }) 7... O-O { REGLA DE ORO: 7...O-O SIEMPRE. Nunca ...Ng4 ni ...Qb6 antes de enrocar. Mi derrota OTB vs 1903 y mi 30% online en B35 salen exactamente de violar este orden. } (7... Ng4? { NO! }) (7... Qb6?! 8. Nf5 { El castigo del libro: 8...Qxb2 9.Nxg7+ Kf8 y mi rey vive en el centro el resto de la partida (EDAMI II: error serio). Por ESTO el orden es O-O primero. } 8... Qxb2 9. Nxg7+ Kf8) 8. Bb3 (8. O-O Nxe4! { LALIĆ cap. 2 (verificado: 0.00): el tema táctico central del sistema. } 9. Nxe4 (9. Bxf7+ Rxf7 10. Nxe4 Bxd4 (10... d5) 11. Bxd4 d5 12. Ng3) 9... d5 { Doble golpe: recupero la pieza con par de alfiles y mayoría central. Si 9.Bxf7+?! Rxf7 10.Nxe4, entonces 10...Bxd4!! 11.Bxd4 d5! (novedad de Lalić) y todas sus retiradas pierden material o ceden todo. } 10. Nxc6 bxc6 11. Bd3 dxe4 12. Bxe4 { LALIĆ: mis peones partidos NO se pueden capturar, y mi carga por la columna b más la gran diagonal equilibra todo. Veneno extra con 12...Ba6!?: si 13.Bxc6?? Rc8! pierde material — más de la mitad de los que cayeron eran +2200. } 12... Ba6 13. Bxc6 Rc8 14. Qxd8 Rfxd8 15. Rfd1 Rxd1+ 16. Rxd1 Rxc6 17. Rd8+ Bf8 18. Bh6 Rc8) (8. f3 Qb6 { AHORA SÍ: con el enroque hecho, ...Qb6 pega en b2 y d4 con tiempo. EDAMI II: 9.O-O Qxb2!, 9.Qd2 Nxe4!, 9.Bb3 Ng4! (10.fxg4 Bxd4). El truco Nf5 perdió el veneno: Nxg7 se responde Kxg7. VERIFICAR con motor. }) 8... a5! { LA MODERNA (recomendación central de Lalić, cap. 2): la amenaza ...a4 le mete un palo en la rueda al Ataque Yugoslavo.
+ADVERTENCIA HISTÓRICA (Fischer-Reshevsky 1958, verificado +4.3): 8...Na5?? pierde por 9.e5! Ne8?? 10.Bxf7+!! Kxf7 11.Ne6! atrapando la dama. El caballo a a5 y el peón a a5 son mundos distintos. } (8... Na5) 9. f3 (9. O-O a4 10. Nxa4 Nxe4 { Svidler-Topalov, Linares 1999 (Lalić G10). El punto fino: 11.Nb5 se responde 11...Ra6! tapando los agujeros b6/c7 — artificial pero efectivo. Verificado: +0.5 para blancas, compensado por par y mayoría central. Jugarla SOLO si la repasé. Regla de Lalić: cuando tenés las mejores perspectivas a largo plazo, primero neutralizá SU contrajuego. } 11. Nb5 Ra6) (9. a4 Ng4! { Lalić G11 (verificado +0.2): tras 10.Qxg4 Nxd4 11.Bxd4 Bxd4, mi par de alfiles + presión sobre b2/c3 igualan. Si 10.Nxc6 Nxe3 11.Nxd8 Nxd1 (G12), el final es igual o mejor mío. } 10. Qxg4 (10. Nxc6 Nxe3 11. Nxd8 Nxd1) 10... Nxd4 11. Bxd4 Bxd4 { y tu par de alfiles + presion sobre b2/c3 igualan; si 10.Nxc6 Nxe3 11.Nxd8 Nxd1 (Lalic G12) el final es igual o mejor tuyo }) (9. Na4) 9... d5!? { EL GAMBITO INVASOR (Lalić G13-15): con ...a5 gratis y su alfil más expuesto en b3, esta versión mejora sobre la de 9.f3 directo. REPASAR con motor antes del torneo: es sacrificio real. } 10. exd5 { DOCTRINA DEL SISTEMA (Lalić)
+Mi esquema es SIEMPRE ...g6, ...Bg7, ...Nf6, ...O-O, en ese orden, contra casi todo. El peón d espera flexible: cuando avanza, va a d5 DE UN GOLPE.
+Sus dos únicos consuelos: frenarme ...d5 con Bc4 (y ahí lo castigo con ...a5-a4 o ...Nxe4) o el Maroczy (mi cap. 11).
+CASILLAS: d5 es LA casilla del sistema entero; d4 es su orgullo — lo cambio solo con ganancia concreta.
+CAMBIOS: nunca mi Bg7 gratis; su Be3 y su Bb3 son las piezas que quiero liquidar. } 10... Nb4 11. Nde2 (11. Ndb5 a4) 11... a4 12. Nxa4 Nfxd5 *
+
+
+[Event "10 NEGRAS vs e4 - Dragon Acelerado, cambio Nxc6"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B34"]
+[Opening "Sicilian Defense: Accelerated Dragon, Exchange Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "10 NEGRAS vs e4 - Dragon Acelerado, cambio Nxc6"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/nLc6tZYL"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. Nxc6 bxc6 6. Qd4 Nf6 (6... f6 { Defiende g7 y prepara ...e5/...d6. Alternativa que ya usé bien OTB: ...Qa5+ seguido de ...Ba6. PLAN: el cambio en c6 me regala el centro — ...e5 y ...d5 de un golpe cuando pueda. (Greet cap. 5.) }) 7. e5 Nd5 8. e6 (8. Nc3 Bg7 9. Nxd5 cxd5 10. Qxd5 Rb8 11. Bc4 e6 12. Qc5 Bb7) 8... Nf6 9. exf7+ (9. exd7+ Bxd7 10. Bc4 Bg7) 9... Kxf7 10. Bc4+ d5 11. Bb3 e5 { DOCTRINA
+5.Nxc6 es la confesión de que no quiere pelear: me regaló el centro entero a cambio de nada. Mi par de peones c6+d7 se convierte en ...e5+...d5 y el medio juego es mío.
+CAMBIOS: cada pieza que cambia lo acerca a un final donde mi mayoría central decide. Su única esperanza son los trucos del peón e (e5-e6): los freno con ...Ng8/...Nf6 con calma y f6/f7 cubierto. } *
+
+
+[Event "11 NEGRAS vs e4 - Maroczy (Gurgenidze)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B36"]
+[Opening "Sicilian Defense: Accelerated Dragon, Maróczy Bind"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "11 NEGRAS vs e4 - Maroczy (Gurgenidze)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/HL59vyIm"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. c4 Nf6 6. Nc3 d6 7. Be2 (7. Nc2 Bg7 8. Be2 O-O (8... Nd7 9. O-O) 9. O-O a5 { RECETA EDAMI I contra las retiradas Nc2/Nb3 (que evitan mis cambios en d4): ...a5! bloquea el flanco, amenaza ...a4 y fija c5 para mi caballo (Nf6-d7-c5). Lalić agrega la alternativa 8...Nd7!? con idea ...f5: su Nc2 quedó tan atrás que el empuje central es real. Modelos: Yermolinsky-Donaldson 1996, Schmid-Larsen 1967. }) 7... Nxd4 8. Qxd4 Bg7 9. Be3 O-O 10. Qd2 Be6 11. Rc1 Qa5 { EL PLAN (los 5 pasos del pack EDAMI I, confirmados por Lalić caps. 5-6)
+1. Cambio en d4 (hecho). 2. Alfil a e6 presionando c4. 3. Dama a a5 sobre c3. 4. Torre f a c8. 5. Ataque de minorías ...a6-b5 (o ...a5-a4 si su caballo fue a b3/c2).
+DOCTRINA MAROCZY (Lalić)
+Su espacio NO es gratis: ata sus peones c4 y e4 a la defensa. Puesto de caballo en e5 o c5, y detonar el flanco de dama con ...b5. Su b3 siempre defiende c4: mi palanca es la columna c. Cada cambio de piezas me acerca al final cómodo.
+CAMBIOS: NO cambiar el Bg7 gratis — es mi defensor y mi mejor final. SÍ cambiar caballos y damas: el Gurgenidze existe para sacudir el calambre cambiando UNA pareja de caballos.
+MODELOS (todas en EDAMI I): Korneev-Tiviakov 1998, Sokolov-Velimirović 1997, Kasparov-Kasimdzhanov 2001, Domínguez-Ivanchuk 2005. (Greet caps. 6-7.) } *
+
+
+[Event "12 NEGRAS vs e4 - Rossolimo 3.Bb5"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B31"]
+[Opening "Sicilian Defense: Nyezhmetdinov-Rossolimo Attack, Fianchetto Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "12 NEGRAS vs e4 - Rossolimo 3.Bb5"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/RkxjKFq6"]
+
+1. e4 c5 2. Nf3 Nc6 3. Bb5 g6 4. Bxc6 (4. O-O Bg7 5. Re1 e5 6. Bxc6 dxc6 7. d3 Qe7 { Misma receta: ...dxc6 y control de e5. }) 4... dxc6 { REGLA DE ORO: recapturo con ...dxc6, NO ...bxc6. Desarrollo fácil, control de e5, pareja de alfiles. Mi derrota OTB vs 2052 nació del ...bxc6 pasivo. } 5. d3 Bg7 6. h3 Nf6 7. Nc3 O-O 8. Be3 b6 9. Qd2 e5 { MI PLAN
+Clavar la estructura con ...e5; el par de alfiles vale a largo plazo. Maniobras: ...Qe7, y los caballos vía Nd7 y Ne8 rumbo a c5, d6 o e6.
+DOCTRINA
+Él me dio el par de alfiles y yo le di estructura: la partida es larga y me favorece cada cambio de piezas MENOS el Bg7. Mis casillas: e5 (mi clamp), c5 y d4 (destinos de caballos). Su único plan real es f4 o a3+b4: contra f4, mantengo e5 firme y abro la columna f solo a mi favor. } 10. Bh6 (10. Nxe5 Nxe4 11. Nxe4 Bxe5) 10... Qd6 11. Bxg7 Kxg7 *
+
+
+[Event "13 NEGRAS vs e4 - Alapin 2.c3 (y diferida 3.c3)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B22"]
+[Opening "Sicilian Defense: Alapin Variation, Smith-Morra Declined"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "13 NEGRAS vs e4 - Alapin 2.c3 (y diferida 3.c3)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/jTyQ6THD"]
+
+1. e4 c5 2. c3 (2. Nf3 Nc6 3. c3 Nf6 4. e5 Nd5 5. d4 cxd4 6. cxd4 d6 { La diferida transpone: misma carilla. }) 2... Nf6 3. e5 Nd5 4. d4 cxd4 5. cxd4 d6 6. Nf3 Nc6 7. Bc4 Nb6 8. Bb5 (8. Bb3 dxe5 9. d5 { LA TRAMPA, resuelta con motor:
+- 9...Nxd5?? 10.Bxd5 es +3.5 — la pieza en d5 domina todo. NUNCA tomar.
+- 9...Na5! 10.Nc3 Nxb3 11.Qxb3 e6 = 0.00 clavado. Caballo al borde UNA vez es correcto ACÁ.
+MEMORIZAR la secuencia: ...Na5 → ...Nxb3 → ...e6. } 9... Na5! (9... Nxd5?? 10. Bxd5 { +3.5: la pieza en d5 domina todo, NUNCA tomes } 10... Qd6 11. O-O) 10. Nc3 Nxb3 11. Qxb3 e6 { 0.00 clavado: caballo al borde UNA vez es correcto ACA. Memoriza la secuencia Na5-Nxb3 y ...e6. } 12. Nxe5 Be7 { Sigue ...O-O. Si 13.Qb5+ Kf8, también igual: mi rey camina a g8 con ...g6+...Kg7. } 13. Qb5+ Kf8) 8... dxe5 9. Nxe5 Bd7 10. Nxd7 Qxd7 { IGUALDAD LIMPIA: mi línea de siempre, 70% online.
+DOCTRINA
+Toda la Alapin es SU peón d4 contra MI desarrollo. Presiono d4/d5 con Nc6+Nb6, cambio piezas y voy al final: sin damas, su espacio es aire y mi estructura es mejor. Sin apuro: la igualdad ya es mía en la jugada 10. } *
+
+
+[Event "14 NEGRAS vs e4 - Smith-Morra rechazado 3...d3"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B21"]
+[Opening "Sicilian Defense: Smith-Morra Gambit Declined, Push Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "14 NEGRAS vs e4 - Smith-Morra rechazado 3...d3"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/3Z5ggqh9"]
+
+1. e4 c5 2. d4 cxd4 3. c3 d3 { Mi elección: cero teoría para el gambitero. } 4. Bxd3 Nc6 5. Nf3 g6 6. O-O Bg7 7. h3 d6 { MI PLAN
+Siciliana normal: ...Nf6, ...O-O y la ruptura ...e5 o ...b5. Score: 61% online contra el Morra — funciona.
+DOCTRINA
+3...d3 le negó el gambito entero: jugó c3 (la casilla natural de su Nb1) y recapturó en d3 perdiendo un tiempo. Su compensación no existe. CAMBIOS: normales; nada que temer si no abro líneas gratis. } *
+
+
+[Event "15 NEGRAS vs e4 - Siciliana Cerrada"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B25"]
+[Opening "Sicilian Defense: Closed"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "15 NEGRAS vs e4 - Siciliana Cerrada"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/Lfy9Uxeu"]
+
+1. e4 c5 2. Nc3 Nc6 3. g3 g6 4. Bg2 Bg7 5. d3 d6 6. f4 (6. Be3 Rb8 { Mismo plan ...b5-b4. Si viene Bh6, cambio alfiles tranquilo: con ...e6+...Nge7 mi rey aguanta. }) (6. Nge2 e6 7. O-O Nge7 { MI ESQUEMA ES UNIVERSAL: contra 6.f4, 6.Be3, 6.Nge2, 6.Nh3 o 6.Nf3 juego lo mismo. Palliser (cap. 3) confirma ...e6+...Nge7 como el setup más armónico. }) 6... e6 7. Nf3 Nge7 8. O-O O-O 9. Be3 Rb8 { REGLA DE ORO (mis 2 derrotas B23/B26): NO abrir mi propio rey con ...f5/...exf5/...gxf5 prematuros. El contrajuego es ...b5-b4 contra el Nc3, con g7/h7 cerrados.
+DOCTRINA (mi regla de clase, confirmada por Palliser cap. 3)
+Mis DOS casillas: d4 (mi grip: c5+Nc6+Bg7) y f5 (SU palanca — por eso ...e6+...Nge7 la cubre dos veces). Su Bg2 muerde granito si mantengo la cadena.
+CAMBIOS: Bh6 se acepta tranquilo (mi rey aguanta con e6+Nge7). NO cambiar mi Nc6: sostiene d4 y b4.
+El reloj de la partida corre a mi favor en el flanco de dama. } (9... Nd4) *
+
+
+[Event "16 NEGRAS vs e4 - Gran Prix (2.Nc3+f4 o 2.f4)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B23"]
+[Opening "Sicilian Defense: Grand Prix Attack"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "16 NEGRAS vs e4 - Gran Prix (2.Nc3+f4 o 2.f4)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/vhknXqUk"]
+
+1. e4 c5 2. Nc3 Nc6 3. f4 g6 4. Nf3 Bg7 5. Bb5 (5. Bc4 e6 { REGLA: contra Bc4, ...e6 cierra la diagonal. NUNCA dejar que f5 llegue gratis a mi rey. } 6. f5 Nge7 { No tomar en f5 apurado; ...d5 viene. }) 5... Nd4 { LA RECETA ANTI-Bb5: cambio su alfil bueno. Palliser (cap. 4) la marca como LA línea principal del Gran Prix moderno. } 6. O-O (6. Nxd4 cxd4 7. Ne2 Qb6 8. Bd3 (8. Bc4 d5 9. Bxd5 Nf6 10. d3 Nxd5 11. exd5 Qa5+ 12. Bd2 Qxd5) 8... d5 9. exd5 (9. e5 f6)) 6... Nxb5 7. Nxb5 d5 { Golpe central típico. } 8. exd5 a6 9. Nc3 Nf6 { VERIFICADO CON MOTOR: igualdad cómoda para mí (-0.2). Si 10.d4 Nxd5 11.dxc5 Nxc3 12.Qxd8+ Kxd8, el final es igual o mejor de negras; recupero d5 con desarrollo.
+DOCTRINA
+Contra Bc4: ...e6 cierra la diagonal, y f5 se frena con ...Nge7. Contra Bb5: el cambio ...Nd4 elimina SU mejor pieza de ataque, y después mi estructura gana el largo plazo.
+REGLA: mientras f5 no progrese, su ataque no existe y mi ...d5 llega. } *
+
+
+[Event "17 NEGRAS vs e4 - Gambito de ala 2.b4"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B20"]
+[Opening "Sicilian Defense: Wing Gambit, Marshall Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "17 NEGRAS vs e4 - Gambito de ala 2.b4"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/MFIxVla9"]
+
+1. e4 c5 2. b4 cxb4 3. a3 d5 { La respuesta central clásica: me lo jugaron 5 veces online. } 4. exd5 Qxd5 5. Nf3 e5 6. axb4 Bxb4 { Un peón devuelto, desarrollo completo y centro: cómodo para negras.
+DOCTRINA: los gambitos de flanco se refutan en el CENTRO. Su única compensación sería que yo me quedara pasivo — con ...d5+...e5 ya estoy mejor desarrollado que él. } *
+
+
+[Event "18 NEGRAS vs e4 - cajon anti (2.b3, KIA, 2.Bc4)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B20"]
+[Opening "Sicilian Defense: Czerniak Attack"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "18 NEGRAS vs e4 - cajon anti (2.b3, KIA, 2.Bc4)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/smDLlXDS"]
+
+1. e4 c5 2. b3 (2. g3 g6 3. Bg2 Bg7 4. Ne2 Nc6 { Espejo tranquilo: mi estructura de siempre. Peleo el centro con ...d5/...e5 en el momento justo. }) (2. Bc4 e6 { REGLA: contra 2.Bc4, ...e6 y ...d5 golpeando al alfil. Mis 2 derrotas acá (0%) salieron de jugar ...g6 automático. } 3. Nc3 d5) 2... Nc6 3. Bb2 e5 { EL CLAMP: ...e5 deja al Bb2 mordiendo granito para siempre. Desarrollo con ...d6 y ...Nge7-g6; el flanco de dama viene después. (Palliser cap. 7 confirma el esquema anti-b3.)
+DOCTRINA: todos los sistemas del cajón comparten un defecto — ceden el centro o las casillas negras. Mis referencias: e5 fijo (el clamp) y d4 como destino de piezas. } *
+
+
+[Event "19 NEGRAS vs d4 - BENONI CLASICA h3 (EL CAPITULO: 30 por ciento online)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A70"]
+[Opening "Benoni Defense: Classical Variation, New York Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "19 NEGRAS vs d4 - BENONI CLASICA h3 (EL CAPITULO: 30 por ciento online)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/ZktIdC2c"]
+
+1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. e4 g6 7. Nf3 (7. Bd3 Bg7 8. Nf3 Bg4! { Sin h3 esto es seguro (Petrov cap. 14, variante C): el orden Bd3+Nf3 permite mi plan clásico igual. }) 7... Bg7 8. h3 (8. Be2 O-O 9. O-O Bg4 { ACÁ vive mi plan clásico: cambio por el Nf3, ...Re8, ...a6+...b5. Petrov (cap. 8), conclusión textual: la variante ...Bg4 goza de buena salud, es sólida y NO exige mucha teoría. Mi línea de confort. } 10. Nd2 Bxe2 11. Qxe2 Re8 12. Nc4 b5 13. Nxb5) 8... O-O { REGLA DE ORO: contra h3 mi plan de ...Bg4 NO EXISTE. } 9. Bd3 b5! { LA LÍNEA (Petrov cap. 9; el motor confirma: 9...b5 es la PRIMERA opción de Stockfish, +0.3 = la tabiya base).
+ADVERTENCIA HONESTA DE PETROV: es la más popular pero exige bastante teoría para llegar a un final levemente inferior con pocas chances de ganar.
+TAREA CONCRETA PRE-COPA: estudiar Petrov cap. 9 (págs. 117-126), líneas A (10.Nxb5 Re8: A1 11.Nd2, A2 11.O-O) y B (10.Bxb5 Nxe4).
+SI NO LO ESTUDIÉ antes de la ronda → jugar la alternativa 9...Nh5. } (9... Nh5!? { LA ALTERNATIVA PRÁCTICA (Petrov cap. 10-B3 — SU elección declarada para evitar la teoría de 9...b5; ya recomendada por Watson en 2001).
+La idea: prevenir Bf4 y preparar ...Nd7-e5 cambiando un par de caballos; después, casillas negras con ...Qf6 o ...Qh4. Contra 11.g4?! Nhf6 gana tiempo pero le agujerea el flanco rey.
+HONESTIDAD DEL MOTOR: +1.1 — la concesión es real; el valor es práctico, no objetivo.
+OJO: Petrov descarta 9...a6 y 9...Re8+...c4 como poco atractivas. NO son mi plan B. } 10. O-O Nd7) 10. Nxb5 (10. Bxb5 Nxe4 11. Nxe4 Qa5+ 12. Nfd2 Qxb5 { El truco temático: recupero la pieza con juego activo. } 13. Nxd6 Qa6 14. N2c4 Nd7 15. O-O Ne5 16. Nxe5 Qxd6 17. Nc6 Bb7 18. Qa4) 10... Nxe4 { DOCTRINA BENONI COMPLETA (vale para mis caps. 19-24)
+LA BATALLA ES UNA SOLA: su triunfo se llama e4-e5 (con f4-f5 como hermano); el mío se llama ...b5 y la mayoría de dama.
+MI TRABAJO EN CADA JUGADA:
+1. e5 es LA casilla: cubrirla siempre dos veces (...Re8 + ...Nbd7, con el Bg7 de fondo).
+2. Eliminar o distraer a las piezas que EMPUJAN e5: por eso ...Bg4xf3 cuando h3 no está (el Nf3 es el motor de e5), y por eso ...Re8 clava el peón.
+3. La palanca ...b5: prepararla con ...a6 (+...Rb8). Si juega a4, mi caballo va Na6-b4 o Na6-c7 apoyando b5 igual.
+4. El avance ...c4 abre c5 para mi caballo rumbo e5/d3.
+CAMBIOS: el Bg7 NO SE CAMBIA NUNCA (sin él, d6 y mi rey mueren juntos). Mi pieza problema es el Bc8: lo resuelvo con ...Bg4 o detrás de ...b5. Sus piezas clave: el Nf3 y el alfil que llegue a f4 sobre d6 — cambiarlos o expulsarlos.
+EL VEREDICTO BINARIO: si logra e5 limpio, perdí la apertura. Si llego con ...b5 y e5 sigue frenado, gané la apertura. } 11. Bxe4 Re8 12. Ng5 h6 13. Ne6 Qa5+ 14. Nc3 Bxc3+ 15. bxc3 Qxc3+ 16. Bd2 Qc4 17. Qe2 *
+
+
+[Event "20 NEGRAS vs d4 - Benoni Taimanov (Bb5+) y Cuatro Peones"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A67"]
+[Opening "Benoni Defense: Taimanov Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "20 NEGRAS vs d4 - Benoni Taimanov (Bb5+) y Cuatro Peones"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/Oe1bL2dm"]
+
+1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. e4 g6 7. f4 Bg7 8. Bb5+ (8. Nf3 O-O 9. Be2 Re8 { CUATRO PEONES PURO: presión sobre e4. Contra 9.e5 (Mikenas), responder ...Nfd7. (Petrov caps. 1-2.) }) 8... Nfd7 { LA ÚNICA: NO ...Bd7 ni ...Nbd7 — tras 9.e5! las blancas arrasan. (Petrov caps. 4-6.)
+Confirmado en el libro: tras 9...Qh4+ 10.g3, la sólida es 10...Qe7 (cap. 5: contra 10...Qd8 las blancas quedan algo mejor en muchas líneas). Y en la principal 9...O-O, la ruta ...Na6-b4 es la recomendación explícita del cap. 6. } 9. a4 O-O (9... Qh4+ 10. g3 Qe7 { RECURSO DE WATSON: con g3 forzado, el Bc1 ya no llega a g3/h4 para atacar. (Petrov cap. 5.) } 11. Nf3 O-O 12. O-O Na6) 10. Nf3 Na6 { Rumbo a ...Nb4 o ...Nc7-b5. (Petrov cap. 6.)
+DOCTRINA (especializa mi cap. 19): mismo duelo e5 vs ...b5, pero contra f4 la casilla e5 está doblemente disputada — por eso ...Nfd7 ES la única: re-defiende e5 y prepara ...Na6/...Nc7. El g3 forzado tras ...Qh4+ le arruina la diagonal del Bc1: ese es el punto del recurso Watson. } *
+
+
+[Event "21 NEGRAS vs d4 - Benoni con Bg5"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A61"]
+[Opening "Benoni Defense: Uhlmann Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "21 NEGRAS vs d4 - Benoni con Bg5"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/jVTfr9rG"]
+
+1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. Nf3 g6 7. Bg5 h6 8. Bh4 (8. Bf4 a6 9. a4 Bg7 10. Nd2 Nh5) 8... g5 9. Bg3 Nh5 { MI PLAN: ...Nxg3 y el Bg7 queda monstruoso en la diagonal. Jugarlo sin miedo: mi 67% online acá lo respalda.
+DOCTRINA (especializa mi cap. 19): con ...Nh5xg3 elimino al alfil que vigilaba e5 por la diagonal h2-b8 — mi Bg7 queda solo en la larga. El costo (...g5) es aceptable porque SU desarrollo no llega a castigarlo.
+Petrov cap. 19 (ojo: número de capítulo DEL LIBRO, coincide con mi cap. 19 de casualidad), conclusión textual: cuanto ANTES juegue Bg5, más brillante mi contrajuego temprano; incluso si lo demora, mantengo posición sana con más de un buen camino. } *
+
+
+[Event "22 NEGRAS vs d4 - Benoni Fianchetto g3"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A62"]
+[Opening "Benoni Defense: Fianchetto Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "22 NEGRAS vs d4 - Benoni Fianchetto g3"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/FjZAJmtE"]
+
+1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. Nf3 g6 7. g3 Bg7 8. Bg2 O-O 9. O-O a6 10. a4 Nbd7 { MI PLAN: ...Re8, ...Rb8, ...c4 y ...Nc5/...Ne5. Partida modelo: Gashimov-Grischuk (A62, Amber 2010) — buscarla en chessgames.com. Mi 100% online en g3: seguir igual.
+Petrov cap. 17, conclusión textual: obtengo juego activo y prometedor en TODAS las variantes principales del fianchetto.
+DOCTRINA (especializa mi cap. 19): el fianchetto g3 renuncia a e5 rápido a cambio de presión sobre d5-b7. Por eso acá mi plan es la mayoría pura (...a6, ...Rb8, ...c4, ...Nc5/...Ne5), sin apuro. Su Bg2 muerde mi cadena: NO abrir la diagonal con cambios en d5 innecesarios. } *
+
+
+[Event "23 NEGRAS vs d4 - Benoni Knight's Tour (Nf3-d2)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A70"]
+[Opening "Benoni Defense: Classical Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "23 NEGRAS vs d4 - Benoni Knight's Tour (Nf3-d2)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/WmI6bKE1"]
+
+1. d4 Nf6 2. c4 c5 3. d5 e6 4. Nc3 exd5 5. cxd5 d6 6. e4 g6 7. Nf3 Bg7 8. Nd2 Nbd7 { REGLA: contra el giro Nd2, ...Nbd7 primero, para responder Nc4 con ...Nb6.
+Petrov cap. 18 (Knight's Tour), conclusión textual: 7...Nbd7 es perfectamente jugable y la recomienda justamente para quien quiere EVITAR los caminos teóricos principales. Mi elección es la del libro. } 9. Be2 O-O 10. Nc4 Nb6 11. Ne3 Re8 { Y sigue el plan normal: ...a6, ...Rb8, ...b5.
+DOCTRINA (especializa mi cap. 19): el tour Nd2-c4 ataca d6, la base de mi cadena. ...Nbd7 va primero para responder Nc4 con ...Nb6 y cambiar/expulsar al atacante. Después, el plan de siempre. } 12. f3 (12. Bf3) (12. Bd3 Nxe4 13. Nxe4 f5 14. Nc3 f4 15. O-O fxe3 16. Bxe3 Nd7 17. Re1 Ne5 18. Be2) 12... Nh5 13. O-O *
+
+
+[Event "24 NEGRAS vs d4 - ordenes anti-Benoni"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A61"]
+[Opening "Benoni Defense"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "24 NEGRAS vs d4 - ordenes anti-Benoni"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/BN2bMSwW"]
+
+1. d4 Nf6 (1... c5 2. d5 (2. dxc5 Na6 { Recupero el peón con ...Nxc5. NO ...Qa5+ (mi partida vs Torres). }) 2... Nf6 3. Nc3 d6 { REGLA: contra 2.d5+3.Nc3 SIN c4, NO forzar ...e6 (4.e4! y e5 duele). Juego ...d6/...g6 tipo Schmid, y recién después ...e6. } 4. e4 g6 5. Nf3 Bg7 6. Bb5+ Bd7 7. a4 O-O 8. O-O Na6 9. Re1 Nc7 10. Bf1 a6 11. e5 dxe5 12. Nxe5 Be8 13. Be3) 2. Nf3 c5 3. d5 e6 4. c4 exd5 (4... b5 5. cxb5 exd5) 5. cxd5 d6 6. Nc3 g6 { LA FORMA SEGURA de la Benoni (sin f4 ni Bb5+ posibles): así la elegía Gashimov. Nada que temer de 2.Nf3.
+RESPALDO HISTÓRICO (Euwe, Defensa Benoni, 1974)
+La variante con ...d6+...g6 sin ...e6 apurado es la variante Lothar Schmid — sistema perfeccionado y sano según Euwe. Su descripción del Muro Benoni (cadena c5-d6-e5) confirma mi regla: contra esa cadena las blancas deben abrir con f4 o b4, "tarea nada fácil" en sus palabras. El libro sirve para CONCEPTOS y partidas de Tal, no para teoría actual.
+DOCTRINA
+Los órdenes anti-Benoni viven de UNA idea: conseguir e4-e5 antes de que yo arme la casa. Por eso la regla: sin c4 de blancas, nada de ...e6 apurado — primero ...d6/...g6 (Schmid) y el centro no me pasa por encima. } *
+
+
+[Event "25 NEGRAS vs d4 - London (Bf4)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A48"]
+[Opening "London System, with Be2"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "25 NEGRAS vs d4 - Londres (Bf4)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/BS5yVEOp"]
+
+1. d4 Nf6 2. Bf4 (2. Nf3 g6 3. Bf4 Bg7 { Transpone }) 2... g6 3. e3 Bg7 4. Nf3 O-O 5. Be2 d6 6. h3 c5 7. c3 Qb6 { La molestia eterna del Londres: b2 cuelga. } 8. Qb3 Nc6 { MI PLAN: setup indio ...d6+...c5, golpes ...Qb6 y la ruptura ...e5. Mi 20% online acá se arregla con este plan concreto.
+DOCTRINA
+El Londres es un esquema, no una amenaza: su Bf4 vigila e5 y nada más. Mis tres golpes:
+1. ...Qb6 — b2 cuelga crónico porque el alfil se fue.
+2. ...c5 sobre d4.
+3. La ruptura ...e5, preparada con ...Nbd7+...Re8.
+Cuando ...e5 llega, su esquema entero queda sin objeto. } *
+
+
+[Event "26 NEGRAS vs d4 - Jobava y Veresov (2.Nc3)"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "D01"]
+[Opening "Rapport-Jobava System"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "26 NEGRAS vs d4 - Jobava y Veresov (2.Nc3)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/yBYcm9Rt"]
+
+1. d4 Nf6 2. Nc3 d5 { REGLA DE ORO: negarle e4. NADA de ...g6 automático (3.e4 y caigo en la Pirc que odio). Mi 25% online acá era por eso. } 3. Bf4 (3. Bg5 Nbd7 { Sin miedo a las dobladas: ...e6+...Be7+...c5 y estoy cómodo. }) 3... a6 { Frena Nb5 de una. Después: ...e6, ...c5, ...Bd6 ofreciendo cambio del Bf4.
+DOCTRINA
+Jobava/Veresov viven de dos cosas: e4 y el salto Nb5. Se las niego con 2...d5 y 3...a6, y le queda un caballo mordiendo granito en c3.
+CAMBIOS: ofrecer ...Bd6 por su Bf4 — es SU pieza activa; sin ella el sistema no tiene plan. } 4. e3 e6 *
+
+
+[Event "27 NEGRAS vs d4 - Colle, Torre y Trompowsky"]
+[Date "2026.07.11"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A48"]
+[Opening "East Indian Defense"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "27 NEGRAS vs d4 - Colle, Torre y Trompowsky"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/msfQbvj4"]
+
+1. d4 Nf6 2. Nf3 (2. Bg5 Ne4 { Trompowsky: la respuesta activa. } 3. Bf4 c5 { Y ...Qb6 viene. }) 2... g6 { El fianchetto desarma al Colle: su Bd3 muerde granito. } 3. e3 Bg7 4. Bd3 O-O 5. O-O d6 { MI PLAN: ...c5 o ...e5 y el Colle no tiene nada. Contra el Torre (3.Bg5), el mismo ...Bg7 con ...c5+...Qb6.
+DOCTRINA
+Colle y Torre necesitan MI ...e6 para que su Bd3+e5 funcione. El fianchetto ...g6 los desarma de raíz: su Bd3 muerde granito. Plan: ...c5 o ...e5 y juego una india cómoda contra un rival sin libro. } *
+
+
+[Event "28 NEGRAS vs 1.c4 y 1.Nf3 - ...c5 espejo (puente al Maroczy)"]
+[Date "2026.07.13"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B36"]
+[Opening "Sicilian Defense: Accelerated Dragon, Maróczy Bind"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "28 NEGRAS vs 1.c4 y 1.Nf3 - ...c5 espejo (puente al Maroczy)"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/5avqwsRs"]
+
+1. c4 c5 { DECISIÓN: contra 1.c4 y 1.Nf3, SIEMPRE ...c5. Tres razones:
+1. Si viene e4 → estoy en MI Siciliana.
+2. Si viene d4+e4 → estoy en MI Gurgenidze (cap. 11).
+3. Si queda inglesa pura → juego la simétrica que ya conozco de blancas (cap. 04), con las mismas reglas de oro.
+DESCARTADO el esquema KID puro vs 1.Nf3: tras d4 me mete en una India de Rey real, que NO está en mi repertorio (yo juego Benoni). Cero estructuras nuevas. } 2. Nf3 (2. Nc3 g6 3. g3 Bg7 4. Bg2 Nc6 { Mismo esquema, ninguna sutileza extra. }) 2... g6 3. d4 (3. g3 Bg7 4. Bg2 Nc6 5. Nc3 Nf6 6. O-O O-O 7. d4 cxd4 8. Nxd4 Nxd4 9. Qxd4 d6 { LA SIMÉTRICA PURA: exactamente el lado negro de mi cap. 04. PLAN: ...Be6, ...Qa5, ...Rfc8 y la palanca de la columna c — los MISMOS cinco planes del pack Maroczy (cap. 11). Motor: +0.5, la pull normal de blancas en la inglesa; a mi nivel es plena lucha. }) 3... cxd4 4. Nxd4 Nc6 5. e4 (5. g3 Bg7 6. Bg2 Nf6 { Y ...O-O, ...d6: cómodo. }) 5... Nf6 6. Nc3 d6 { TRANSPOSICIÓN EXACTA a mi cap. 11 (Gurgenidze B36): Nxd4 cuando corresponda, ...Bg7, ...O-O, ...Be6, ...Qa5. Ya lo sé jugar.
+NOTA vs 1.Nf3: 1...c5 y (a) 2.e4 = mis caps. 09-18; (b) 2.c4 = este capítulo; (c) 2.g3 g6 = mismo esquema. Un solo árbol para todas las aperturas de flanco.
+DOCTRINA (espejo de mis propios libros): si termina en Maroczy, aplican los 5 planes del cap. 11 (atar c4/e4, caballo a e5 o c5, ...b5). Si queda simétrica pura, aplican mis reglas de blancas del cap. 04 con colores cambiados: d4/d5 son las casillas, el fianchetto no se cambia gratis, la palanca es la columna c. } *
+
+
+[Event "29 BLANCAS - vs 1...e5 Karpov (...Nf6 + ...Bc5) [Marin]"]
+[Date "2026.07.13"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A29"]
+[Opening "English Opening: King's English Variation, Four Knights Variation, Fianchetto Line, with .. d6"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "29 BLANCAS - vs 1...e5 Karpov (...Nf6 + ...Bc5) [Marin]"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/oZPkcswS"]
+
+1. c4 e5 2. Nc3 Nc6 3. g3 Nf6 4. Bg2 Bc5 { LA VARIANTE KARPOV: el problema que mi cap. 02 no cubría (ahí solo estaba ...Bc5 temprano sin ...Nf6). } 5. Nf3! { Golpea e5 de inmediato: el costo de ...Bc5 es que e5 queda sensible. } 5... d6 (5... e4?! 6. Ng5 { y e4 cae: } 6... d6 (6... Bxf2+!? 7. Kxf2 Ng4+ 8. Kg1 Qxg5 9. Nxe4 { VERIFICADO: +0.6, la compensación no alcanza. PERO es filosa: repasar 9...Qg6 10.Nc3 antes del torneo por si alguien entra igual. } 9... Qg6 10. d3 (10. Nc3)) 7. Ngxe4 Nxe4 8. Nxe4 { +1.6: peón limpio. }) 6. O-O O-O 7. d3 h6 8. a3 a6 9. b4 Ba7 10. Bb2 { PLAN (Marin GM3, caps. 2-6): a3+b4 gana espacio molestando al alfil, el Bb2 carga e5. Las dos maniobras estrella: Nd5 (si ...Bxd5, cxd5 y el Nc6 retrocede) y Nh4-f5 contra ...Be6. Su Bc5/a7 termina mordiendo granito contra d3+e3. Motor en la tabiya: +0.1/+0.3 con juego fácil de blancas. } 10... Be6 11. Nh4 d5 12. cxd5 Nxd5 *
+
+
+[Event "30 BLANCAS - vs 1...e5 Rossolimo invertida (...Bb4) [Marin]"]
+[Date "2026.07.13"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A25"]
+[Opening "English Opening: King's English Variation, Reversed Closed Sicilian"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "30 BLANCAS - vs 1...e5 Rossolimo invertida (...Bb4) [Marin]"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/Sk7pI9GV"]
+
+1. c4 e5 2. Nc3 Nc6 3. g3 Nf6 4. Bg2 Bb4 5. Nd5! { LA JUGADA (Marin GM3, caps. 7-12): pregunta al alfil de inmediato. } 5... Bc5 (5... Nxd5?! 6. cxd5 Nd4 (6... Ne7) 7. e3! { VERIFICADO: +3.4, el caballo queda colgado del aire. } 7... Nf5 (7... O-O 8. a3 Ba5 9. exd4 exd4 10. b4 { pieza de mas en la practica }) 8. Qg4! { Doble sobre f5 y g7. Tras 8...Nxe3 9.fxe3: +3.7. MEMORIZAR e3+Qg4 — es la refutación entera. } 8... Nxe3 9. fxe3) (5... O-O 6. Nf3 e4 7. Nh4 d6 8. Nxb4 Nxb4 9. a3 Na6 10. d3 { Igualdad cómoda: recupero e4 o lo liquido y queda mi par de alfiles. }) 6. Nf3 { Otra vez el golpe sobre e5. } 6... d6 (6... O-O?! 7. b4! { TRUCO TEMÁTICO: 7...Nxb4 8.Nxb4 Bxb4 9.Nxe5 — peón limpio con posición superior. } 7... Nxb4 8. Nxb4 Bxb4 9. Nxe5) 7. O-O O-O 8. e3 { Prepara d4 con ganancia de tiempo sobre el Bc5: +0.2 y todos los planes son míos. La lógica es idéntica a mi cap. 29: castigar al alfil aventurero con tiempos.
+POR QUÉ EXISTE ...Bb4 (McDonald cap. 5): las negras pelean d5 y e4 hostigando al Nc3, para liberarse con ...d5 o el doble filo ...e5-e4. Mi 5.Nd5! ataca la idea de frente antes de que arranque.
+REGLA si quedo con par de alfiles tras un cambio en c3: abrir líneas para ellos pero SIN sobreextenderme — el ejemplo de Van Wely castigado por llevar la estrategia demasiado lejos es el aviso. } *
+
+
+[Event "31 BLANCAS - vs 1...e5 menores (...f5, ...c6, ...d6, ...g6) [Marin]"]
+[Date "2026.07.13"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "A21"]
+[Opening "English Opening: King's English Variation, Reversed Sicilian"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "31 BLANCAS - vs 1...e5 menores (...f5, ...c6, ...d6, ...g6) [Marin]"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/G93SQTca"]
+
+1. c4 e5 2. Nc3 f5 { La más agresiva de las menores: su rey queda aireado y mi plan es ABRIR EL CENTRO. } (2... c6 3. Nf3! { 2...c6 quiere ...d5 gratis. 3.Nf3! golpea e5 y frena todo: si 3...d5?! 4.cxd5 cxd5 5.Nxe5 (+1.5 verificado, el peón cae limpio; si 5...Bd6 6.d4 y consolidé). Si 3...d6 4.d4 exd4 5.Nxd4: +0.9, centro y desarrollo. } 3... d5?! (3... d6 4. d4 exd4 5. Nxd4) 4. cxd5 cxd5 5. Nxe5 { VERIFICADO +1.5: el peon cae limpio; si 5...Bd6 6.d4 y consolidaste }) (2... d6 3. g3 g6 4. Bg2 Bg7 5. e4 { Transpone EXACTO a mi cap. 08 (muro Botvinnik): d3, Nge2, y f4 o d4 según arme el rival. Nada nuevo que estudiar. }) (2... g6 3. g3 Bg7 4. Bg2 { Transpone a mi cap. 02: d3, Rb1, a3, b4-b5. }) 3. g3 Nf6 4. Bg2 g6 (4... Nc6 5. e3 { mismo plan }) 5. e3! { LA RECETA DE MARIN contra ...f5: NO apurar nada. Armar e3+Nge2+d4 y abrir el centro cuando su rey no tenga casa. } 5... Bg7 6. Nge2 O-O 7. d4 d6 (7... e4 8. f3 exf3 (8... d6 9. fxe4 fxe4 10. Nxe4 Nxe4 11. Bxe4 Qf6 (11... Qe7 12. Bd5+ Be6 (12... Kh8 13. Nf4))) 9. Bxf3) 8. b3 { Motor: +0.1 con plan claro.
+REGLA: contra ...f5 el centro se abre a MI favor. Jamás tentarme con g4/h4 — mi ataque es d4-dxe5 y la diagonal del Bg2. } *
+
+
+[Event "32 NEGRAS vs e4 - Dragon Acelerado Clasica (7.Be2 y 7.Nb3) [Lalic]"]
+[Date "2026.07.13"]
+[Result "*"]
+[Annotator "https://lichess.org/@/lmujica24"]
+[Variant "Standard"]
+[ECO "B34"]
+[Opening "Sicilian Defense: Accelerated Dragon, Modern Variation"]
+[StudyName "Repertorio Copa AFA V2"]
+[ChapterName "32 NEGRAS vs e4 - Dragon Acelerado Clasica (7.Be2 y 7.Nb3) [Lalic]"]
+[ChapterURL "https://lichess.org/study/DPH7PV7i/LeBwBS0H"]
+
+1. e4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 g6 5. Nc3 Bg7 6. Be3 Nf6 7. Be2 { LA CLÁSICA: quiere evitar todo el conflicto de la línea principal. (Lalić cap. 3.) } (7. Nb3 { la retirada anti-cambios } 7... a5! { REGLA DE LALIĆ: ...a5 es fuerte SIEMPRE que una pieza menor retrocede a b3.
+ATENCIÓN (motor): 8.Nd5!? da +0.8 y es LA prueba crítica — repasarla con Toto antes del torneo. Contra 8.a4 el juego es normal y mi ...Ng4 llega. } 8. a4 (8. Nd5 Nxd5 9. exd5 a4 10. Nd2 Nd4 11. Nc4 e5) 8... O-O 9. Be2 d6 (9... d5 10. exd5 Nb4 11. Bf3 e5 12. dxe6 Bxe6)) 7... O-O 8. O-O d5! { EL IGUALADOR INMEDIATO (Lalić, verificado 0.00). } 9. exd5 Nxd5 10. Nxd5 Nxd4 11. Bxd4 Qxd5 12. Bxg7 Qxd1 13. Raxd1 Kxg7 { LIQUIDACIÓN TOTAL: tablas cómodas. Lalić la ofrece explícitamente como salida cuando el empate sirve por rating, torneo o EQUIPO — anotado para la Copa AFA: jugando de 3, puede valer oro. Si quiero pelear: 8...d6 transpone a esquemas normales con ...Bd7/...a5.
+DOCTRINA
+La Clásica es la confesión de que no quiere teoría: la castigo con la máxima del sistema — ...d5 DE UN GOLPE en cuanto el centro lo permita.
+Promesa 4 de Lalić: mi esquema ...g6, ...Bg7, ...Nf6, ...O-O funciona contra casi todo. La única pregunta de cada partida es CUÁNDO entra ...d5. } *
+
+

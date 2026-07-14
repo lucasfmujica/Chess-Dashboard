@@ -22,6 +22,7 @@ import RecordsTab from './components/chess/tabs/RecordsTab';
 import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
 import TournamentPrepTab from './components/chess/tabs/TournamentPrepTab';
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
+const RepertoireStudyTab = lazy(() => import('./components/chess/tabs/RepertoireStudyTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
@@ -29,6 +30,7 @@ import {
   TrophyIcon,
   GlobeAmericasIcon,
   BookOpenIcon,
+  RectangleStackIcon,
   AcademicCapIcon,
   DocumentTextIcon,
   ChartBarSquareIcon,
@@ -273,6 +275,7 @@ const ChessDashboard = () => {
       section: 'Study & Prep',
       items: [
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
+        { id: 'repertoire-study', label: 'Repertoire Study', icon: RectangleStackIcon },
         { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
         { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
@@ -464,6 +467,8 @@ const ChessDashboard = () => {
               setOpeningHeroes={setOpeningHeroes}
             />
           )}
+
+          {activeTab === 'repertoire-study' && <LazyTab><RepertoireStudyTab /></LazyTab>}
 
           {activeTab === 'tournament-prep' && <TournamentPrepTab />}
 

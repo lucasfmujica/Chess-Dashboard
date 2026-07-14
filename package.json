@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@mliebelt/pgn-parser": "^1.4.19",
     "@neondatabase/serverless": "^1.1.0",
     "chess.js": "^1.4.0",
     "d3-geo": "^3.1.1",
