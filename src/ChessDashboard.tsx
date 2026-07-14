@@ -112,6 +112,7 @@ const ChessDashboard = () => {
     blackStats,
     monthlyStats,
     formStats,
+    streaks,
     timeOfDayStats,
     tournamentComparison,
     openingRepertoireAnalysis,
@@ -355,6 +356,11 @@ const ChessDashboard = () => {
               tournamentStats={tournamentStats}
               bestResults={bestResults}
               worstResults={worstResults}
+              formStats={formStats}
+              streaks={streaks}
+              upcomingTournaments={upcomingTournaments}
+              goalProjections={goalProjections}
+              onNavigate={setActiveTab}
               Swords={Swords}
               Target={ScaleIcon}
               TrendingUp={ArrowTrendingUpIcon}

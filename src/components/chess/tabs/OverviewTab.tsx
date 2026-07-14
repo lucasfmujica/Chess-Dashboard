@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ArrowRightIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/solid';
 import ResultsDonut from '../../charts/ResultsDonut';
 import { useCountUp } from '../../../hooks/useCountUp';
 import { useGameForm } from '../../../hooks/useGameForm';
@@ -14,7 +14,7 @@ import { PieceGlyph } from '../../ui/PieceGlyph';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import { getChartHeight } from '../../../utils/chartUtils';
-import type { Game, GameStats, PlayerInfo, TournamentStat } from '../../../types/chess';
+import type { Game, GameStats, PlayerInfo, TournamentStat, StreaksSummary, UpcomingTournament } from '../../../types/chess';
 
 /** Per-opening aggregate row attached to colored game stats. */
 interface ColorOpeningStat {
@@ -42,6 +42,28 @@ interface ResultEntry {
   tournament: string;
 }
 
+/** Recent-form snapshot for a window of games (from useTrendsAndAnalytics.formStats). */
+interface FormWindow {
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  score: string;
+  percentage: string;
+  /** Result letters, most-recent first. */
+  results: string[];
+}
+
+/** Goal projection summary (subset of useGoalsAndAchievements.goalProjections). */
+interface GoalProjection {
+  currentElo: number;
+  targetElo: number;
+  eloGain: number;
+  daysRemaining: number;
+  onTrack: boolean;
+  projectedElo: number;
+}
+
 interface OverviewTabProps {
   playerInfo: PlayerInfo;
   overallStats: GameStats;
@@ -52,6 +74,11 @@ interface OverviewTabProps {
   tournamentStats: TournamentStat[];
   bestResults: ResultEntry[];
   worstResults: ResultEntry[];
+  formStats: { last5: FormWindow; last10: FormWindow };
+  streaks: StreaksSummary;
+  upcomingTournaments: UpcomingTournament[];
+  goalProjections: GoalProjection;
+  onNavigate: (tab: string) => void;
   Swords: ComponentType<{ className?: string }>;
   Target: ComponentType<{ className?: string }>;
   TrendingUp: ComponentType<{ className?: string }>;
@@ -68,6 +95,35 @@ interface OverviewTabProps {
   lichessGamesCount: number;
 }
 
+/** A small "View all →" link rendered in a card header, jumping to a full tab. */
+const TabLink = ({ label, onClick }: { label: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:opacity-80 transition-opacity"
+  >
+    {label}
+    <ArrowRightIcon className="w-3 h-3" />
+  </button>
+);
+
+/** Compact at-a-glance signal tile used in the Overview signal row. */
+const SignalCard = ({ label, onClick, children }: { label: string; onClick?: () => void; children: ReactNode }) => (
+  <Card
+    interactive={!!onClick}
+    onClick={onClick}
+    className={`flex flex-col gap-2 ${onClick ? 'cursor-pointer' : ''}`}
+  >
+    <p className="text-label">{label}</p>
+    {children}
+  </Card>
+);
+
+const STREAK_LABELS: Record<string, string> = {
+  win: 'win streak',
+  loss: 'loss streak',
+  unbeaten: 'unbeaten',
+};
+
 const OverviewTab = ({
   playerInfo,
   overallStats,
@@ -77,6 +133,11 @@ const OverviewTab = ({
   tournamentStats,
   bestResults,
   worstResults,
+  formStats,
+  streaks,
+  upcomingTournaments,
+  goalProjections,
+  onNavigate,
   Swords,
   Target,
   TrendingUp,
@@ -126,6 +187,29 @@ const OverviewTab = ({
   // Extract numeric score from whiteStats and blackStats
   const whiteScore = whiteStats.score || '0/0';
   const blackScore = blackStats.score || '0/0';
+
+  // --- At-a-glance signals -------------------------------------------------
+  const form = formStats.last5;
+  const streak = streaks.current;
+  const streakTone = streak.type === 'win' ? 'win' : streak.type === 'loss' ? 'loss' : 'draw';
+
+  // Next upcoming tournament (soonest start date from today onward).
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const nextTournament = [...upcomingTournaments]
+    .map(t => ({ t, start: new Date(t.startDate) }))
+    .filter(({ start }) => !Number.isNaN(start.getTime()) && start.getTime() >= today.getTime())
+    .sort((a, b) => a.start.getTime() - b.start.getTime())[0];
+  const daysUntilNext = nextTournament
+    ? Math.round((nextTournament.start.getTime() - today.getTime()) / 86_400_000)
+    : null;
+
+  const eloToGoal = goalProjections.eloGain;
+  const goalReached = eloToGoal <= 0;
+
+  const resultTileTone = (r: string) =>
+    r === 'W' ? 'bg-win/15 text-win' : r === 'L' ? 'bg-loss/15 text-loss' : 'bg-draw/15 text-draw';
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Hero: current ELO */}
@@ -149,6 +233,84 @@ const OverviewTab = ({
           )}
         </div>
       </Card>
+
+      {/* At-a-glance signals: what happened recently & what's next */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Recent form (last 5) */}
+        <SignalCard label="Recent Form" onClick={() => onNavigate('streaks')}>
+          {form.games > 0 ? (
+            <>
+              <div className="flex items-center gap-1.5">
+                {form.results.map((r, i) => (
+                  <span
+                    key={i}
+                    className={`flex h-6 w-6 items-center justify-center rounded text-xs font-semibold ${resultTileTone(r)}`}
+                  >
+                    {r}
+                  </span>
+                ))}
+              </div>
+              <p className="text-sm text-fg-muted tabular-nums">
+                {form.score} · {form.percentage}%
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-fg-muted">No rated games yet</p>
+          )}
+        </SignalCard>
+
+        {/* Current streak */}
+        <SignalCard label="Current Streak" onClick={() => onNavigate('streaks')}>
+          {streak.type && streak.count > 0 ? (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-fg tabular-nums">{streak.count}</span>
+                <Badge tone={streakTone}>{STREAK_LABELS[streak.type]}</Badge>
+              </div>
+              <p className="text-sm text-fg-muted">Longest unbeaten: {streaks.longestUnbeaten}</p>
+            </>
+          ) : (
+            <p className="text-sm text-fg-muted">No active streak</p>
+          )}
+        </SignalCard>
+
+        {/* Next tournament */}
+        <SignalCard label="Next Tournament" onClick={() => onNavigate('tournaments')}>
+          {nextTournament ? (
+            <>
+              <p className="text-base font-semibold text-fg leading-snug line-clamp-2">{nextTournament.t.name}</p>
+              <p className="text-sm text-fg-muted">
+                {daysUntilNext === 0 ? 'Today' : daysUntilNext === 1 ? 'Tomorrow' : `in ${daysUntilNext} days`}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-fg-muted">None scheduled — add one</p>
+          )}
+        </SignalCard>
+
+        {/* Goal progress */}
+        <SignalCard label="ELO Goal" onClick={() => onNavigate('goals')}>
+          {goalReached ? (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-fg tabular-nums">{goalProjections.targetElo}</span>
+                <Badge tone="win">reached</Badge>
+              </div>
+              <p className="text-sm text-fg-muted">Goal achieved 🎉</p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-fg tabular-nums">{goalProjections.targetElo}</span>
+                <Badge tone={goalProjections.onTrack ? 'win' : 'neutral'}>
+                  {goalProjections.onTrack ? 'on track' : `+${eloToGoal} to go`}
+                </Badge>
+              </div>
+              <p className="text-sm text-fg-muted tabular-nums">{goalProjections.daysRemaining} days remaining</p>
+            </>
+          )}
+        </SignalCard>
+      </div>
 
       {/* Secondary stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -190,7 +352,11 @@ const OverviewTab = ({
 
         {/* Performance by Color */}
         <Card>
-          <CardHeader title="Performance by Color" className="mb-5" />
+          <CardHeader
+            title="Performance by Color"
+            className="mb-5"
+            actions={<TabLink label="View details" onClick={() => onNavigate('by-color')} />}
+          />
           <div className="space-y-4">
             {[
               { label: 'White Pieces', color: 'W' as const, stats: whiteStats, score: whiteScore },
@@ -232,7 +398,12 @@ const OverviewTab = ({
 
       {/* ELO Progress */}
       <Card>
-        <CardHeader title="ELO Progress Timeline" subtitle="Rating vs. performance across tournaments" className="mb-6" />
+        <CardHeader
+          title="ELO Progress Timeline"
+          subtitle="Rating vs. performance across tournaments"
+          className="mb-6"
+          actions={<TabLink label="View full history" onClick={() => onNavigate('rating')} />}
+        />
         {eloTimeline.length > 0 ? (
           <ResponsiveContainer width="100%" height={getChartHeight('mini')}>
             <LineChart data={eloTimeline} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
@@ -270,7 +441,12 @@ const OverviewTab = ({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Best Results */}
         <Card>
-          <CardHeader title="Top 3 Wins" subtitle="Biggest upsets — wins vs. higher-rated opponents" className="mb-4" />
+          <CardHeader
+            title="Top 3 Wins"
+            subtitle="Biggest upsets — wins vs. higher-rated opponents"
+            className="mb-4"
+            actions={<TabLink label="All records" onClick={() => onNavigate('records')} />}
+          />
           <div className="space-y-3">
             {bestResults && bestResults.length > 0 ? (
               bestResults.map((result, idx) => (
@@ -302,7 +478,12 @@ const OverviewTab = ({
 
         {/* Worst Results */}
         <Card>
-          <CardHeader title="Top 3 Losses to Study" subtitle="Losses vs. lower-rated opponents — learning spots" className="mb-4" />
+          <CardHeader
+            title="Top 3 Losses to Study"
+            subtitle="Losses vs. lower-rated opponents — learning spots"
+            className="mb-4"
+            actions={<TabLink label="All records" onClick={() => onNavigate('records')} />}
+          />
           <div className="space-y-3">
             {worstResults && worstResults.length > 0 ? (
               worstResults.map((result, idx) => (
@@ -332,31 +513,6 @@ const OverviewTab = ({
           </div>
         </Card>
       </div>
-
-      {/* Additional Stats Summary */}
-      <Card>
-        <CardHeader title="Quick Stats Summary" className="mb-4" />
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.wins}</div>
-            <div className="text-sm text-fg-muted">Total Wins</div>
-          </div>
-          <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.draws}</div>
-            <div className="text-sm text-fg-muted">Total Draws</div>
-          </div>
-          <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-semibold text-fg tabular-nums">{overallStats.losses}</div>
-            <div className="text-sm text-fg-muted">Total Losses</div>
-          </div>
-          <div className="p-4 text-center bg-surface-2 rounded-lg">
-            <div className="text-2xl font-semibold text-fg tabular-nums">
-              {overallStats.total > 0 ? ((parseFloat(overallStats.actualScore) / overallStats.total) * 100).toFixed(0) : '0'}%
-            </div>
-            <div className="text-sm text-fg-muted">Score Rate</div>
-          </div>
-        </div>
-      </Card>
 
       {/* Add / Import Games */}
       <Card flush>
