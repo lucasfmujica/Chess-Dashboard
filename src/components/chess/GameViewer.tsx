@@ -236,9 +236,13 @@ const GameViewer = ({
     return list;
   }, [engineState.lines, showEngine, engineOn, playedUci]);
 
-  // Eval bar — only valid on mainline positions the full-game analysis covers.
-  const evalAvailable = !!analysis && (!isVariation || ply <= variationStart) && analysis.evals[ply] !== undefined;
-  const currentEval = evalAvailable ? analysis!.evals[ply] : 0;
+  // Eval bar — prefer the live engine (reflects the exact position you're on,
+  // including variations); fall back to the full-game batch analysis, which
+  // only covers mainline positions.
+  const liveEvalCp = showEngine && engineOn ? engineState.lines[0]?.evalCp : undefined;
+  const batchEvalAvailable = !!analysis && (!isVariation || ply <= variationStart) && analysis.evals[ply] !== undefined;
+  const evalAvailable = liveEvalCp !== undefined || batchEvalAvailable;
+  const currentEval = liveEvalCp !== undefined ? liveEvalCp : batchEvalAvailable ? analysis!.evals[ply] : 0;
   const whiteFraction = evalAvailable ? winPct(currentEval) / 100 : 0.5;
   const flip = boardOrientation === 'black';
   const whiteWinning = currentEval >= 0;
@@ -275,7 +279,11 @@ const GameViewer = ({
               use zinc-* which the dark-mode compatibility layer never remaps. */}
           <div
             className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900"
-            title={analysis ? `Evaluation ${formatEval(currentEval)} (White's perspective)` : 'Run analysis to see the evaluation'}
+            title={
+              evalAvailable
+                ? `Evaluation ${formatEval(currentEval)} (White's perspective)${liveEvalCp !== undefined ? ' · live' : ''}`
+                : 'Turn on the engine or run analysis to see the evaluation'
+            }
           >
             <div
               className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
