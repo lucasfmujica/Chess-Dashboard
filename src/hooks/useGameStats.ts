@@ -45,7 +45,10 @@ export const useGameStats = (ratedGames: Game[]) => {
 
   // ELO history with expected vs actual performance
   const eloHistory = useMemo(() => {
-    let currentElo = 1651; // Starting ELO
+    // Seed from the first game's own recorded rating rather than a hardcoded
+    // constant: OTB and Lichess ratings live on different scales, so whichever
+    // source starts the (possibly filtered) sequence sets the baseline.
+    let currentElo = ratedGames[0]?.elo || 1651;
     let ratedGameCount = 0; // Count of all rated games (including vs unrated opponents)
 
     return ratedGames.map((game) => {
@@ -53,20 +56,29 @@ export const useGameStats = (ratedGames: Game[]) => {
 
       // Use game's kFactor if available, otherwise determine by game count
       const kFactor = game.kFactor || (ratedGameCount <= 27 ? 40 : 20);
+      const eloBefore = currentElo;
 
-      // For unrated opponents (opp_elo === 0), use eloChange: 0
       let expectedScore: number;
       let actualScore: number;
       let eloChange: number;
+      let elo: number;
 
-      if (game.opp_elo === 0) {
+      if (game.source === 'lichess' && game.elo) {
+        // Lichess reports the real post-game rating for every game, so trust it
+        // directly instead of estimating with the OTB K-factor formula below.
+        actualScore = getActualScore(game.result);
+        expectedScore = game.opp_elo ? calculateExpectedScore(eloBefore, game.opp_elo) : 0.5;
+        elo = game.elo;
+        eloChange = elo - eloBefore;
+      } else if (game.opp_elo === 0) {
         // Game against unrated opponent - no ELO change
         expectedScore = 0.5; // Neutral expectation for display
         actualScore = getActualScore(game.result);
         eloChange = 0;
+        elo = eloBefore + eloChange;
       } else {
         // Calculate expected score using ELO formula
-        expectedScore = calculateExpectedScore(currentElo, game.opp_elo);
+        expectedScore = calculateExpectedScore(eloBefore, game.opp_elo);
         actualScore = getActualScore(game.result);
 
         // Use actual ELO change from game data if available, otherwise calculate
@@ -76,19 +88,17 @@ export const useGameStats = (ratedGames: Game[]) => {
           // Calculate ELO change: ΔR = K · (S - E)
           eloChange = Math.round(kFactor * (actualScore - expectedScore));
         }
+        elo = eloBefore + eloChange;
       }
 
-      // Store the ELO before this game
-      const eloBefore = currentElo;
-
-      // Calculate new ELO: R_new = R_old + ΔR
-      currentElo = currentElo + eloChange;
+      currentElo = elo;
 
       return {
         game: ratedGameCount,
         eloBefore,
-        elo: currentElo,
+        elo,
         eloChange,
+        date: game.date,
         tournament: game.tournament,
         opponent: game.opp,
         eco: game.eco,

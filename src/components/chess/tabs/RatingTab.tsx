@@ -267,7 +267,7 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
             <h3 className="text-lg font-semibold text-fg mb-2">
               Rating Progression
             </h3>
-            <p className="text-fg-muted">Complete journey from 1651 to {stats.currentElo} • {eloHistory.length} rated games</p>
+            <p className="text-fg-muted">Complete journey from {eloHistory[0]?.eloBefore ?? stats.currentElo} to {stats.currentElo} • {eloHistory.length} rated games</p>
           </div>
           <ResponsiveContainer width="100%" height={getChartHeight('large')}>
             <ComposedChart data={eloHistory}>
@@ -285,7 +285,11 @@ const RatingTab = ({ eloHistory }: RatingTabProps) => {
                 tick={{ fontSize: 12 }}
               />
               <YAxis
-                domain={[1400, 1950]}
+                domain={[
+                  (min: number) => Math.floor((min - 30) / 50) * 50,
+                  (max: number) => Math.ceil((max + 30) / 50) * 50,
+                ]}
+                allowDataOverflow={false}
                 label={{ value: 'ELO Rating', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
                 stroke="rgb(var(--fg-subtle))"
                 tick={{ fontSize: 12 }}

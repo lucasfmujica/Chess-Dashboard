@@ -31,7 +31,31 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
 };
 
 // Games
-export const fetchGames = () => apiFetch<Game[]>('/games');
+
+/** Minutes since midnight for a `Game.time` value. Handles both 24h ("14:05") and
+ * Lichess's locale-formatted 12h ("02:05 PM") strings; unparseable/missing times sort first. */
+const timeToMinutes = (time?: string): number => {
+  const match = time?.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const meridiem = match[3]?.toUpperCase();
+  if (meridiem === 'PM' && hours !== 12) hours += 12;
+  if (meridiem === 'AM' && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+/** Sort key combining a game's played date and time of day. Games are stored with
+ * `created_at` as the insert timestamp, which does NOT reflect play order once games
+ * are bulk-imported (e.g. a Lichess sync) — chronological features (ELO progression,
+ * streaks) need this real order instead. */
+const gameSortKey = (game: Game): number => {
+  if (!game.date) return 0;
+  return new Date(`${game.date}T00:00:00Z`).getTime() + timeToMinutes(game.time) * 60_000;
+};
+
+export const fetchGames = () =>
+  apiFetch<Game[]>('/games').then(games => [...games].sort((a, b) => gameSortKey(a) - gameSortKey(b)));
 export const postGames = (games: Game[]) =>
   apiFetch<{ inserted: number }>('/games', { method: 'POST', body: JSON.stringify(games) });
 export const patchGamePgn = (id: string, pgn: string | undefined) =>
