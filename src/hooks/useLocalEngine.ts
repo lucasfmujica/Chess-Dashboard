@@ -81,7 +81,7 @@ export const useLocalEngine = (
   const genRef = useRef(0);
   const [state, setState] = useState<LocalEngineState>({ lines: [], depth: 0, analyzing: false });
 
-  const { mode, depth, movetimeMs, hashMb, multipv } = settings;
+  const { mode, depth, movetimeMs, hashMb, multipv, threads } = settings;
 
   useEffect(() => {
     if (!enabled) {
@@ -97,7 +97,7 @@ export const useLocalEngine = (
     setState(s => ({ ...s, analyzing: true }));
 
     engine
-      .analyzeLive(fen, { multipv, mode, depth, movetimeMs, hashMb }, rawLines => {
+      .analyzeLive(fen, { multipv, mode, depth, movetimeMs, hashMb, threads }, rawLines => {
         if (gen !== genRef.current) return;
         const lines = rawLines.map(r => toLine(r, fen));
         setState({
@@ -112,7 +112,7 @@ export const useLocalEngine = (
       .catch(() => {
         if (gen === genRef.current) setState(s => ({ ...s, analyzing: false }));
       });
-  }, [fen, enabled, mode, depth, movetimeMs, hashMb, multipv]);
+  }, [fen, enabled, mode, depth, movetimeMs, hashMb, multipv, threads]);
 
   // Free the engine on unmount.
   useEffect(() => () => {

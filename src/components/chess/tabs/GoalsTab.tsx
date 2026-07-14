@@ -56,7 +56,7 @@ const GoalsTab = ({
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Hero Section with Circular Progress */}
-      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg p-8">
+      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg p-4 sm:p-6 lg:p-8">
         <div className="relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
             {/* Left: Goal Info */}

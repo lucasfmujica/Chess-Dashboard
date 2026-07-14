@@ -83,8 +83,8 @@ const TournamentPrepTab = () => {
     <div className="space-y-6">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-        <div className="relative px-8 py-10">
-          <div className="flex items-center justify-between mb-6">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-surface-2 rounded-lg">
                 <ClipboardDocumentCheckIcon className="w-8 h-8 text-accent" />
@@ -100,7 +100,7 @@ const TournamentPrepTab = () => {
                 setSelectedLine({});
                 setEditingLine(null);
               }}
-              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-semibold flex items-center gap-2"
+              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-semibold flex items-center justify-center gap-2 shrink-0"
             >
               <PlusIcon className="w-5 h-5" />
               New Line

@@ -17,6 +17,18 @@ export default defineConfig({
       // Local stand-in for Vercel's serverless functions; see scripts/dev-api-server.mts.
       '/api': 'http://localhost:3001',
     },
+    // Cross-origin isolation, required for the multi-threaded Stockfish WASM
+    // build to use SharedArrayBuffer. Mirrored in vercel.json for prod.
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
+  },
+  preview: {
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+    },
   },
   build: {
     // Keep the CRA output directory so existing deploy config keeps working.

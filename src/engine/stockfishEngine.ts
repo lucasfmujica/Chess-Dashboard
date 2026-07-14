@@ -1,9 +1,17 @@
 /**
- * Thin UCI wrapper around the single-threaded Stockfish WASM worker
- * (served from /engine/). Evaluations are serialized (one `go` at a time).
+ * Thin UCI wrapper around the Stockfish WASM worker (served from /engine/).
+ * Evaluations are serialized (one `go` at a time).
  */
 
-const ENGINE_URL = '/engine/stockfish-18-lite-single.js';
+// The multi-threaded build needs SharedArrayBuffer, which needs the page to
+// be cross-origin isolated (COOP/COEP headers). Fall back to the
+// single-threaded build when that isn't available, rather than failing outright.
+export const supportsMultiThread =
+  typeof SharedArrayBuffer !== 'undefined' && self.crossOriginIsolated === true;
+
+const ENGINE_URL = supportsMultiThread
+  ? '/engine/stockfish-18-lite.js'
+  : '/engine/stockfish-18-lite-single.js';
 
 export interface PositionEval {
   /** Centipawns from the side-to-move's perspective (undefined if mate). */
@@ -30,6 +38,7 @@ export interface LiveAnalyzeOptions {
   depth: number;
   movetimeMs: number;
   hashMb?: number;
+  threads?: number;
 }
 
 export class StockfishEngine {
@@ -134,6 +143,7 @@ export class StockfishEngine {
       if (!this.ready) await this.init();
       await this.stopAndSync();
       if (opts.hashMb) this.setOption('Hash', opts.hashMb);
+      if (opts.threads) this.setOption('Threads', opts.threads);
       this.setOption('MultiPV', Math.max(1, opts.multipv));
 
       const lines = new Map<number, EngineLineRaw>();

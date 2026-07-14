@@ -304,8 +304,8 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
         />
       </div>
 
-      <div className="mt-4 max-h-[420px] overflow-y-auto rounded-lg border border-hairline">
-        <table className="w-full text-sm">
+      <div className="mt-4 max-h-[420px] overflow-auto rounded-lg border border-hairline">
+        <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-surface-2 sticky top-0 z-10">
             <tr>
               <SortableTh label="#" k="order" />

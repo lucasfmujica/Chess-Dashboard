@@ -494,7 +494,7 @@ const GameViewer = ({
                 : 'This game has no recorded moves to replay.'}
           </div>
         ) : (
-          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-y-auto">
+          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-auto">
             <table className="w-full text-sm">
               <tbody>
                 {rows.map(row => {

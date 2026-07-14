@@ -211,9 +211,9 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
       {/* Games Detail Panel */}
       {selectedBracket && (
         <div className="p-6 bg-surface border border-hairline rounded-lg">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: selectedBracket.color }}></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3 min-w-0">
+              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: selectedBracket.color }}></div>
               <h3 className="text-h3 text-fg">
                 Games vs {selectedBracket.label}
               </h3>
@@ -221,7 +221,7 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
             </div>
             <button
               onClick={() => setSelectedBracket(null)}
-              className="p-2 text-fg-subtle transition-colors hover:text-fg hover:bg-surface-2 rounded-lg"
+              className="p-2 text-fg-subtle transition-colors hover:text-fg hover:bg-surface-2 rounded-lg shrink-0"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

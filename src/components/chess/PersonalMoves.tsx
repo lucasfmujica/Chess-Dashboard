@@ -64,31 +64,33 @@ const PersonalMoves = ({ moves, playedMove, onPlay, color, onColorChange }: Pers
           : `None of your games as ${color === 'W' ? 'White' : 'Black'} (with moves) reached this position.`}
       </p>
     ) : (
-      <table className="w-full text-sm">
-        <tbody className="divide-y divide-hairline">
-          {moves.map(m => {
-            const isPlayed = playedMove && m.san === playedMove;
-            return (
-              <tr
-                key={m.san}
-                onClick={() => onPlay?.(m.san)}
-                className={`${onPlay ? 'cursor-pointer' : ''} hover:bg-surface-2 ${isPlayed ? 'bg-accent/10' : ''}`}
-              >
-                <td className="px-3 py-1.5">
-                  <span className={`font-medium tabular-nums ${isPlayed ? 'text-accent' : 'text-fg'}`}>{m.san}</span>
-                </td>
-                <td className="px-3 py-1.5 text-right text-fg-muted tabular-nums">{m.count}×</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">
-                  <span className={m.winRate >= 50 ? 'text-win' : 'text-loss'}>{m.winRate}%</span>
-                </td>
-                <td className="px-3 py-1.5 text-right text-xs tabular-nums text-fg-subtle">
-                  <span className="text-win">{m.wins}</span>/<span className="text-draw">{m.draws}</span>/<span className="text-loss">{m.losses}</span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <tbody className="divide-y divide-hairline">
+            {moves.map(m => {
+              const isPlayed = playedMove && m.san === playedMove;
+              return (
+                <tr
+                  key={m.san}
+                  onClick={() => onPlay?.(m.san)}
+                  className={`${onPlay ? 'cursor-pointer' : ''} hover:bg-surface-2 ${isPlayed ? 'bg-accent/10' : ''}`}
+                >
+                  <td className="px-3 py-1.5">
+                    <span className={`font-medium tabular-nums ${isPlayed ? 'text-accent' : 'text-fg'}`}>{m.san}</span>
+                  </td>
+                  <td className="px-3 py-1.5 text-right text-fg-muted tabular-nums">{m.count}×</td>
+                  <td className="px-3 py-1.5 text-right tabular-nums">
+                    <span className={m.winRate >= 50 ? 'text-win' : 'text-loss'}>{m.winRate}%</span>
+                  </td>
+                  <td className="px-3 py-1.5 text-right text-xs tabular-nums text-fg-subtle">
+                    <span className="text-win">{m.wins}</span>/<span className="text-draw">{m.draws}</span>/<span className="text-loss">{m.losses}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     )}
   </div>
   );

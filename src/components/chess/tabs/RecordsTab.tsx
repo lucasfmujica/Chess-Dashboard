@@ -238,7 +238,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-        <div className="relative px-8 py-12">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-surface-2 rounded-lg">
               <StarIcon className="w-8 h-8 text-accent" />

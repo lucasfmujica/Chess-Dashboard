@@ -124,8 +124,8 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
       )}
 
       {!loading && !error && data && data.moves.length > 0 && (
-        <div className="max-h-[260px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[260px] overflow-auto">
+          <table className="w-full text-sm min-w-[420px]">
             <thead className="bg-surface-2 sticky top-0">
               <tr>
                 <th scope="col" className="px-3 py-1.5 text-left text-[11px] font-medium uppercase text-fg-subtle">Move</th>

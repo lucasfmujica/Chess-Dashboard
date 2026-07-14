@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CpuChipIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import type { LocalEngineState } from '../../hooks/useLocalEngine';
 import type { EngineSettings } from '../../hooks/useEngineSettings';
+import { supportsMultiThread } from '../../engine/stockfishEngine';
 
 interface EngineLinesProps {
   state: LocalEngineState;
@@ -14,6 +15,7 @@ interface EngineLinesProps {
 }
 
 const HASH_OPTIONS = [16, 32, 64, 128, 256];
+const MAX_THREADS = supportsMultiThread ? Math.max(1, navigator.hardwareConcurrency || 4) : 1;
 
 const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }: EngineLinesProps) => {
   const [showSettings, setShowSettings] = useState(false);
@@ -81,7 +83,22 @@ const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }
             <span className="text-xs text-fg-subtle">Lines: {settings.multipv}</span>
             <input type="range" min={1} max={5} value={settings.multipv} onChange={e => patch({ multipv: +e.target.value })} className="accent-accent" />
           </label>
-          <label className="flex flex-col gap-1 col-span-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-fg-subtle">
+              Threads: {settings.threads}
+              {!supportsMultiThread && ' (single-threaded)'}
+            </span>
+            <input
+              type="range"
+              min={1}
+              max={MAX_THREADS}
+              value={settings.threads}
+              disabled={!supportsMultiThread}
+              onChange={e => patch({ threads: +e.target.value })}
+              className="accent-accent disabled:opacity-50"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
             <span className="text-xs text-fg-subtle">Memory (Hash)</span>
             <select
               value={settings.hashMb}

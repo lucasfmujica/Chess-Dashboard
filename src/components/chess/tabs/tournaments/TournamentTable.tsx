@@ -101,50 +101,52 @@ const TournamentTable = ({ tournamentStats, ratedGames }: TournamentTableProps) 
                             <p className="text-sm text-fg-muted">No individual games recorded for this tournament.</p>
                           ) : (
                             <div className="overflow-hidden rounded-lg border border-hairline bg-surface">
-                              <table className="min-w-full">
-                                <thead>
-                                  <tr className="border-b border-hairline">
-                                    <th className="px-4 py-2.5 text-label text-left">Opponent</th>
-                                    <th className="px-4 py-2.5 text-label text-center">Opp ELO</th>
-                                    <th className="px-4 py-2.5 text-label text-center">Color</th>
-                                    <th className="px-4 py-2.5 text-label text-center">Result</th>
-                                    <th className="px-4 py-2.5 text-label text-left">Opening</th>
-                                    <th className="px-4 py-2.5 text-label text-center"><span className="sr-only">Replay</span></th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-hairline">
-                                  {games.map((g, gi) => (
-                                    <tr key={gi} className="hover:bg-surface-2">
-                                      <td className="px-4 py-2.5 text-sm text-fg">{g.opp}</td>
-                                      <td className="px-4 py-2.5 text-sm text-center text-fg-muted tabular-nums">{g.opp_elo || 'Unrated'}</td>
-                                      <td className="px-4 py-2.5 text-sm text-center text-fg-muted">{g.color === 'W' ? 'White' : 'Black'}</td>
-                                      <td className="px-4 py-2.5 text-center">
-                                        <Badge tone={resultTone(g.result)}>{resultLabel(g.result)}</Badge>
-                                      </td>
-                                      <td className="px-4 py-2.5 text-sm text-fg-muted">{ecoNames[g.eco] || g.eco}</td>
-                                      <td className="px-4 py-2.5 text-center">
-                                        {g.pgn && (
-                                          <button
-                                            onClick={() => openGameViewer({
-                                              pgn: g.pgn,
-                                              orientation: g.color === 'W' ? 'white' : 'black',
-                                              white: g.color === 'W' ? 'You' : g.opp,
-                                              black: g.color === 'W' ? g.opp : 'You',
-                                              result: g.result,
-                                              title: g.tournament,
-                                            })}
-                                            aria-label={`Replay game vs ${g.opp}`}
-                                            title="Replay game"
-                                            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-hairline text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
-                                          >
-                                            <PlayIcon className="w-4 h-4" />
-                                          </button>
-                                        )}
-                                      </td>
+                              <div className="overflow-x-auto">
+                                <table className="min-w-[560px] w-full">
+                                  <thead>
+                                    <tr className="border-b border-hairline">
+                                      <th className="px-4 py-2.5 text-label text-left">Opponent</th>
+                                      <th className="px-4 py-2.5 text-label text-center">Opp ELO</th>
+                                      <th className="px-4 py-2.5 text-label text-center">Color</th>
+                                      <th className="px-4 py-2.5 text-label text-center">Result</th>
+                                      <th className="px-4 py-2.5 text-label text-left">Opening</th>
+                                      <th className="px-4 py-2.5 text-label text-center"><span className="sr-only">Replay</span></th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody className="divide-y divide-hairline">
+                                    {games.map((g, gi) => (
+                                      <tr key={gi} className="hover:bg-surface-2">
+                                        <td className="px-4 py-2.5 text-sm text-fg">{g.opp}</td>
+                                        <td className="px-4 py-2.5 text-sm text-center text-fg-muted tabular-nums">{g.opp_elo || 'Unrated'}</td>
+                                        <td className="px-4 py-2.5 text-sm text-center text-fg-muted">{g.color === 'W' ? 'White' : 'Black'}</td>
+                                        <td className="px-4 py-2.5 text-center">
+                                          <Badge tone={resultTone(g.result)}>{resultLabel(g.result)}</Badge>
+                                        </td>
+                                        <td className="px-4 py-2.5 text-sm text-fg-muted">{ecoNames[g.eco] || g.eco}</td>
+                                        <td className="px-4 py-2.5 text-center">
+                                          {g.pgn && (
+                                            <button
+                                              onClick={() => openGameViewer({
+                                                pgn: g.pgn,
+                                                orientation: g.color === 'W' ? 'white' : 'black',
+                                                white: g.color === 'W' ? 'You' : g.opp,
+                                                black: g.color === 'W' ? g.opp : 'You',
+                                                result: g.result,
+                                                title: g.tournament,
+                                              })}
+                                              aria-label={`Replay game vs ${g.opp}`}
+                                              title="Replay game"
+                                              className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-hairline text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
+                                            >
+                                              <PlayIcon className="w-4 h-4" />
+                                            </button>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           )}
                         </td>
