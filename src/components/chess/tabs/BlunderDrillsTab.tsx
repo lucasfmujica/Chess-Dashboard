@@ -50,6 +50,7 @@ const BlunderDrillsTab = () => {
     batch,
     pendingAnalysisCount,
     error,
+    mine,
     analyzeAndMine,
     cancelBatch,
     review,
@@ -146,13 +147,20 @@ const BlunderDrillsTab = () => {
               <Button variant="secondary" size="sm" onClick={cancelBatch}>Cancel</Button>
             </div>
           ) : (
-            <Button variant="secondary" icon={ArrowPathIcon} onClick={() => void analyzeAndMine()} disabled={mining}>
-              {mining
-                ? 'Scanning…'
-                : pendingAnalysisCount > 0
-                  ? `Analyze & scan (${pendingAnalysisCount})`
-                  : 'Scan for new blunders'}
-            </Button>
+            <div className="flex items-center gap-2">
+              {pendingAnalysisCount > 0 && (
+                <Button variant="secondary" onClick={() => void mine()} disabled={mining}>
+                  {mining ? 'Scanning…' : 'Scan already-analyzed'}
+                </Button>
+              )}
+              <Button variant="secondary" icon={ArrowPathIcon} onClick={() => void analyzeAndMine()} disabled={mining}>
+                {mining
+                  ? 'Scanning…'
+                  : pendingAnalysisCount > 0
+                    ? `Analyze & scan (${pendingAnalysisCount})`
+                    : 'Scan for new blunders'}
+              </Button>
+            </div>
           )}
         </div>
         {batch && (
