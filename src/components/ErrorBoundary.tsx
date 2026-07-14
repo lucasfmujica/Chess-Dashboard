@@ -1,4 +1,5 @@
 import React from 'react';
+import { isStaleChunkError, reloadOnceForStaleChunk } from '../utils/staleChunkRecovery';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -25,6 +26,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    // A stale lazy-chunk error (old tab, new deployment) isn't a real app bug —
+    // reload once to pick up the current build instead of showing the error UI.
+    if (isStaleChunkError(error) && reloadOnceForStaleChunk()) return;
+
     this.setState({
       error,
       errorInfo,

@@ -10,6 +10,15 @@ import { GamesProvider } from './context/GamesContext';
 import { UIProvider } from './context/UIContext';
 import { GameViewerProvider } from './context/GameViewerContext';
 import reportWebVitals from './reportWebVitals';
+import { reloadOnceForStaleChunk } from './utils/staleChunkRecovery';
+
+// Vite fires this when a lazy `import()` chunk fails to load — typically because
+// a new deployment went live while this tab was open, so the old chunk's hashed
+// filename no longer exists. Reload once to pick up the current build instead of
+// showing the user a broken tab.
+window.addEventListener('vite:preloadError', () => {
+  reloadOnceForStaleChunk();
+});
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(

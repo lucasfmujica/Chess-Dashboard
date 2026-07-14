@@ -43,7 +43,18 @@ const drillTitle = (drill: BlunderDrill) =>
   drill.game.openingName || (drill.game.eco ? ecoNames[drill.game.eco] || drill.game.eco : 'Blunder');
 
 const BlunderDrillsTab = () => {
-  const { drills, loading, mining, error, mine, review, solve } = useBlunderDrills();
+  const {
+    drills,
+    loading,
+    mining,
+    batch,
+    pendingAnalysisCount,
+    error,
+    analyzeAndMine,
+    cancelBatch,
+    review,
+    solve,
+  } = useBlunderDrills();
   const [mode, setMode] = useState<Mode>('review');
   const [colorFilter, setColorFilter] = useState<ColorFilter>('all');
   const [listFilter, setListFilter] = useState<ListFilter>('due');
@@ -121,10 +132,34 @@ const BlunderDrillsTab = () => {
               <p className="text-sm text-fg-muted">Drill the mistakes from your own analyzed games</p>
             </div>
           </div>
-          <Button variant="secondary" icon={ArrowPathIcon} onClick={() => void mine()} disabled={mining}>
-            {mining ? 'Scanning…' : 'Scan for new blunders'}
-          </Button>
+          {batch ? (
+            <div className="flex items-center gap-3">
+              <div className="w-32 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+                <div
+                  className="h-full bg-accent transition-all"
+                  style={{ width: `${Math.round((batch.done / batch.total) * 100)}%` }}
+                />
+              </div>
+              <span className="text-xs text-fg-muted tabular-nums">
+                Analyzing {batch.done}/{batch.total} · {batch.name}
+              </span>
+              <Button variant="secondary" size="sm" onClick={cancelBatch}>Cancel</Button>
+            </div>
+          ) : (
+            <Button variant="secondary" icon={ArrowPathIcon} onClick={() => void analyzeAndMine()} disabled={mining}>
+              {mining
+                ? 'Scanning…'
+                : pendingAnalysisCount > 0
+                  ? `Analyze & scan (${pendingAnalysisCount})`
+                  : 'Scan for new blunders'}
+            </Button>
+          )}
         </div>
+        {batch && (
+          <p className="mt-3 text-xs text-fg-subtle">
+            Running Stockfish over your unanalyzed games first — this can take a while for a large batch.
+          </p>
+        )}
         {error && <p className="mt-3 text-sm text-loss">{error}</p>}
       </Card>
 
@@ -307,8 +342,8 @@ const BlunderDrillsTab = () => {
             <>
               <h3 className="text-h3 text-fg mb-2">No blunder drills yet</h3>
               <p className="text-fg-muted">
-                Analyze some of your games in <span className="font-semibold text-fg">Analysis Board</span>, then
-                come back and scan for blunders.
+                Click <span className="font-semibold text-fg">"Analyze &amp; scan"</span> above to run Stockfish over
+                your games and pull out your blunders — no need to analyze them one by one first.
               </p>
             </>
           ) : (
