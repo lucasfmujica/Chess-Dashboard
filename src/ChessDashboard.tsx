@@ -25,6 +25,8 @@ const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoar
 const RepertoireStudyTab = lazy(() => import('./components/chess/tabs/RepertoireStudyTab'));
 const BlunderDrillsTab = lazy(() => import('./components/chess/tabs/BlunderDrillsTab'));
 const OpponentPrepTab = lazy(() => import('./components/chess/tabs/OpponentPrepTab'));
+const EndgameDrillsTab = lazy(() => import('./components/chess/tabs/EndgameDrillsTab'));
+const NormTrackerTab = lazy(() => import('./components/chess/tabs/NormTrackerTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
@@ -44,6 +46,8 @@ import {
   ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
   UserGroupIcon,
+  ShieldCheckIcon,
+  RocketLaunchIcon,
 } from '@heroicons/react/24/outline';
 import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
@@ -282,6 +286,7 @@ const ChessDashboard = () => {
         { id: 'repertoire-study', label: 'Repertoire Study', icon: RectangleStackIcon },
         { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
         { id: 'blunder-drills', label: 'Blunder Drills', icon: ExclamationTriangleIcon },
+        { id: 'endgame-drills', label: 'Endgame Drills', icon: ShieldCheckIcon },
         { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
         { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
@@ -292,6 +297,7 @@ const ChessDashboard = () => {
       section: 'Progress',
       items: [
         { id: 'goals', label: 'Goals', icon: FlagIcon },
+        { id: 'norm-tracker', label: 'Norm Tracker', icon: RocketLaunchIcon },
         { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
       ],
     },
@@ -479,7 +485,11 @@ const ChessDashboard = () => {
 
           {activeTab === 'blunder-drills' && <LazyTab><BlunderDrillsTab /></LazyTab>}
 
+          {activeTab === 'endgame-drills' && <LazyTab><EndgameDrillsTab /></LazyTab>}
+
           {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
+
+          {activeTab === 'norm-tracker' && <LazyTab><NormTrackerTab /></LazyTab>}
 
           {activeTab === 'training' && (
             <TrainingTab

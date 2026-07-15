@@ -3,12 +3,13 @@ import type {
   PlayerInfo,
   Repertoire,
   AnnotatedGame,
-  OpeningCard,
   RepertoireLine,
   ScoutingTarget,
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
+import type { MinedEndgame, EndgameDrill } from '../types/endgames';
+import type { NormAttempt, NormThresholds } from '../types/norms';
 
 const API_KEY = import.meta.env.VITE_API_SECRET as string | undefined;
 
@@ -124,11 +125,6 @@ export const putRepertoireLine = (id: string, line: Partial<RepertoireLine>) =>
 export const deleteRepertoireLine = (id: string) =>
   apiFetch<{ ok: true }>(`/repertoire-lines?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
-// Opening flashcards
-export const fetchFlashcards = () => apiFetch<OpeningCard[]>('/flashcards');
-export const putFlashcards = (cards: OpeningCard[]) =>
-  apiFetch<OpeningCard[]>('/flashcards', { method: 'PUT', body: JSON.stringify(cards) });
-
 // Blunder drills (mined from the player's own analyzed games) and scouting
 // targets (Opponent Prep) share one Vercel function (`api/prep.ts`, dispatched
 // by `?resource=`) to stay under the Hobby-plan serverless function limit.
@@ -162,13 +158,45 @@ export const putScoutingTarget = (id: string, target: Partial<ScoutingTarget>) =
 export const deleteScoutingTarget = (id: string) =>
   apiFetch<{ ok: true }>(`/prep?resource=scouting-targets&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 
+// Endgame drills (mined from the player's own games — no analysis required)
+export const fetchEndgameDrills = () => apiFetch<EndgameDrill[]>('/prep?resource=endgame-drills');
+export const postEndgameDrills = (drills: MinedEndgame[]) =>
+  apiFetch<{ inserted: number }>('/prep?resource=endgame-drills', { method: 'POST', body: JSON.stringify(drills) });
+export interface EndgameDrillPatch {
+  confidence?: number;
+  lastReviewed?: number;
+  reviewCount?: number;
+  archived?: boolean;
+}
+export const putEndgameDrill = (id: string, patch: EndgameDrillPatch) =>
+  apiFetch<EndgameDrill>(`/prep?resource=endgame-drills&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(patch),
+  });
+export const deleteEndgameDrill = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=endgame-drills&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+// Norm Tracker (FIDE-title norm attempts, tracked against editable thresholds)
+export const fetchNormAttempts = () => apiFetch<NormAttempt[]>('/prep?resource=norm-attempts');
+export const postNormAttempt = (attempt: Partial<NormAttempt>) =>
+  apiFetch<NormAttempt>('/prep?resource=norm-attempts', { method: 'POST', body: JSON.stringify(attempt) });
+export const putNormAttempt = (id: string, attempt: Partial<NormAttempt>) =>
+  apiFetch<NormAttempt>(`/prep?resource=norm-attempts&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(attempt),
+  });
+export const deleteNormAttempt = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=norm-attempts&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+export const fetchNormThresholds = () => apiFetch<NormThresholds>('/prep?resource=norm-thresholds');
+export const putNormThresholds = (thresholds: NormThresholds) =>
+  apiFetch<NormThresholds>('/prep?resource=norm-thresholds', { method: 'PUT', body: JSON.stringify(thresholds) });
+
 // One-time migration
 export interface MigratePayload {
   games?: Game[];
   mainRepertoire?: Repertoire;
   openingHeroes?: Record<string, string[]>;
   annotatedGames?: Partial<AnnotatedGame>[];
-  openingFlashcards?: Omit<OpeningCard, 'id'>[];
   playerInfo?: PlayerInfo;
 }
 export const postMigrate = (payload: MigratePayload) =>

@@ -145,16 +145,48 @@ CREATE TABLE IF NOT EXISTS scouting_targets (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS opening_flashcards (
+-- One drillable endgame snapshot per game: the first position where both
+-- sides drop to endgame-level material. No Stockfish analysis required —
+-- material_delta/endgame_type are a pure FEN heuristic computed at mining time.
+CREATE TABLE IF NOT EXISTS endgame_drills (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  moves TEXT NOT NULL,
+  game_id UUID REFERENCES games(id) ON DELETE CASCADE,
+  ply INTEGER NOT NULL,
   fen TEXT NOT NULL,
-  color TEXT NOT NULL CHECK (color IN ('white','black')),
-  difficulty TEXT NOT NULL CHECK (difficulty IN ('beginner','intermediate','advanced')),
-  review_count INTEGER NOT NULL DEFAULT 0,
+  material_delta INTEGER NOT NULL,
+  endgame_type TEXT NOT NULL CHECK (endgame_type IN ('pawn','rook','minor','queen','mixed')),
+  confidence INTEGER CHECK (confidence BETWEEN 1 AND 5),
   last_reviewed TIMESTAMPTZ,
-  next_review TIMESTAMPTZ NOT NULL DEFAULT now(),
-  success_rate NUMERIC(5,2) NOT NULL DEFAULT 0,
-  total_attempts INTEGER NOT NULL DEFAULT 0
+  review_count INTEGER NOT NULL DEFAULT 0,
+  archived BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (game_id, ply)
+);
+CREATE INDEX IF NOT EXISTS endgame_drills_game_id_idx ON endgame_drills (game_id);
+
+-- Tournament norm attempts, tracked against editable/approximate title
+-- thresholds (real FIDE norm regulations are more intricate than a single
+-- performance-rating cutoff — this is a rough personal tracker, not a
+-- verifier, hence the thresholds live in a separate editable row).
+CREATE TABLE IF NOT EXISTS norm_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tournament TEXT NOT NULL,
+  title_target TEXT NOT NULL CHECK (title_target IN ('IM','GM','WIM','WGM')),
+  games_count INTEGER,
+  performance_rating INTEGER,
+  titled_opponents INTEGER,
+  foreign_opponents INTEGER,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Singleton row: user-editable norm performance-rating thresholds per title.
+-- Defaults are typical historical figures, not an authoritative current FIDE
+-- source — surfaced in the UI as editable so the user can correct them.
+CREATE TABLE IF NOT EXISTS norm_thresholds (
+  id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  im_performance INTEGER NOT NULL DEFAULT 2450,
+  gm_performance INTEGER NOT NULL DEFAULT 2600,
+  wim_performance INTEGER NOT NULL DEFAULT 2250,
+  wgm_performance INTEGER NOT NULL DEFAULT 2400
 );
