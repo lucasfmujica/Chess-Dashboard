@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { initialGames, playerInfo as initialPlayerInfo, initialOpenings } from '../data/initialGames';
+import { initialGames, playerInfo as initialPlayerInfo } from '../data/initialGames';
 import { useGameStats } from '../hooks/useGameStats';
 import { useTrendsAndAnalytics } from '../hooks/useTrendsAndAnalytics';
 import { useRepertoireAnalysis } from '../hooks/useRepertoireAnalysis';
@@ -24,7 +24,7 @@ import {
   postAnalysis,
   postMigrate,
 } from '../api/client';
-import type { Game, PlayerInfo, Repertoire, UpcomingTournament, AnnotatedGame, OpeningCard } from '../types/chess';
+import type { Game, PlayerInfo, Repertoire, UpcomingTournament, AnnotatedGame } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { WeeklyPlans } from '../types/training';
 import type { GameFilter } from './UIContext';
@@ -123,7 +123,6 @@ const readLegacyLocalStorage = () => {
     mainRepertoire: parse<Repertoire>('chess-dashboard-main-repertoire'),
     openingHeroes: parse<Record<string, string[]>>('chess-dashboard-opening-heroes'),
     annotatedGames: parse<AnnotatedGame[]>('chessDashboard_annotatedGames'),
-    openingFlashcards: parse<OpeningCard[]>('chessDashboard_openings') ?? initialOpenings,
   };
 };
 
@@ -201,7 +200,6 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
             mainRepertoire: legacy.mainRepertoire,
             openingHeroes: legacy.openingHeroes,
             annotatedGames: legacy.annotatedGames,
-            openingFlashcards: legacy.openingFlashcards,
             playerInfo: initialPlayerInfo,
           });
           safeSetItem(MIGRATION_FLAG_KEY, '1');

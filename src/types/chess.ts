@@ -191,27 +191,6 @@ export interface AnnotatedGame {
   pgn?: string;
 }
 
-/** Color the opening is played as. */
-export type OpeningColor = 'white' | 'black';
-
-/** Difficulty bucket for an opening flashcard. */
-export type OpeningDifficulty = 'beginner' | 'intermediate' | 'advanced';
-
-/** A trainable opening flashcard with spaced-repetition metadata. */
-export interface OpeningCard {
-  id: string;
-  name: string;
-  moves: string;
-  fen: string;
-  color: OpeningColor;
-  difficulty: OpeningDifficulty;
-  reviewCount: number;
-  lastReviewed: number | null;
-  nextReview: number;
-  successRate: number;
-  totalAttempts: number;
-}
-
 /** A prepared opening line for tournament study — plan, trap and review notes. */
 export interface RepertoireLine {
   id: string;

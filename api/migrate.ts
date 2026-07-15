@@ -21,18 +21,6 @@ interface MigratePayload {
     keyMoments?: unknown[];
     pgn?: string;
   }>;
-  openingFlashcards?: Array<{
-    name: string;
-    moves: string;
-    fen: string;
-    color: string;
-    difficulty: string;
-    reviewCount: number;
-    lastReviewed: number | null;
-    nextReview: number;
-    successRate: number;
-    totalAttempts: number;
-  }>;
   playerInfo?: {
     current_elo: number;
     elo_change_last_tournament?: number;
@@ -63,7 +51,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const payload = req.body as MigratePayload;
   let gamesInserted = 0;
   let annotationsInserted = 0;
-  let flashcardsInserted = 0;
 
   for (const game of payload.games ?? []) {
     const playedDate = game.date ?? parsePgnDate(game.pgn);
@@ -114,20 +101,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     annotationsInserted++;
   }
 
-  for (const c of payload.openingFlashcards ?? []) {
-    await sql`
-      INSERT INTO opening_flashcards (
-        name, moves, fen, color, difficulty, review_count, last_reviewed, next_review,
-        success_rate, total_attempts
-      ) VALUES (
-        ${c.name}, ${c.moves}, ${c.fen}, ${c.color}, ${c.difficulty}, ${c.reviewCount},
-        ${c.lastReviewed ? new Date(c.lastReviewed).toISOString() : null},
-        ${new Date(c.nextReview).toISOString()}, ${c.successRate}, ${c.totalAttempts}
-      )
-    `;
-    flashcardsInserted++;
-  }
-
   if (payload.playerInfo) {
     await sql`
       INSERT INTO profile (id, current_elo, elo_change_last_tournament, last_tournament, updated_at)
@@ -145,6 +118,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     migrated: true,
     gamesInserted,
     annotationsInserted,
-    flashcardsInserted,
   });
 }

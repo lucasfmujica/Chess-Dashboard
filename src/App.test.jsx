@@ -28,8 +28,6 @@ vi.mock('./api/client', () => ({
   postAnnotation: vi.fn(),
   putAnnotation: vi.fn(),
   deleteAnnotation: vi.fn(),
-  fetchFlashcards: vi.fn().mockResolvedValue([]),
-  putFlashcards: vi.fn(),
   postMigrate: vi.fn().mockResolvedValue({ migrated: false }),
 }));
 
