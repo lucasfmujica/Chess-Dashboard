@@ -6,6 +6,19 @@ import { fensFromPgn } from '../utils/chessReplay';
 import { nudgeConfidence } from '../utils/srs';
 import { useGames } from '../context/GamesContext';
 import type { BlunderDrill } from '../types/blunders';
+import type { Game } from '../types/chess';
+
+/**
+ * A cached analysis is only mineable if it has `bestMoveUci` (added after the
+ * initial ship of blunder mining) — older cached analyses predate that field
+ * and would otherwise be silently treated as "done" forever, even though they
+ * can never produce a drill. Treat those as still-pending so re-running
+ * analysis picks them up and backfills the field.
+ */
+const isMinable = (game: Game): boolean => {
+  const analysis = getCachedAnalysis(game.pgn);
+  return !!analysis && analysis.moves.some(m => !!m.bestMoveUci);
+};
 
 export interface AnalyzeBatchState {
   done: number;
@@ -57,7 +70,7 @@ export const useBlunderDrills = (): UseBlunderDrills => {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const pendingAnalysisCount = useMemo(
-    () => games.filter(g => g.pgn && fensFromPgn(g.pgn).length > 1 && !getCachedAnalysis(g.pgn)).length,
+    () => games.filter(g => g.pgn && fensFromPgn(g.pgn).length > 1 && !isMinable(g)).length,
     [games]
   );
 
@@ -79,7 +92,7 @@ export const useBlunderDrills = (): UseBlunderDrills => {
 
   const analyzeAndMine = useCallback(async () => {
     setError(null);
-    const list = games.filter(g => g.pgn && fensFromPgn(g.pgn).length > 1 && !getCachedAnalysis(g.pgn));
+    const list = games.filter(g => g.pgn && fensFromPgn(g.pgn).length > 1 && !isMinable(g));
 
     if (list.length > 0) {
       const controller = new AbortController();
