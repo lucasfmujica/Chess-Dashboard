@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import {
   PencilSquareIcon,
   CheckCircleIcon,
@@ -120,18 +122,17 @@ const CalculationExercise = ({
   if (!revealed) {
     return (
       <div className="space-y-4">
-        <div className="rounded-lg overflow-hidden border border-hairline">
+        <BoardFrame>
           <Chessboard
             options={{
               position: fen,
               boardOrientation: orientation,
               allowDragging: false,
               showNotation: true,
-              lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-              darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+              ...boardSquareStyles,
             }}
           />
-        </div>
+        </BoardFrame>
 
         <ThinkTimer startedAt={startedAt} />
 

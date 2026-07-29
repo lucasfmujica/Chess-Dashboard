@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from '../boardTheme';
+import BoardFrame from '../BoardFrame';
 import {
   ArrowsUpDownIcon,
   ChevronLeftIcon,
@@ -79,33 +81,53 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
   const evalLabel = isMate ? '#' : (Math.abs(currentEval) / 100).toFixed(1);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-5 xl:h-full">
-      <div className="flex flex-col items-center justify-center xl:h-full flex-shrink-0">
-        <div className="flex gap-2 w-full xl:w-auto">
-          {/* Eval bar */}
-          <div
-            className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900 flex-shrink-0"
-            title={
-              evalAvailable
-                ? `Evaluation ${formatEval(currentEval)} (White's perspective)`
-                : 'Turn on the engine to see the evaluation'
-            }
-          >
+    /* Two declared tracks: the board takes what's left after the notes column,
+       and `.board-frame` caps it at the window height. This replaced a
+       `xl:w-[min(700px,calc(100vw-972px))]`, where 972 was the sidebar, the
+       page padding, the chapter list and the gaps added up by hand — so the
+       board never grew when the sidebar was collapsed, and the notes column
+       was whatever happened to be left (~224px on most screens). */
+    <div
+      className="flex flex-col gap-5 xl:grid xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(340px,1fr)] xl:h-full"
+      style={
+        {
+          '--board-fit': 'calc(100dvh - 240px)',
+          // Widen the track by the eval bar only while it is on screen, so
+          // toggling the engine moves the bar in beside the board instead of
+          // resizing the board itself.
+          '--board-gutter': engineOn ? '36px' : '0px',
+        } as CSSProperties
+      }
+    >
+      <div className="flex flex-col items-center justify-start xl:h-full min-w-0">
+        <div className="flex justify-center gap-2 w-full">
+          {/* Eval bar — only with the engine running. Off, it was a black
+              column glued to the board that said nothing. */}
+          {engineOn && (
             <div
-              className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
-              style={flipped ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
-            />
-            {evalAvailable && (
-              <span
-                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-zinc-900' : 'text-zinc-100'}`}
-                style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
-              >
-                {evalLabel}
-              </span>
-            )}
-          </div>
+              className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900 flex-shrink-0"
+              title={
+                evalAvailable
+                  ? `Evaluation ${formatEval(currentEval)} (White's perspective)`
+                  : 'Waiting for the engine…'
+              }
+            >
+              <div
+                className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
+                style={flipped ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
+              />
+              {evalAvailable && (
+                <span
+                  className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-zinc-900' : 'text-zinc-100'}`}
+                  style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
+                >
+                  {evalLabel}
+                </span>
+              )}
+            </div>
+          )}
 
-          <div className="aspect-square flex-1 xl:flex-none xl:w-[min(700px,calc(100vw-972px))] rounded-lg overflow-hidden border border-hairline">
+          <BoardFrame className="flex-1 min-w-0">
             <Chessboard
               options={{
                 position: nav.fen,
@@ -113,11 +135,10 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
                 allowDragging: false,
                 showNotation: true,
                 animationDurationInMs: 150,
-                lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-                darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+                ...boardSquareStyles,
               }}
             />
-          </div>
+          </BoardFrame>
         </div>
 
         <div className="mt-3 flex-shrink-0 flex items-center justify-center gap-2">
@@ -145,7 +166,7 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
         <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col xl:h-full">
+      <div className="min-w-0 flex flex-col xl:h-full">
         <div className="flex-shrink-0">
           <h3 className="text-h3 text-fg">{header.chapterName}</h3>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-muted">

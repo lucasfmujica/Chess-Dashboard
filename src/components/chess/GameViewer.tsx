@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import { Chess } from 'chess.js';
 import type { Square } from 'chess.js';
 import {
@@ -269,13 +271,28 @@ const GameViewer = ({
     );
   };
 
+  // In `wide` mode (the Analysis Board) the board gets its own capped grid
+  // track and the analysis panel absorbs the rest; the modal and inline
+  // viewers keep a fixed board column beside a fluid panel.
   return (
-    <div className="flex flex-col lg:flex-row gap-5">
-      {/* Board + eval bar + controls */}
-      <div
-        className={`w-full flex-shrink-0 ${wide ? 'lg:w-[460px] xl:w-[540px] 2xl:w-[620px]' : 'lg:w-[460px]'}`}
-      >
-        <div className="flex gap-2">
+    <div
+      className={
+        wide
+          ? 'grid gap-5 xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(380px,1fr)]'
+          : 'flex flex-col xl:flex-row gap-5'
+      }
+      style={
+        {
+          '--board-fit': 'calc(100dvh - 260px)',
+          // The eval bar shares the track with the board, so the track has to
+          // be that much wider for the board itself to end up the size the
+          // user dragged it to.
+          '--board-gutter': '36px',
+        } as CSSProperties
+      }
+    >
+      <div className={`w-full min-w-0 ${wide ? '' : 'xl:w-[520px] xl:flex-shrink-0'}`}>
+        <div className="flex justify-center gap-2">
           {/* Eval bar */}
           {/* Eval bar — black/white sides are semantic (not theme-driven), so
               use zinc-* which the dark-mode compatibility layer never remaps. */}
@@ -301,7 +318,7 @@ const GameViewer = ({
             )}
           </div>
 
-          <div className="relative flex-1 rounded-lg overflow-hidden border border-hairline">
+          <BoardFrame className="flex-1 min-w-0">
             <Chessboard
               options={{
                 position: fen,
@@ -311,8 +328,7 @@ const GameViewer = ({
                 animationDurationInMs: 150,
                 arrows,
                 squareStyles,
-                lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-                darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+                ...boardSquareStyles,
                 onSquareClick: handleSquareClick,
                 onPieceDrop: ({ sourceSquare, targetSquare }) => {
                   if (!targetSquare) return false;
@@ -351,7 +367,7 @@ const GameViewer = ({
                 </div>
               </div>
             )}
-          </div>
+          </BoardFrame>
         </div>
 
         {/* Controls */}
@@ -396,7 +412,7 @@ const GameViewer = ({
       </div>
 
       {/* Right column: analysis, engine, compare, eval graph, move list */}
-      <div className={`flex-1 min-w-0 space-y-3 ${wide ? 'xl:max-w-[640px]' : ''}`}>
+      <div className={`min-w-0 space-y-3 ${wide ? '' : 'flex-1'}`}>
         {(white || black) && (
           <div className="text-sm">
             <span className="font-semibold text-fg">{white || 'White'}</span>

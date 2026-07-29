@@ -54,7 +54,7 @@ export const GameViewerProvider = ({ children }: { children: ReactNode }) => {
           aria-label="Game replay"
         >
           <div
-            className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-xl border border-hairline bg-surface shadow-2xl"
+            className="w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-xl border border-hairline bg-surface shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-3 border-b border-hairline">

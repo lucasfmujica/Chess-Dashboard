@@ -1,11 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import { fetchTrainingSessions, fetchAnnotations } from '../../../../api/client';
+import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
+import {
+  fetchTrainingSessions,
+  fetchAnnotations,
+  postTrainingSession,
+  deleteTrainingSession,
+} from '../../../../api/client';
 import {
   trainingProgram,
   trainingDays,
@@ -18,7 +24,7 @@ import { localDateKey, daysAgoKey, dateFromKey } from '../../../../utils/localDa
 import { useGames } from '../../../../context/GamesContext';
 import { Card, Badge, Button } from '../../../ui';
 import ReflectionHistory from './ReflectionHistory';
-import type { TrainingSession } from '../../../../types/training';
+import type { TrainingBlock, TrainingSession } from '../../../../types/training';
 import type { AnnotatedGame } from '../../../../types/chess';
 
 /**
@@ -73,11 +79,11 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
   const [weekStart, setWeekStart] = useState(thisMonday);
   const isCurrentWeek = weekStart === thisMonday;
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     setLoading(true);
     // The sessions endpoint takes a `since` date, so a past week is fetched
     // from its own Monday and then filtered to the seven days below.
-    Promise.all([fetchTrainingSessions(weekStart), fetchAnnotations()])
+    return Promise.all([fetchTrainingSessions(weekStart), fetchAnnotations()])
       .then(([s, a]) => {
         setSessions(s);
         setAnnotations(a);
@@ -85,6 +91,56 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
       .catch(err => console.error('Failed to load week program data', err))
       .finally(() => setLoading(false));
   }, [weekStart]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  /**
+   * Tick a block off by hand.
+   *
+   * Until now the only thing that could write a session was the daily queue,
+   * and it writes exactly one block, taken from its first item. Cross that
+   * against what each day requires and no day of the week could ever be
+   * complete: Martes asks for `lesson` and Jueves/Viernes/Sábado for
+   * play/analysis/concept, none of which the queue can produce, and the
+   * 5-minute Studer tail on Lun/Mié/Vie is a second block the queue never
+   * logs either. Every past day therefore read "sin hacer" no matter what was
+   * actually trained.
+   *
+   * Manual rows are marked `source: 'manual'` and only those can be unticked —
+   * a queue session stands for exercises that were really resolved, and one
+   * stray click should not be able to delete that record.
+   */
+  const [togglingBlock, setTogglingBlock] = useState<string | null>(null);
+
+  const toggleBlock = useCallback(
+    async (
+      dateKey: string,
+      block: TrainingBlock,
+      minutes: number,
+      existing: TrainingSession | undefined
+    ) => {
+      if (existing && existing.source !== 'manual') return;
+      setTogglingBlock(`${dateKey}:${block}`);
+      try {
+        if (existing) {
+          await deleteTrainingSession(existing.id);
+        } else {
+          // The plan's own figure for the block: a hand-ticked block still has
+          // to contribute to the week's minutes, and 0 would silently deflate
+          // the plan-vs-real comparison this whole view exists for.
+          await postTrainingSession({ sessionDate: dateKey, block, minutes, source: 'manual' });
+        }
+        await reload();
+      } catch (err) {
+        console.error('Failed to toggle training block', err);
+      } finally {
+        setTogglingBlock(null);
+      }
+    },
+    [reload]
+  );
 
   /** The week's seven local date keys, Monday first. */
   const weekDays = useMemo(() => {
@@ -180,6 +236,10 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
               )}
             </div>
             <h2 className="text-h2 text-fg mt-1">Plan contra real</h2>
+            <p className="text-xs text-fg-muted mt-1">
+              Tocá un bloque para marcarlo como hecho. Los que registró la cola de ejercicios
+              quedan fijos.
+            </p>
           </div>
           <div className="flex flex-wrap gap-8">
             {/* Blocks first: it is the metric the plan actually grades on. */}
@@ -246,6 +306,17 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
           const isPast = dateKey < todayKey;
           const daySessions = weekSessions.filter(s => s.sessionDate === dateKey);
           const doneBlocks = new Set(daySessions.map(s => s.block));
+          // The row backing each tick, so the toggle knows what to delete and
+          // whether it may (only `source: 'manual'` rows are removable here).
+          const sessionByBlock = new Map(daySessions.map(s => [s.block, s]));
+          // A session row is per (day, block), but a day can prescribe the same
+          // block twice — Miércoles has two `endgame` entries. Ticking either
+          // one logs the block's whole planned time for the day, so the minutes
+          // don't come out short.
+          const blockMinutes = day.blocks.reduce<Record<string, number>>((acc, b) => {
+            acc[b.block] = (acc[b.block] ?? 0) + b.minutes;
+            return acc;
+          }, {});
           const required = blocksForDay(day);
           // Vacuously true on the rest day, which is the wanted reading:
           // nothing was required, so nothing is outstanding.
@@ -271,21 +342,47 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
 
               <p className="text-sm text-accent mt-2">{day.focus}</p>
 
-              <ul className="mt-3 space-y-2">
-                {day.blocks.map((block, i) => (
-                  <li key={i} className="flex gap-2 text-sm">
-                    <span
-                      className={`shrink-0 nums w-12 ${
-                        doneBlocks.has(block.block) ? 'text-win' : 'text-fg-subtle'
-                      }`}
-                    >
-                      {block.minutes}m
-                    </span>
-                    <span className={doneBlocks.has(block.block) ? 'text-fg' : 'text-fg-muted'}>
-                      {block.label}
-                    </span>
-                  </li>
-                ))}
+              <ul className="mt-3 space-y-1">
+                {day.blocks.map((block, i) => {
+                  const session = sessionByBlock.get(block.block);
+                  const isDone = session !== undefined;
+                  // A queue session is evidence of exercises actually resolved;
+                  // it is shown as done but cannot be unticked from here.
+                  const locked = isDone && session.source !== 'manual';
+                  const busy = togglingBlock === `${dateKey}:${block.block}`;
+                  return (
+                    <li key={i}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void toggleBlock(dateKey, block.block, blockMinutes[block.block], session)
+                        }
+                        disabled={locked || busy}
+                        aria-pressed={isDone}
+                        title={
+                          locked
+                            ? 'Registrado por la cola de ejercicios'
+                            : isDone
+                              ? 'Desmarcar este bloque'
+                              : 'Marcar este bloque como hecho'
+                        }
+                        className={`flex w-full items-start gap-2 rounded-md px-1.5 py-1 -mx-1.5 text-left text-sm transition-colors ${
+                          locked ? 'cursor-default' : 'hover:bg-surface-2'
+                        } ${busy ? 'opacity-50' : ''}`}
+                      >
+                        {isDone ? (
+                          <CheckCircleIconSolid className="mt-0.5 w-4 h-4 shrink-0 text-win" />
+                        ) : (
+                          <span className="mt-0.5 w-4 h-4 shrink-0 rounded-[4px] border border-hairline" />
+                        )}
+                        <span className={`shrink-0 nums w-10 ${isDone ? 'text-win' : 'text-fg-subtle'}`}>
+                          {block.minutes}m
+                        </span>
+                        <span className={isDone ? 'text-fg' : 'text-fg-muted'}>{block.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
 
               {dayMinutes > 0 && (

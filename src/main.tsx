@@ -11,6 +11,7 @@ import { UIProvider } from './context/UIContext';
 import { GameViewerProvider } from './context/GameViewerContext';
 import reportWebVitals from './reportWebVitals';
 import { reloadOnceForStaleChunk } from './utils/staleChunkRecovery';
+import { restoreBoardSize } from './components/chess/boardSize';
 
 // Vite fires this when a lazy `import()` chunk fails to load — typically because
 // a new deployment went live while this tab was open, so the old chunk's hashed
@@ -19,6 +20,10 @@ import { reloadOnceForStaleChunk } from './utils/staleChunkRecovery';
 window.addEventListener('vite:preloadError', () => {
   reloadOnceForStaleChunk();
 });
+
+// Apply the board size the user dragged to, before first paint — otherwise
+// every board renders at the automatic fit and then jumps.
+restoreBoardSize();
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(

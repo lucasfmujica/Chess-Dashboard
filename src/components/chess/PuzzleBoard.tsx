@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import { Chess } from 'chess.js';
 import type { Square } from 'chess.js';
 import {
@@ -526,7 +528,7 @@ const PuzzleBoard = ({
 
   return (
     <div>
-      <div className="rounded-lg overflow-hidden border border-hairline">
+      <BoardFrame>
         <Chessboard
           options={{
             position,
@@ -536,8 +538,7 @@ const PuzzleBoard = ({
             animationDurationInMs: 150,
             arrows,
             squareStyles,
-            lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-            darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+            ...boardSquareStyles,
             onSquareClick: handleSquareClick,
             onPieceDrop: ({ sourceSquare, targetSquare }) => {
               if (!targetSquare) return false;
@@ -545,7 +546,7 @@ const PuzzleBoard = ({
             },
           }}
         />
-      </div>
+      </BoardFrame>
 
       {showEval && (
         <div className="mt-3">

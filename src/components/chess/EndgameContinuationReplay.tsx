@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { useGames } from '../../context/GamesContext';
 import { parsePgn } from '../../hooks/useGameReplay';
@@ -44,18 +46,17 @@ const EndgameContinuationReplay = ({ gameId, fromPly, orientation }: EndgameCont
 
   return (
     <div>
-      <div className="rounded-lg overflow-hidden border border-hairline">
+      <BoardFrame>
         <Chessboard
           options={{
             position: fen,
             boardOrientation: orientation,
             allowDragging: false,
             showNotation: true,
-            lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-            darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+            ...boardSquareStyles,
           }}
         />
-      </div>
+      </BoardFrame>
       <div className="mt-3 flex items-center justify-center gap-3">
         <button
           onClick={() => setOffset(o => Math.max(0, o - 1))}

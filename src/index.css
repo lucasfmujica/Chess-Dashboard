@@ -45,10 +45,19 @@
     --draw: 217 119 6;
     --loss: 225 29 72;
 
-    /* Chessboard — warm neutral squares, accent for highlights */
-    --board-light: 235 232 226;
-    --board-dark: 168 168 160;
-    --board-highlight: 16 185 129;
+    /* Chessboard — the Lichess green. Deliberately identical in both themes:
+       the board is the one surface where contrast beats theme consistency,
+       and a board that changes colour with the app is a board you have to
+       re-read every time. --board-highlight is lime rather than the app's
+       emerald because emerald disappears into the dark squares. */
+    --board-light: 237 238 209;   /* #EDEED1 */
+    --board-dark: 119 149 86;     /* #779556 */
+    --board-highlight: 155 199 0; /* #9BC700 */
+
+    /* Width the board shares its column with — an eval bar plus its gap on
+       the pages that have one, zero everywhere else. See index.css's board
+       sizing section and components/chess/boardSize.ts. */
+    --board-gutter: 0px;
 
     /* Categorical palette for multi-series charts (theme-aware) */
     --cat-1: 16 185 129;   /* emerald */
@@ -77,10 +86,10 @@
     --draw: 251 191 36;
     --loss: 251 113 133;
 
-    /* Chessboard — muted squares tuned for dark surfaces */
-    --board-light: 120 118 112;
-    --board-dark: 74 73 69;
-    --board-highlight: 52 211 153;
+    /* Chessboard — same green as light mode, on purpose. See :root above. */
+    --board-light: 237 238 209;
+    --board-dark: 119 149 86;
+    --board-highlight: 155 199 0;
 
     --cat-1: 52 211 153;
     --cat-2: 96 165 250;
@@ -159,6 +168,49 @@
   .nums {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
+  }
+}
+
+/* ============================================================
+   Chessboard sizing — the one place that decides how big a
+   board is.
+
+   Every board used to hardcode its own column width (420px in
+   Drills and Hoy, 460/540/620 in the analysis viewer, and a
+   `calc(100vw - 972px)` in the study reader that summed the
+   sidebar, the page padding and the chapter list by hand — and
+   so broke the moment the sidebar was collapsed). None of them
+   looked at the window height, which is what actually limits a
+   square board on a wide screen.
+
+   The rule here is Lichess's: a board is as wide as its column
+   allows, but never taller than the window minus the chrome
+   that has to stay visible next to it. Each page declares that
+   as a `--board-fit: calc(100dvh - Npx)` on a grid track, so
+   nothing depends on the viewport *width* any more —
+   collapsing the sidebar simply gives the board more room.
+
+   Dragging a board's corner handle sets `--board-user` on the
+   document element, which overrides that fit on every page at
+   once (see components/chess/boardSize.ts). The column width
+   still wins over both, so a board can never overflow its
+   column no matter how far you drag.
+   ============================================================ */
+@layer components {
+  /* The board just fills its column. The *column* is what carries the size
+     limit, as a `minmax(0, var(--board-user, var(--board-fit)))` grid track on
+     each page — that way the leftover width goes to the side panel instead of
+     becoming dead space around a centred board. */
+  .board-frame {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* react-chessboard ships the Cburnett SVGs — the same set Lichess
+     uses — but renders them flat. The shadow is what makes a piece
+     read as sitting on the square rather than printed into it. */
+  .board-frame svg {
+    filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.35));
   }
 }
 

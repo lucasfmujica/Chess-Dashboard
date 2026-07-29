@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import { Chess } from 'chess.js';
 import { ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
 import { useRivalMoves } from '../../hooks/useMyRepertoireMoves';
@@ -77,20 +79,22 @@ const OpponentExplorerBoard = ({ rivalGames, rivalName }: OpponentExplorerBoardP
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-col lg:flex-row gap-5">
-        <div className="w-full lg:w-[420px] flex-shrink-0 space-y-3">
-          <div className="rounded-lg overflow-hidden border border-hairline">
+      <div
+        className="grid gap-5 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(360px,1fr)]"
+        style={{ '--board-fit': 'calc(100dvh - 320px)' } as CSSProperties}
+      >
+        <div className="min-w-0 space-y-3">
+          <BoardFrame>
             <Chessboard
               options={{
                 position: fen,
                 boardOrientation,
                 allowDragging: false,
                 showNotation: true,
-                lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-                darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+                ...boardSquareStyles,
               }}
             />
-          </div>
+          </BoardFrame>
           <div className="flex items-center gap-2">
             <Button variant="secondary" icon={ArrowUturnLeftIcon} onClick={goBack} disabled={history.length === 0}>
               Back
@@ -101,7 +105,7 @@ const OpponentExplorerBoard = ({ rivalGames, rivalName }: OpponentExplorerBoardP
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 space-y-3">
+        <div className="min-w-0 space-y-3">
           <SegmentedControl
             aria-label="Rival color"
             value={color}

@@ -32,7 +32,13 @@ const RepertoireStudyTab = () => {
   const chapter = chapters[index];
 
   return (
-    <div className="flex flex-col xl:flex-row gap-5 xl:h-[calc(100vh-160px)]">
+    /* Declared tracks rather than nested flex: the chapter list is a fixed
+       column and the reader gets everything else. The height subtracts the
+       real chrome (page header + the hub's segmented control + py-8), which
+       the old `100vh-160px` under-counted by enough to make the page scroll
+       on top of the panes' own scrolling. The mobile dropdown above is
+       `xl:hidden`, so it claims no grid cell. */
+    <div className="flex flex-col gap-5 xl:grid xl:grid-cols-[300px_minmax(0,1fr)] xl:h-[calc(100dvh-220px)]">
       <div className="xl:hidden">
         <button
           onClick={() => setMobileListOpen(o => !o)}
@@ -57,11 +63,11 @@ const RepertoireStudyTab = () => {
         )}
       </div>
 
-      <div className="hidden xl:block w-80 flex-shrink-0 xl:h-full overflow-y-auto">
+      <div className="hidden xl:block xl:h-full overflow-y-auto">
         <StudyChapterList chapters={chapters} selectedIndex={index} onSelect={setSelectedIndex} />
       </div>
 
-      <div className="flex-1 min-w-0 xl:h-full">
+      <div className="min-w-0 xl:h-full">
         <StudyChapterReader chapter={chapter} />
       </div>
     </div>

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from './boardTheme';
+import BoardFrame from './BoardFrame';
 import { Chess } from 'chess.js';
 import type { Square } from 'chess.js';
 import { FlagIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
@@ -239,7 +241,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
 
   return (
     <div>
-      <div className="rounded-lg overflow-hidden border border-hairline">
+      <BoardFrame>
         <Chessboard
           options={{
             position,
@@ -248,8 +250,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
             showNotation: true,
             animationDurationInMs: 150,
             squareStyles,
-            lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-            darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+            ...boardSquareStyles,
             onSquareClick: handleSquareClick,
             onPieceDrop: ({ sourceSquare, targetSquare }) => {
               if (!targetSquare) return false;
@@ -257,7 +258,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
             },
           }}
         />
-      </div>
+      </BoardFrame>
 
       {pendingPromotion && (
         <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">

@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from '../boardTheme';
+import BoardFrame from '../BoardFrame';
 import { Chess } from 'chess.js';
 import {
   ExclamationTriangleIcon,
@@ -328,8 +330,14 @@ const BlunderDrillsTab = () => {
             </div>
           </div>
 
-          <div className="p-6 flex flex-col lg:flex-row gap-6">
-            <div className="w-full lg:w-[420px] flex-shrink-0">
+          {/* Board track first, capped at the window height; the panel track
+              absorbs whatever is left, so a height-limited board never leaves
+              dead space beside it. See index.css. */}
+          <div
+            className="p-6 grid gap-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(360px,1fr)]"
+            style={{ '--board-fit': 'calc(100dvh - 240px)' } as CSSProperties}
+          >
+            <div className="min-w-0">
               {mode === 'calculo' ? (
                 <CalculationExercise
                   fen={current.fenBefore}
@@ -388,7 +396,7 @@ const BlunderDrillsTab = () => {
                   }
                 />
               ) : (
-                <div className="rounded-lg overflow-hidden border border-hairline">
+                <BoardFrame>
                   <Chessboard
                     options={{
                       position: current.fenBefore,
@@ -396,15 +404,14 @@ const BlunderDrillsTab = () => {
                       allowDragging: false,
                       showNotation: true,
                       arrows: reviewArrows,
-                      lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-                      darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+                      ...boardSquareStyles,
                     }}
                   />
-                </div>
+                </BoardFrame>
               )}
             </div>
 
-            <div className="flex-1 min-w-0 space-y-4">
+            <div className="min-w-0 space-y-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="neutral"><PieceLabel color={current.game.color} /></Badge>
                 {current.game.eco && <Badge tone="neutral">{current.game.eco}</Badge>}

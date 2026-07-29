@@ -1,5 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from '../../boardTheme';
+import BoardFrame from '../../BoardFrame';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -61,6 +63,7 @@ const TodayQueue = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const attemptsRef = useRef<PendingAttempt[]>([]);
   const sessionIdRef = useRef<string | null>(null);
@@ -81,8 +84,17 @@ const TodayQueue = () => {
 
   const current = items[index];
 
-  /** Create the session row lazily, on the first resolved item. */
-  const ensureSession = useCallback(async (): Promise<string | null> => {
+  /**
+   * Create the session row lazily: on the first resolved item, or — on a day
+   * with no queue at all — when the day is marked done by hand.
+   *
+   * `throwOnError` separates the two callers. Mid-drill a logging failure must
+   * not interrupt training, so it stays silent. From the "mark the day as
+   * done" button there is nothing else to show for the click, and swallowing
+   * the error there is how a day that *was* trained kept reading as "sin
+   * hacer" in the week view.
+   */
+  const ensureSession = useCallback(async (throwOnError = false): Promise<string | null> => {
     if (sessionIdRef.current) return sessionIdRef.current;
     startedAtRef.current = Date.now();
     try {
@@ -90,17 +102,21 @@ const TodayQueue = () => {
         // Always send the local day: the server default is CURRENT_DATE, which
         // is UTC and rolls over mid-evening in this timezone.
         sessionDate: dayKey,
-        block: KIND_BLOCK[items[0]?.kind ?? 'blunder'],
+        // With a queue the block is whatever is being drilled. Without one
+        // (Martes, Jueves, Viernes) the program's own first block is what the
+        // day actually was — defaulting to 'blunder' logged a lie.
+        block: items[0] ? KIND_BLOCK[items[0].kind] : program.blocks[0].block,
         source: 'daily-queue',
       });
       sessionIdRef.current = session.id;
       return session.id;
-    } catch {
-      // A logging failure must not block training. The attempt is still
-      // recorded against a null session and the SRS write already happened.
+    } catch (err) {
+      if (throwOnError) throw err;
+      // The attempt is still recorded against a null session and the SRS
+      // write already happened.
       return null;
     }
-  }, [dayKey, items]);
+  }, [dayKey, items, program]);
 
   const advance = useCallback(() => {
     setIndex(i => i + 1);
@@ -167,16 +183,25 @@ const TodayQueue = () => {
 
   const finish = useCallback(async () => {
     setSaving(true);
+    setSaveError(null);
+    // Whether anything was actually drilled decides where the minutes come
+    // from: a measured elapsed time, or the plan's own figure for the day.
+    const drilled = sessionIdRef.current !== null;
     try {
       const attempts = attemptsRef.current;
       if (attempts.length > 0) {
         await postTrainingAttempts(attempts);
       }
-      if (sessionIdRef.current) {
-        const minutes = startedAtRef.current
+      // Not `if (sessionIdRef.current)`. On a day with no queue nothing has
+      // created the row yet, and that guard is exactly what made "Marcar el
+      // día como hecho" a no-op that still announced "Sesión guardada".
+      const sessionId = await ensureSession(true);
+      const minutes =
+        drilled && startedAtRef.current
           ? Math.max(1, Math.round((Date.now() - startedAtRef.current) / 60000))
-          : 0;
-        await putTrainingSession(sessionIdRef.current, {
+          : plannedMinutes(program);
+      if (sessionId) {
+        await putTrainingSession(sessionId, {
           minutes,
           attempted: attempts.length,
           solved: attempts.filter(a => a.correct).length,
@@ -186,11 +211,11 @@ const TodayQueue = () => {
       setFinished(true);
     } catch (err) {
       console.error('Failed to save training session', err);
-      setFinished(true);
+      setSaveError('No se pudo guardar la sesión. Revisá la conexión y probá de nuevo.');
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [ensureSession, program]);
 
   const total = items.length;
   const allResolved = index >= total;
@@ -299,8 +324,9 @@ const TodayQueue = () => {
           </p>
           <div className="mt-4">
             <Button onClick={() => void finish()} disabled={saving}>
-              Marcar el día como hecho
+              {saving ? 'Guardando…' : 'Marcar el día como hecho'}
             </Button>
+            {saveError && <p className="mt-2 text-sm text-loss">{saveError}</p>}
           </div>
         </Card>
       ) : allResolved ? (
@@ -313,6 +339,7 @@ const TodayQueue = () => {
             <Button onClick={() => void finish()} disabled={saving}>
               {saving ? 'Guardando…' : 'Terminar sesión'}
             </Button>
+            {saveError && <p className="mt-2 text-sm text-loss">{saveError}</p>}
           </div>
         </Card>
       ) : (
@@ -328,8 +355,13 @@ const TodayQueue = () => {
               <QueueItemContext item={current} />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-              <div>
+            {/* The board is the fluid track now and the answer panel the fixed
+                one: this is the view you stare at for half an hour. */}
+            <div
+              className="grid gap-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(320px,1fr)]"
+              style={{ '--board-fit': 'calc(100dvh - 280px)' } as CSSProperties}
+            >
+              <div className="min-w-0">
                 <QueueItemBoard item={current} revealed={revealed} onResult={handleOutcome} />
               </div>
 
@@ -515,18 +547,17 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
 };
 
 const StaticBoard = ({ fen, orientation }: { fen: string; orientation: 'white' | 'black' }) => (
-  <div className="rounded-lg overflow-hidden border border-hairline">
+  <BoardFrame>
     <Chessboard
       options={{
         position: fen,
         boardOrientation: orientation,
         allowDragging: false,
         showNotation: true,
-        lightSquareStyle: { backgroundColor: 'rgb(var(--board-light))' },
-        darkSquareStyle: { backgroundColor: 'rgb(var(--board-dark))' },
+        ...boardSquareStyles,
       }}
     />
-  </div>
+  </BoardFrame>
 );
 
 export default TodayQueue;
