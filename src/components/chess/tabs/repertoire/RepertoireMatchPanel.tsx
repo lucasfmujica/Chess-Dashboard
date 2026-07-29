@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LinkIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../../context/GamesContext';
 import { fetchRepertoireLines, patchGameRepertoireMatches } from '../../../../api/client';
-import { parsePgn } from '../../../../hooks/useGameReplay';
-import { matchRepertoireLine } from '../../../../utils/repertoireMatch';
+import { buildRepertoireMatches } from '../../../../utils/repertoireMatchRun';
 import { Card, Button, Table, THead, TBody, TR, TH, TD } from '../../../ui';
 import type { RepertoireLine } from '../../../../types/chess';
 
@@ -42,22 +41,12 @@ const RepertoireMatchPanel = () => {
     setError(null);
     setResult(null);
     try {
-      const withMoves = games.filter(g => g.pgn && g.id);
-      const matches = withMoves.map(game => {
-        const { sans } = parsePgn(game.pgn);
-        const match = matchRepertoireLine(sans, game.color === 'B' ? 'B' : 'W', lines);
-        return {
-          id: game.id as string,
-          repertoireLineId: match?.lineId ?? null,
-          bookExitPly: match?.exitPly ?? null,
-        };
-      });
+      const { matches, considered, matched } = buildRepertoireMatches(games, lines);
       await patchGameRepertoireMatches(matches);
       // The games held in context still carry the pre-write link, so pull
       // them again before the table below reads them.
       await refetchGames();
-      const matched = matches.filter(m => m.repertoireLineId).length;
-      setResult(`${matched} de ${withMoves.length} partidas vinculadas a una línea.`);
+      setResult(`${matched} de ${considered} partidas vinculadas a una línea.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Matching failed');
     } finally {
