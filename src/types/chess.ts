@@ -57,6 +57,10 @@ export interface Game {
   // Optional location metadata (used by the geography feature)
   city?: string;
   country?: string;
+  /** Prepared line this game followed, set by the repertoire matcher. */
+  repertoireLineId?: string;
+  /** Ply at which the game left that line — how far the preparation held. */
+  bookExitPly?: number;
 }
 
 /** Tracked player's profile/summary info. */
@@ -189,7 +193,30 @@ export interface AnnotatedGame {
   keyMoments?: KeyMoment[];
   /** Optional PGN moves so the game can be replayed/analysed. */
   pgn?: string;
+  /** Link to the `games` row this post-mortem is about, when known. */
+  gameId?: string;
+  /**
+   * Structured post-mortem fields. tags/notes/keyMoments are free text and
+   * can't be aggregated — these are what the Training Log charts, so the
+   * distribution of *why* games are lost comes from records rather than
+   * from memory.
+   */
+  errorType?: AnnotationErrorType;
+  criticalMomentFen?: string;
+  playedMove?: string;
+  bestMove?: string;
+  lesson?: string;
 }
+
+/** Why a game was lost or nearly lost. Mirrors the DB CHECK constraint. */
+export type AnnotationErrorType =
+  | 'candidate-miss'
+  | 'calculation'
+  | 'evaluation'
+  | 'clock'
+  | 'opening'
+  | 'technique'
+  | 'none';
 
 /** A prepared opening line for tournament study — plan, trap and review notes. */
 export interface RepertoireLine {
@@ -214,6 +241,8 @@ export interface RepertoireLine {
   confidence?: number;
   lichessUrl?: string;
   lastReviewed?: number;
+  /** How many times this line has been drilled. Incremented server-side. */
+  reviewCount?: number;
   notes?: string;
 }
 

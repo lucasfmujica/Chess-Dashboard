@@ -12,6 +12,7 @@ export interface RepertoireLineRow {
   confidence: number | null;
   lichess_url: string | null;
   last_reviewed: string | null;
+  review_count: number;
   notes: string | null;
   created_at: string;
 }
@@ -30,6 +31,7 @@ export const rowToRepertoireLine = (row: RepertoireLineRow) => ({
   confidence: row.confidence ?? undefined,
   lichessUrl: row.lichess_url ?? undefined,
   lastReviewed: row.last_reviewed ? new Date(row.last_reviewed).getTime() : undefined,
+  reviewCount: row.review_count ?? 0,
   notes: row.notes ?? undefined,
   createdAt: new Date(row.created_at).getTime(),
 });

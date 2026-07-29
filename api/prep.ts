@@ -4,11 +4,20 @@ import { requireApiKey } from './_auth.js';
 import { rowToBlunderDrill, type BlunderDrillRow } from './_blunderDrillMapper.js';
 import { rowToScoutingTarget, type ScoutingTargetRow } from './_scoutingTargetMapper.js';
 import { rowToEndgameDrill, type EndgameDrillRow } from './_endgameDrillMapper.js';
+import {
+  trainingSessions,
+  trainingAttempts,
+  books,
+  concepts,
+  homework,
+} from './_trainingHandlers.js';
 
 // Several small, unrelated resources (Blunder Drills / Opponent Prep /
-// Endgame Drills / Norm Tracker) merged into one Vercel function — each as
-// its own file would push this project over the Hobby-plan serverless
-// function limit. Dispatches on `?resource=`.
+// Endgame Drills / Norm Tracker / Training log / Concepts) merged into one
+// Vercel function — each as its own file would push this project over the
+// Hobby-plan serverless function limit. Dispatches on `?resource=`. The
+// bulkier training handlers live in _trainingHandlers.ts to keep this file
+// readable; `_`-prefixed modules are not treated as routes.
 
 interface MinedBlunderInput {
   gameId: string;
@@ -27,6 +36,13 @@ interface BlunderDrillPatch {
   reviewCount?: number;
   solvedCount?: number;
   archived?: boolean;
+  // Preferred over the absolute reviewCount/solvedCount above: the counters
+  // are now bumped in SQL, so two screens drilling the same item (the drill
+  // tab and the daily queue) can't clobber each other by both writing a
+  // total derived from their own stale copy. The absolute fields are kept
+  // for compatibility and win when both are sent.
+  reviewCountInc?: number;
+  solvedCountInc?: number;
 }
 
 const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
@@ -38,8 +54,8 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
         UPDATE blunder_drills SET
           confidence = COALESCE(${d.confidence ?? null}, confidence),
           last_reviewed = COALESCE(${d.lastReviewed ? new Date(d.lastReviewed).toISOString() : null}, last_reviewed),
-          review_count = COALESCE(${d.reviewCount ?? null}, review_count),
-          solved_count = COALESCE(${d.solvedCount ?? null}, solved_count),
+          review_count = COALESCE(${d.reviewCount ?? null}, review_count + ${d.reviewCountInc ?? 0}),
+          solved_count = COALESCE(${d.solvedCount ?? null}, solved_count + ${d.solvedCountInc ?? 0}),
           archived = COALESCE(${d.archived ?? null}, archived)
         WHERE id = ${id}
       `;
@@ -176,7 +192,11 @@ interface EndgameDrillPatch {
   confidence?: number;
   lastReviewed?: number;
   reviewCount?: number;
+  solvedCount?: number;
   archived?: boolean;
+  /** See BlunderDrillPatch — server-side increment, preferred over the totals. */
+  reviewCountInc?: number;
+  solvedCountInc?: number;
 }
 
 const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
@@ -188,7 +208,8 @@ const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string
         UPDATE endgame_drills SET
           confidence = COALESCE(${d.confidence ?? null}, confidence),
           last_reviewed = COALESCE(${d.lastReviewed ? new Date(d.lastReviewed).toISOString() : null}, last_reviewed),
-          review_count = COALESCE(${d.reviewCount ?? null}, review_count),
+          review_count = COALESCE(${d.reviewCount ?? null}, review_count + ${d.reviewCountInc ?? 0}),
+          solved_count = COALESCE(${d.solvedCount ?? null}, solved_count + ${d.solvedCountInc ?? 0}),
           archived = COALESCE(${d.archived ?? null}, archived)
         WHERE id = ${id}
       `;
@@ -388,8 +409,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'endgame-drills') return endgameDrills(req, res, itemId);
   if (resource === 'norm-attempts') return normAttempts(req, res, itemId);
   if (resource === 'norm-thresholds') return normThresholds(req, res);
+  if (resource === 'training-sessions') return trainingSessions(req, res, itemId);
+  if (resource === 'training-attempts') return trainingAttempts(req, res, itemId);
+  if (resource === 'books') return books(req, res, itemId);
+  if (resource === 'concepts') return concepts(req, res, itemId);
+  if (resource === 'homework') return homework(req, res, itemId);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, or norm-thresholds)',
+      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, or homework)',
   });
 }

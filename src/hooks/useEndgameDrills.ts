@@ -58,7 +58,9 @@ export const useEndgameDrills = (): UseEndgameDrills => {
       const updated = await putEndgameDrill(id, {
         confidence,
         lastReviewed: Date.now(),
-        reviewCount: current.reviewCount + 1,
+        // Incremented server-side so the daily queue and this tab can't
+        // overwrite each other's count with a stale total.
+        reviewCountInc: 1,
       });
       setDrills(prev => prev.map(d => (d.id === id ? updated : d)));
     },

@@ -10,6 +10,13 @@ import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
 import type { MinedEndgame, EndgameDrill } from '../types/endgames';
 import type { NormAttempt, NormThresholds } from '../types/norms';
+import type {
+  TrainingSession,
+  TrainingAttempt,
+  Book,
+  Concept,
+  Homework,
+} from '../types/training';
 
 const API_KEY = import.meta.env.VITE_API_SECRET as string | undefined;
 
@@ -117,7 +124,13 @@ export const deleteAnnotation = (id: string) =>
 export const fetchRepertoireLines = () => apiFetch<RepertoireLine[]>('/repertoire-lines');
 export const postRepertoireLine = (line: Partial<RepertoireLine>) =>
   apiFetch<RepertoireLine>('/repertoire-lines', { method: 'POST', body: JSON.stringify(line) });
-export const putRepertoireLine = (id: string, line: Partial<RepertoireLine>) =>
+/**
+ * NOTE: this PUT is a *full replace* — every column is set from the body, so
+ * a partial patch nulls plan/goldenRule/notes. Always spread the whole line.
+ * `reviewCountInc` is the exception: it's a server-side delta.
+ */
+export type RepertoireLineWrite = Partial<RepertoireLine> & { reviewCountInc?: number };
+export const putRepertoireLine = (id: string, line: RepertoireLineWrite) =>
   apiFetch<RepertoireLine>(`/repertoire-lines?id=${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(line),
@@ -134,9 +147,17 @@ export const postBlunderDrills = (drills: MinedBlunder[]) =>
 export interface BlunderDrillPatch {
   confidence?: number;
   lastReviewed?: number;
+  archived?: boolean;
+  /**
+   * Counter deltas, applied server-side. Prefer these over absolute totals:
+   * two screens can drill the same item, and a total computed from a stale
+   * local copy silently overwrites the other's increment.
+   */
+  reviewCountInc?: number;
+  solvedCountInc?: number;
+  /** @deprecated Absolute totals — kept for compatibility, prefer the *Inc fields. */
   reviewCount?: number;
   solvedCount?: number;
-  archived?: boolean;
 }
 export const putBlunderDrill = (id: string, patch: BlunderDrillPatch) =>
   apiFetch<BlunderDrill>(`/prep?resource=blunder-drills&id=${encodeURIComponent(id)}`, {
@@ -165,8 +186,13 @@ export const postEndgameDrills = (drills: MinedEndgame[]) =>
 export interface EndgameDrillPatch {
   confidence?: number;
   lastReviewed?: number;
-  reviewCount?: number;
   archived?: boolean;
+  /** See BlunderDrillPatch — server-side counter deltas. */
+  reviewCountInc?: number;
+  solvedCountInc?: number;
+  /** @deprecated Absolute totals — kept for compatibility, prefer the *Inc fields. */
+  reviewCount?: number;
+  solvedCount?: number;
 }
 export const putEndgameDrill = (id: string, patch: EndgameDrillPatch) =>
   apiFetch<EndgameDrill>(`/prep?resource=endgame-drills&id=${encodeURIComponent(id)}`, {
@@ -190,6 +216,89 @@ export const deleteNormAttempt = (id: string) =>
 export const fetchNormThresholds = () => apiFetch<NormThresholds>('/prep?resource=norm-thresholds');
 export const putNormThresholds = (thresholds: NormThresholds) =>
   apiFetch<NormThresholds>('/prep?resource=norm-thresholds', { method: 'PUT', body: JSON.stringify(thresholds) });
+
+// Training log: what was actually trained, and why exercises were missed.
+export const fetchTrainingSessions = (from?: string) =>
+  apiFetch<TrainingSession[]>(
+    `/prep?resource=training-sessions${from ? `&from=${encodeURIComponent(from)}` : ''}`
+  );
+export const postTrainingSession = (session: Partial<TrainingSession>) =>
+  apiFetch<TrainingSession>('/prep?resource=training-sessions', {
+    method: 'POST',
+    body: JSON.stringify(session),
+  });
+export const putTrainingSession = (id: string, session: Partial<TrainingSession>) =>
+  apiFetch<TrainingSession>(`/prep?resource=training-sessions&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(session),
+  });
+export const deleteTrainingSession = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=training-sessions&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+export const fetchTrainingAttempts = (from?: string) =>
+  apiFetch<TrainingAttempt[]>(
+    `/prep?resource=training-attempts${from ? `&from=${encodeURIComponent(from)}` : ''}`
+  );
+/** Bulk-only: the daily queue flushes a whole session's attempts at once. */
+export const postTrainingAttempts = (attempts: Partial<TrainingAttempt>[]) =>
+  apiFetch<{ inserted: number }>('/prep?resource=training-attempts', {
+    method: 'POST',
+    body: JSON.stringify(attempts),
+  });
+
+// Books and concepts (the study inventory)
+export const fetchBooks = () => apiFetch<Book[]>('/prep?resource=books');
+/** Accepts one book or many, so a whole library can be pasted in at once. */
+export const postBooks = (books: Partial<Book>[]) =>
+  apiFetch<Book[]>('/prep?resource=books', { method: 'POST', body: JSON.stringify(books) });
+export const putBook = (id: string, book: Partial<Book>) =>
+  apiFetch<Book>(`/prep?resource=books&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(book),
+  });
+export const deleteBook = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=books&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+export const fetchConcepts = () => apiFetch<Concept[]>('/prep?resource=concepts');
+export const postConcept = (concept: Partial<Concept>) =>
+  apiFetch<Concept>('/prep?resource=concepts', { method: 'POST', body: JSON.stringify(concept) });
+export const putConcept = (id: string, concept: Partial<Concept>) =>
+  apiFetch<Concept>(`/prep?resource=concepts&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(concept),
+  });
+export const deleteConcept = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=concepts&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+// Homework assigned in coaching sessions
+export const fetchHomework = () => apiFetch<Homework[]>('/prep?resource=homework');
+/** Accepts one or many, so an importer can push a whole session at once. */
+export const postHomework = (items: Partial<Homework>[]) =>
+  apiFetch<Homework[]>('/prep?resource=homework', {
+    method: 'POST',
+    body: JSON.stringify(items),
+  });
+export const putHomework = (id: string, item: Partial<Homework>) =>
+  apiFetch<Homework>(`/prep?resource=homework&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(item),
+  });
+export const deleteHomework = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=homework&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+/**
+ * Bulk-write the results of matching games against repertoire lines.
+ * One request instead of ~460, since matching runs over the whole game list.
+ */
+export const patchGameRepertoireMatches = (
+  matches: { id: string; repertoireLineId: string | null; bookExitPly: number | null }[]
+) => apiFetch<{ updated: number }>('/games', { method: 'PATCH', body: JSON.stringify(matches) });
 
 // One-time migration
 export interface MigratePayload {

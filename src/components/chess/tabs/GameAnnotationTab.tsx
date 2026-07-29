@@ -11,7 +11,7 @@ import {
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { useModal } from '../../modals/ModalContext';
 import { useGameViewer } from '../../../context/GameViewerContext';
-import type { Game, AnnotatedGame } from '../../../types/chess';
+import type { Game, AnnotatedGame, AnnotationErrorType } from '../../../types/chess';
 import {
   fetchAnnotations,
   postAnnotation,
@@ -27,6 +27,20 @@ interface AnnotationTag {
   icon: string;
 }
 
+/**
+ * The closed set of post-mortem error types. Deliberately short: a list long
+ * enough to describe every game precisely is a list whose counts mean nothing.
+ */
+const ERROR_TYPE_OPTIONS: { value: AnnotationErrorType; label: string }[] = [
+  { value: 'candidate-miss', label: 'Pérdida de candidato — no se me ocurrió' },
+  { value: 'calculation', label: 'Cálculo — la vi y la calculé mal' },
+  { value: 'evaluation', label: 'Evaluación — juzgué mal la posición' },
+  { value: 'clock', label: 'Reloj — apuro de tiempo' },
+  { value: 'opening', label: 'Apertura — salí mal del libro' },
+  { value: 'technique', label: 'Técnica — no convertí' },
+  { value: 'none', label: 'Sin error claro' },
+];
+
 /** A notation symbol definition. */
 interface NotationSymbol {
   symbol: string;
@@ -38,11 +52,25 @@ interface GameAnnotationTabProps {
   games: Game[];
 }
 
-const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
+const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
   const modal = useModal();
   const { openGameViewer } = useGameViewer();
 
   const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>([]);
+
+  /**
+   * Candidates for the "linked game" picker, newest first. Capped because a
+   * 460-entry native select is unusable, and a post-mortem is written about a
+   * recent game — older ones can still be linked by editing the row later.
+   */
+  const linkableGames = useMemo(
+    () =>
+      [...games]
+        .filter(g => g.date)
+        .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
+        .slice(0, 60),
+    [games]
+  );
 
   useEffect(() => {
     fetchAnnotations()
@@ -270,6 +298,115 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
               </div>
             </div>
 
+            {/*
+              Structured post-mortem. The tags/notes/keyMoments fields above
+              are free text and can't be aggregated, so "why do I lose" could
+              only ever be answered from memory. These few constrained fields
+              are what the Training Log charts.
+            */}
+            <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-4">
+              <div>
+                <h4 className="text-sm font-bold text-fg">Post-mortem</h4>
+                <p className="text-xs text-fg-muted mt-0.5">
+                  Un tipo de error y una lección por partida. Esto es lo que después se puede
+                  contar; las notas libres no.
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-bold text-fg mb-2">Tipo de error</label>
+                  <select
+                    value={selectedGame.errorType || ''}
+                    onChange={(e) =>
+                      setSelectedGame({
+                        ...selectedGame,
+                        errorType: (e.target.value || undefined) as AnnotationErrorType | undefined,
+                      })
+                    }
+                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  >
+                    <option value="">Sin clasificar</option>
+                    {ERROR_TYPE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-fg mb-2">Partida vinculada</label>
+                  <select
+                    value={selectedGame.gameId || ''}
+                    onChange={(e) =>
+                      setSelectedGame({ ...selectedGame, gameId: e.target.value || undefined })
+                    }
+                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  >
+                    <option value="">Ninguna</option>
+                    {linkableGames.map(g => (
+                      <option key={g.id} value={g.id}>
+                        vs {g.opp}
+                        {g.date ? ` · ${g.date}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-bold text-fg mb-2">Tu jugada</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Rxd5"
+                    value={selectedGame.playedMove || ''}
+                    onChange={(e) =>
+                      setSelectedGame({ ...selectedGame, playedMove: e.target.value })
+                    }
+                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-fg mb-2">La mejor</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Nf5"
+                    value={selectedGame.bestMove || ''}
+                    onChange={(e) => setSelectedGame({ ...selectedGame, bestMove: e.target.value })}
+                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-fg mb-2">
+                  FEN del momento crítico
+                </label>
+                <input
+                  type="text"
+                  placeholder="Pegá el FEN de la posición donde se decidió"
+                  value={selectedGame.criticalMomentFen || ''}
+                  onChange={(e) =>
+                    setSelectedGame({ ...selectedGame, criticalMomentFen: e.target.value })
+                  }
+                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg font-mono text-sm focus:border-accent focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-fg mb-2">Lección, en una línea</label>
+                <input
+                  type="text"
+                  placeholder="Ej: antes de cambiar en el centro, mirá qué torre queda mal"
+                  value={selectedGame.lesson || ''}
+                  onChange={(e) => setSelectedGame({ ...selectedGame, lesson: e.target.value })}
+                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-bold text-fg mb-2">Personal Rating (1-5 stars)</label>
               <div className="flex gap-2">
@@ -482,6 +619,25 @@ const GameAnnotationTab = ({ games: _games }: GameAnnotationTabProps) => {
                     </button>
                   </div>
                 </div>
+
+                {(annotation.errorType || annotation.lesson) && (
+                  <div className="mb-4 rounded-lg border border-hairline bg-surface-2 p-3">
+                    {annotation.errorType && (
+                      <span className="text-xs font-bold text-accent">
+                        {ERROR_TYPE_OPTIONS.find(o => o.value === annotation.errorType)?.label ??
+                          annotation.errorType}
+                      </span>
+                    )}
+                    {annotation.lesson && (
+                      <p className="text-sm text-fg mt-1">{annotation.lesson}</p>
+                    )}
+                    {(annotation.playedMove || annotation.bestMove) && (
+                      <p className="text-xs text-fg-muted mt-1 font-mono">
+                        {annotation.playedMove ?? '?'} → {annotation.bestMove ?? '?'}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {annotation.tags && annotation.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">

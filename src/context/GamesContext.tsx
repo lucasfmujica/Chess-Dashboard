@@ -54,6 +54,8 @@ interface GamesContextValue {
   importPgnGames: (newGames: Game[]) => Promise<void>;
   addManualGame: (game: Game) => Promise<void>;
   updateGamePgn: (id: string, pgn: string | undefined) => Promise<Game>;
+  /** Reload games from the API — for writes made outside this context. */
+  refetchGames: () => Promise<void>;
 
   mainRepertoire: Repertoire;
   setMainRepertoire: (value: Repertoire) => Promise<void>;
@@ -283,6 +285,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     importPgnGames,
     addManualGame,
     updateGamePgn,
+    refetchGames,
     mainRepertoire,
     setMainRepertoire,
     openingHeroes,

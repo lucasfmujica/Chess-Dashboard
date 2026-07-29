@@ -17,6 +17,13 @@ interface RepertoireLineInput {
   lichessUrl?: string;
   lastReviewed?: number;
   notes?: string;
+  /**
+   * Counter delta, applied server-side. Note this endpoint's PUT is a *full
+   * replace* of every other column, so callers must send the whole line —
+   * but the review counter must never be replaced from a client-side total,
+   * since the drill tab and the daily queue both write here.
+   */
+  reviewCountInc?: number;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,6 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           priority = ${l.priority ?? null}, confidence = ${l.confidence ?? null},
           lichess_url = ${l.lichessUrl ?? null},
           last_reviewed = ${l.lastReviewed ? new Date(l.lastReviewed).toISOString() : null},
+          review_count = review_count + ${l.reviewCountInc ?? 0},
           notes = ${l.notes ?? null}
         WHERE id = ${id}
         RETURNING *

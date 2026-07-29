@@ -8,6 +8,7 @@ export interface EndgameDrillRow {
   confidence: number | null;
   last_reviewed: string | null;
   review_count: number;
+  solved_count: number;
   archived: boolean;
   created_at: string;
   // Joined from `games`.
@@ -29,6 +30,7 @@ export const rowToEndgameDrill = (row: EndgameDrillRow) => ({
   confidence: row.confidence ?? undefined,
   lastReviewed: row.last_reviewed ? new Date(row.last_reviewed).getTime() : undefined,
   reviewCount: row.review_count,
+  solvedCount: row.solved_count,
   archived: row.archived,
   createdAt: new Date(row.created_at).getTime(),
   game: {

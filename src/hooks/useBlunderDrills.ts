@@ -130,7 +130,9 @@ export const useBlunderDrills = (): UseBlunderDrills => {
       const patch = {
         confidence,
         lastReviewed: Date.now(),
-        [counterField]: (counterField === 'reviewCount' ? current.reviewCount : current.solvedCount) + 1,
+        // Incremented server-side so the daily queue and this tab can't
+        // overwrite each other's count with a stale total.
+        [counterField === 'reviewCount' ? 'reviewCountInc' : 'solvedCountInc']: 1,
       };
       const updated = await putBlunderDrill(id, patch);
       setDrills(prev => prev.map(d => (d.id === id ? updated : d)));

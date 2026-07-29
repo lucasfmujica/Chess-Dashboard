@@ -79,7 +79,9 @@ const OpeningsFlashcardsTab = () => {
     setCurrentIndex(i => (filteredLines.length ? (i + 1) % filteredLines.length : 0));
 
     try {
-      await putRepertoireLine(current.id, updated);
+      // Whole line, because this PUT replaces every column — plus the
+      // counter delta, which is applied server-side rather than replaced.
+      await putRepertoireLine(current.id, { ...updated, reviewCountInc: 1 });
     } catch (err) {
       console.error('Failed to save review', err);
     }

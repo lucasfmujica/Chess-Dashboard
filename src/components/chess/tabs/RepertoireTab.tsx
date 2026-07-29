@@ -1,5 +1,6 @@
 import OpeningComparisonChart from '../../charts/OpeningComparisonChart';
 import OpeningHeroesGallery from './repertoire/OpeningHeroesGallery';
+import RepertoireMatchPanel from './repertoire/RepertoireMatchPanel';
 import type { Repertoire } from '../../../types/chess';
 
 interface OpeningRecommendation {
@@ -49,6 +50,8 @@ const RepertoireTab = ({
   return (
     <div className="space-y-6">
       <OpeningComparisonChart white={openingRepertoireAnalysis.white} black={openingRepertoireAnalysis.black} />
+
+      <RepertoireMatchPanel />
 
       <div className="p-6 border border-hairline rounded-lg bg-surface">
         <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">

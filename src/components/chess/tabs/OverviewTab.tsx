@@ -7,6 +7,7 @@ import { useCountUp } from '../../../hooks/useCountUp';
 import { useGameForm } from '../../../hooks/useGameForm';
 import { useModal } from '../../modals/ModalContext';
 import StatCard, { Sparkline } from '../StatCard';
+import TodayStrip from './TodayStrip';
 import { Card, CardHeader } from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
@@ -235,6 +236,10 @@ const OverviewTab = ({
           )}
         </div>
       </Card>
+
+      {/* What to do now. Sits above the retrospective signals on purpose:
+          those describe the past, this is the only actionable row. */}
+      <TodayStrip onNavigate={onNavigate} />
 
       {/* At-a-glance signals: what happened recently & what's next */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

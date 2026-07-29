@@ -1,13 +1,35 @@
 import { useState } from 'react';
 import { getWeekDates, getWeekStats } from '../../../utils/chessHelpers';
+import { localDateKey } from '../../../utils/localDate';
 import { useModal } from '../../modals/ModalContext';
+import { SegmentedControl, type Segment } from '../../ui';
 import WeekNavigator from './training/WeekNavigator';
 import DayCard from './training/DayCard';
 import QuickTemplates from './training/QuickTemplates';
 import WeeklyReflections from './training/WeeklyReflections';
 import MonthlyStats from './training/MonthlyStats';
 import ReflectionHistory from './training/ReflectionHistory';
+import TodayQueue from './training/TodayQueue';
+import WeekProgram from './training/WeekProgram';
+import TrainingLog from './training/TrainingLog';
+import HomeworkPanel from './training/HomeworkPanel';
 import type { WeeklyPlans, WeekPlan, DayPlan, TrainingActivity } from '../../../types/training';
+
+/**
+ * Sub-views. "Hoy" is the default because the point of the rebuild is that
+ * opening this tab answers "what do I do now" without any choosing; the
+ * free-form planner is kept as the last view rather than removed, since it
+ * holds existing localStorage plans.
+ */
+type TrainingView = 'today' | 'week' | 'tareas' | 'log' | 'planner';
+
+const VIEWS: Segment<TrainingView>[] = [
+  { value: 'today', label: 'Hoy' },
+  { value: 'week', label: 'Semana' },
+  { value: 'tareas', label: 'Tareas' },
+  { value: 'log', label: 'Registro' },
+  { value: 'planner', label: 'Planificador' },
+];
 
 interface TrainingTabProps {
   currentWeek: string;
@@ -41,6 +63,7 @@ const TrainingTab = ({
   exportToGoogleCalendar
 }: TrainingTabProps) => {
   const modal = useModal();
+  const [view, setView] = useState<TrainingView>('today');
   const [completedActivities, setCompletedActivities] = useState<Record<string, boolean>>({});
 
   const weekStats = getWeekStats(weeklyPlans, currentWeek);
@@ -159,83 +182,100 @@ const TrainingTab = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Week Navigator & Stats */}
-      <WeekNavigator
-        currentWeek={currentWeek}
-        weekDates={weekDates}
-        weekStats={weekStats}
-        onPrevWeek={handlePrevWeek}
-        onNextWeek={handleNextWeek}
-        completionPercent={completionPercent}
-        completedCount={completedCount}
-        totalActivities={totalActivities}
+      <SegmentedControl
+        options={VIEWS}
+        value={view}
+        onChange={setView}
+        aria-label="Vista de entrenamiento"
       />
 
-      {/* Weekly Planner Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {weekDates.map(({ day, date, displayDate }) => {
-          const dayPlan = getCurrentWeekPlan()[date] || [];
-          const note = dailyNotes[date] || '';
-          const isToday = date === new Date().toISOString().split('T')[0];
+      {view === 'today' && <TodayQueue />}
+      {view === 'week' && <WeekProgram />}
+      {view === 'tareas' && <HomeworkPanel />}
+      {view === 'log' && <TrainingLog />}
+      {view === 'planner' && (
+        <div className="space-y-8">
+          {/* Week Navigator & Stats */}
+          <WeekNavigator
+            currentWeek={currentWeek}
+            weekDates={weekDates}
+            weekStats={weekStats}
+            onPrevWeek={handlePrevWeek}
+            onNextWeek={handleNextWeek}
+            completionPercent={completionPercent}
+            completedCount={completedCount}
+            totalActivities={totalActivities}
+          />
 
-          return (
-            <DayCard
-              key={date}
-              day={day}
-              date={date}
-              displayDate={displayDate}
-              isToday={isToday}
-              dayPlan={dayPlan}
-              note={note}
-              editingDay={editingDay}
-              completedActivities={completedActivities}
-              onToggleActivityCompletion={toggleActivityCompletion}
-              onRemoveActivity={(idx: number) => {
-                const newPlan = dayPlan.filter((_, i) => i !== idx);
-                updateDayPlan(date, newPlan);
-              }}
-              onSetEditingDay={setEditingDay}
-              onAddActivity={(activity: { id: string; defaultMinutes: number }) => {
-                const newActivity: TrainingActivity = {
-                  id: activity.id,
-                  minutes: activity.defaultMinutes,
-                  details: ''
-                };
-                updateDayPlan(date, [...dayPlan, newActivity]);
-                setEditingDay(null);
-              }}
-              onExportToCalendar={exportToGoogleCalendar}
-              onUpdateNote={updateDailyNote}
-            />
-          );
-        })}
-      </div>
+          {/* Weekly Planner Grid */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {weekDates.map(({ day, date, displayDate }) => {
+              const dayPlan = getCurrentWeekPlan()[date] || [];
+              const note = dailyNotes[date] || '';
+              // Local day, not toISOString(): the UTC variant highlights
+              // tomorrow for the last few hours of every evening here.
+              const isToday = date === localDateKey();
 
-      {/* Quick Templates */}
-      <QuickTemplates
-        weeklyHours={weeklyHours}
-        setWeeklyHours={setWeeklyHours}
-        onApplyGMNoahMethod={applyGMNoahMethod}
-        onApplyBalancedDaily={applyBalancedDaily}
-        onApplyBlockFocus={applyBlockFocus}
-        onClearWeek={handleClearWeek}
-      />
+              return (
+                <DayCard
+                  key={date}
+                  day={day}
+                  date={date}
+                  displayDate={displayDate}
+                  isToday={isToday}
+                  dayPlan={dayPlan}
+                  note={note}
+                  editingDay={editingDay}
+                  completedActivities={completedActivities}
+                  onToggleActivityCompletion={toggleActivityCompletion}
+                  onRemoveActivity={(idx: number) => {
+                    const newPlan = dayPlan.filter((_, i) => i !== idx);
+                    updateDayPlan(date, newPlan);
+                  }}
+                  onSetEditingDay={setEditingDay}
+                  onAddActivity={(activity: { id: string; defaultMinutes: number }) => {
+                    const newActivity: TrainingActivity = {
+                      id: activity.id,
+                      minutes: activity.defaultMinutes,
+                      details: ''
+                    };
+                    updateDayPlan(date, [...dayPlan, newActivity]);
+                    setEditingDay(null);
+                  }}
+                  onExportToCalendar={exportToGoogleCalendar}
+                  onUpdateNote={updateDailyNote}
+                />
+              );
+            })}
+          </div>
 
-      {/* Week Summary */}
-      <WeeklyReflections
-        currentWeek={currentWeek}
-        dailyNotes={dailyNotes}
-        onUpdateNote={updateDailyNote}
-      />
+          {/* Quick Templates */}
+          <QuickTemplates
+            weeklyHours={weeklyHours}
+            setWeeklyHours={setWeeklyHours}
+            onApplyGMNoahMethod={applyGMNoahMethod}
+            onApplyBalancedDaily={applyBalancedDaily}
+            onApplyBlockFocus={applyBlockFocus}
+            onClearWeek={handleClearWeek}
+          />
 
-      {/* Monthly Training Stats */}
-      <MonthlyStats weeklyPlans={weeklyPlans} />
+          {/* Week Summary */}
+          <WeeklyReflections
+            currentWeek={currentWeek}
+            dailyNotes={dailyNotes}
+            onUpdateNote={updateDailyNote}
+          />
 
-      {/* Reflection History */}
-      <ReflectionHistory
-        dailyNotes={dailyNotes}
-        currentWeek={currentWeek}
-      />
+          {/* Monthly Training Stats */}
+          <MonthlyStats weeklyPlans={weeklyPlans} />
+
+          {/* Reflection History */}
+          <ReflectionHistory
+            dailyNotes={dailyNotes}
+            currentWeek={currentWeek}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -27,6 +27,7 @@ const BlunderDrillsTab = lazy(() => import('./components/chess/tabs/BlunderDrill
 const OpponentPrepTab = lazy(() => import('./components/chess/tabs/OpponentPrepTab'));
 const EndgameDrillsTab = lazy(() => import('./components/chess/tabs/EndgameDrillsTab'));
 const NormTrackerTab = lazy(() => import('./components/chess/tabs/NormTrackerTab'));
+const ConceptsTab = lazy(() => import('./components/chess/tabs/ConceptsTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
@@ -48,6 +49,7 @@ import {
   UserGroupIcon,
   ShieldCheckIcon,
   RocketLaunchIcon,
+  PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
 import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
@@ -284,6 +286,7 @@ const ChessDashboard = () => {
       items: [
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
         { id: 'repertoire-study', label: 'Repertoire Study', icon: RectangleStackIcon },
+        { id: 'concepts', label: 'Concepts & Books', icon: PuzzlePieceIcon },
         { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
         { id: 'blunder-drills', label: 'Blunder Drills', icon: ExclamationTriangleIcon },
         { id: 'endgame-drills', label: 'Endgame Drills', icon: ShieldCheckIcon },
@@ -490,6 +493,7 @@ const ChessDashboard = () => {
           {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
 
           {activeTab === 'norm-tracker' && <LazyTab><NormTrackerTab /></LazyTab>}
+          {activeTab === 'concepts' && <LazyTab><ConceptsTab /></LazyTab>}
 
           {activeTab === 'training' && (
             <TrainingTab

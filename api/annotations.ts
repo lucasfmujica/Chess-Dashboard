@@ -15,6 +15,12 @@ interface AnnotationInput {
   notes?: string;
   keyMoments?: unknown[];
   pgn?: string;
+  gameId?: string;
+  errorType?: string;
+  criticalMomentFen?: string;
+  playedMove?: string;
+  bestMove?: string;
+  lesson?: string;
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -30,7 +36,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           played_date = ${a.date ?? null}, opening = ${a.opening ?? null}, eco = ${a.eco ?? null},
           result = ${a.result ?? null}, rating = ${a.rating ?? null}, tags = ${a.tags ?? []},
           notes = ${a.notes ?? null}, key_moments = ${JSON.stringify(a.keyMoments ?? [])},
-          pgn = ${a.pgn ?? null}
+          pgn = ${a.pgn ?? null},
+          game_id = ${a.gameId ?? null}, error_type = ${a.errorType ?? null},
+          critical_moment_fen = ${a.criticalMomentFen ?? null},
+          played_move = ${a.playedMove ?? null}, best_move = ${a.bestMove ?? null},
+          lesson = ${a.lesson ?? null}
         WHERE id = ${id}
         RETURNING *
       `) as AnnotationRow[];
@@ -63,11 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const a = req.body as AnnotationInput;
     const rows = (await sql`
       INSERT INTO annotated_games (
-        game_name, opponent, played_date, opening, eco, result, rating, tags, notes, key_moments, pgn
+        game_name, opponent, played_date, opening, eco, result, rating, tags, notes, key_moments, pgn,
+        game_id, error_type, critical_moment_fen, played_move, best_move, lesson
       ) VALUES (
         ${a.gameName ?? null}, ${a.opponent ?? null}, ${a.date ?? null}, ${a.opening ?? null},
         ${a.eco ?? null}, ${a.result ?? null}, ${a.rating ?? null}, ${a.tags ?? []},
-        ${a.notes ?? null}, ${JSON.stringify(a.keyMoments ?? [])}, ${a.pgn ?? null}
+        ${a.notes ?? null}, ${JSON.stringify(a.keyMoments ?? [])}, ${a.pgn ?? null},
+        ${a.gameId ?? null}, ${a.errorType ?? null}, ${a.criticalMomentFen ?? null},
+        ${a.playedMove ?? null}, ${a.bestMove ?? null}, ${a.lesson ?? null}
       ) RETURNING *
     `) as AnnotationRow[];
     return res.status(201).json(rowToAnnotation(rows[0]));

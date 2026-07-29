@@ -190,3 +190,165 @@ CREATE TABLE IF NOT EXISTS norm_thresholds (
   wim_performance INTEGER NOT NULL DEFAULT 2250,
   wgm_performance INTEGER NOT NULL DEFAULT 2400
 );
+
+-- One row per training block actually performed. The *plan* (which block on
+-- which weekday) is static config in src/constants/trainingProgram.ts — only
+-- what really happened is persisted, so plan-vs-actual is a join against this.
+CREATE TABLE IF NOT EXISTS training_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  block TEXT NOT NULL CHECK (block IN (
+    'calculation','endgame','repertoire','play','analysis','concept','lesson','tactics'
+  )),
+  minutes INTEGER NOT NULL DEFAULT 0,
+  -- Free text: 'daily-queue', 'Aagaard Positional Play ch.3', 'clase Toto', ...
+  source TEXT,
+  attempted INTEGER NOT NULL DEFAULT 0,
+  solved INTEGER NOT NULL DEFAULT 0,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS training_sessions_date_idx ON training_sessions (session_date);
+
+-- One row per exercise attempted inside a session. This is the diagnostic
+-- table: the aggregate counters on blunder_drills/endgame_drills say *how
+-- often* you drilled, this says *why you failed*.
+--
+-- candidate_miss semantics (only meaningful when correct = false), fixed:
+--   true  = the right move NEVER appeared in my candidate list -> candidate-sweep failure
+--   false = it WAS on my list and I rejected it                -> calculation/evaluation failure
+-- Without that convention held constant the column is uninterpretable.
+CREATE TABLE IF NOT EXISTS training_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id UUID REFERENCES training_sessions(id) ON DELETE CASCADE,
+  item_kind TEXT NOT NULL CHECK (item_kind IN ('blunder','endgame','repertoire','external')),
+  -- NULL for 'external' (a book/puzzle exercise with no row in this database).
+  item_id UUID,
+  correct BOOLEAN NOT NULL,
+  candidate_miss BOOLEAN,
+  -- The candidate moves written down before playing, per the Studer method.
+  candidates_written TEXT,
+  seconds INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS training_attempts_session_id_idx ON training_attempts (session_id);
+
+-- The chess library. `status` describes a book's ROLE IN THE TRAINING PLAN,
+-- not reading progress:
+--   activo     = used by a weekly block. Capped at 3 by the "nothing new
+--                until something finishes" rule.
+--   referencia = consulted for a specific question, never read cover to cover.
+--   archivado  = not to be opened at all.
+-- progress_done/progress_total hold Chessable-style counts (215/516) because
+-- that rule needs a completion percentage to be computable at all.
+CREATE TABLE IF NOT EXISTS books (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  author TEXT,
+  category TEXT,
+  level TEXT,
+  status TEXT NOT NULL DEFAULT 'archivado',
+  source TEXT,
+  block TEXT,
+  progress_done INTEGER,
+  progress_total INTEGER,
+  current_chapter TEXT,
+  priority INTEGER,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Columns and constraint applied separately so an already-created books table
+-- picks them up. DROP-then-ADD keeps the constraint swap re-runnable, which a
+-- bare ADD CONSTRAINT would not be.
+ALTER TABLE books ADD COLUMN IF NOT EXISTS source TEXT;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS block TEXT;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS progress_done INTEGER;
+ALTER TABLE books ADD COLUMN IF NOT EXISTS progress_total INTEGER;
+ALTER TABLE books ALTER COLUMN status SET DEFAULT 'archivado';
+ALTER TABLE books DROP CONSTRAINT IF EXISTS books_status_check;
+ALTER TABLE books ADD CONSTRAINT books_status_check
+  CHECK (status IN ('activo','referencia','archivado'));
+
+-- Homework assigned in a coaching session.
+--
+-- Exists because the assignments were being lost: coaches give them verbally
+-- ("bien, esa es la tarea para el hogar") with no commitment language, so
+-- meeting-notes tooling extracts nothing and the task survives only in
+-- memory. recording_id is kept so an importer can dedupe against the source.
+--
+-- 'vencido' is in the enum for an importer to set, but the UI DERIVES overdue
+-- from (due_date < today AND status = 'pendiente') so the count stays correct
+-- with no scheduled job running.
+CREATE TABLE IF NOT EXISTS homework (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  assigned_date DATE NOT NULL,
+  coach TEXT NOT NULL,
+  recording_id BIGINT,
+  task TEXT NOT NULL,
+  kind TEXT CHECK (kind IN ('final','calculo','repertorio','concepto','lectura','partida')),
+  due_date DATE,
+  status TEXT NOT NULL DEFAULT 'pendiente' CHECK (status IN ('pendiente','hecho','vencido')),
+  source_url TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS homework_status_idx ON homework (status, due_date);
+-- Dedupe key for an automated importer. Manual rows leave recording_id NULL,
+-- and Postgres treats NULLs as distinct, so they are never blocked by this.
+--
+-- Indexed on md5(task) rather than task itself: a btree entry is capped at
+-- ~2704 bytes, and an extractor that writes a paragraph-long assignment would
+-- otherwise fail the insert outright. The hash is fixed-width, so it can't.
+CREATE UNIQUE INDEX IF NOT EXISTS homework_recording_task_idx
+  ON homework (recording_id, md5(task));
+
+-- Inventory of studied concepts, each tied back to the player's own games.
+-- game_ids is an array rather than a join table, matching the style already
+-- used by repertoire.white_ecos / opening_heroes.heroes on this single-user
+-- project. confidence/last_reviewed let concepts ride the same SRS helpers
+-- (src/utils/srs.ts) as drills and repertoire lines, with no new logic.
+CREATE TABLE IF NOT EXISTS concepts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN (
+    'opening','middlegame','endgame','calculation','strategy','mindset'
+  )),
+  book_id UUID REFERENCES books(id) ON DELETE SET NULL,
+  source_chapter TEXT,
+  source_type TEXT,
+  status TEXT NOT NULL DEFAULT 'to-study' CHECK (status IN (
+    'to-study','studying','applied','mastered'
+  )),
+  summary TEXT,
+  example_fens TEXT[] NOT NULL DEFAULT '{}',
+  game_ids UUID[] NOT NULL DEFAULT '{}',
+  confidence INTEGER CHECK (confidence BETWEEN 1 AND 5),
+  last_reviewed TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Structured post-mortem fields. The pre-existing columns (tags/notes/
+-- key_moments) are free text and can't be aggregated. These can, so the
+-- Training Log can chart the real distribution of *why* games are lost.
+-- NOTE: init-db.mjs splits this file on the statement terminator, so a
+-- comment must never contain one.
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS game_id UUID REFERENCES games(id) ON DELETE SET NULL;
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS error_type TEXT CHECK (error_type IN (
+  'candidate-miss','calculation','evaluation','clock','opening','technique','none'
+));
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS critical_moment_fen TEXT;
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS played_move TEXT;
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS best_move TEXT;
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS lesson TEXT;
+
+-- Which prepared line a game actually followed, and the ply it left book.
+-- Populated client-side by the "Match games to repertoire" action (longest
+-- common SAN prefix), not by hand.
+ALTER TABLE games ADD COLUMN IF NOT EXISTS repertoire_line_id UUID REFERENCES repertoire_lines(id) ON DELETE SET NULL;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS book_exit_ply INTEGER;
+
+-- Counter parity: endgame_drills lacked solved_count, repertoire_lines had no
+-- counters at all, so drilling them left no volume trace.
+ALTER TABLE endgame_drills ADD COLUMN IF NOT EXISTS solved_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE repertoire_lines ADD COLUMN IF NOT EXISTS review_count INTEGER NOT NULL DEFAULT 0;

@@ -22,6 +22,10 @@ export interface GameRow {
   pgn: string | null;
   city: string | null;
   country: string | null;
+  // Which prepared line the game actually followed, and the ply it left book.
+  // Set by the client-side "Match games to repertoire" action, not by hand.
+  repertoire_line_id: string | null;
+  book_exit_ply: number | null;
 }
 
 /** Shape accepted on write: whatever the client's `Game` object has populated. */
@@ -70,4 +74,6 @@ export const rowToGame = (row: GameRow) => ({
   pgn: row.pgn ?? undefined,
   city: row.city ?? undefined,
   country: row.country ?? undefined,
+  repertoireLineId: row.repertoire_line_id ?? undefined,
+  bookExitPly: row.book_exit_ply ?? undefined,
 });

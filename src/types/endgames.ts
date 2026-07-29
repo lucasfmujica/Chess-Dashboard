@@ -21,6 +21,7 @@ export interface EndgameDrill {
   confidence?: number;
   lastReviewed?: number;
   reviewCount: number;
+  solvedCount: number;
   archived: boolean;
   createdAt: number;
   game: EndgameDrillGame;
