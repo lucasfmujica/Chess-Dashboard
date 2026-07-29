@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import {
+  CheckCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 import { fetchTrainingSessions, fetchAnnotations } from '../../../../api/client';
 import {
   trainingProgram,
@@ -11,17 +16,29 @@ import {
 } from '../../../../constants/trainingProgram';
 import { localDateKey, daysAgoKey, dateFromKey } from '../../../../utils/localDate';
 import { useGames } from '../../../../context/GamesContext';
-import { Card, Badge } from '../../../ui';
+import { Card, Badge, Button } from '../../../ui';
+import ReflectionHistory from './ReflectionHistory';
 import type { TrainingSession } from '../../../../types/training';
 import type { AnnotatedGame } from '../../../../types/chess';
 
 /**
- * Plan versus actual for the current week.
+ * The week: what the program prescribes, against what was actually logged.
  *
- * The plan is static config; only what happened is stored. So this compares
- * each weekday's prescribed blocks against the training_sessions rows that
- * actually landed on that date — which is the only way the comparison stays
- * honest, since a mutable plan drifts to match whatever was done.
+ * This absorbed the old free-form Planificador, which was a parallel system
+ * that shared nothing with this one — it stored activities in localStorage
+ * under ids (`tactics`, `games`, `rest`) that aren't `TrainingBlock` values,
+ * so a week built there was invisible to Hoy, Semana and Registro alike. It
+ * also always rendered the current week regardless of which week you had
+ * navigated to. Rather than reconcile two vocabularies, the planner's blocks
+ * are gone and the program is the plan.
+ *
+ * What survived the merge is what carried real content: the weekly
+ * reflection and the per-day notes, which keep their existing localStorage
+ * keys so everything already written is still here.
+ *
+ * The plan itself is static config; only what happened is stored. That's
+ * deliberate — a mutable plan drifts to match whatever was done, and then
+ * the comparison stops meaning anything.
  */
 
 /** Monday of the week containing `date`, as a local 'YYYY-MM-DD' key. */
@@ -31,16 +48,35 @@ const mondayOf = (date: Date): string => {
   return localDateKey(monday);
 };
 
-const WeekProgram = () => {
+/** `weekStart` shifted by whole weeks, staying on a Monday. */
+const shiftWeek = (weekStart: string, weeks: number): string => {
+  const date = dateFromKey(weekStart);
+  date.setDate(date.getDate() + weeks * 7);
+  return localDateKey(date);
+};
+
+const WEEKDAY_NOTE_ROWS = 2;
+
+interface WeekProgramProps {
+  dailyNotes: Record<string, string>;
+  updateDailyNote: (key: string, note: string) => void;
+}
+
+const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
   const { games } = useGames();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [annotations, setAnnotations] = useState<AnnotatedGame[]>([]);
   const [loading, setLoading] = useState(true);
 
   const todayKey = useMemo(() => localDateKey(), []);
-  const weekStart = useMemo(() => mondayOf(new Date()), []);
+  const thisMonday = useMemo(() => mondayOf(new Date()), []);
+  const [weekStart, setWeekStart] = useState(thisMonday);
+  const isCurrentWeek = weekStart === thisMonday;
 
   useEffect(() => {
+    setLoading(true);
+    // The sessions endpoint takes a `since` date, so a past week is fetched
+    // from its own Monday and then filtered to the seven days below.
     Promise.all([fetchTrainingSessions(weekStart), fetchAnnotations()])
       .then(([s, a]) => {
         setSessions(s);
@@ -60,12 +96,22 @@ const WeekProgram = () => {
     });
   }, [weekStart]);
 
+  const weekEnd = weekDays[6];
+
+  /** Only this week's sessions — `since` returns everything after it. */
+  const weekSessions = useMemo(
+    () => sessions.filter(s => s.sessionDate >= weekStart && s.sessionDate <= weekEnd),
+    [sessions, weekStart, weekEnd]
+  );
+
   /**
    * Games from the last 7 days with no annotated_games row. The rule is that
    * a game isn't finished until it has been analyzed, so this is surfaced as
-   * a warning rather than left for memory to track.
+   * a warning rather than left for memory to track. Only meaningful for the
+   * current week — a past week's backlog was either cleared or never will be.
    */
   const unanalyzed = useMemo(() => {
+    if (!isCurrentWeek) return [];
     const cutoff = daysAgoKey(7);
     const annotatedGameIds = new Set(annotations.map(a => a.gameId).filter(Boolean));
     // Fall back to opponent+date for rows created before game_id existed.
@@ -77,9 +123,9 @@ const WeekProgram = () => {
         !annotatedGameIds.has(g.id) &&
         !annotatedKeys.has(`${g.opp}|${g.date}`)
     );
-  }, [games, annotations]);
+  }, [games, annotations, isCurrentWeek]);
 
-  const doneMinutes = sessions.reduce((sum, s) => sum + s.minutes, 0);
+  const doneMinutes = weekSessions.reduce((sum, s) => sum + s.minutes, 0);
   const plannedTotal = trainingDays.reduce((sum, d) => sum + plannedMinutes(d), 0);
 
   /**
@@ -91,22 +137,48 @@ const WeekProgram = () => {
    * Saturday paper over four days of nothing.
    */
   const blocksDone = useMemo(() => {
-    const daysWithSessions = new Set(sessions.map(s => s.sessionDate));
+    const daysWithSessions = new Set(weekSessions.map(s => s.sessionDate));
     return trainingDays.filter(d => daysWithSessions.has(weekDays[d.weekday])).length;
-  }, [sessions, weekDays]);
+  }, [weekSessions, weekDays]);
 
   /** Games post-mortemed this week, against the plan's target of 2. */
   const annotationsThisWeek = useMemo(
-    () => annotations.filter(a => a.date && a.date >= weekStart).length,
-    [annotations, weekStart]
+    () => annotations.filter(a => a.date && a.date >= weekStart && a.date <= weekEnd).length,
+    [annotations, weekStart, weekEnd]
   );
+
+  // Same key the old planner wrote, so past reflections are still here.
+  const summaryKey = `${weekStart}-summary`;
 
   return (
     <div className="space-y-6">
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <div className="text-label">Semana del {weekStart}</div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setWeekStart(w => shiftWeek(w, -1))}
+                aria-label="Semana anterior"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </Button>
+              <div className="text-label nums">Semana del {weekStart}</div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setWeekStart(w => shiftWeek(w, 1))}
+                aria-label="Semana siguiente"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </Button>
+              {!isCurrentWeek && (
+                <Button size="sm" variant="ghost" onClick={() => setWeekStart(thisMonday)}>
+                  Hoy
+                </Button>
+              )}
+            </div>
             <h2 className="text-h2 text-fg mt-1">Plan contra real</h2>
           </div>
           <div className="flex flex-wrap gap-8">
@@ -172,9 +244,11 @@ const WeekProgram = () => {
           const dateKey = weekDays[day.weekday];
           const isToday = dateKey === todayKey;
           const isPast = dateKey < todayKey;
-          const daySessions = sessions.filter(s => s.sessionDate === dateKey);
+          const daySessions = weekSessions.filter(s => s.sessionDate === dateKey);
           const doneBlocks = new Set(daySessions.map(s => s.block));
           const required = blocksForDay(day);
+          // Vacuously true on the rest day, which is the wanted reading:
+          // nothing was required, so nothing is outstanding.
           const complete = required.every(b => doneBlocks.has(b));
           const dayMinutes = daySessions.reduce((sum, s) => sum + s.minutes, 0);
 
@@ -207,9 +281,7 @@ const WeekProgram = () => {
                     >
                       {block.minutes}m
                     </span>
-                    <span
-                      className={doneBlocks.has(block.block) ? 'text-fg' : 'text-fg-muted'}
-                    >
+                    <span className={doneBlocks.has(block.block) ? 'text-fg' : 'text-fg-muted'}>
                       {block.label}
                     </span>
                   </li>
@@ -221,10 +293,35 @@ const WeekProgram = () => {
                   {dayMinutes} min registrados
                 </p>
               )}
+
+              {/* Per-day note, carried over from the planner's day cards. */}
+              <textarea
+                className="mt-3 w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+                rows={WEEKDAY_NOTE_ROWS}
+                placeholder="Nota del día…"
+                value={dailyNotes[dateKey] ?? ''}
+                onChange={e => updateDailyNote(dateKey, e.target.value)}
+              />
             </Card>
           );
         })}
       </div>
+
+      <Card>
+        <h3 className="text-h3 text-fg">Reflexión de la semana</h3>
+        <p className="text-sm text-fg-muted mt-1">
+          ¿Qué funcionó, qué no, y qué cambia la semana que viene?
+        </p>
+        <textarea
+          className="mt-3 w-full resize-none rounded-lg border border-hairline bg-surface px-4 py-3 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+          rows={6}
+          placeholder="Cómo fue la semana, qué salió bien, qué hay que corregir…"
+          value={dailyNotes[summaryKey] ?? ''}
+          onChange={e => updateDailyNote(summaryKey, e.target.value)}
+        />
+      </Card>
+
+      <ReflectionHistory dailyNotes={dailyNotes} currentWeek={weekStart} />
 
       {loading && <p className="text-sm text-fg-muted">Cargando sesiones…</p>}
     </div>

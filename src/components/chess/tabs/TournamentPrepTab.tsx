@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ClipboardDocumentCheckIcon,
   PencilIcon,
@@ -10,12 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import type { RepertoireLine } from '../../../types/chess';
-import {
-  fetchRepertoireLines,
-  postRepertoireLine,
-  putRepertoireLine,
-  deleteRepertoireLine,
-} from '../../../api/client';
+import { useRepertoireLines } from '../../../context/RepertoireLinesContext';
 
 type ColorFilter = 'all' | 'W' | 'B';
 
@@ -25,13 +20,8 @@ const STALE_AFTER_DAYS = 30;
 const TournamentPrepTab = () => {
   const modal = useModal();
 
-  const [lines, setLines] = useState<RepertoireLine[]>([]);
-
-  useEffect(() => {
-    fetchRepertoireLines()
-      .then(setLines)
-      .catch(err => console.error('Failed to load repertoire lines', err));
-  }, []);
+  // Shared with Entrenar, so an edit here is what gets drilled there.
+  const { lines, create, update, remove } = useRepertoireLines();
 
   const [selectedLine, setSelectedLine] = useState<Partial<RepertoireLine> | null>(null);
   const [editingLine, setEditingLine] = useState<RepertoireLine | null>(null);
@@ -39,11 +29,9 @@ const TournamentPrepTab = () => {
 
   const saveLine = async (line: Partial<RepertoireLine>) => {
     if (editingLine) {
-      const saved = await putRepertoireLine(editingLine.id, line);
-      setLines(prev => prev.map(l => (l.id === saved.id ? saved : l)));
+      await update(editingLine.id, line);
     } else {
-      const saved = await postRepertoireLine({ color: 'W', ...line });
-      setLines(prev => [...prev, saved]);
+      await create({ color: 'W', ...line });
     }
     setEditingLine(null);
     setSelectedLine(null);
@@ -52,14 +40,12 @@ const TournamentPrepTab = () => {
   const removeLine = async (id: string) => {
     const confirmed = await modal.confirm('Delete this prep line?');
     if (confirmed) {
-      await deleteRepertoireLine(id);
-      setLines(prev => prev.filter(l => l.id !== id));
+      await remove(id);
     }
   };
 
   const markReviewed = async (line: RepertoireLine) => {
-    const saved = await putRepertoireLine(line.id, { ...line, lastReviewed: Date.now() });
-    setLines(prev => prev.map(l => (l.id === saved.id ? saved : l)));
+    await update(line.id, { ...line, lastReviewed: Date.now(), reviewCountInc: 1 });
   };
 
   const filteredLines = useMemo(() => {

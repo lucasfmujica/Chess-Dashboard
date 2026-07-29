@@ -1,4 +1,4 @@
-import type { WeeklyPlans, WeekDate, WeekStats } from '../types/training';
+import type { WeekDate } from '../types/training';
 
 /**
  * Returns the current date. Centralized so date-dependent features use a single
@@ -52,39 +52,3 @@ export const getCurrentWeekStart = (): string => {
   return formatLocalDate(startOfWeek);
 };
 
-export const getWeekStats = (weeklyPlans: WeeklyPlans, weekStart: string): WeekStats => {
-  const plan = weeklyPlans[weekStart] || {};
-  const dates = getWeekDates(weekStart);
-
-  let totalPlannedMinutes = 0;
-  let daysPlanned = 0;
-  let restDays = 0;
-  const activityCounts: Record<string, number> = {};
-
-  dates.forEach(({ date }) => {
-    const dayPlan = plan[date] || [];
-    if (dayPlan.length > 0) {
-      daysPlanned++;
-      dayPlan.forEach(activity => {
-        if (activity.id === 'rest') {
-          restDays++;
-        } else {
-          totalPlannedMinutes += activity.minutes || 0;
-          activityCounts[activity.id] = (activityCounts[activity.id] || 0) + 1;
-        }
-      });
-    }
-  });
-
-  // Active days = days with a non-rest plan. Guard against dividing by zero when
-  // every planned day is a rest day (daysPlanned === restDays).
-  const activeDays = daysPlanned - restDays;
-
-  return {
-    totalPlannedMinutes,
-    daysPlanned,
-    restDays,
-    activityCounts,
-    avgMinutesPerDay: activeDays > 0 ? Math.round(totalPlannedMinutes / activeDays) : 0,
-  };
-};

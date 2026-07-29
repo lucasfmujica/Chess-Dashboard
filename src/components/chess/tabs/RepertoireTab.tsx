@@ -1,6 +1,7 @@
 import OpeningComparisonChart from '../../charts/OpeningComparisonChart';
 import OpeningHeroesGallery from './repertoire/OpeningHeroesGallery';
 import RepertoireMatchPanel from './repertoire/RepertoireMatchPanel';
+import ModelGamesSection from './repertoire/ModelGamesSection';
 import type { Repertoire } from '../../../types/chess';
 
 interface OpeningRecommendation {
@@ -89,6 +90,9 @@ const RepertoireTab = ({
         whiteOpenings={openingRepertoireAnalysis.white}
         blackOpenings={openingRepertoireAnalysis.black}
       />
+
+      {/* The games behind the names — the gallery was a directory until now. */}
+      <ModelGamesSection openingHeroes={openingHeroes} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="p-6 bg-surface rounded-lg border border-hairline">

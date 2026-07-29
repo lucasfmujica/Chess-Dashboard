@@ -263,6 +263,48 @@ export interface ScoutingTarget {
   lastScoutedAt?: number;
 }
 
+/**
+ * Tournament metadata, replacing the hardcoded TOURNAMENT_DATA constant.
+ * The official_* values come from the federation's own sheet rather than
+ * being recomputed — the two disagree, and the sheet is what you'd be
+ * comparing against.
+ */
+export interface Tournament {
+  id: string;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  kind: 'individual' | 'equipos';
+  /** 'reserva' / 'superior' for team events, so editions stay comparable. */
+  category?: string;
+  timeControl?: string;
+  /** False for team rapid events: counts for stats, not for the ELO curve. */
+  affectsElo: boolean;
+  officialPerformance?: number;
+  officialPoints?: number;
+  officialPlace?: number;
+  startingRank?: number;
+  eloBefore?: number;
+  eloChange?: number;
+  club?: string;
+  chessResultsUrl?: string;
+  notes?: string;
+  createdAt: number;
+}
+
+/** A model game by one of the opening heroes. */
+export interface ModelGame {
+  id: string;
+  eco: string;
+  hero: string;
+  event?: string;
+  year?: number;
+  result?: string;
+  pgn: string;
+  note?: string;
+  createdAt: number;
+}
+
 /** A planned/upcoming tournament entry. */
 export interface UpcomingTournament {
   id: number;

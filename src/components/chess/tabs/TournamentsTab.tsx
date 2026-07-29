@@ -6,6 +6,7 @@ import TournamentHeroSection from './tournaments/TournamentHeroSection';
 import TournamentSummaryCards from './tournaments/TournamentSummaryCards';
 import TournamentTable from './tournaments/TournamentTable';
 import PerformanceChart from './tournaments/PerformanceChart';
+import TournamentImportPanel from './tournaments/TournamentImportPanel';
 import type { Game, TournamentStat, UpcomingTournament } from '../../../types/chess';
 
 interface TournamentsTabProps {
@@ -50,6 +51,9 @@ const TournamentsTab = ({ tournamentStats, upcomingTournaments, setUpcomingTourn
         handleDeleteTournament={handleDeleteTournament}
         resetForm={resetForm}
       />
+
+      {/* Paste a crosstable for an event that has no PGN (team events) */}
+      <TournamentImportPanel />
 
       {/* Hero Section */}
       <TournamentHeroSection stats={stats} />

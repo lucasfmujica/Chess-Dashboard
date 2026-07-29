@@ -12,20 +12,16 @@ import GoalsTab from './components/chess/tabs/GoalsTab';
 import OpponentStrengthTab from './components/chess/tabs/OpponentStrengthTab';
 import OverviewTab from './components/chess/tabs/OverviewTab';
 import RatingTab from './components/chess/tabs/RatingTab';
-import RepertoireTab from './components/chess/tabs/RepertoireTab';
+import RepertoireHubTab from './components/chess/tabs/RepertoireHubTab';
+import DrillsHubTab from './components/chess/tabs/DrillsHubTab';
 import TournamentsTab from './components/chess/tabs/TournamentsTab';
 import TrainingTab from './components/chess/tabs/TrainingTab';
 import GameAnnotationTab from './components/chess/tabs/GameAnnotationTab';
 import StreaksTab from './components/chess/tabs/StreaksTab';
 const GeographyTab = lazy(() => import('./components/chess/tabs/GeographyTab'));
 import RecordsTab from './components/chess/tabs/RecordsTab';
-import OpeningsFlashcardsTab from './components/chess/tabs/OpeningsFlashcardsTab';
-import TournamentPrepTab from './components/chess/tabs/TournamentPrepTab';
 const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoardTab'));
-const RepertoireStudyTab = lazy(() => import('./components/chess/tabs/RepertoireStudyTab'));
-const BlunderDrillsTab = lazy(() => import('./components/chess/tabs/BlunderDrillsTab'));
 const OpponentPrepTab = lazy(() => import('./components/chess/tabs/OpponentPrepTab'));
-const EndgameDrillsTab = lazy(() => import('./components/chess/tabs/EndgameDrillsTab'));
 const NormTrackerTab = lazy(() => import('./components/chess/tabs/NormTrackerTab'));
 const ConceptsTab = lazy(() => import('./components/chess/tabs/ConceptsTab'));
 import {
@@ -35,8 +31,6 @@ import {
   TrophyIcon,
   GlobeAmericasIcon,
   BookOpenIcon,
-  RectangleStackIcon,
-  AcademicCapIcon,
   DocumentTextIcon,
   ChartBarSquareIcon,
   FireIcon,
@@ -44,10 +38,8 @@ import {
   LightBulbIcon,
   FlagIcon,
   ScaleIcon,
-  ClipboardDocumentCheckIcon,
   ExclamationTriangleIcon,
   UserGroupIcon,
-  ShieldCheckIcon,
   RocketLaunchIcon,
   PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
@@ -55,7 +47,17 @@ import { Swords, ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 import type { Game } from './types/chess';
-import type { DayPlan } from './types/training';
+
+/**
+ * Top-level tabs that became sub-tabs when Repertorio and Drills were merged.
+ * `repertoire-study` is absent on purpose: it already reads as a sub-tab id.
+ */
+const LEGACY_TABS: Record<string, string> = {
+  'openings-trainer': 'repertoire-train',
+  'tournament-prep': 'repertoire-lines',
+  'blunder-drills': 'drills',
+  'endgame-drills': 'drills-endgames',
+};
 
 const ChessDashboard = () => {
   const modal = useModal();
@@ -74,12 +76,8 @@ const ChessDashboard = () => {
     setTargetElo,
     targetDate,
     setTargetDate,
-    weeklyPlans,
-    setWeeklyPlans,
     dailyNotes,
     setDailyNotes,
-    weeklyHours,
-    setWeeklyHours,
     upcomingTournaments,
     setUpcomingTournaments,
   } = useGames();
@@ -105,10 +103,6 @@ const ChessDashboard = () => {
     setShowPgnImport,
     pgnText,
     setPgnText,
-    currentWeek,
-    setCurrentWeek,
-    editingDay,
-    setEditingDay,
   } = useUI();
 
   // Get computed stats based on current game filter
@@ -152,62 +146,11 @@ const ChessDashboard = () => {
     }
   };
 
-  // Training plan helper functions
-  const getCurrentWeekPlan = () => weeklyPlans[currentWeek] || {};
-
-  const updateDayPlan = (date: string, activities: DayPlan) => {
-    setWeeklyPlans(prev => ({
-      ...prev,
-      [currentWeek]: {
-        ...prev[currentWeek],
-        [date]: activities,
-      },
-    }));
-  };
-
   const updateDailyNote = (date: string, note: string) => {
     setDailyNotes(prev => ({
       ...prev,
       [date]: note,
     }));
-  };
-
-  // Google Calendar export function
-  const exportToGoogleCalendar = async (date: string, dayPlan: DayPlan, note: string) => {
-    if (dayPlan.length === 0) {
-      await modal.alert('No activities planned for this day');
-      return;
-    }
-
-    const dateObj = new Date(date);
-    const title = `Chess Training - ${dayPlan.length} activities`;
-    const totalMinutes = dayPlan.reduce((sum, activity) => sum + (activity.minutes || 0), 0);
-
-    let description = 'Chess Training Activities:\\n\\n';
-    dayPlan.forEach((activity, idx) => {
-      description += `${idx + 1}. ${activity.label || activity.id}`;
-      if ((activity.minutes ?? 0) > 0) description += ` (${activity.minutes} min)`;
-      if (activity.details) description += ` - ${activity.details}`;
-      description += '\\n';
-    });
-
-    if (note) description += `\\nNotes: ${note}`;
-
-    const startTime = new Date(dateObj);
-    startTime.setHours(9, 0, 0, 0);
-    const endTime = new Date(startTime);
-    endTime.setMinutes(startTime.getMinutes() + (totalMinutes || 120));
-
-    const formatGoogleDate = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const params = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: title,
-      details: description,
-      dates: `${formatGoogleDate(startTime)}/${formatGoogleDate(endTime)}`,
-      location: 'Online/Home',
-    });
-
-    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
   };
 
   // PGN Import Handler
@@ -261,6 +204,13 @@ const ChessDashboard = () => {
     }
   };
 
+  // Repertoire and Drills used to be six separate sidebar entries. Anything
+  // still pointing at an old id lands on the sub-tab that replaced it rather
+  // than on a blank page.
+  const resolvedTab = LEGACY_TABS[activeTab] ?? activeTab;
+  const isRepertoireTab = resolvedTab === 'repertoire' || resolvedTab.startsWith('repertoire-');
+  const isDrillsTab = resolvedTab === 'drills' || resolvedTab.startsWith('drills-');
+
   // Navigation grouped into sections for a clearer information architecture.
   const navigationSections = [
     {
@@ -285,12 +235,8 @@ const ChessDashboard = () => {
       section: 'Study & Prep',
       items: [
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
-        { id: 'repertoire-study', label: 'Repertoire Study', icon: RectangleStackIcon },
+        { id: 'drills', label: 'Drills', icon: ExclamationTriangleIcon },
         { id: 'concepts', label: 'Concepts & Books', icon: PuzzlePieceIcon },
-        { id: 'openings-trainer', label: 'Opening Trainer', icon: AcademicCapIcon },
-        { id: 'blunder-drills', label: 'Blunder Drills', icon: ExclamationTriangleIcon },
-        { id: 'endgame-drills', label: 'Endgame Drills', icon: ShieldCheckIcon },
-        { id: 'tournament-prep', label: 'Tournament Prep', icon: ClipboardDocumentCheckIcon },
         { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
         { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
@@ -419,8 +365,6 @@ const ChessDashboard = () => {
 
           {activeTab === 'geography' && <LazyTab><GeographyTab /></LazyTab>}
 
-          {activeTab === 'openings-trainer' && <OpeningsFlashcardsTab />}
-
           {activeTab === 'records' && (
             <RecordsTab games={ratedGames} eloHistory={eloHistory} />
           )}
@@ -471,8 +415,10 @@ const ChessDashboard = () => {
             </div>
           )}
 
-          {activeTab === 'repertoire' && (
-            <RepertoireTab
+          {isRepertoireTab && (
+            <RepertoireHubTab
+              activeTab={resolvedTab}
+              onNavigate={setActiveTab}
               openingRecommendations={openingRecommendations}
               openingRepertoireAnalysis={openingRepertoireAnalysis}
               mainRepertoire={mainRepertoire}
@@ -482,13 +428,7 @@ const ChessDashboard = () => {
             />
           )}
 
-          {activeTab === 'repertoire-study' && <LazyTab><RepertoireStudyTab /></LazyTab>}
-
-          {activeTab === 'tournament-prep' && <TournamentPrepTab />}
-
-          {activeTab === 'blunder-drills' && <LazyTab><BlunderDrillsTab /></LazyTab>}
-
-          {activeTab === 'endgame-drills' && <LazyTab><EndgameDrillsTab /></LazyTab>}
+          {isDrillsTab && <DrillsHubTab activeTab={resolvedTab} onNavigate={setActiveTab} />}
 
           {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
 
@@ -496,21 +436,7 @@ const ChessDashboard = () => {
           {activeTab === 'concepts' && <LazyTab><ConceptsTab /></LazyTab>}
 
           {activeTab === 'training' && (
-            <TrainingTab
-              currentWeek={currentWeek}
-              setCurrentWeek={setCurrentWeek}
-              weeklyPlans={weeklyPlans}
-              setWeeklyPlans={setWeeklyPlans}
-              dailyNotes={dailyNotes}
-              updateDailyNote={updateDailyNote}
-              editingDay={editingDay}
-              setEditingDay={setEditingDay}
-              weeklyHours={weeklyHours}
-              setWeeklyHours={setWeeklyHours}
-              getCurrentWeekPlan={getCurrentWeekPlan}
-              updateDayPlan={updateDayPlan}
-              exportToGoogleCalendar={exportToGoogleCalendar}
-            />
+            <TrainingTab dailyNotes={dailyNotes} updateDailyNote={updateDailyNote} />
           )}
 
           {activeTab === 'goals' && (

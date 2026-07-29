@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   SparklesIcon,
   CheckCircleIcon,
@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import type { RepertoireLine } from '../../../types/chess';
-import { fetchRepertoireLines, putRepertoireLine } from '../../../api/client';
+import { useRepertoireLines } from '../../../context/RepertoireLinesContext';
 import { ecoNames } from '../../../constants/ecoNames';
 import { isDue as srsIsDue, nextReviewAt as srsNextReviewAt, nudgeConfidence } from '../../../utils/srs';
 import { Card } from '../../ui/Card';
@@ -34,17 +34,12 @@ const lineName = (line: RepertoireLine) =>
 const OpeningsFlashcardsTab = () => {
   const modal = useModal();
 
-  const [lines, setLines] = useState<RepertoireLine[]>([]);
+  // Shared with Líneas, so a plan edited there is the plan drilled here.
+  const { lines, update } = useRepertoireLines();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [colorFilter, setColorFilter] = useState<ColorFilter>('all');
   const [studyMode, setStudyMode] = useState<StudyMode>('review');
-
-  useEffect(() => {
-    fetchRepertoireLines()
-      .then(setLines)
-      .catch(err => console.error('Failed to load repertoire lines', err));
-  }, []);
 
   const now = Date.now();
 
@@ -73,7 +68,6 @@ const OpeningsFlashcardsTab = () => {
     const nudged = nudgeConfidence(current.confidence, correct);
     const updated: RepertoireLine = { ...current, confidence: nudged, lastReviewed: Date.now() };
 
-    setLines(prev => prev.map(l => (l.id === current.id ? updated : l)));
     setShowAnswer(false);
     // Advance within the (pre-update) filtered list length.
     setCurrentIndex(i => (filteredLines.length ? (i + 1) % filteredLines.length : 0));
@@ -81,7 +75,7 @@ const OpeningsFlashcardsTab = () => {
     try {
       // Whole line, because this PUT replaces every column — plus the
       // counter delta, which is applied server-side rather than replaced.
-      await putRepertoireLine(current.id, { ...updated, reviewCountInc: 1 });
+      await update(current.id, { ...updated, reviewCountInc: 1 });
     } catch (err) {
       console.error('Failed to save review', err);
     }
@@ -90,10 +84,10 @@ const OpeningsFlashcardsTab = () => {
   const resetProgress = async () => {
     const confirmed = await modal.confirm('Reset review progress for all lines? This clears their last-reviewed dates.');
     if (!confirmed) return;
-    const cleared = lines.map(l => ({ ...l, lastReviewed: undefined }));
-    setLines(cleared);
     setCurrentIndex(0);
-    await Promise.all(cleared.map(l => putRepertoireLine(l.id, l).catch(() => undefined)));
+    await Promise.all(
+      lines.map(l => update(l.id, { ...l, lastReviewed: undefined }).catch(() => undefined))
+    );
   };
 
   const goPrev = () => {

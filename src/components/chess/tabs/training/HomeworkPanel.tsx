@@ -3,7 +3,13 @@ import { CheckCircleIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outlin
 import { useHomework } from '../../../../hooks/useHomework';
 import { localDateKey } from '../../../../utils/localDate';
 import { Card, Button, Badge } from '../../../ui';
-import { isHomeworkOverdue, type Homework, type HomeworkKind } from '../../../../types/training';
+import {
+  isHomeworkOverdue,
+  type Homework,
+  type HomeworkKind,
+  type ConceptCategory,
+} from '../../../../types/training';
+import ConceptQuickAdd from '../../ConceptQuickAdd';
 
 /**
  * Homework assigned by the coaches.
@@ -23,6 +29,16 @@ const KINDS: { value: HomeworkKind; label: string }[] = [
 ];
 
 const COACHES = ['Toto', 'Juan Cruz'];
+
+/** 'Juan Cruz' -> 'lesson-juan-cruz', so sourceType stays a usable key. */
+const coachSource = (coach: string) => `lesson-${coach.trim().toLowerCase().replace(/\s+/g, '-')}`;
+
+/** The homework kinds that map cleanly onto a concept category. */
+const KIND_CATEGORY: Partial<Record<HomeworkKind, ConceptCategory>> = {
+  final: 'endgame',
+  calculo: 'calculation',
+  repertorio: 'opening',
+};
 
 const INPUT_CLASS =
   'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
@@ -231,6 +247,19 @@ const HomeworkRow = ({ hw, todayKey, onDone, onRemove }: HomeworkRowProps) => {
           </div>
           <p className="text-sm text-fg mt-2">{hw.task}</p>
           {hw.notes && <p className="text-xs text-fg-muted mt-1">{hw.notes}</p>}
+          {/* The other place concepts are actually born: something the coach
+              said in class. Prefilled with the task and who set it. */}
+          <div className="mt-2">
+            <ConceptQuickAdd
+              defaults={{
+                name: hw.task.slice(0, 80),
+                category: (hw.kind && KIND_CATEGORY[hw.kind]) ?? 'middlegame',
+                sourceType: coachSource(hw.coach),
+                sourceChapter: hw.assignedDate,
+                summary: hw.task,
+              }}
+            />
+          </div>
         </div>
         <div className="flex gap-1 shrink-0">
           <button

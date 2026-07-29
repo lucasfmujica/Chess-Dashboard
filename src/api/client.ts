@@ -5,6 +5,8 @@ import type {
   AnnotatedGame,
   RepertoireLine,
   ScoutingTarget,
+  Tournament,
+  ModelGame,
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
@@ -289,6 +291,30 @@ export const putHomework = (id: string, item: Partial<Homework>) =>
   });
 export const deleteHomework = (id: string) =>
   apiFetch<{ ok: true }>(`/prep?resource=homework&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+// Tournament metadata (official numbers + whether the event moves the ELO curve)
+export const fetchTournaments = () => apiFetch<Tournament[]>('/prep?resource=tournaments');
+/** Upserts on name, so re-importing an edition corrects it instead of failing. */
+export const postTournament = (t: Partial<Tournament>) =>
+  apiFetch<Tournament>('/prep?resource=tournaments', { method: 'POST', body: JSON.stringify(t) });
+export const putTournament = (id: string, t: Partial<Tournament>) =>
+  apiFetch<Tournament>(`/prep?resource=tournaments&id=${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(t),
+  });
+export const deleteTournament = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=tournaments&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+// Model games for the opening heroes
+export const fetchModelGames = () => apiFetch<ModelGame[]>('/prep?resource=model-games');
+export const postModelGame = (g: Partial<ModelGame>) =>
+  apiFetch<ModelGame>('/prep?resource=model-games', { method: 'POST', body: JSON.stringify(g) });
+export const deleteModelGame = (id: string) =>
+  apiFetch<{ ok: true }>(`/prep?resource=model-games&id=${encodeURIComponent(id)}`, {
     method: 'DELETE',
   });
 

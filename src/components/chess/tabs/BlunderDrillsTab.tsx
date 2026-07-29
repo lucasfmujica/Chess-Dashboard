@@ -19,6 +19,7 @@ import StatCard from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 import { ecoNames } from '../../../constants/ecoNames';
 import PuzzleBoard from '../PuzzleBoard';
+import ConceptQuickAdd from '../ConceptQuickAdd';
 import type { BlunderDrill } from '../../../types/blunders';
 
 type Mode = 'review' | 'solve';
@@ -253,6 +254,23 @@ const BlunderDrillsTab = () => {
                   orientation={orientation}
                   resetKey={current.id}
                   onFirstResult={correct => void solve(current.id, correct)}
+                  footer={
+                    // A concept born where it was actually missed, carrying
+                    // the position and the game it came from.
+                    <ConceptQuickAdd
+                      key={current.id}
+                      label="Esto es un concepto"
+                      defaults={{
+                        category: 'calculation',
+                        exampleFens: [current.fenBefore],
+                        gameIds: [current.gameId],
+                        sourceType: 'drill',
+                        summary: `vs ${current.game.opponent}${
+                          current.game.playedDate ? ` · ${current.game.playedDate}` : ''
+                        }: jugué ${current.playedSan}.`,
+                      }}
+                    />
+                  }
                 />
               ) : (
                 <div className="rounded-lg overflow-hidden border border-hairline">
