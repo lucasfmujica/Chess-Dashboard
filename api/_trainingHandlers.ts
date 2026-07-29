@@ -113,6 +113,7 @@ interface TrainingAttemptInput {
   candidateMiss?: boolean | null;
   candidatesWritten?: string;
   seconds?: number;
+  thinkSeconds?: number;
 }
 
 export const trainingAttempts = async (
@@ -136,7 +137,11 @@ export const trainingAttempts = async (
       SELECT ta.* FROM training_attempts ta
       LEFT JOIN training_sessions ts ON ts.id = ta.session_id
       WHERE (${sessionId}::uuid IS NULL OR ta.session_id = ${sessionId}::uuid)
-        AND (${from}::date IS NULL OR ts.session_date >= ${from}::date)
+        -- COALESCE, not ts.session_date: an attempt with no session (drilling
+        -- outside the scheduled queue) has a NULL session_date, and NULL >= date
+        -- is NULL, so a date filter would drop every one of them.
+        AND (${from}::date IS NULL
+             OR COALESCE(ts.session_date, ta.created_at::date) >= ${from}::date)
       ORDER BY ta.created_at ASC
     `) as TrainingAttemptRow[];
     return res.status(200).json(rows.map(rowToTrainingAttempt));
@@ -156,10 +161,12 @@ export const trainingAttempts = async (
     const queries = attempts.map(
       a => sql`
         INSERT INTO training_attempts (
-          session_id, item_kind, item_id, correct, candidate_miss, candidates_written, seconds
+          session_id, item_kind, item_id, correct, candidate_miss, candidates_written,
+          seconds, think_seconds
         ) VALUES (
           ${a.sessionId ?? null}, ${a.itemKind}, ${a.itemId ?? null}, ${a.correct},
-          ${a.candidateMiss ?? null}, ${a.candidatesWritten ?? null}, ${a.seconds ?? null}
+          ${a.candidateMiss ?? null}, ${a.candidatesWritten ?? null},
+          ${a.seconds ?? null}, ${a.thinkSeconds ?? null}
         )
       `
     );

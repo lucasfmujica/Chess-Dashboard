@@ -64,6 +64,7 @@ export interface TrainingAttemptRow {
   candidate_miss: boolean | null;
   candidates_written: string | null;
   seconds: number | null;
+  think_seconds: number | null;
   created_at: string;
 }
 
@@ -80,6 +81,7 @@ export const rowToTrainingAttempt = (row: TrainingAttemptRow) => ({
   candidateMiss: row.candidate_miss ?? undefined,
   candidatesWritten: row.candidates_written ?? undefined,
   seconds: row.seconds ?? undefined,
+  thinkSeconds: row.think_seconds ?? undefined,
   createdAt: new Date(row.created_at).getTime(),
 });
 

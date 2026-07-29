@@ -129,6 +129,27 @@ const TrainingLog = () => {
       .map(([week, v]) => ({ week, ...v }));
   }, [attempts, sessions]);
 
+  /**
+   * The written candidates, newest first — the notebook.
+   *
+   * These were being stored and never shown, which made the writing feel like
+   * a toll rather than a record. Reading last week's lines back is where the
+   * pattern shows up: the same square ignored twice, the same candidate never
+   * generated.
+   */
+  const notebook = useMemo(() => {
+    const sessionDates = new Map(sessions.map(s => [s.id, s.sessionDate]));
+    return attempts
+      .filter(a => a.candidatesWritten?.trim())
+      .map(a => ({
+        ...a,
+        dateKey:
+          (a.sessionId ? sessionDates.get(a.sessionId) : undefined) ??
+          localDateKey(new Date(a.createdAt)),
+      }))
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [attempts, sessions]);
+
   const minutesByBlock = useMemo(() => {
     const byBlock = new Map<string, number>();
     sessions.forEach(s => byBlock.set(s.block, (byBlock.get(s.block) ?? 0) + s.minutes));
@@ -265,6 +286,63 @@ const TrainingLog = () => {
                 </p>
               </div>
             </div>
+          </>
+        )}
+      </Card>
+
+      <Card>
+        <h3 className="text-h3 text-fg">Tu cuaderno de cálculo</h3>
+        {notebook.length === 0 ? (
+          <p className="text-sm text-fg-muted mt-2">
+            Acá vuelven los candidatos que escribiste, para releerlos. Se llenan desde la cola
+            de Hoy o desde Drills en modo Cálculo.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-fg-muted mt-1">
+              {notebook.length} posicion{notebook.length > 1 ? 'es' : ''} con candidatos escritos.
+              Lo que buscás es el candidato que nunca generás.
+            </p>
+            <ul className="mt-4 space-y-3">
+              {notebook.slice(0, 40).map(entry => (
+                <li
+                  key={entry.id}
+                  className="rounded-lg border border-hairline bg-surface-2 p-3"
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="nums text-fg-subtle">{entry.dateKey}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-medium ${
+                        entry.correct
+                          ? 'bg-win/12 text-win'
+                          : 'bg-loss/12 text-loss'
+                      }`}
+                    >
+                      {entry.correct ? 'La tenía' : 'Falló'}
+                    </span>
+                    {entry.candidateMiss !== undefined && (
+                      <span className="rounded-full bg-surface px-2 py-0.5 text-fg-muted">
+                        {entry.candidateMiss ? 'nunca se me ocurrió' : 'la descarté'}
+                      </span>
+                    )}
+                    {entry.thinkSeconds !== undefined && (
+                      <span className="nums text-fg-subtle">
+                        {Math.floor(entry.thinkSeconds / 60)}:
+                        {String(entry.thinkSeconds % 60).padStart(2, '0')} de cálculo
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap font-mono text-xs text-fg">
+                    {entry.candidatesWritten}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {notebook.length > 40 && (
+              <p className="mt-3 text-xs text-fg-subtle">
+                Mostrando las 40 más recientes de {notebook.length}.
+              </p>
+            )}
           </>
         )}
       </Card>

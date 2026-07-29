@@ -87,7 +87,14 @@ export interface TrainingAttempt {
   correct: boolean;
   candidateMiss?: boolean;
   candidatesWritten?: string;
+  /** Total time on the exercise: calculating plus entering the move. */
   seconds?: number;
+  /**
+   * Time spent calculating before the answer was revealed — the 5-10 minutes
+   * the method is built around, and the number `seconds` used to throw away
+   * by restarting its clock at the reveal.
+   */
+  thinkSeconds?: number;
   createdAt: number;
 }
 

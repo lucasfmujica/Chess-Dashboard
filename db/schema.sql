@@ -231,6 +231,16 @@ CREATE TABLE IF NOT EXISTS training_attempts (
   seconds INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Time spent calculating BEFORE the answer was revealed, split out from
+-- `seconds`.
+--
+-- `seconds` alone could not express this: the clock was restarted when the
+-- board became playable, so it measured how long the move took to enter and
+-- discarded the 5-10 minutes of calculation that the method is actually about.
+-- Keeping both means `seconds` stays the total time on the exercise and
+-- `think_seconds` is the number worth training against.
+ALTER TABLE training_attempts ADD COLUMN IF NOT EXISTS think_seconds INTEGER;
 CREATE INDEX IF NOT EXISTS training_attempts_session_id_idx ON training_attempts (session_id);
 
 -- The chess library. `status` describes a book's ROLE IN THE TRAINING PLAN,

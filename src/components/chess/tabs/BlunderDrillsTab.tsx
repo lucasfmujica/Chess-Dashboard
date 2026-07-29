@@ -20,10 +20,16 @@ import StatCard from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 import { ecoNames } from '../../../constants/ecoNames';
 import PuzzleBoard from '../PuzzleBoard';
+import CalculationExercise from '../CalculationExercise';
 import ConceptQuickAdd from '../ConceptQuickAdd';
 import type { BlunderDrill } from '../../../types/blunders';
 
-type Mode = 'solve' | 'review';
+/**
+ * `calculo` is the coached exercise: sit on the position, write candidates,
+ * then play. `solve` is the ChessTempo loop — fast, good for volume, and the
+ * wrong reflex to train exclusively. `review` is reading, not training.
+ */
+type Mode = 'solve' | 'calculo' | 'review';
 type ColorFilter = 'all' | 'W' | 'B';
 type ListFilter = 'due' | 'all';
 
@@ -259,6 +265,7 @@ const BlunderDrillsTab = () => {
               onChange={setMode}
               options={[
                 { value: 'solve', label: 'Resolver' },
+                { value: 'calculo', label: 'Cálculo' },
                 { value: 'review', label: 'Repasar' },
               ]}
             />
@@ -302,7 +309,7 @@ const BlunderDrillsTab = () => {
                 {currentIndex + 1} of {filtered.length}
               </span>
               <div className="flex items-center gap-4">
-                {mode === 'solve' && streak > 0 && (
+                {mode !== 'review' && streak > 0 && (
                   <span className="flex items-center gap-1 text-sm font-semibold text-accent">
                     <FireIcon className="w-4 h-4" />
                     <span className="tabular-nums">{streak}</span>
@@ -323,7 +330,35 @@ const BlunderDrillsTab = () => {
 
           <div className="p-6 flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-[420px] flex-shrink-0">
-              {mode === 'solve' ? (
+              {mode === 'calculo' ? (
+                <CalculationExercise
+                  fen={current.fenBefore}
+                  bestMoveUci={current.bestMoveUci}
+                  orientation={orientation}
+                  resetKey={current.id}
+                  itemId={current.id}
+                  onGraded={correct => {
+                    setStreak(s => (correct ? s + 1 : 0));
+                    void solve(current.id, correct);
+                  }}
+                  onNext={goNext}
+                  footer={
+                    <ConceptQuickAdd
+                      key={current.id}
+                      label="Esto es un concepto"
+                      defaults={{
+                        category: 'calculation',
+                        exampleFens: [current.fenBefore],
+                        gameIds: [current.gameId],
+                        sourceType: 'drill',
+                        summary: `vs ${current.game.opponent}${
+                          current.game.playedDate ? ` · ${current.game.playedDate}` : ''
+                        }: jugué ${current.playedSan}.`,
+                      }}
+                    />
+                  }
+                />
+              ) : mode === 'solve' ? (
                 <PuzzleBoard
                   fen={current.fenBefore}
                   bestMoveUci={current.bestMoveUci}

@@ -16,6 +16,7 @@ import { weekdayIndex } from '../../../../utils/localDate';
 import { formatMaterialDelta } from '../../../../engine/mineEndgames';
 import { Card, Button, Badge } from '../../../ui';
 import PuzzleBoard from '../../PuzzleBoard';
+import ThinkTimer from '../../ThinkTimer';
 import EndgameContinuationReplay from '../../EndgameContinuationReplay';
 import { isHomeworkOverdue } from '../../../../types/training';
 import type { TrainingAttempt, TrainingBlock } from '../../../../types/training';
@@ -65,6 +66,18 @@ const TodayQueue = () => {
   const sessionIdRef = useRef<string | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const itemStartedAtRef = useRef<number>(Date.now());
+  /**
+   * Seconds spent calculating, frozen at the reveal.
+   *
+   * This used to be lost: `itemStartedAtRef` was restarted when the board
+   * became playable, so the recorded time measured how long the move took to
+   * enter and threw away the 5-10 minutes of calculation — the one number the
+   * method is about. `itemStartedAtRef` now runs for the whole exercise and
+   * this captures the thinking half of it.
+   */
+  const thinkSecondsRef = useRef<number | null>(null);
+  /** Drives the live clock; `null` once the answer is out. */
+  const [itemStartedAt, setItemStartedAt] = useState(() => Date.now());
 
   const current = items[index];
 
@@ -95,7 +108,16 @@ const TodayQueue = () => {
     setRevealed(false);
     setOutcome(null);
     setPendingMiss(false);
-    itemStartedAtRef.current = Date.now();
+    const now = Date.now();
+    itemStartedAtRef.current = now;
+    thinkSecondsRef.current = null;
+    setItemStartedAt(now);
+  }, []);
+
+  /** The answer is about to be shown: stop the calculation clock. */
+  const reveal = useCallback(() => {
+    thinkSecondsRef.current = Math.round((Date.now() - itemStartedAtRef.current) / 1000);
+    setRevealed(true);
   }, []);
 
   /** Record the outcome, then either ask the candidate question or move on. */
@@ -111,6 +133,7 @@ const TodayQueue = () => {
         candidateMiss,
         candidatesWritten: candidates.trim() || undefined,
         seconds: Math.round((Date.now() - itemStartedAtRef.current) / 1000),
+        thinkSeconds: thinkSecondsRef.current ?? undefined,
       });
       setDone(d => d + 1);
       if (correct) setCorrectCount(c => c + 1);
@@ -313,7 +336,8 @@ const TodayQueue = () => {
               <div className="space-y-4">
                 {!revealed ? (
                   <div>
-                    <label className="text-label flex items-center gap-1.5" htmlFor="candidates">
+                    <ThinkTimer startedAt={itemStartedAt} />
+                    <label className="text-label mt-4 flex items-center gap-1.5" htmlFor="candidates">
                       <PencilSquareIcon className="w-4 h-4" />
                       {current.kind === 'blunder'
                         ? 'Tus candidatos, antes de mover'
@@ -337,14 +361,7 @@ const TodayQueue = () => {
                       Escribilos primero. Una lista mental se puede corregir después de ver la
                       respuesta — una escrita, no.
                     </p>
-                    <Button
-                      className="mt-3"
-                      disabled={!candidates.trim()}
-                      onClick={() => {
-                        setRevealed(true);
-                        if (current.kind === 'blunder') itemStartedAtRef.current = Date.now();
-                      }}
-                    >
+                    <Button className="mt-3" disabled={!candidates.trim()} onClick={reveal}>
                       {current.kind === 'blunder' ? 'Listo, ahora juego' : 'Ver la respuesta'}
                     </Button>
                   </div>
@@ -367,7 +384,12 @@ const TodayQueue = () => {
                   </div>
                 ) : outcome === null ? (
                   <div>
-                    <p className="text-sm text-fg-muted">
+                    <ThinkTimer
+                      startedAt={itemStartedAt}
+                      frozen
+                      frozenSeconds={thinkSecondsRef.current ?? 0}
+                    />
+                    <p className="mt-3 text-sm text-fg-muted">
                       Tus candidatos: <span className="text-fg">{candidates}</span>
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
