@@ -210,8 +210,19 @@ export const useTrendsAndAnalytics = (games: Game[], ratedGames: Game[]) => {
         score: parseFloat(score),
         avgOppElo,
         playerElo,
+        // "Lichess Online" is one bucket holding every online game, not an
+        // event. It belongs in the table but not in a "best tournament
+        // performance" figure, which it would win on volume alone.
+        otb: tournamentGames.some(g => (g.source ?? 'otb') === 'otb'),
         eloChange: tournamentData.eloChange || 0,
-        performance: tournamentData.performanceRating || null,
+        // Fall back to the computed rating, the way the Tournaments tab
+        // already does. TOURNAMENT_DATA is a hardcoded map of the original
+        // seven events, so reading it alone left every tournament added since
+        // — the team events, Lichess Online — with an empty performance cell
+        // and a hole in the trend line, despite having the games to compute it.
+        performance:
+          tournamentData.performanceRating ||
+          (avgOppElo > 0 ? calculateGameStats(tournamentGames).performanceRating : null),
       };
     });
   }, [games]);

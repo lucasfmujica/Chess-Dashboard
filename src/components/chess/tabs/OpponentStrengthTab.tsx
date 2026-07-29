@@ -31,6 +31,8 @@ interface TournamentComparisonEntry {
   playerElo: number;
   eloChange: number;
   performance: number | null;
+  /** False for the "Lichess Online" bucket, which is not an event. */
+  otb?: boolean;
 }
 
 /** Per-bracket aggregate computed from rated games. */

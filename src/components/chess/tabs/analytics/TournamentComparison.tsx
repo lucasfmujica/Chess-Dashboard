@@ -13,6 +13,8 @@ interface TournamentComparisonEntry {
   playerElo: number;
   eloChange: number;
   performance: number | null;
+  /** False for the "Lichess Online" bucket, which is not an event. */
+  otb?: boolean;
 }
 
 interface TournamentComparisonProps {
@@ -20,6 +22,14 @@ interface TournamentComparisonProps {
 }
 
 const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProps) => {
+  // Over real events only. Online play is one 400-game bucket whose rating
+  // is on a different scale entirely, so including it would just mean this
+  // number always reports Lichess.
+  const bestPerformance = Math.max(
+    0,
+    ...tournamentComparison.filter(t => t.otb !== false).map(t => t.performance || 0)
+  );
+
   return (
     <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
       <div className="p-6">
@@ -52,9 +62,7 @@ const TournamentComparison = ({ tournamentComparison }: TournamentComparisonProp
               <SparklesIcon className="w-5 h-5 text-accent" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-fg">
-                {Math.max(...tournamentComparison.map(t => t.performance || 0))}
-              </span>
+              <span className="text-3xl font-bold text-fg">{bestPerformance}</span>
               <span className="text-sm text-fg-muted">rating</span>
             </div>
           </div>
