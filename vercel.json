@@ -7,5 +7,16 @@
         { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
       ]
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 12 * * 3"
+    }
+  ],
+  "functions": {
+    "api/cron.ts": {
+      "maxDuration": 300
+    }
+  }
 }
