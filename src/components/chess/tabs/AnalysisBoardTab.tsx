@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
-import { useGames } from '../../../context/GamesContext';
+import { useGames, useSourceFilteredGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
 import GameViewer from '../GameViewer';
 import GamesAnalysisList from '../GamesAnalysisList';
@@ -31,7 +31,9 @@ const toLoadedGame = (g: Game, pgn: string): LoadedGame => ({
  * moves), step through it, see Stockfish accuracy/eval and what masters play.
  */
 const AnalysisBoardTab = () => {
-  const { games, updateGamePgn } = useGames();
+  const { updateGamePgn } = useGames();
+  // Same filtered list GamesAnalysisList walks, so the indices below line up.
+  const games = useSourceFilteredGames();
   const [loaded, setLoaded] = useState<LoadedGame | null>(null);
   // Index (into `games`) of the loaded stored game, so we can step ‹ prev/next ›.
   // null when nothing is loaded or a pasted PGN (not part of the library) is shown.

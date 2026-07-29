@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ChartBarIcon } from '@heroicons/react/24/outline';
-import { useGames } from '../../context/GamesContext';
+import { useSourceFilteredGames } from '../../context/GamesContext';
 import { getCachedAnalysis } from '../../hooks/useGameAnalysis';
 
 interface TrendPoint {
@@ -29,7 +29,7 @@ interface AccuracyTrendCardProps {
  * Stockfish, plotted alongside your ELO at the time. Reads cached analyses.
  */
 const AccuracyTrendCard = ({ refreshKey = 0 }: AccuracyTrendCardProps) => {
-  const { games } = useGames();
+  const games = useSourceFilteredGames();
 
   const points = useMemo<TrendPoint[]>(() => {
     const out: TrendPoint[] = [];

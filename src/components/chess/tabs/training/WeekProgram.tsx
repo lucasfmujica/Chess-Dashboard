@@ -21,7 +21,7 @@ import {
   WEEKLY_ANNOTATION_TARGET,
 } from '../../../../constants/trainingProgram';
 import { localDateKey, daysAgoKey, dateFromKey } from '../../../../utils/localDate';
-import { useGames } from '../../../../context/GamesContext';
+import { useSourceFilteredGames } from '../../../../context/GamesContext';
 import { Card, Badge, Button } from '../../../ui';
 import ReflectionHistory from './ReflectionHistory';
 import type { TrainingBlock, TrainingSession } from '../../../../types/training';
@@ -69,7 +69,7 @@ interface WeekProgramProps {
 }
 
 const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
-  const { games } = useGames();
+  const games = useSourceFilteredGames();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [annotations, setAnnotations] = useState<AnnotatedGame[]>([]);
   const [loading, setLoading] = useState(true);

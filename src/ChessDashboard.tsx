@@ -346,7 +346,7 @@ const ChessDashboard = () => {
 
           {activeTab === 'opponent-analysis' && (
             <OpponentStrengthTab
-              games={games}
+              games={ratedGames}
               currentElo={playerInfo.current_elo}
               timeOfDayStats={timeOfDayStats}
               tournamentComparison={tournamentComparison}
@@ -389,7 +389,7 @@ const ChessDashboard = () => {
                   setSortBy={setBlackSortBy}
                   sortOrder={blackSortOrder}
                   setSortOrder={setBlackSortOrder}
-                  games={games}
+                  games={ratedGames}
                   ecoNames={ecoNames}
                 />
               ) : (
@@ -400,7 +400,7 @@ const ChessDashboard = () => {
                   setSortBy={setWhiteSortBy}
                   sortOrder={whiteSortOrder}
                   setSortOrder={setWhiteSortOrder}
-                  games={games}
+                  games={ratedGames}
                   ecoNames={ecoNames}
                 />
               )}

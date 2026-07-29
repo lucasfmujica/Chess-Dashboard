@@ -8,7 +8,7 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
-import { useGames } from '../../../context/GamesContext';
+import { useSourceFilteredGames } from '../../../context/GamesContext';
 import { useGameStats } from '../../../hooks/useGameStats';
 import { useNormTracker } from '../../../hooks/useNormTracker';
 import { Card, CardHeader } from '../../ui/Card';
@@ -22,7 +22,7 @@ const emptyForm: Partial<NormAttempt> = { titleTarget: 'IM' };
 
 const NormTrackerTab = () => {
   const modal = useModal();
-  const { games } = useGames();
+  const games = useSourceFilteredGames();
   const { tournamentStats } = useGameStats(games.filter(g => g.rated));
   const { attempts, thresholds, loading, error, saveAttempt, removeAttempt, saveThresholds } = useNormTracker();
 

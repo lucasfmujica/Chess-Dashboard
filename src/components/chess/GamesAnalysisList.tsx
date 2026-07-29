@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CpuChipIcon, ChevronUpDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import { useGames } from '../../context/GamesContext';
+import { useSourceFilteredGames } from '../../context/GamesContext';
 import { getCachedAnalysis, analyzeAndCacheGame } from '../../hooks/useGameAnalysis';
 import { useGameFilters } from '../../hooks/useGameFilters';
 import { loadOpeningsBook, deepestOpening } from '../../utils/openings';
@@ -42,7 +42,7 @@ const RESULT_META: Record<Game['result'], { label: string; cls: string }> = {
 const RESULT_RANK: Record<Game['result'], number> = { W: 0, D: 1, L: 2 };
 
 const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisListProps) => {
-  const { games } = useGames();
+  const games = useSourceFilteredGames();
   const [book, setBook] = useState<Book | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('order');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');

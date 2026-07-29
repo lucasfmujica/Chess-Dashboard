@@ -35,7 +35,7 @@ import { localDateKey } from '../utils/localDate';
 import type { Game, PlayerInfo, Repertoire, Tournament, AnnotatedGame } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { WeeklyPlans } from '../types/training';
-import type { GameFilter } from './UIContext';
+import { useUI, type GameFilter } from './UIContext';
 import { LoadingSpinner } from '../components/LoadingSkeleton';
 
 const MIGRATION_FLAG_KEY = 'chess-dashboard-migrated-to-db';
@@ -446,23 +446,39 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   return <GamesContext.Provider value={value}>{children}</GamesContext.Provider>;
 };
 
+/**
+ * Apply the header's source filter (OTB / Online / All). Games saved before
+ * the column existed have no `source` and count as OTB.
+ */
+export const filterGamesBySource = (games: Game[], gameFilter: GameFilter): Game[] => {
+  if (gameFilter === 'otb') return games.filter(g => (g.source ?? 'otb') === 'otb');
+  if (gameFilter === 'online') return games.filter(g => g.source === 'lichess');
+  return games;
+};
+
+/**
+ * The games the header filter currently selects. Any panel that shows games or
+ * stats derived from them should read this rather than the raw `games` list —
+ * otherwise Lichess games keep showing up with the filter set to OTB.
+ */
+export const useSourceFilteredGames = (): Game[] => {
+  const { games } = useGames();
+  const { gameFilter } = useUI();
+  return useMemo(() => filterGamesBySource(games, gameFilter), [games, gameFilter]);
+};
+
 // Hook to get computed stats (memoized)
 export const useComputedStats = (gameFilter: GameFilter) => {
   const { games, mainRepertoire, targetElo, targetDate, playerInfo } = useGames();
 
   // Filter games based on source
-  const filteredGames = useMemo(() => {
-    if (gameFilter === 'all') return games;
-    if (gameFilter === 'otb') return games.filter(g => g.source === 'otb' || !g.source);
-    if (gameFilter === 'online') return games.filter(g => g.source === 'lichess');
-    return games;
-  }, [games, gameFilter]);
+  const filteredGames = useMemo(() => filterGamesBySource(games, gameFilter), [games, gameFilter]);
 
   const ratedGames = useMemo(() => filteredGames.filter(g => g.rated), [filteredGames]);
 
   // Use custom hooks for complex calculations
   const gameStats = useGameStats(ratedGames);
-  const trendsAndAnalytics = useTrendsAndAnalytics(games, ratedGames);
+  const trendsAndAnalytics = useTrendsAndAnalytics(ratedGames);
 
   const { allOpeningsStats, overallStats, tournamentStats } = gameStats;
   const { streaks, monthlyStats } = trendsAndAnalytics;

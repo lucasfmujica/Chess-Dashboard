@@ -27,8 +27,11 @@ interface TimeSlotBucket {
 
 /**
  * Custom hook for trends, streaks, and time-based analytics.
+ * Everything here derives from `ratedGames`, which the caller has already run
+ * through the header's source filter — passing the raw games list for any of it
+ * leaks Lichess games into panels the user filtered to OTB.
  */
-export const useTrendsAndAnalytics = (games: Game[], ratedGames: Game[]) => {
+export const useTrendsAndAnalytics = (ratedGames: Game[]) => {
   // Monthly/Tournament statistics over time
   const monthlyStats = useMemo(() => {
     const byMonth: Record<string, MonthBucket> = {};
@@ -177,15 +180,13 @@ export const useTrendsAndAnalytics = (games: Game[], ratedGames: Game[]) => {
 
   // Tournament comparison data
   const tournamentComparison = useMemo(() => {
-    const ratedTournaments = games
-      .filter(g => g.rated)
-      .reduce<Record<string, Game[]>>((acc, game) => {
-        if (!acc[game.tournament]) {
-          acc[game.tournament] = [];
-        }
-        acc[game.tournament].push(game);
-        return acc;
-      }, {});
+    const ratedTournaments = ratedGames.reduce<Record<string, Game[]>>((acc, game) => {
+      if (!acc[game.tournament]) {
+        acc[game.tournament] = [];
+      }
+      acc[game.tournament].push(game);
+      return acc;
+    }, {});
 
     return Object.entries(ratedTournaments).map(([name, tournamentGames]) => {
       const wins = tournamentGames.filter(g => g.result === 'W').length;
@@ -225,7 +226,7 @@ export const useTrendsAndAnalytics = (games: Game[], ratedGames: Game[]) => {
           (avgOppElo > 0 ? calculateGameStats(tournamentGames).performanceRating : null),
       };
     });
-  }, [games]);
+  }, [ratedGames]);
 
   return {
     monthlyStats,

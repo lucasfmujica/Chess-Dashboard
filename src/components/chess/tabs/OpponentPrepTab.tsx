@@ -7,7 +7,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
-import { useGames } from '../../../context/GamesContext';
+import { useSourceFilteredGames } from '../../../context/GamesContext';
 import { useGameStats } from '../../../hooks/useGameStats';
 import { useRivalGames } from '../../../hooks/useRivalGames';
 import {
@@ -27,7 +27,7 @@ const emptyForm: Partial<ScoutingTarget> = {};
 
 const OpponentPrepTab = () => {
   const modal = useModal();
-  const { games } = useGames();
+  const games = useSourceFilteredGames();
 
   const [targets, setTargets] = useState<ScoutingTarget[]>([]);
   const [loading, setLoading] = useState(true);
