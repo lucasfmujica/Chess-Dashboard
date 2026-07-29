@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useGames } from '../../context/GamesContext';
 import type { Game } from '../../types/chess';
+
+/** Where the username is kept between visits, so the field isn't retyped every sync. */
+const USERNAME_KEY = 'lichess-username';
 
 type SyncStatusType = 'loading' | 'success' | 'warning' | 'error';
 
@@ -14,13 +18,31 @@ interface LichessSyncPanelProps {
 }
 
 const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) => {
-  const [lichessUsername, setLichessUsername] = useState('');
+  const { games } = useGames();
+  const [lichessUsername, setLichessUsername] = useState(
+    () => localStorage.getItem(USERNAME_KEY) ?? ''
+  );
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [maxGames, setMaxGames] = useState(50);
   const [perfType, setPerfType] = useState('classical,rapid,blitz');
   const [sinceDate, setSinceDate] = useState('');
   const [untilDate, setUntilDate] = useState('');
+
+  /**
+   * The day of the newest Lichess game already saved.
+   *
+   * The incremental sync starts from that day rather than the one after it,
+   * on purpose: games are upserted on `lichess_game_id`, so re-fetching a day
+   * costs nothing and duplicates nothing, while starting a day later would
+   * silently skip any game from that date that was not in the last pull.
+   */
+  const lastSyncedDate = useMemo(() => {
+    const dates = games
+      .filter(g => g.source === 'lichess' && g.date)
+      .map(g => String(g.date).slice(0, 10));
+    return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : null;
+  }, [games]);
 
   // Cleanup timer when success status is set
   useEffect(() => {
@@ -34,21 +56,23 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
     return undefined;
   }, [syncStatus?.type]);
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async (overrideSince?: string) => {
     if (!lichessUsername.trim()) {
       onError?.('Please enter a Lichess username');
       return;
     }
 
+    localStorage.setItem(USERNAME_KEY, lichessUsername.trim());
     setIsSyncing(true);
     setSyncStatus({ type: 'loading', message: 'Fetching games from Lichess...' });
 
     try {
       const { fetchLichessGames, transformLichessGames } = await import('../../utils/lichessApi');
 
+      const fromDate = overrideSince ?? sinceDate;
       // A date range implies "everything in that window", so the max-games cap is ignored.
-      const hasDateRange = Boolean(sinceDate || untilDate);
-      const since = sinceDate ? new Date(`${sinceDate}T00:00:00`).getTime() : null;
+      const hasDateRange = Boolean(fromDate || untilDate);
+      const since = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
       const until = untilDate ? new Date(`${untilDate}T23:59:59`).getTime() : null;
 
       const lichessGames = await fetchLichessGames(lichessUsername, {
@@ -60,7 +84,12 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
       });
 
       if (lichessGames.length === 0) {
-        setSyncStatus({ type: 'warning', message: 'No games found for this user' });
+        setSyncStatus({
+          type: 'warning',
+          message: overrideSince
+            ? 'Ya estás al día — no hay partidas nuevas desde la última guardada.'
+            : 'No games found for this user',
+        });
         setIsSyncing(false);
         return;
       }
@@ -88,7 +117,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [lichessUsername, sinceDate, untilDate, maxGames, perfType, onSyncComplete, onError]);
 
   return (
     <div className="p-6 rounded-lg border border-hairline bg-surface">
@@ -102,6 +131,34 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
       <p className="mb-4 text-sm text-fg-muted">
         Automatically import your recent games from Lichess.org
       </p>
+
+      {/* The incremental sync, first: "everything since the last one" is what
+          this panel is actually asked for, and making it the default path
+          means the date never has to be looked up by hand. */}
+      {lastSyncedDate && (
+        <div className="mb-4 rounded-md border border-accent/30 bg-accent/5 p-4">
+          <p className="text-sm font-medium text-fg">Ponerse al día</p>
+          <p className="mt-0.5 text-xs text-fg-muted">
+            Tu última partida guardada es del{' '}
+            <span className="nums font-medium text-fg">{lastSyncedDate}</span>. Trae todo lo
+            jugado desde entonces.
+          </p>
+          <button
+            onClick={() => void handleSync(lastSyncedDate)}
+            disabled={isSyncing || !lichessUsername.trim()}
+            className={`mt-3 w-full px-6 py-2.5 text-sm font-medium rounded-md transition-colors ${
+              isSyncing || !lichessUsername.trim()
+                ? 'bg-surface-2 text-fg-subtle cursor-not-allowed'
+                : 'bg-accent text-accent-fg hover:opacity-90'
+            }`}
+          >
+            {isSyncing ? 'Sincronizando…' : `Traer partidas nuevas desde ${lastSyncedDate}`}
+          </button>
+          {!lichessUsername.trim() && (
+            <p className="mt-2 text-xs text-fg-subtle">Falta tu usuario de Lichess, abajo.</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         <div>
@@ -191,7 +248,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         )}
 
         <button
-          onClick={handleSync}
+          onClick={() => void handleSync()}
           disabled={isSyncing || !lichessUsername.trim()}
           className={`w-full px-6 py-3 font-medium rounded-md transition-colors ${isSyncing || !lichessUsername.trim()
             ? 'bg-surface-2 text-fg-subtle cursor-not-allowed'
@@ -236,7 +293,11 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
           <li>Select how many recent games to import, or set a date range to grab everything in that window</li>
           <li>Games will be automatically added to your dashboard as "Online" — they won't mix with OTB games</li>
           <li>Only rated games are imported</li>
-          <li>Duplicate games are automatically detected and merged</li>
+          <li>
+            Duplicate games are automatically detected and merged — re-syncing an overlapping
+            day is safe, which is why "ponerse al día" starts from the last saved date rather
+            than the day after
+          </li>
         </ul>
       </div>
     </div>
