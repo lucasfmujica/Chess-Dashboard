@@ -348,6 +348,64 @@ ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS lesson TEXT;
 ALTER TABLE games ADD COLUMN IF NOT EXISTS repertoire_line_id UUID REFERENCES repertoire_lines(id) ON DELETE SET NULL;
 ALTER TABLE games ADD COLUMN IF NOT EXISTS book_exit_ply INTEGER;
 
+-- Tournament metadata.
+--
+-- Replaces the hardcoded TOURNAMENT_ORDER / TOURNAMENT_DATA constants, which
+-- were an allow-list: any tournament whose name wasn't in that array vanished
+-- from every tournament view. `name` is the natural key and joins to
+-- games.tournament.
+--
+-- The official_* columns hold the federation's own numbers rather than
+-- recomputed ones. They disagree: for Copa Cultura AFA XX the sheet reports a
+-- 1750 performance where this app's formula gives ~1830 or ~1515 depending on
+-- how the unrated opponent is treated. Showing a number that contradicts the
+-- official sheet is worse than showing the official one.
+CREATE TABLE IF NOT EXISTS tournaments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  start_date DATE,
+  end_date DATE,
+  kind TEXT NOT NULL DEFAULT 'individual' CHECK (kind IN ('individual','equipos')),
+  -- 'reserva' / 'superior' for team events, so editions stay comparable.
+  category TEXT,
+  time_control TEXT,
+  -- Whether this event's games move the FIDE curve. Team rapid events don't.
+  affects_elo BOOLEAN NOT NULL DEFAULT true,
+  official_performance INTEGER,
+  official_points NUMERIC(4,1),
+  official_place INTEGER,
+  starting_rank INTEGER,
+  elo_before INTEGER,
+  elo_change NUMERIC(4,1),
+  club TEXT,
+  chess_results_url TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Per-game escape hatch from the ELO curve.
+--
+-- `rated` could not express this: it is the single filter feeding every
+-- analytic surface, so rated=false would also remove the game from per-
+-- tournament performance, opponent brackets, colour splits, streaks and
+-- records — the opposite of what a team rapid event needs.
+ALTER TABLE games ADD COLUMN IF NOT EXISTS affects_elo BOOLEAN NOT NULL DEFAULT true;
+
+-- Model games for the opening heroes. `opening_heroes` stores only names, so
+-- there was nowhere to keep the games that make a hero worth studying.
+CREATE TABLE IF NOT EXISTS model_games (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  eco TEXT NOT NULL,
+  hero TEXT NOT NULL,
+  event TEXT,
+  year INTEGER,
+  result TEXT,
+  pgn TEXT NOT NULL,
+  note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS model_games_eco_idx ON model_games (eco);
+
 -- Counter parity: endgame_drills lacked solved_count, repertoire_lines had no
 -- counters at all, so drilling them left no volume trace.
 ALTER TABLE endgame_drills ADD COLUMN IF NOT EXISTS solved_count INTEGER NOT NULL DEFAULT 0;

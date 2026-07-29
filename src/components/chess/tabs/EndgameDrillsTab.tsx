@@ -19,11 +19,18 @@ import StatCard from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 import { ecoNames } from '../../../constants/ecoNames';
 import EndgameContinuationReplay from '../EndgameContinuationReplay';
+import PlayoutBoard from '../PlayoutBoard';
 import type { EndgameDrill, EndgameType } from '../../../types/endgames';
 
 type ColorFilter = 'all' | 'W' | 'B';
 type ListFilter = 'due' | 'all';
 type TypeFilter = 'all' | EndgameType;
+type EndgameMode = 'repaso' | 'jugar';
+
+const MODE_SEGMENTS: { value: EndgameMode; label: string }[] = [
+  { value: 'repaso', label: 'Repaso' },
+  { value: 'jugar', label: 'Jugar vs motor' },
+];
 
 const TYPE_LABEL: Record<EndgameType, string> = {
   pawn: 'Pawn ending',
@@ -43,6 +50,12 @@ const EndgameDrillsTab = () => {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showContinuation, setShowContinuation] = useState(false);
+  /**
+   * `repaso` replays how the game actually went; `jugar` plays the ending out
+   * against Stockfish, which is what an endgame drill really needs — and what
+   * Toto's 4v3 homework asks for.
+   */
+  const [mode, setMode] = useState<EndgameMode>('repaso');
 
   const now = Date.now();
 
@@ -122,6 +135,15 @@ const EndgameDrillsTab = () => {
       <Card>
         <div className="flex flex-wrap items-end gap-6">
           <div>
+            <p className="text-label mb-2">Modo</p>
+            <SegmentedControl
+              aria-label="Modo de final"
+              value={mode}
+              onChange={setMode}
+              options={MODE_SEGMENTS}
+            />
+          </div>
+          <div>
             <p className="text-label mb-2">Queue</p>
             <SegmentedControl
               aria-label="Queue filter"
@@ -189,7 +211,14 @@ const EndgameDrillsTab = () => {
 
           <div className="p-6 flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-[420px] flex-shrink-0">
-              {showContinuation ? (
+              {mode === 'jugar' ? (
+                <PlayoutBoard
+                  fen={current.fen}
+                  orientation={orientation}
+                  resetKey={current.id}
+                  onFinish={clean => void handleReview(clean)}
+                />
+              ) : showContinuation ? (
                 <EndgameContinuationReplay gameId={current.gameId} fromPly={current.ply} orientation={orientation} />
               ) : (
                 <div className="rounded-lg overflow-hidden border border-hairline">
@@ -222,14 +251,16 @@ const EndgameDrillsTab = () => {
 
               <div className="p-6 bg-surface-2 rounded-lg border border-hairline">
                 <p className="text-base font-semibold text-fg mb-1">
-                  {formatMaterialDelta(current.materialDelta)} — how do you continue?
+                  {formatMaterialDelta(current.materialDelta)} — ¿cómo seguís?
                 </p>
                 <p className="text-sm text-fg-muted">
-                  Work out a plan, then reveal how this game actually went.
+                  {mode === 'jugar'
+                    ? 'Jugalo contra el motor hasta el final. Cada jugada tuya se evalúa.'
+                    : 'Armá un plan y después mirá cómo siguió la partida real.'}
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className={`flex gap-3 ${mode === 'jugar' ? 'hidden' : ''}`}>
                 {!showContinuation ? (
                   <button
                     onClick={() => setShowContinuation(true)}

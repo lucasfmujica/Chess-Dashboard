@@ -26,6 +26,7 @@ export interface GameRow {
   // Set by the client-side "Match games to repertoire" action, not by hand.
   repertoire_line_id: string | null;
   book_exit_ply: number | null;
+  affects_elo: boolean;
 }
 
 /** Shape accepted on write: whatever the client's `Game` object has populated. */
@@ -50,6 +51,7 @@ export interface GameInput {
   pgn?: string;
   city?: string;
   country?: string;
+  affectsElo?: boolean;
 }
 
 export const rowToGame = (row: GameRow) => ({
@@ -76,4 +78,5 @@ export const rowToGame = (row: GameRow) => ({
   country: row.country ?? undefined,
   repertoireLineId: row.repertoire_line_id ?? undefined,
   bookExitPly: row.book_exit_ply ?? undefined,
+  affectsElo: row.affects_elo,
 });

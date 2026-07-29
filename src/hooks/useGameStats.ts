@@ -43,15 +43,29 @@ export const useGameStats = (ratedGames: Game[]) => {
   // Overall statistics
   const overallStats = useMemo(() => calculateGameStats(ratedGames), [ratedGames]);
 
+  /**
+   * Games that move the FIDE curve.
+   *
+   * `rated` cannot express this on its own — it is the single filter feeding
+   * every analytic surface, so excluding a team rapid event with `rated` would
+   * also drop it from per-tournament performance, opponent brackets, colour
+   * splits, streaks and records. `affectsElo` narrows the exclusion to the
+   * rating curve alone. Older rows have no value, so undefined means true.
+   */
+  const eloGames = useMemo(
+    () => ratedGames.filter(g => g.affectsElo !== false),
+    [ratedGames]
+  );
+
   // ELO history with expected vs actual performance
   const eloHistory = useMemo(() => {
     // Seed from the first game's own recorded rating rather than a hardcoded
     // constant: OTB and Lichess ratings live on different scales, so whichever
     // source starts the (possibly filtered) sequence sets the baseline.
-    let currentElo = ratedGames[0]?.elo || 1651;
+    let currentElo = eloGames[0]?.elo || 1651;
     let ratedGameCount = 0; // Count of all rated games (including vs unrated opponents)
 
-    return ratedGames.map((game) => {
+    return eloGames.map((game) => {
       ratedGameCount++;
 
       // Use game's kFactor if available, otherwise determine by game count
@@ -114,7 +128,7 @@ export const useGameStats = (ratedGames: Game[]) => {
         kFactor,
       };
     });
-  }, [ratedGames]);
+  }, [eloGames]);
 
   // Tournament statistics with performance ratings
   const tournamentStats = useMemo(() => {
@@ -130,8 +144,28 @@ export const useGameStats = (ratedGames: Game[]) => {
       if (game.result === 'L') byTournament[game.tournament].losses++;
     });
 
-    return TOURNAMENT_ORDER
-      .filter(t => byTournament[t])
+    // Every tournament that has games appears. This used to be
+    // `TOURNAMENT_ORDER.filter(...)` — a hardcoded allow-list of seven names,
+    // which silently dropped any tournament not in it from this tab, the
+    // performance chart, the monthly stats and the norm-tracker picker.
+    // Order is derived from the games themselves: earliest played date first,
+    // falling back to the legacy constant's order for tournaments whose games
+    // have no date.
+    const earliestDate = (name: string): string =>
+      byTournament[name].games
+        .map(g => g.date)
+        .filter((d): d is string => !!d)
+        .sort()[0] ?? '';
+
+    return Object.keys(byTournament)
+      .sort((a, b) => {
+        const dateA = earliestDate(a);
+        const dateB = earliestDate(b);
+        if (dateA && dateB) return dateA.localeCompare(dateB);
+        if (dateA) return -1;
+        if (dateB) return 1;
+        return TOURNAMENT_ORDER.indexOf(a) - TOURNAMENT_ORDER.indexOf(b);
+      })
       .map(tournament => {
         const stats = byTournament[tournament];
         const gameStats = calculateGameStats(stats.games);

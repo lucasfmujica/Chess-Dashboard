@@ -77,14 +77,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           INSERT INTO games (
             lichess_game_id, source, color, result, elo, opponent, opponent_elo,
             eco, opening_name, tournament, rated, played_date, played_time,
-            speed, time_control, elo_change, k_factor, pgn, city, country
+            speed, time_control, elo_change, k_factor, pgn, city, country, affects_elo
           ) VALUES (
             ${game.gameId ?? null}, ${game.source ?? 'otb'}, ${game.color}, ${game.result},
             ${game.elo}, ${game.opp}, ${game.opp_elo ?? null}, ${game.eco ?? null},
             ${openingName}, ${game.tournament ?? null}, ${game.rated},
             ${playedDate}, ${game.time ?? null}, ${game.speed ?? null},
             ${game.timeControl ?? null}, ${game.eloChange ?? null}, ${game.kFactor ?? null},
-            ${game.pgn ?? null}, ${game.city ?? null}, ${game.country ?? null}
+            ${game.pgn ?? null}, ${game.city ?? null}, ${game.country ?? null},
+            ${game.affectsElo ?? true}
           )
           ON CONFLICT (lichess_game_id) DO UPDATE SET
             source = EXCLUDED.source, color = EXCLUDED.color, result = EXCLUDED.result,
@@ -92,7 +93,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             eco = EXCLUDED.eco, opening_name = EXCLUDED.opening_name, tournament = EXCLUDED.tournament,
             rated = EXCLUDED.rated, played_date = EXCLUDED.played_date, played_time = EXCLUDED.played_time,
             speed = EXCLUDED.speed, time_control = EXCLUDED.time_control, elo_change = EXCLUDED.elo_change,
-            k_factor = EXCLUDED.k_factor, pgn = EXCLUDED.pgn, city = EXCLUDED.city, country = EXCLUDED.country
+            k_factor = EXCLUDED.k_factor, pgn = EXCLUDED.pgn, city = EXCLUDED.city, country = EXCLUDED.country,
+            affects_elo = EXCLUDED.affects_elo
         `;
       });
       if (queries.length > 0) {

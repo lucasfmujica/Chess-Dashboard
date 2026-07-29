@@ -18,7 +18,7 @@ import SegmentedControl from '../../ui/SegmentedControl';
 import StatCard from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 import { ecoNames } from '../../../constants/ecoNames';
-import BlunderSolveBoard from '../BlunderSolveBoard';
+import PuzzleBoard from '../PuzzleBoard';
 import type { BlunderDrill } from '../../../types/blunders';
 
 type Mode = 'review' | 'solve';
@@ -247,12 +247,12 @@ const BlunderDrillsTab = () => {
           <div className="p-6 flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-[420px] flex-shrink-0">
               {mode === 'solve' ? (
-                <BlunderSolveBoard
+                <PuzzleBoard
                   fen={current.fenBefore}
                   bestMoveUci={current.bestMoveUci}
                   orientation={orientation}
                   resetKey={current.id}
-                  onResult={correct => void solve(current.id, correct)}
+                  onFirstResult={correct => void solve(current.id, correct)}
                 />
               ) : (
                 <div className="rounded-lg overflow-hidden border border-hairline">

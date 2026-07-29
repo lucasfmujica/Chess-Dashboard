@@ -15,7 +15,7 @@ import { programForWeekday, plannedMinutes } from '../../../../constants/trainin
 import { weekdayIndex } from '../../../../utils/localDate';
 import { formatMaterialDelta } from '../../../../engine/mineEndgames';
 import { Card, Button, Badge } from '../../../ui';
-import BlunderSolveBoard from '../../BlunderSolveBoard';
+import PuzzleBoard from '../../PuzzleBoard';
 import EndgameContinuationReplay from '../../EndgameContinuationReplay';
 import { isHomeworkOverdue } from '../../../../types/training';
 import type { TrainingAttempt, TrainingBlock } from '../../../../types/training';
@@ -440,11 +440,11 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
       return <StaticBoard fen={item.drill.fenBefore} orientation={orientation} />;
     }
     return (
-      <BlunderSolveBoard
+      <PuzzleBoard
         fen={item.drill.fenBefore}
         bestMoveUci={item.drill.bestMoveUci}
         orientation={orientation}
-        onResult={onResult}
+        onFirstResult={onResult}
         resetKey={item.id}
       />
     );

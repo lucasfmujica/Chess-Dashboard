@@ -61,6 +61,12 @@ export interface Game {
   repertoireLineId?: string;
   /** Ply at which the game left that line — how far the preparation held. */
   bookExitPly?: number;
+  /**
+   * Whether this game moves the FIDE rating curve. False for team rapid
+   * events, which still count for every other statistic. Undefined on older
+   * rows and treated as true.
+   */
+  affectsElo?: boolean;
 }
 
 /** Tracked player's profile/summary info. */
