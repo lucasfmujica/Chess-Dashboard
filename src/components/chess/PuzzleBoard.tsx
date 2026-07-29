@@ -149,6 +149,13 @@ const PuzzleBoard = ({
   const [attempts, setAttempts] = useState(0);
   const [solverMoves, setSolverMoves] = useState(0);
   const [line, setLine] = useState<LineMove[]>([]);
+  /**
+   * The line as it stood at the start of the current turn — what "probar otra
+   * jugada" restores. Popping the last move or two instead would corrupt the
+   * line as soon as you played a wrong answer out for a few moves, which is
+   * exactly what the board invites you to do.
+   */
+  const [stepLine, setStepLine] = useState<LineMove[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   /** Stockfish's read on `stepFen`, fetched while you think. */
@@ -176,14 +183,8 @@ const PuzzleBoard = ({
     setPendingPromotion(null);
     setHintLevel(0);
     setError(null);
-    // Drop the rival's refutation and your bad move from the line.
-    setLine(prev => {
-      const cut = [...prev];
-      while (cut.length && cut[cut.length - 1].by === 'rival') cut.pop();
-      if (cut.length && cut[cut.length - 1].by === 'you') cut.pop();
-      return cut;
-    });
-  }, [stepFen]);
+    setLine(stepLine);
+  }, [stepFen, stepLine]);
 
   /** Back to the very beginning of the puzzle. */
   const restart = useCallback(() => {
@@ -198,6 +199,7 @@ const PuzzleBoard = ({
     setHintLevel(0);
     setSolverMoves(0);
     setLine([]);
+    setStepLine([]);
     setError(null);
   }, [fen]);
 
@@ -233,7 +235,13 @@ const PuzzleBoard = ({
   /** The side you are playing, fixed for the whole puzzle. */
   const solverSide: 'w' | 'b' = fen.split(' ')[1] === 'b' ? 'b' : 'w';
   const isSolverTurn = sideToMove === solverSide;
-  const canMove = isSolverTurn && (phase === 'thinking' || phase === 'exploring');
+  /**
+   * `wrong` is playable too. The verdict card tells you to play the line out
+   * and see what the punishment actually looks like — a board that refuses
+   * the next move makes that text a lie.
+   */
+  const canMove =
+    isSolverTurn && (phase === 'thinking' || phase === 'wrong' || phase === 'exploring');
 
   /** The move to reveal for a hint — the drill's own on move one, the engine's after. */
   const solutionUci = solverMoves === 0 ? (bestMoveUci ?? baseEval?.bestMove) : baseEval?.bestMove;
@@ -299,19 +307,31 @@ const PuzzleBoard = ({
 
       /** Finish the half-move: record it, then either continue or close out. */
       const settle = async (result: Grade, afterEval: PositionEval) => {
+        // `commit` only ever runs from `thinking`, i.e. at the start of a
+        // turn, so the line right now is exactly `stepLine` — build on that
+        // rather than on whatever exploring left behind.
+        const afterYou: LineMove[] = [
+          ...stepLine,
+          { san: move.san, uci, by: 'you', verdict: result.verdict },
+        ];
         setGrade(result);
-        setLine(prev => [...prev, { san: move.san, uci, by: 'you', verdict: result.verdict }]);
+        setLine(afterYou);
         if (isFirstMove && attemptNumber === 1) onFirstResult(result.verdict === 'correcta', result);
+
+        const reply = afterEval.bestMove;
+        const applied = reply && reply !== '(none)' ? applyUci(afterFen, reply) : null;
+        const withReply: LineMove[] =
+          applied && reply ? [...afterYou, { san: applied.san, uci: reply, by: 'rival' }] : afterYou;
 
         if (result.verdict !== 'correcta') {
           // Wrong: play the engine's reply so the punishment lands on the
           // board, then hand the move back so the line can be played out.
-          const reply = afterEval.bestMove;
-          const applied = reply && reply !== '(none)' ? applyUci(afterFen, reply) : null;
+          // `stepLine` stays put, so "probar otra jugada" still rewinds here
+          // however far the refutation gets played out.
           if (applied && reply) {
             setReplyUci(reply);
             setPosition(applied.fen);
-            setLine(prev => [...prev, { san: applied.san, uci: reply, by: 'rival' }]);
+            setLine(withReply);
           }
           setPhase('wrong');
           return;
@@ -320,33 +340,24 @@ const PuzzleBoard = ({
         const solved = solverMoves + 1;
         setSolverMoves(solved);
 
-        // Mate, stalemate, or nothing left to ask: the puzzle is done.
-        if (chess.isGameOver() || solved >= maxSolverMoves) {
+        const finish = () => {
           setPhase('solved');
           onSolved?.();
-          return;
-        }
+        };
 
-        const reply = afterEval.bestMove;
-        const applied = reply && reply !== '(none)' ? applyUci(afterFen, reply) : null;
-        if (!applied || !reply) {
-          setPhase('solved');
-          onSolved?.();
-          return;
-        }
+        // Mate, stalemate, or nothing left to ask: the puzzle is done.
+        if (chess.isGameOver() || solved >= maxSolverMoves) return finish();
+        if (!applied || !reply) return finish();
 
         setReplyUci(reply);
         setPosition(applied.fen);
-        setLine(prev => [...prev, { san: applied.san, uci: reply, by: 'rival' }]);
+        setLine(withReply);
 
-        if (new Chess(applied.fen).isGameOver()) {
-          setPhase('solved');
-          onSolved?.();
-          return;
-        }
+        if (new Chess(applied.fen).isGameOver()) return finish();
 
         // Next turn is yours: rebase the step and let the prefetch run again.
         setStepFen(applied.fen);
+        setStepLine(withReply);
         setPhase('thinking');
       };
 
@@ -378,6 +389,7 @@ const PuzzleBoard = ({
       attempts,
       solverMoves,
       maxSolverMoves,
+      stepLine,
       evaluate,
       onFirstResult,
       onSolved,
@@ -398,8 +410,13 @@ const PuzzleBoard = ({
         return;
       }
       if (!move) return;
+      // Entering free play from the verdict: no more grading from here.
+      setPhase('exploring');
       setPosition(chess.fen());
       setSelectedSquare(null);
+      // Drop the arrow on the move that was graded — several moves later it
+      // points at a position that is no longer on the board.
+      setPlayedUci(null);
       setLine(prev => [...prev, { san: move.san, uci: moveToUci(move), by: 'you' }]);
       if (chess.isGameOver()) return;
 
@@ -422,8 +439,10 @@ const PuzzleBoard = ({
         setSelectedSquare(null);
         return false;
       }
-      if (phase === 'exploring') void explore(from, to);
-      else void commit(from, to);
+      // Only a move made from `thinking` is graded; a move played after the
+      // verdict is exploration.
+      if (phase === 'thinking') void commit(from, to);
+      else void explore(from, to);
       return true;
     },
     [canMove, phase, isPromotion, commit, explore]
@@ -547,8 +566,8 @@ const PuzzleBoard = ({
                 onClick={() => {
                   const { from, to } = pendingPromotion;
                   setPendingPromotion(null);
-                  if (phase === 'exploring') void explore(from, to, code);
-                  else void commit(from, to, code);
+                  if (phase === 'thinking') void commit(from, to, code);
+                  else void explore(from, to, code);
                 }}
                 className="flex h-12 w-12 items-center justify-center rounded-lg border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent"
                 aria-label={code}
