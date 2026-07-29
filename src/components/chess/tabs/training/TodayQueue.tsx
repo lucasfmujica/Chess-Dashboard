@@ -446,6 +446,9 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
         orientation={orientation}
         onFirstResult={onResult}
         resetKey={item.id}
+        // One move, not a played-out line: the daily queue is time-boxed and
+        // the exercise here is the candidate list, not the continuation.
+        maxSolverMoves={1}
       />
     );
   }

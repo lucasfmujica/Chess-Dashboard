@@ -17,8 +17,10 @@ export interface CityLocation {
 export const CITY_DIRECTORY: Record<string, CityLocation> = {
   // Argentina
   'Buenos Aires': { city: 'Buenos Aires', province: 'CABA', country: 'Argentina', coordinates: [-58.3816, -34.6037] },
+  Avellaneda: { city: 'Avellaneda', province: 'Buenos Aires', country: 'Argentina', coordinates: [-58.3669, -34.6625] },
   'La Plata': { city: 'La Plata', province: 'Buenos Aires', country: 'Argentina', coordinates: [-57.9545, -34.9215] },
   'Mar del Plata': { city: 'Mar del Plata', province: 'Buenos Aires', country: 'Argentina', coordinates: [-57.5575, -38.0055] },
+  Necochea: { city: 'Necochea', province: 'Buenos Aires', country: 'Argentina', coordinates: [-58.7369, -38.5545] },
   Rosario: { city: 'Rosario', province: 'Santa Fe', country: 'Argentina', coordinates: [-60.6393, -32.9442] },
   'Santa Fe': { city: 'Santa Fe', province: 'Santa Fe', country: 'Argentina', coordinates: [-60.7, -31.6333] },
   Córdoba: { city: 'Córdoba', province: 'Córdoba', country: 'Argentina', coordinates: [-64.1888, -31.4201] },
@@ -50,6 +52,12 @@ export const DEFAULT_TOURNAMENT_CITY: Record<string, string> = {
   'IRT Carnaval': 'Buenos Aires',
   'Abierto Madryn': 'Puerto Madryn',
   'Abierto Lago Puelo': 'Lago Puelo',
+  // Team events. The Copa Cultura AFA moves between editions — XVII was in
+  // Avellaneda and XIX in Rosario, not all of them in the capital.
+  'Copa Cultura AFA XVII': 'Avellaneda',
+  'Copa Cultura AFA XIX': 'Rosario',
+  'Copa Cultura AFA XX': 'Buenos Aires',
+  '67º Torneo por Equipos Playas de Necochea 2026': 'Necochea',
 };
 
 /** Sorted list of city keys for selectors. */

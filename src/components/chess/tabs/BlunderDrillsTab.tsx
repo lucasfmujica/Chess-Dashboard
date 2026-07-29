@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 import {
@@ -8,6 +8,7 @@ import {
   ArrowPathIcon,
   CheckCircleIcon,
   XCircleIcon,
+  FireIcon,
 } from '@heroicons/react/24/outline';
 import { useBlunderDrills } from '../../../hooks/useBlunderDrills';
 import { isDue, nextReviewAt } from '../../../utils/srs';
@@ -22,9 +23,12 @@ import PuzzleBoard from '../PuzzleBoard';
 import ConceptQuickAdd from '../ConceptQuickAdd';
 import type { BlunderDrill } from '../../../types/blunders';
 
-type Mode = 'review' | 'solve';
+type Mode = 'solve' | 'review';
 type ColorFilter = 'all' | 'W' | 'B';
 type ListFilter = 'due' | 'all';
+
+/** How long the "Resuelto" banner stays up before the next puzzle loads. */
+const AUTO_ADVANCE_MS = 1400;
 
 const fmtEval = (cp: number) => (Math.abs(cp) >= 9000 ? '#' : (cp / 100).toFixed(1));
 
@@ -57,25 +61,67 @@ const BlunderDrillsTab = () => {
     review,
     solve,
   } = useBlunderDrills();
-  const [mode, setMode] = useState<Mode>('review');
+  // Solving is the default: this tab is a puzzle trainer that happens to be
+  // built from your own games, not a flashcard deck you read.
+  const [mode, setMode] = useState<Mode>('solve');
   const [colorFilter, setColorFilter] = useState<ColorFilter>('all');
   const [listFilter, setListFilter] = useState<ListFilter>('due');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  /** Puzzles solved first-try in this sitting — the only reason to keep going. */
+  const [streak, setStreak] = useState(0);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const now = Date.now();
 
-  const filtered = useMemo(() => {
-    let f = drills;
+  /**
+   * The queue is a frozen list of ids, not a live filter.
+   *
+   * Deriving it straight from `drills` made the tab unusable in solve mode:
+   * grading the first move writes a new confidence, the drill stops being due,
+   * it drops out of the filter, and the position you were still playing is
+   * replaced by a different puzzle before you can see the continuation. Any
+   * board that grades as you go has to hold its own queue still.
+   *
+   * It is rebuilt when the filters change or when mining adds drills — never
+   * as a side effect of answering one.
+   */
+  const [queue, setQueue] = useState<string[]>([]);
+  const drillsRef = useRef(drills);
+  drillsRef.current = drills;
+
+  const rebuildQueue = useCallback(() => {
+    const at = Date.now();
+    let f = drillsRef.current;
     if (colorFilter !== 'all') f = f.filter(d => d.game.color === colorFilter);
-    if (listFilter === 'due') f = f.filter(d => isDue(d.lastReviewed, d.confidence, now));
-    return [...f].sort((a, b) => nextReviewAt(a.lastReviewed, a.confidence) - nextReviewAt(b.lastReviewed, b.confidence));
-  }, [drills, colorFilter, listFilter, now]);
+    if (listFilter === 'due') f = f.filter(d => isDue(d.lastReviewed, d.confidence, at));
+    setQueue(
+      [...f]
+        .sort(
+          (a, b) =>
+            nextReviewAt(a.lastReviewed, a.confidence) - nextReviewAt(b.lastReviewed, b.confidence)
+        )
+        .map(d => d.id)
+    );
+    setCurrentIndex(0);
+    setShowAnswer(false);
+  }, [colorFilter, listFilter]);
+
+  // `drills.length` rather than `drills`: it changes when a scan adds drills
+  // and stays put when one is graded, which is exactly the distinction the
+  // queue needs.
+  useEffect(rebuildQueue, [rebuildQueue, drills.length]);
 
   useEffect(() => {
     setCurrentIndex(0);
     setShowAnswer(false);
-  }, [mode, colorFilter, listFilter]);
+  }, [mode]);
+
+  const byId = useMemo(() => new Map(drills.map(d => [d.id, d])), [drills]);
+  const filtered = useMemo(
+    () => queue.map(id => byId.get(id)).filter((d): d is BlunderDrill => !!d),
+    [queue, byId]
+  );
 
   const current = filtered[currentIndex];
 
@@ -90,20 +136,42 @@ const BlunderDrillsTab = () => {
     return { total, due, mastered, avgConfidence };
   }, [drills, now]);
 
+  /** Cancels a queued auto-advance so a manual click can't double-skip. */
+  const clearAdvance = useCallback(() => {
+    if (advanceTimer.current) {
+      clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearAdvance, [clearAdvance]);
+
   const goPrev = () => {
+    clearAdvance();
     setShowAnswer(false);
     setCurrentIndex(i => (filtered.length ? (i - 1 + filtered.length) % filtered.length : 0));
   };
-  const goNext = () => {
+  const goNext = useCallback(() => {
+    clearAdvance();
     setShowAnswer(false);
     setCurrentIndex(i => (filtered.length ? (i + 1) % filtered.length : 0));
-  };
+  }, [clearAdvance, filtered.length]);
 
   const handleReview = async (correct: boolean) => {
     if (!current) return;
     await review(current.id, correct);
     goNext();
   };
+
+  /**
+   * A solved puzzle should feel like Lichess: the verdict lands, then the next
+   * position appears. Waiting for a click after every puzzle is what turned a
+   * 832-item queue into something nobody finishes.
+   */
+  const handleSolved = useCallback(() => {
+    clearAdvance();
+    advanceTimer.current = setTimeout(goNext, AUTO_ADVANCE_MS);
+  }, [clearAdvance, goNext]);
 
   const orientation: 'white' | 'black' = current?.game.color === 'B' ? 'black' : 'white';
   const playedUci = current ? playedUciFor(current) : undefined;
@@ -190,8 +258,8 @@ const BlunderDrillsTab = () => {
               value={mode}
               onChange={setMode}
               options={[
-                { value: 'review', label: 'Review' },
-                { value: 'solve', label: 'Solve' },
+                { value: 'solve', label: 'Resolver' },
+                { value: 'review', label: 'Repasar' },
               ]}
             />
           </div>
@@ -233,9 +301,17 @@ const BlunderDrillsTab = () => {
               <span className="text-sm font-semibold text-fg">
                 {currentIndex + 1} of {filtered.length}
               </span>
-              <span className="text-sm text-fg-muted">
-                Confidence: <span className="font-bold text-accent tabular-nums">{current.confidence ?? '—'}/5</span>
-              </span>
+              <div className="flex items-center gap-4">
+                {mode === 'solve' && streak > 0 && (
+                  <span className="flex items-center gap-1 text-sm font-semibold text-accent">
+                    <FireIcon className="w-4 h-4" />
+                    <span className="tabular-nums">{streak}</span>
+                  </span>
+                )}
+                <span className="text-sm text-fg-muted">
+                  Confidence: <span className="font-bold text-accent tabular-nums">{current.confidence ?? '—'}/5</span>
+                </span>
+              </div>
             </div>
             <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
               <div
@@ -253,7 +329,11 @@ const BlunderDrillsTab = () => {
                   bestMoveUci={current.bestMoveUci}
                   orientation={orientation}
                   resetKey={current.id}
-                  onFirstResult={correct => void solve(current.id, correct)}
+                  onFirstResult={correct => {
+                    setStreak(s => (correct ? s + 1 : 0));
+                    void solve(current.id, correct);
+                  }}
+                  onSolved={handleSolved}
                   footer={
                     // A concept born where it was actually missed, carrying
                     // the position and the game it came from.

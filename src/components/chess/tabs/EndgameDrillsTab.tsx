@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import {
   ShieldCheckIcon,
@@ -28,8 +28,8 @@ type TypeFilter = 'all' | EndgameType;
 type EndgameMode = 'repaso' | 'jugar';
 
 const MODE_SEGMENTS: { value: EndgameMode; label: string }[] = [
-  { value: 'repaso', label: 'Repaso' },
   { value: 'jugar', label: 'Jugar vs motor' },
+  { value: 'repaso', label: 'Repaso' },
 ];
 
 const TYPE_LABEL: Record<EndgameType, string> = {
@@ -51,26 +51,50 @@ const EndgameDrillsTab = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showContinuation, setShowContinuation] = useState(false);
   /**
-   * `repaso` replays how the game actually went; `jugar` plays the ending out
-   * against Stockfish, which is what an endgame drill really needs — and what
-   * Toto's 4v3 homework asks for.
+   * `jugar` plays the ending out against Stockfish — what an endgame drill
+   * really needs, and what Toto's 4v3 homework asks for. It leads because a
+   * drill you can only watch isn't a drill; `repaso` replays how the game
+   * actually went, for when you want the answer rather than the practice.
    */
-  const [mode, setMode] = useState<EndgameMode>('repaso');
+  const [mode, setMode] = useState<EndgameMode>('jugar');
 
   const now = Date.now();
 
-  const filtered = useMemo(() => {
-    let f = drills;
+  /**
+   * A frozen queue of ids, for the same reason the blunder drills need one:
+   * finishing a playout writes a new confidence, which drops the drill out of
+   * the "due" filter and would otherwise reshuffle the list under the board
+   * you just finished playing on.
+   */
+  const [queue, setQueue] = useState<string[]>([]);
+  const drillsRef = useRef(drills);
+  drillsRef.current = drills;
+
+  const rebuildQueue = useCallback(() => {
+    const at = Date.now();
+    let f = drillsRef.current;
     if (colorFilter !== 'all') f = f.filter(d => d.game.color === colorFilter);
     if (typeFilter !== 'all') f = f.filter(d => d.endgameType === typeFilter);
-    if (listFilter === 'due') f = f.filter(d => isDue(d.lastReviewed, d.confidence, now));
-    return [...f].sort((a, b) => nextReviewAt(a.lastReviewed, a.confidence) - nextReviewAt(b.lastReviewed, b.confidence));
-  }, [drills, colorFilter, typeFilter, listFilter, now]);
-
-  useEffect(() => {
+    if (listFilter === 'due') f = f.filter(d => isDue(d.lastReviewed, d.confidence, at));
+    setQueue(
+      [...f]
+        .sort(
+          (a, b) =>
+            nextReviewAt(a.lastReviewed, a.confidence) - nextReviewAt(b.lastReviewed, b.confidence)
+        )
+        .map(d => d.id)
+    );
     setCurrentIndex(0);
     setShowContinuation(false);
   }, [colorFilter, typeFilter, listFilter]);
+
+  useEffect(rebuildQueue, [rebuildQueue, drills.length]);
+
+  const byId = useMemo(() => new Map(drills.map(d => [d.id, d])), [drills]);
+  const filtered = useMemo(
+    () => queue.map(id => byId.get(id)).filter((d): d is EndgameDrill => !!d),
+    [queue, byId]
+  );
 
   const current = filtered[currentIndex];
 
