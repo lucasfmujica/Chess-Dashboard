@@ -29,6 +29,15 @@ vi.mock('./api/client', () => ({
   putAnnotation: vi.fn(),
   deleteAnnotation: vi.fn(),
   postMigrate: vi.fn().mockResolvedValue({ migrated: false }),
+  // Tournaments moved out of localStorage into the database, so the provider's
+  // initial load now fetches them too.
+  fetchTournaments: vi.fn().mockResolvedValue([]),
+  postTournament: vi.fn(),
+  putTournament: vi.fn(),
+  deleteTournament: vi.fn(),
+  // Imports link games to prepared lines on the way in.
+  fetchRepertoireLines: vi.fn().mockResolvedValue([]),
+  patchGameRepertoireMatches: vi.fn(),
 }));
 
 // Helper to render App with all required providers

@@ -23,8 +23,16 @@ import {
   fetchAnalyses,
   postAnalysis,
   postMigrate,
+  fetchTournaments,
+  postTournament,
+  putTournament,
+  deleteTournament,
+  fetchRepertoireLines,
+  patchGameRepertoireMatches,
 } from '../api/client';
-import type { Game, PlayerInfo, Repertoire, UpcomingTournament, AnnotatedGame } from '../types/chess';
+import { changedRepertoireMatches } from '../utils/repertoireMatchRun';
+import { localDateKey } from '../utils/localDate';
+import type { Game, PlayerInfo, Repertoire, Tournament, AnnotatedGame } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { WeeklyPlans } from '../types/training';
 import type { GameFilter } from './UIContext';
@@ -40,6 +48,18 @@ const ANALYSIS_MIGRATION_FLAG_KEY = 'chess-dashboard-analyses-migrated-to-db';
 // Also independent, for the same reason: added after the main migration
 // already ran for existing users, so it can't ride on that endpoint's guard.
 const LOCATIONS_MIGRATION_FLAG_KEY = 'chess-dashboard-tournament-locations-migrated-to-db';
+// Same again, for the upcoming-tournament list.
+const UPCOMING_MIGRATION_FLAG_KEY = 'chess-dashboard-upcoming-tournaments-migrated-to-db';
+
+/** The localStorage shape upcoming tournaments used before they had a table. */
+interface LegacyUpcomingTournament {
+  name: string;
+  club?: string;
+  province?: string;
+  startDate?: string;
+  endDate?: string;
+  chessResultsLink?: string;
+}
 
 /** A localStorage-backed setter (value or updater fn). */
 type Updater<T> = (value: T | ((prev: T) => T)) => void;
@@ -77,8 +97,13 @@ interface GamesContextValue {
   weeklyHours: number;
   setWeeklyHours: Updater<number>;
 
-  upcomingTournaments: UpcomingTournament[];
-  setUpcomingTournaments: Updater<UpcomingTournament[]>;
+  /** Every tournament, played and upcoming, newest first. */
+  tournaments: Tournament[];
+  /** Those starting today or later — the ones prep can still be done for. */
+  upcomingTournaments: Tournament[];
+  addTournament: (t: Partial<Tournament>) => Promise<void>;
+  updateTournament: (id: string, t: Partial<Tournament>) => Promise<void>;
+  removeTournament: (id: string) => Promise<void>;
 }
 
 const GamesContext = createContext<GamesContextValue | null>(null);
@@ -151,6 +176,40 @@ const migrateAnalysisCacheIfNeeded = async () => {
   safeSetItem(ANALYSIS_MIGRATION_FLAG_KEY, '1');
 };
 
+/**
+ * Uploads the localStorage upcoming-tournament list to the `tournaments`
+ * table, once.
+ *
+ * They were localStorage-only, with `Date.now()` ids, which meant no
+ * serverless function could read them — so nothing could be prepared from a
+ * tournament automatically. The table already had every field but `province`.
+ * Upserting on name means a tournament that was also imported from a
+ * crosstable merges instead of duplicating.
+ */
+const migrateUpcomingTournamentsIfNeeded = async () => {
+  if (safeGetItem(UPCOMING_MIGRATION_FLAG_KEY)) return;
+  const raw = safeGetItem('chess-dashboard-upcoming-tournaments');
+  if (raw) {
+    try {
+      const legacy = JSON.parse(raw) as LegacyUpcomingTournament[];
+      for (const t of Array.isArray(legacy) ? legacy : []) {
+        if (!t?.name?.trim()) continue;
+        await postTournament({
+          name: t.name.trim(),
+          startDate: t.startDate || undefined,
+          endDate: t.endDate || undefined,
+          club: t.club || undefined,
+          province: t.province || undefined,
+          chessResultsUrl: t.chessResultsLink || undefined,
+        });
+      }
+    } catch {
+      /* malformed cache entry, nothing to migrate */
+    }
+  }
+  safeSetItem(UPCOMING_MIGRATION_FLAG_KEY, '1');
+};
+
 /** Uploads the localStorage tournament->city override map to the DB, once. */
 const migrateTournamentLocationsIfNeeded = async () => {
   if (safeGetItem(LOCATIONS_MIGRATION_FLAG_KEY)) return;
@@ -187,8 +246,10 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const [dailyNotes, setDailyNotes] = useLocalStorage<Record<string, string>>('chess-dashboard-daily-notes', {});
   const [weeklyHours, setWeeklyHours] = useLocalStorage<number>('chess-dashboard-weekly-hours', DEFAULTS.WEEKLY_TRAINING_HOURS);
 
-  // Upcoming Tournaments State (persisted locally)
-  const [upcomingTournaments, setUpcomingTournaments] = useLocalStorage<UpcomingTournament[]>('chess-dashboard-upcoming-tournaments', []);
+  // Tournaments, played and upcoming, in one table. Upcoming is not a flag —
+  // it is derived from the start date, so an event stops being "upcoming" the
+  // day it starts without anyone having to move it.
+  const [tournaments, setTournamentsState] = useState<Tournament[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,14 +269,16 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
         }
         await migrateAnalysisCacheIfNeeded();
         await migrateTournamentLocationsIfNeeded();
+        await migrateUpcomingTournamentsIfNeeded();
 
-        const [gamesData, profileData, repertoireData, heroesData, locationsData, analysesData] = await Promise.all([
+        const [gamesData, profileData, repertoireData, heroesData, locationsData, analysesData, tournamentsData] = await Promise.all([
           fetchGames(),
           fetchProfile(),
           fetchRepertoire(),
           fetchOpeningHeroes(),
           fetchTournamentLocations(),
           fetchAnalyses(),
+          fetchTournaments(),
         ]);
         if (cancelled) return;
 
@@ -224,6 +287,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
         setMainRepertoireState(repertoireData);
         setOpeningHeroesState(heroesData);
         setTournamentLocationsState(locationsData);
+        setTournamentsState(tournamentsData);
         seedAnalysisCache(analysesData);
         setReady(true);
       } catch (err) {
@@ -239,9 +303,36 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
 
   const refetchGames = async () => setGamesState(await fetchGames());
 
+  /**
+   * Reload games, then link any that now follow a prepared line.
+   *
+   * Matching used to happen only when someone opened Repertorio -> Mapa and
+   * pressed a button, which is why every row in the database sat with a null
+   * `repertoire_line_id`. Running it on the import path means a game is linked
+   * by the time it first appears in the app.
+   *
+   * Deliberately non-fatal: a repertoire that fails to load must not make an
+   * otherwise successful import look like it failed. The games are already
+   * saved at this point, and the backfill script can always catch up.
+   */
+  const refetchAndLinkGames = async () => {
+    const saved = await fetchGames();
+    setGamesState(saved);
+    try {
+      const lines = await fetchRepertoireLines();
+      if (lines.length === 0) return;
+      const { matches } = changedRepertoireMatches(saved, lines);
+      if (matches.length === 0) return;
+      await patchGameRepertoireMatches(matches);
+      setGamesState(await fetchGames());
+    } catch (err) {
+      console.error('Repertoire linking skipped after import:', err);
+    }
+  };
+
   const syncLichessGames = async (newGames: Game[]) => {
     await postGames(newGames);
-    await refetchGames();
+    await refetchAndLinkGames();
   };
 
   const removeLichessGames = async () => {
@@ -251,7 +342,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
 
   const importPgnGames = async (newGames: Game[]) => {
     await postGames(newGames);
-    await refetchGames();
+    await refetchAndLinkGames();
   };
 
   const addManualGame = async (game: Game) => {
@@ -265,6 +356,22 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     return updated;
   };
 
+  const addTournament = async (t: Partial<Tournament>) => {
+    const saved = await postTournament(t);
+    // Upserts on name, so a re-add replaces rather than appending a twin.
+    setTournamentsState(prev => [saved, ...prev.filter(x => x.id !== saved.id)]);
+  };
+
+  const updateTournament = async (id: string, t: Partial<Tournament>) => {
+    const saved = await putTournament(id, t);
+    setTournamentsState(prev => prev.map(x => (x.id === id ? saved : x)));
+  };
+
+  const removeTournament = async (id: string) => {
+    await deleteTournament(id);
+    setTournamentsState(prev => prev.filter(x => x.id !== id));
+  };
+
   const setMainRepertoire = async (value: Repertoire) => {
     setMainRepertoireState(await putRepertoire(value));
   };
@@ -276,6 +383,15 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const setTournamentLocations = async (value: Record<string, string>) => {
     setTournamentLocationsState(await putTournamentLocations(value));
   };
+
+  // "Upcoming" is derived, not stored: an event with no start date can't be
+  // prepared for and isn't upcoming, it's just unscheduled.
+  const upcomingTournaments = useMemo(() => {
+    const today = localDateKey();
+    return tournaments
+      .filter(t => t.startDate && t.startDate >= today)
+      .sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''));
+  }, [tournaments]);
 
   const value: GamesContextValue = {
     games,
@@ -300,8 +416,11 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     setDailyNotes,
     weeklyHours,
     setWeeklyHours,
+    tournaments,
     upcomingTournaments,
-    setUpcomingTournaments,
+    addTournament,
+    updateTournament,
+    removeTournament,
     tournamentLocations,
     setTournamentLocations,
   };

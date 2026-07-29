@@ -309,6 +309,32 @@ export const deleteTournament = (id: string) =>
     method: 'DELETE',
   });
 
+// Start list of an upcoming tournament, crossed against opponents already
+// played. Read-only: the server proposes scouting targets, it never inserts
+// them, because it is parsing someone else's HTML.
+export interface StartListEntry {
+  rank?: number;
+  title?: string;
+  name: string;
+  rating?: number;
+  federation?: string;
+}
+export interface StartListMatch {
+  entry: StartListEntry;
+  /** How this opponent's name is spelled in your own games. */
+  playedAs: string;
+  games: number;
+  score: number;
+}
+export interface StartListResult {
+  entries: StartListEntry[];
+  matches: StartListMatch[];
+  /** Set when the page parsed but held no recognisable start list. */
+  warning?: string;
+}
+export const fetchChessResultsStartList = (url: string) =>
+  apiFetch<StartListResult>(`/prep?resource=chess-results&url=${encodeURIComponent(url)}`);
+
 // Model games for the opening heroes
 export const fetchModelGames = () => apiFetch<ModelGame[]>('/prep?resource=model-games');
 export const postModelGame = (g: Partial<ModelGame>) =>

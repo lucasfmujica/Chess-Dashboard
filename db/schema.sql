@@ -416,6 +416,13 @@ CREATE TABLE IF NOT EXISTS model_games (
 );
 CREATE INDEX IF NOT EXISTS model_games_eco_idx ON model_games (eco);
 
+-- Upcoming tournaments live in this table too, distinguished only by
+-- start_date >= CURRENT_DATE. They used to be localStorage-only, which meant
+-- no serverless function could see them and nothing could be prepared from
+-- them automatically. `province` is the one field the old localStorage shape
+-- had that this table did not.
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS province TEXT;
+
 -- Counter parity: endgame_drills lacked solved_count, repertoire_lines had no
 -- counters at all, so drilling them left no volume trace.
 ALTER TABLE endgame_drills ADD COLUMN IF NOT EXISTS solved_count INTEGER NOT NULL DEFAULT 0;

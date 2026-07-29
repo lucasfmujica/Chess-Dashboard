@@ -43,7 +43,7 @@ import {
   RocketLaunchIcon,
   PuzzlePieceIcon,
 } from '@heroicons/react/24/outline';
-import { Swords, ByColorPieces } from './components/icons/ChessIcons';
+import { ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
 import type { Game } from './types/chess';
@@ -79,7 +79,6 @@ const ChessDashboard = () => {
     dailyNotes,
     setDailyNotes,
     upcomingTournaments,
-    setUpcomingTournaments,
   } = useGames();
 
   const {
@@ -112,8 +111,6 @@ const ChessDashboard = () => {
     overallStats,
     eloHistory,
     tournamentStats,
-    bestResults,
-    worstResults,
     whiteStats,
     blackStats,
     monthlyStats,
@@ -317,14 +314,11 @@ const ChessDashboard = () => {
               blackStats={blackStats}
               eloHistory={eloHistory}
               tournamentStats={tournamentStats}
-              bestResults={bestResults}
-              worstResults={worstResults}
               formStats={formStats}
               streaks={streaks}
               upcomingTournaments={upcomingTournaments}
               goalProjections={goalProjections}
               onNavigate={setActiveTab}
-              Swords={Swords}
               Target={ScaleIcon}
               TrendingUp={ArrowTrendingUpIcon}
               games={games}
@@ -346,8 +340,6 @@ const ChessDashboard = () => {
           {activeTab === 'tournaments' && (
             <TournamentsTab
               tournamentStats={tournamentStats}
-              upcomingTournaments={upcomingTournaments}
-              setUpcomingTournaments={setUpcomingTournaments}
               ratedGames={ratedGames}
             />
           )}

@@ -1,33 +1,35 @@
-import { CalendarIcon, PlusIcon, PencilIcon, TrashIcon, TrophyIcon } from '@heroicons/react/24/outline';
-import type { UpcomingTournament } from '../../../../types/chess';
-
-interface TournamentForm {
-  name: string;
-  club: string;
-  province: string;
-  chessResultsLink: string;
-  startDate: string;
-  endDate: string;
-}
+import { CalendarIcon, ClockIcon, PlusIcon, PencilIcon, TrashIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { dateFromKey } from '../../../../utils/localDate';
+import type { Tournament } from '../../../../types/chess';
+import type { TournamentFormState } from '../../../../hooks/useTournamentForm';
 
 interface UpcomingTournamentsSectionProps {
-  upcomingTournaments: UpcomingTournament[];
+  upcomingTournaments: Tournament[];
   isAddingTournament: boolean;
   setIsAddingTournament: React.Dispatch<React.SetStateAction<boolean>>;
-  editingTournamentId?: number | null;
-  tournamentForm: TournamentForm;
+  editingTournamentId?: string | null;
+  tournamentForm: TournamentFormState;
+  saving?: boolean;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAddTournament: () => void;
   handleUpdateTournament: () => void;
-  handleEditTournament: (tournament: UpcomingTournament) => void;
-  handleDeleteTournament: (id: number) => void;
+  handleEditTournament: (tournament: Tournament) => void;
+  handleDeleteTournament: (id: string) => void;
   resetForm: () => void;
 }
 
+/**
+ * `new Date('2026-08-20')` parses as UTC midnight, which is the 19th in any
+ * negative-offset timezone — so every date here rendered a day early. Dates
+ * arrive as 'YYYY-MM-DD' keys, so they must go through dateFromKey.
+ */
 const formatDate = (dateStr?: string): string => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return dateFromKey(dateStr).toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 };
 
 const UpcomingTournamentsSection = ({
@@ -36,6 +38,7 @@ const UpcomingTournamentsSection = ({
   setIsAddingTournament,
   editingTournamentId,
   tournamentForm,
+  saving = false,
   handleInputChange,
   handleAddTournament,
   handleUpdateTournament,
@@ -113,12 +116,25 @@ const UpcomingTournamentsSection = ({
               </div>
               <div>
                 <label className="block text-sm font-semibold text-fg mb-2">
+                  Ritmo de juego
+                </label>
+                <input
+                  type="text"
+                  name="timeControl"
+                  value={tournamentForm.timeControl}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
+                  placeholder="ej. 90+30 o 12+3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-fg mb-2">
                   Chess-Results Link
                 </label>
                 <input
                   type="url"
-                  name="chessResultsLink"
-                  value={tournamentForm.chessResultsLink}
+                  name="chessResultsUrl"
+                  value={tournamentForm.chessResultsUrl}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
                   placeholder="https://chess-results.com/..."
@@ -152,9 +168,10 @@ const UpcomingTournamentsSection = ({
             <div className="flex gap-3 mt-4">
               <button
                 onClick={editingTournamentId ? handleUpdateTournament : handleAddTournament}
-                className="px-6 py-2.5 bg-fg text-app font-semibold rounded-lg hover:opacity-90 transition-opacity duration-200"
+                disabled={saving}
+                className="px-6 py-2.5 bg-fg text-app font-semibold rounded-lg hover:opacity-90 transition-opacity duration-200 disabled:opacity-50"
               >
-                {editingTournamentId ? 'Update Tournament' : 'Add Tournament'}
+                {saving ? 'Guardando…' : editingTournamentId ? 'Update Tournament' : 'Add Tournament'}
               </button>
               <button
                 onClick={resetForm}
@@ -200,6 +217,13 @@ const UpcomingTournamentsSection = ({
                           <span>{tournament.province}</span>
                         </div>
                       )}
+                      {tournament.timeControl && (
+                        <div className="flex items-center gap-2 text-fg-muted">
+                          <ClockIcon className="w-4 h-4 text-accent" />
+                          <span className="font-medium">Ritmo:</span>
+                          <span>{tournament.timeControl}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 text-fg-muted">
                         <CalendarIcon className="w-4 h-4 text-accent" />
                         <span className="font-medium">Dates:</span>
@@ -208,13 +232,13 @@ const UpcomingTournamentsSection = ({
                           {tournament.endDate && tournament.endDate !== tournament.startDate && ` - ${formatDate(tournament.endDate)}`}
                         </span>
                       </div>
-                      {tournament.chessResultsLink && (
+                      {tournament.chessResultsUrl && (
                         <div className="flex items-center gap-2 text-fg-muted">
                           <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                           </svg>
                           <a
-                            href={tournament.chessResultsLink}
+                            href={tournament.chessResultsUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-medium text-accent hover:underline"

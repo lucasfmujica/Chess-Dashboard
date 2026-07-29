@@ -1,13 +1,26 @@
 import { useState } from 'react';
 import type { ChangeEvent } from 'react';
-import type { UpcomingTournament } from '../types/chess';
+import type { Tournament } from '../types/chess';
 import type { ModalContextType } from '../components/modals/ModalContext';
 
-type TournamentFormState = Omit<UpcomingTournament, 'id'>;
+/**
+ * Add/edit form for upcoming tournaments.
+ *
+ * These used to be localStorage-only with `Date.now()` ids. They now go
+ * through the `tournaments` table, so `timeControl` and `chessResultsUrl` are
+ * captured here: the prep generator needs the rate of play to size the plan,
+ * and the start list is behind the chess-results link.
+ */
 
-type SetUpcomingTournaments = (
-  value: UpcomingTournament[] | ((prev: UpcomingTournament[]) => UpcomingTournament[])
-) => void;
+export interface TournamentFormState {
+  name: string;
+  club: string;
+  province: string;
+  startDate: string;
+  endDate: string;
+  timeControl: string;
+  chessResultsUrl: string;
+}
 
 const EMPTY_FORM: TournamentFormState = {
   name: '',
@@ -15,82 +28,92 @@ const EMPTY_FORM: TournamentFormState = {
   province: '',
   startDate: '',
   endDate: '',
-  chessResultsLink: '',
+  timeControl: '',
+  chessResultsUrl: '',
 };
 
+/** Blank strings must reach the API as undefined, not as empty columns. */
+const toPatch = (form: TournamentFormState): Partial<Tournament> => ({
+  name: form.name.trim(),
+  club: form.club.trim() || undefined,
+  province: form.province.trim() || undefined,
+  startDate: form.startDate || undefined,
+  endDate: form.endDate || undefined,
+  timeControl: form.timeControl.trim() || undefined,
+  chessResultsUrl: form.chessResultsUrl.trim() || undefined,
+});
+
 export const useTournamentForm = (
-  setUpcomingTournaments: SetUpcomingTournaments,
+  addTournament: (t: Partial<Tournament>) => Promise<void>,
+  updateTournament: (id: string, t: Partial<Tournament>) => Promise<void>,
+  removeTournament: (id: string) => Promise<void>,
   modal: ModalContextType
 ) => {
   const [isAddingTournament, setIsAddingTournament] = useState(false);
-  const [editingTournamentId, setEditingTournamentId] = useState<number | null>(null);
+  const [editingTournamentId, setEditingTournamentId] = useState<string | null>(null);
   const [tournamentForm, setTournamentForm] = useState<TournamentFormState>({ ...EMPTY_FORM });
+  const [saving, setSaving] = useState(false);
 
-  // Handle form input changes
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setTournamentForm(prev => ({ ...prev, [name]: value }) as TournamentFormState);
   };
 
-  // Add new tournament
-  const handleAddTournament = async () => {
-    if (!tournamentForm.name || !tournamentForm.startDate) {
-      await modal.alert('Tournament name and start date are required');
-      return;
-    }
-
-    const newTournament: UpcomingTournament = {
-      id: Date.now(),
-      ...tournamentForm,
-    };
-
-    setUpcomingTournaments(prev => [...prev, newTournament]);
-    resetForm();
-  };
-
-  // Update existing tournament
-  const handleUpdateTournament = async () => {
-    if (!tournamentForm.name || !tournamentForm.startDate) {
-      await modal.alert('Tournament name and start date are required');
-      return;
-    }
-
-    setUpcomingTournaments(prev =>
-      prev.map(t => (t.id === editingTournamentId ? { ...t, ...tournamentForm } : t))
-    );
-    resetForm();
-  };
-
-  // Delete tournament
-  const handleDeleteTournament = async (id: number) => {
-    const confirmed = await modal.confirm(
-      'Are you sure you want to delete this tournament?',
-      'Delete Tournament'
-    );
-    if (confirmed) {
-      setUpcomingTournaments(prev => prev.filter(t => t.id !== id));
-    }
-  };
-
-  // Start editing tournament
-  const handleEditTournament = (tournament: UpcomingTournament) => {
-    setTournamentForm({
-      name: tournament.name,
-      club: tournament.club,
-      province: tournament.province,
-      startDate: tournament.startDate,
-      endDate: tournament.endDate,
-      chessResultsLink: tournament.chessResultsLink,
-    });
-    setEditingTournamentId(tournament.id);
-    setIsAddingTournament(true);
-  };
-
-  // Reset form
   const resetForm = () => {
     setTournamentForm({ ...EMPTY_FORM });
     setIsAddingTournament(false);
     setEditingTournamentId(null);
+  };
+
+  /** Shared guard + save + error path for both add and update. */
+  const submit = async (save: () => Promise<void>) => {
+    if (!tournamentForm.name || !tournamentForm.startDate) {
+      await modal.alert('El nombre y la fecha de inicio son obligatorios');
+      return;
+    }
+    setSaving(true);
+    try {
+      await save();
+      resetForm();
+    } catch (err) {
+      await modal.alert(err instanceof Error ? err.message : 'No se pudo guardar el torneo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddTournament = () => submit(() => addTournament(toPatch(tournamentForm)));
+
+  const handleUpdateTournament = () =>
+    submit(async () => {
+      if (editingTournamentId) await updateTournament(editingTournamentId, toPatch(tournamentForm));
+    });
+
+  const handleDeleteTournament = async (id: string) => {
+    const confirmed = await modal.confirm(
+      '¿Seguro que querés borrar este torneo?',
+      'Borrar torneo'
+    );
+    if (!confirmed) return;
+    try {
+      await removeTournament(id);
+    } catch (err) {
+      await modal.alert(err instanceof Error ? err.message : 'No se pudo borrar el torneo');
+    }
+  };
+
+  const handleEditTournament = (tournament: Tournament) => {
+    setTournamentForm({
+      name: tournament.name,
+      club: tournament.club ?? '',
+      province: tournament.province ?? '',
+      startDate: tournament.startDate ?? '',
+      endDate: tournament.endDate ?? '',
+      timeControl: tournament.timeControl ?? '',
+      chessResultsUrl: tournament.chessResultsUrl ?? '',
+    });
+    setEditingTournamentId(tournament.id);
+    setIsAddingTournament(true);
   };
 
   return {
@@ -98,6 +121,7 @@ export const useTournamentForm = (
     setIsAddingTournament,
     editingTournamentId,
     tournamentForm,
+    saving,
     handleInputChange,
     handleAddTournament,
     handleUpdateTournament,

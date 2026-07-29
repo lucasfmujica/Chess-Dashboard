@@ -5,6 +5,8 @@ import { ArrowTrendingUpIcon, ArrowTrendingDownIcon, ArrowRightIcon, ChevronDown
 import ResultsDonut from '../../charts/ResultsDonut';
 import { useCountUp } from '../../../hooks/useCountUp';
 import { useGameForm } from '../../../hooks/useGameForm';
+import { useTrainingPulse, SPLIT_WINDOW_DAYS } from '../../../hooks/useTrainingPulse';
+import { WEEKLY_QUEUE_TARGET } from '../../../constants/trainingProgram';
 import { useModal } from '../../modals/ModalContext';
 import StatCard, { Sparkline } from '../StatCard';
 import TodayStrip from './TodayStrip';
@@ -15,7 +17,8 @@ import { PieceGlyph } from '../../ui/PieceGlyph';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import { getChartHeight } from '../../../utils/chartUtils';
-import type { Game, GameStats, PlayerInfo, TournamentStat, StreaksSummary, UpcomingTournament } from '../../../types/chess';
+import { dateFromKey } from '../../../utils/localDate';
+import type { Game, GameStats, PlayerInfo, TournamentStat, StreaksSummary, Tournament } from '../../../types/chess';
 
 /** Per-opening aggregate row attached to colored game stats. */
 interface ColorOpeningStat {
@@ -30,18 +33,6 @@ interface ColorOpeningStat {
 }
 
 type ColorStats = GameStats & { openings: ColorOpeningStat[] };
-
-/** A notable (best/worst) result row. */
-interface ResultEntry {
-  opponent: string;
-  elo: number;
-  oppElo: number;
-  diff: number;
-  eco: string;
-  opening: string;
-  color: string;
-  tournament: string;
-}
 
 /** Recent-form snapshot for a window of games (from useTrendsAndAnalytics.formStats). */
 interface FormWindow {
@@ -72,14 +63,11 @@ interface OverviewTabProps {
   blackStats: ColorStats;
   eloHistory: { elo: number }[];
   tournamentStats: TournamentStat[];
-  bestResults: ResultEntry[];
-  worstResults: ResultEntry[];
   formStats: { last5: FormWindow; last10: FormWindow };
   streaks: StreaksSummary;
-  upcomingTournaments: UpcomingTournament[];
+  upcomingTournaments: Tournament[];
   goalProjections: GoalProjection;
   onNavigate: (tab: string) => void;
-  Swords: ComponentType<{ className?: string }>;
   Target: ComponentType<{ className?: string }>;
   TrendingUp: ComponentType<{ className?: string }>;
   games: Game[];
@@ -131,14 +119,11 @@ const OverviewTab = ({
   blackStats,
   eloHistory,
   tournamentStats,
-  bestResults,
-  worstResults,
   formStats,
   streaks,
   upcomingTournaments,
   goalProjections,
   onNavigate,
-  Swords,
   Target,
   TrendingUp,
   games,
@@ -154,6 +139,7 @@ const OverviewTab = ({
   lichessGamesCount
 }: OverviewTabProps) => {
   const animatedElo = useCountUp(playerInfo.current_elo);
+  const pulse = useTrainingPulse();
   const modal = useModal();
   const [showAddGames, setShowAddGames] = useState(false);
   const {
@@ -200,7 +186,7 @@ const OverviewTab = ({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const nextTournament = [...upcomingTournaments]
-    .map(t => ({ t, start: new Date(t.startDate) }))
+    .flatMap(t => (t.startDate ? [{ t, start: dateFromKey(t.startDate) }] : []))
     .filter(({ start }) => !Number.isNaN(start.getTime()) && start.getTime() >= today.getTime())
     .sort((a, b) => a.start.getTime() - b.start.getTime())[0];
   const daysUntilNext = nextTournament
@@ -215,27 +201,86 @@ const OverviewTab = ({
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Hero: current ELO */}
-      <Card className="p-8">
-        <div className="flex flex-wrap items-end justify-between gap-8">
-          <div>
-            <p className="text-label">Current ELO</p>
-            <div className="mt-2 flex items-baseline gap-3">
-              <span className="text-6xl font-semibold tracking-tight tabular-nums text-fg">{animatedElo}</span>
-              <Badge tone={eloUp ? 'win' : 'loss'}>
-                {eloUp ? <ArrowTrendingUpIcon className="w-3.5 h-3.5" /> : <ArrowTrendingDownIcon className="w-3.5 h-3.5" />}
-                {eloUp ? '+' : ''}{playerInfo.elo_change_last_tournament} last tournament
-              </Badge>
-            </div>
+      {/* Hero: two outcome numbers, two process numbers, at the same weight.
+          ELO and win rate say how it went; attempts and the candidate split
+          say what was actually done about it. Showing only the first pair
+          trains you to watch the number you don't control. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="p-6">
+          <p className="text-label">ELO actual</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums text-fg">
+              {animatedElo}
+            </span>
+            <Badge tone={eloUp ? 'win' : 'loss'}>
+              {eloUp ? (
+                <ArrowTrendingUpIcon className="w-3.5 h-3.5" />
+              ) : (
+                <ArrowTrendingDownIcon className="w-3.5 h-3.5" />
+              )}
+              {eloUp ? '+' : ''}
+              {playerInfo.elo_change_last_tournament}
+            </Badge>
           </div>
-          {eloSpark.length > 1 && (
-            <div className="w-full sm:w-56">
-              <p className="text-label mb-1">Last {eloSpark.length} rated games</p>
-              <Sparkline data={eloSpark} />
-            </div>
+          <p className="mt-1 text-xs text-fg-muted">Último torneo</p>
+          {eloSpark.length > 1 && <Sparkline data={eloSpark} />}
+        </Card>
+
+        <Card className="p-6">
+          <p className="text-label">Win rate</p>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums text-fg">
+              {overallStats.winRate}
+            </span>
+            <span className="text-xl font-medium text-fg-subtle">%</span>
+          </div>
+          <p className="mt-1 text-xs text-fg-muted tabular-nums">
+            {overallStats.total} partidas · {overallStats.actualScore} pts
+          </p>
+        </Card>
+
+        <Card className="p-6">
+          <p className="text-label">Intentos esta semana</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums text-fg">
+              {pulse.loading ? '—' : pulse.attemptsThisWeek}
+            </span>
+            <span className="text-sm text-fg-subtle tabular-nums">/ {WEEKLY_QUEUE_TARGET}</span>
+          </div>
+          {pulse.attemptsThisWeek === 0 && !pulse.loading ? (
+            <p className="mt-1 text-xs text-fg-muted">
+              {pulse.daysSinceLastSession === null
+                ? 'Sin intentos registrados todavía. '
+                : `Hace ${pulse.daysSinceLastSession} día${pulse.daysSinceLastSession === 1 ? '' : 's'} del último registro. `}
+              <TabLink label="Entrenar" onClick={() => onNavigate('training')} />
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-fg-muted">Meta semanal del programa</p>
           )}
-        </div>
-      </Card>
+        </Card>
+
+        <Card className="p-6">
+          <p className="text-label">Candidato perdido</p>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums text-fg">
+              {pulse.loading || pulse.split.asked === 0 ? '—' : pulse.split.missedPct}
+            </span>
+            {!pulse.loading && pulse.split.asked > 0 && (
+              <span className="text-xl font-medium text-fg-subtle">%</span>
+            )}
+          </div>
+          {pulse.split.asked === 0 && !pulse.loading ? (
+            <p className="mt-1 text-xs text-fg-muted">
+              Sin fallos de cálculo registrados.{' '}
+              <TabLink label="Entrenar" onClick={() => onNavigate('training')} />
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-fg-muted tabular-nums">
+              {pulse.split.missed} de {pulse.split.asked} fallos · {SPLIT_WINDOW_DAYS}d
+            </p>
+          )}
+        </Card>
+      </div>
 
       {/* What to do now. Sits above the retrospective signals on purpose:
           those describe the past, this is the only actionable row. */}
@@ -319,16 +364,9 @@ const OverviewTab = ({
         </SignalCard>
       </div>
 
-      {/* Secondary stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        <div className="stagger-item">
-          <StatCard
-            title="Total Games"
-            value={overallStats.total}
-            subtitle={`Win rate: ${overallStats.winRate}%`}
-            icon={Swords}
-          />
-        </div>
+      {/* Secondary stats. Total games and win rate live in the hero now, so
+          repeating them here would be the third and fourth time on one screen. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="stagger-item">
           <StatCard
             title="Performance Rating"
@@ -443,83 +481,6 @@ const OverviewTab = ({
           </div>
         )}
       </Card>
-
-      {/* Best and Worst Results */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Best Results */}
-        <Card>
-          <CardHeader
-            title="Top 3 Wins"
-            subtitle="Biggest upsets — wins vs. higher-rated opponents"
-            className="mb-4"
-            actions={<TabLink label="All records" onClick={() => onNavigate('records')} />}
-          />
-          <div className="space-y-3">
-            {bestResults && bestResults.length > 0 ? (
-              bestResults.map((result, idx) => (
-                <div key={idx} className="p-4 border border-win/20 rounded-lg bg-win/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-fg">{result.opponent}</span>
-                    <Badge tone="win">+{result.diff} ELO</Badge>
-                  </div>
-                  <div className="text-sm text-fg-muted">
-                    <div className="flex justify-between tabular-nums">
-                      <span>Your ELO: {result.elo}</span>
-                      <span>Opp ELO: {result.oppElo}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <PieceGlyph color={result.color === 'W' ? 'W' : 'B'} size={10} />
-                      <span className="font-medium text-fg">{result.opening}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-fg-subtle">
-                      {result.tournament}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-fg-muted">No wins recorded yet</p>
-            )}
-          </div>
-        </Card>
-
-        {/* Worst Results */}
-        <Card>
-          <CardHeader
-            title="Top 3 Losses to Study"
-            subtitle="Losses vs. lower-rated opponents — learning spots"
-            className="mb-4"
-            actions={<TabLink label="All records" onClick={() => onNavigate('records')} />}
-          />
-          <div className="space-y-3">
-            {worstResults && worstResults.length > 0 ? (
-              worstResults.map((result, idx) => (
-                <div key={idx} className="p-4 border border-loss/20 rounded-lg bg-loss/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-fg">{result.opponent}</span>
-                    <Badge tone="loss">{result.diff > 0 ? `+${result.diff}` : result.diff} ELO</Badge>
-                  </div>
-                  <div className="text-sm text-fg-muted">
-                    <div className="flex justify-between tabular-nums">
-                      <span>Your ELO: {result.elo}</span>
-                      <span>Opp ELO: {result.oppElo}</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <PieceGlyph color={result.color === 'W' ? 'W' : 'B'} size={10} />
-                      <span className="font-medium text-fg">{result.opening}</span>
-                    </div>
-                    <div className="mt-1 text-xs text-fg-subtle">
-                      {result.tournament}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-fg-muted">No losses recorded yet</p>
-            )}
-          </div>
-        </Card>
-      </div>
 
       {/* Add / Import Games */}
       <Card flush>

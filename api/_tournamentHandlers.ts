@@ -26,6 +26,7 @@ interface TournamentInput {
   eloBefore?: number;
   eloChange?: number;
   club?: string;
+  province?: string;
   chessResultsUrl?: string;
   notes?: string;
 }
@@ -55,6 +56,7 @@ export const tournaments = async (
           elo_before = COALESCE(${t.eloBefore ?? null}, elo_before),
           elo_change = COALESCE(${t.eloChange ?? null}, elo_change),
           club = COALESCE(${t.club ?? null}, club),
+          province = COALESCE(${t.province ?? null}, province),
           chess_results_url = COALESCE(${t.chessResultsUrl ?? null}, chess_results_url),
           notes = COALESCE(${t.notes ?? null}, notes)
         WHERE id = ${id}
@@ -93,13 +95,14 @@ export const tournaments = async (
       INSERT INTO tournaments (
         name, start_date, end_date, kind, category, time_control, affects_elo,
         official_performance, official_points, official_place, starting_rank,
-        elo_before, elo_change, club, chess_results_url, notes
+        elo_before, elo_change, club, province, chess_results_url, notes
       ) VALUES (
         ${t.name.trim()}, ${t.startDate ?? null}::date, ${t.endDate ?? null}::date,
         ${t.kind ?? 'individual'}, ${t.category ?? null}, ${t.timeControl ?? null},
         ${t.affectsElo ?? true}, ${t.officialPerformance ?? null}, ${t.officialPoints ?? null},
         ${t.officialPlace ?? null}, ${t.startingRank ?? null}, ${t.eloBefore ?? null},
-        ${t.eloChange ?? null}, ${t.club ?? null}, ${t.chessResultsUrl ?? null}, ${t.notes ?? null}
+        ${t.eloChange ?? null}, ${t.club ?? null}, ${t.province ?? null},
+        ${t.chessResultsUrl ?? null}, ${t.notes ?? null}
       )
       ON CONFLICT (name) DO UPDATE SET
         start_date = COALESCE(EXCLUDED.start_date, tournaments.start_date),
@@ -115,6 +118,7 @@ export const tournaments = async (
         elo_before = COALESCE(EXCLUDED.elo_before, tournaments.elo_before),
         elo_change = COALESCE(EXCLUDED.elo_change, tournaments.elo_change),
         club = COALESCE(EXCLUDED.club, tournaments.club),
+        province = COALESCE(EXCLUDED.province, tournaments.province),
         chess_results_url = COALESCE(EXCLUDED.chess_results_url, tournaments.chess_results_url),
         notes = COALESCE(EXCLUDED.notes, tournaments.notes)
       RETURNING *

@@ -221,6 +221,16 @@ export const plannedMinutes = (day: ProgramDay): number =>
 export const quotaTotal = (quota: QueueQuota): number =>
   quota.blunder + quota.endgame + quota.repertoire;
 
+/**
+ * Queue items the whole week asks for — the denominator for weekly volume.
+ * Derived from the same quotas the daily queue is built from, so changing the
+ * program moves the target automatically.
+ */
+export const WEEKLY_QUEUE_TARGET = trainingProgram.reduce(
+  (sum, day) => sum + quotaTotal(day.quota),
+  0
+);
+
 /** Distinct blocks a weekday prescribes, in order, without duplicates. */
 export const blocksForDay = (day: ProgramDay): TrainingBlock[] =>
   [...new Set(day.blocks.map(b => b.block))];

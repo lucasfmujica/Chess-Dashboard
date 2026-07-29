@@ -287,6 +287,7 @@ export interface Tournament {
   eloBefore?: number;
   eloChange?: number;
   club?: string;
+  province?: string;
   chessResultsUrl?: string;
   notes?: string;
   createdAt: number;
@@ -303,15 +304,4 @@ export interface ModelGame {
   pgn: string;
   note?: string;
   createdAt: number;
-}
-
-/** A planned/upcoming tournament entry. */
-export interface UpcomingTournament {
-  id: number;
-  name: string;
-  club: string;
-  province: string;
-  startDate: string;
-  endDate: string;
-  chessResultsLink: string;
 }

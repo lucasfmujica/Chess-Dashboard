@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { fetchTrainingSessions, fetchTrainingAttempts, fetchAnnotations } from '../../../../api/client';
 import { daysAgoKey, localDateKey, dateFromKey } from '../../../../utils/localDate';
+import { candidateSplit as computeCandidateSplit } from '../../../../utils/candidateSplit';
 import { WEEKLY_ANNOTATION_TARGET } from '../../../../constants/trainingProgram';
 import { Card, SegmentedControl, type Segment } from '../../../ui';
 import type { TrainingSession, TrainingAttempt } from '../../../../types/training';
@@ -95,17 +96,8 @@ const TrainingLog = () => {
    * question count — `candidateMiss === undefined` means "not asked", and
    * folding those into either bucket would fabricate a trend.
    */
-  const candidateSplit = useMemo(() => {
-    const asked = attempts.filter(a => !a.correct && a.candidateMiss !== undefined);
-    const missed = asked.filter(a => a.candidateMiss).length;
-    const rejected = asked.length - missed;
-    return {
-      asked: asked.length,
-      missed,
-      rejected,
-      missedPct: asked.length ? Math.round((missed / asked.length) * 100) : 0,
-    };
-  }, [attempts]);
+  // Shared with the Overview hero so the two surfaces can't drift apart.
+  const candidateSplit = useMemo(() => computeCandidateSplit(attempts), [attempts]);
 
   /** Candidate split per ISO week, to see whether the balance is shifting. */
   const candidateTrend = useMemo(() => {

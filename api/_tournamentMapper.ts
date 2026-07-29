@@ -17,6 +17,7 @@ export interface TournamentRow {
   elo_before: number | null;
   elo_change: string | number | null;
   club: string | null;
+  province: string | null;
   chess_results_url: string | null;
   notes: string | null;
   created_at: string;
@@ -56,6 +57,7 @@ export const rowToTournament = (row: TournamentRow) => ({
   eloBefore: row.elo_before ?? undefined,
   eloChange: toNumber(row.elo_change),
   club: row.club ?? undefined,
+  province: row.province ?? undefined,
   chessResultsUrl: row.chess_results_url ?? undefined,
   notes: row.notes ?? undefined,
   createdAt: new Date(row.created_at).getTime(),

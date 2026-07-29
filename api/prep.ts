@@ -12,6 +12,7 @@ import {
   homework,
 } from './_trainingHandlers.js';
 import { tournaments, modelGames } from './_tournamentHandlers.js';
+import { parseStartList, matchOpponents, type PlayedOpponent } from './_chessResults.js';
 
 // Several small, unrelated resources (Blunder Drills / Opponent Prep /
 // Endgame Drills / Norm Tracker / Training log / Concepts) merged into one
@@ -401,6 +402,72 @@ const normThresholds = async (req: VercelRequest, res: VercelResponse) => {
   return res.status(405).json({ error: 'Method not allowed' });
 };
 
+/**
+ * Reads a chess-results start list and reports which entrants are already in
+ * `games`.
+ *
+ * Read-only on purpose. It proposes scouting targets rather than inserting
+ * them: the source is someone else's HTML, so a layout change turns silent
+ * inserts into junk rows in a table the user curates by hand.
+ */
+const chessResults = async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const url = typeof req.query.url === 'string' ? req.query.url : undefined;
+  if (!url) return res.status(400).json({ error: 'url is required' });
+
+  // Only chess-results, so this endpoint can't be used to fetch arbitrary URLs
+  // from the server.
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'url is not a valid URL' });
+  }
+  if (!/(^|\.)chess-results\.com$/i.test(parsed.hostname) || parsed.protocol !== 'https:') {
+    return res.status(400).json({ error: 'Only https chess-results.com URLs are supported' });
+  }
+
+  let html: string;
+  try {
+    const upstream = await fetch(parsed.toString(), {
+      headers: { 'User-Agent': 'chess-dashboard/1.0 (personal tournament prep)' },
+    });
+    if (!upstream.ok) {
+      return res.status(502).json({ error: `chess-results returned ${upstream.status}` });
+    }
+    html = await upstream.text();
+  } catch (err) {
+    return res
+      .status(502)
+      .json({ error: err instanceof Error ? err.message : 'Could not reach chess-results' });
+  }
+
+  const entries = parseStartList(html);
+  if (entries.length === 0) {
+    return res.status(200).json({
+      entries: [],
+      matches: [],
+      warning:
+        'No se encontró una lista de inscriptos en esa página. Probá con el enlace a la lista de ranking inicial (art=0).',
+    });
+  }
+
+  const played = (await sql`
+    SELECT opponent,
+           count(*)::int AS games,
+           sum(CASE result WHEN 'W' THEN 1 WHEN 'D' THEN 0.5 ELSE 0 END)::float AS score
+    FROM games
+    WHERE opponent IS NOT NULL AND opponent <> ''
+    GROUP BY opponent
+  `) as PlayedOpponent[];
+
+  return res.status(200).json({ entries, matches: matchOpponents(entries, played) });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
   const itemId = typeof id === 'string' ? id : undefined;
@@ -417,8 +484,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'homework') return homework(req, res, itemId);
   if (resource === 'tournaments') return tournaments(req, res, itemId);
   if (resource === 'model-games') return modelGames(req, res, itemId);
+  if (resource === 'chess-results') return chessResults(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, homework, tournaments, or model-games)',
+      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, homework, tournaments, model-games, or chess-results)',
   });
 }
