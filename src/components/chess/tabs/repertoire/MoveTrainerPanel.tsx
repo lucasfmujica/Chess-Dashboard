@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { BookOpenIcon, ClockIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useRepertoireMoves, type ChapterMoves } from '../../../../hooks/useRepertoireMoves';
 import { buildLines } from '../../../../utils/repertoireMoves';
@@ -76,20 +76,48 @@ const MoveTrainerPanel = () => {
 
   const activeChapterNo = chapterNo ?? defaultChapterNo;
   const chapter: ChapterMoves | undefined = chapters.find(c => c.chapterNo === activeChapterNo);
-  const lines = activeChapterNo === null ? [] : (linesByChapter.get(activeChapterNo) ?? []);
 
-  /** Longest first: the mainline is the line worth landing on. */
-  const orderedLines = useMemo(
-    () => lines.map((line, i) => ({ ...line, i })).sort((a, b) => b.dueCount - a.dueCount || b.moves.length - a.moves.length),
-    [lines]
-  );
-  const activeLine = orderedLines.find(l => l.i === lineIndex) ?? orderedLines[0];
+  /**
+   * The chapter's lines, ordered once and then held for the whole sitting.
+   *
+   * Ordering is by how much each line owes, and grading a move changes exactly
+   * that — so recomputing the order on every answer re-sorted the list and
+   * swapped the line out from under the player mid-line. Frozen here for the
+   * same reason `useDailyQueue` freezes `now` and the drill tabs freeze their
+   * queue of ids: what you are working through must not reshuffle because you
+   * worked through part of it.
+   */
+  const [session, setSession] = useState<{ chapterNo: number; order: PlayableLine[] } | null>(null);
+  /** Lines finished in this sitting, as indices into `session.order`. */
+  const [doneLines, setDoneLines] = useState<Set<number>>(new Set());
 
-  const selectChapter = useCallback((no: number) => {
-    setChapterNo(no);
-    setLineIndex(-1); // -1 never matches, so the sort's first line wins.
+  useEffect(() => {
+    if (activeChapterNo === null) return;
+    // Only when the chapter actually changes — `linesByChapter` is rebuilt on
+    // every grade, and re-running this on that would undo the freeze.
+    if (session?.chapterNo === activeChapterNo) return;
+
+    const order = [...(linesByChapter.get(activeChapterNo) ?? [])].sort(
+      (a, b) => b.dueCount - a.dueCount || b.moves.length - a.moves.length
+    );
+    setSession({ chapterNo: activeChapterNo, order });
+    setDoneLines(new Set());
+    setLineIndex(0);
     setRunId(id => id + 1);
-  }, []);
+  }, [activeChapterNo, linesByChapter, session?.chapterNo]);
+
+  const order = session?.order ?? [];
+  const activeLine = order[lineIndex];
+
+  /** Lines that owed something when the sitting started and are still open. */
+  const pending = useMemo(
+    () => order.map((l, i) => ({ l, i })).filter(({ l, i }) => l.dueCount > 0 && !doneLines.has(i)),
+    [order, doneLines]
+  );
+  const dueLineCount = useMemo(() => order.filter(l => l.dueCount > 0).length, [order]);
+  const sessionComplete = dueLineCount > 0 && pending.length === 0;
+
+  const selectChapter = useCallback((no: number) => setChapterNo(no), []);
 
   const selectLine = useCallback((i: number) => {
     setLineIndex(i);
@@ -102,6 +130,23 @@ const MoveTrainerPanel = () => {
     },
     [review]
   );
+
+  /**
+   * A finished line is finished: mark it and move to the next one that still
+   * owes something, so a sitting runs to the end of the chapter instead of
+   * parking on a replay button.
+   */
+  const onLineFinished = useCallback(() => {
+    setDoneLines(prev => {
+      const next = new Set(prev).add(lineIndex);
+      const following = order.findIndex((l, i) => l.dueCount > 0 && !next.has(i));
+      if (following !== -1) {
+        setLineIndex(following);
+        setRunId(id => id + 1);
+      }
+      return next;
+    });
+  }, [lineIndex, order]);
 
   if (loading) {
     return (
@@ -152,11 +197,31 @@ const MoveTrainerPanel = () => {
         className="grid gap-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(320px,1fr)]"
         style={{ '--board-fit': 'calc(100dvh - 340px)' } as CSSProperties}
       >
-        <div className="min-w-0 order-1">
+        <div className="min-w-0 order-1 space-y-4">
+          {sessionComplete && (
+            <div className="rounded-lg border border-win/30 bg-win/10 px-4 py-3">
+              <p className="text-sm font-semibold text-fg">
+                Capítulo al día — {dueLineCount} línea{dueLineCount === 1 ? '' : 's'} completada
+                {dueLineCount === 1 ? '' : 's'}.
+              </p>
+              <p className="mt-0.5 text-xs text-fg-muted">
+                Elegí otro capítulo, o seguí repasando este sin que cuente como vencido.
+              </p>
+            </div>
+          )}
+
           <Card>
             {chapter && activeLine ? (
               <>
-                <h3 className="mb-1 text-h3 text-fg">{chapter.chapterName}</h3>
+                <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="text-h3 text-fg">{chapter.chapterName}</h3>
+                  {dueLineCount > 0 && (
+                    <span className="text-xs text-fg-subtle tabular-nums">
+                      Línea {Math.min(dueLineCount - pending.length + 1, dueLineCount)} de{' '}
+                      {dueLineCount} para hoy
+                    </span>
+                  )}
+                </div>
                 <p className="mb-4 text-xs text-fg-subtle">
                   {activeLine.moves[0]?.pathSan
                     ? `Desde: ${activeLine.moves[0].pathSan}`
@@ -167,7 +232,8 @@ const MoveTrainerPanel = () => {
                   byPath={chapter.byPath}
                   orientation={chapter.color === 'W' ? 'white' : 'black'}
                   onGraded={onGraded}
-                  resetKey={`${chapter.chapterNo}-${activeLine.i}-${runId}`}
+                  onFinished={onLineFinished}
+                  resetKey={`${chapter.chapterNo}-${lineIndex}-${runId}`}
                 />
               </>
             ) : (
@@ -207,14 +273,15 @@ const MoveTrainerPanel = () => {
           </Card>
 
           <Card>
-            <p className="text-label mb-2">Líneas ({orderedLines.length})</p>
+            <p className="text-label mb-2">Líneas ({order.length})</p>
             <ul className="max-h-[420px] space-y-1 overflow-y-auto">
-              {orderedLines.map(line => {
-                const active = line.i === activeLine?.i;
+              {order.map((line, i) => {
+                const active = i === lineIndex;
+                const finished = doneLines.has(i);
                 return (
-                  <li key={line.i}>
+                  <li key={i}>
                     <button
-                      onClick={() => selectLine(line.i)}
+                      onClick={() => selectLine(i)}
                       aria-current={active ? 'true' : undefined}
                       className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
                         active
@@ -226,7 +293,14 @@ const MoveTrainerPanel = () => {
                         <span className="font-semibold">
                           {line.moves.length} jugada{line.moves.length === 1 ? '' : 's'}
                         </span>
-                        {line.dueCount > 0 ? (
+                        {/* `dueCount` is the frozen count from when the sitting
+                            started, so a line you just finished still reads
+                            "N para hoy". `finished` is what says you did it. */}
+                        {finished ? (
+                          <span className="inline-flex items-center gap-1 text-win">
+                            <CheckIcon className="h-3.5 w-3.5" /> hecha
+                          </span>
+                        ) : line.dueCount > 0 ? (
                           <span className="text-accent">{line.dueCount} para hoy</span>
                         ) : (
                           <CheckIcon className="h-3.5 w-3.5 text-win" />

@@ -35,8 +35,15 @@ const GLYPHS: Record<string, { w: string; b: string }> = {
   n: { w: '♘', b: '♞' },
 };
 
-/** How long a correct move with nothing to read stays on screen before advancing. */
-const AUTO_ADVANCE_MS = 550;
+/**
+ * How long a correct move stays on screen before the line moves on.
+ *
+ * Long enough to see the opponent's reply land, short enough that a 12-move
+ * line doesn't feel like twelve confirmations. Nothing waits on a click: a
+ * move you got right is not a decision point, and making it one turns a drill
+ * into a slideshow.
+ */
+const AUTO_ADVANCE_MS = 700;
 
 type Phase = 'thinking' | 'right' | 'wrong' | 'done';
 
@@ -92,6 +99,13 @@ const LineTrainerBoard = ({
   const [revealed, setRevealed] = useState(false);
   /** Position shown after a right move, so the opponent's answer is visible. */
   const [afterFen, setAfterFen] = useState<string | null>(null);
+  /**
+   * The study's note for the last move that had one, kept on screen after the
+   * line has moved on. Advancing used to clear it, which is why the note had to
+   * block: there was nowhere else for it to live. Now it stays put and you read
+   * it while playing the next move.
+   */
+  const [note, setNote] = useState<{ san: string; text: string } | null>(null);
 
   /**
    * Which moves have already been graded. Retrying must not re-report an
@@ -112,6 +126,7 @@ const LineTrainerBoard = ({
     setPendingPromotion(null);
     setRevealed(false);
     setAfterFen(null);
+    setNote(null);
   }, []);
 
   useEffect(reset, [resetKey, reset]);
@@ -214,10 +229,16 @@ const LineTrainerBoard = ({
           alt: !!matchedAlt,
         });
 
-        // Nothing to read → keep the line moving. Something to read → wait.
-        if (!matchedAlt && !current.comment) {
-          advanceTimer.current = setTimeout(advance, AUTO_ADVANCE_MS);
-        }
+        // Park the study's note where advancing won't wipe it, so it can be
+        // read at leisure instead of holding the line up.
+        const text = matchedAlt
+          ? `También jugable, pero tu línea principal acá es ${current.expectedSan}.`
+          : current.comment;
+        if (text) setNote({ san: played.san, text });
+
+        // In the daily queue the queue owns "what comes next" — advancing here
+        // too would swap the board out from under its own Siguiente button.
+        if (!compact) advanceTimer.current = setTimeout(advance, AUTO_ADVANCE_MS);
         return;
       }
 
@@ -230,7 +251,7 @@ const LineTrainerBoard = ({
       });
       setSelectedSquare(null);
     },
-    [current, byPath, onGraded, revealed, advance]
+    [current, byPath, onGraded, revealed, advance, compact]
   );
 
   const attempt = useCallback(
@@ -426,9 +447,18 @@ const LineTrainerBoard = ({
         </div>
       )}
 
-      {phase === 'done' && (
+      {phase === 'done' && !compact && (
         <div className="mt-3 rounded-lg border border-win/30 bg-win/10 px-3 py-2">
           <p className="text-sm font-semibold text-fg">Línea completa.</p>
+        </div>
+      )}
+
+      {/* Survives advancing, unlike the verdict above it — this is where a
+          golden rule stays readable while you play the next move. */}
+      {note && phase !== 'wrong' && (
+        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 px-3 py-2">
+          <p className="text-label mb-1">Nota del estudio · tras {note.san}</p>
+          <p className="whitespace-pre-line text-sm text-fg">{note.text}</p>
         </div>
       )}
 
@@ -456,11 +486,6 @@ const LineTrainerBoard = ({
               Ver la jugada
             </Button>
           </>
-        )}
-        {phase === 'right' && !compact && (
-          <Button onClick={advance}>
-            {index + 1 >= line.length ? 'Terminar línea' : 'Seguir'}
-          </Button>
         )}
         {phase === 'done' && !compact && (
           <Button variant="secondary" onClick={reset}>
