@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import { BookOpenIcon, ClockIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { useRepertoireMoves, type ChapterMoves } from '../../../../hooks/useRepertoireMoves';
 import { buildLines } from '../../../../utils/repertoireMoves';
@@ -141,8 +141,42 @@ const MoveTrainerPanel = () => {
         <StatCard title="Confianza media" value={`${stats.avgConfidence}/5`} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="space-y-4">
+      {/* The BOARD's column carries the size limit, not the board — the same
+          `minmax(0, var(--board-user, var(--board-fit)))` track every other
+          board page uses (see index.css). Without it `.board-frame`'s
+          width:100% expands to the full content width, and the user's saved
+          board size is ignored. The subtrahend is larger than the drill tabs'
+          240px because this page stacks two segmented controls and a stat row
+          above the board. */}
+      <div
+        className="grid gap-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(320px,1fr)]"
+        style={{ '--board-fit': 'calc(100dvh - 340px)' } as CSSProperties}
+      >
+        <div className="min-w-0 order-1">
+          <Card>
+            {chapter && activeLine ? (
+              <>
+                <h3 className="mb-1 text-h3 text-fg">{chapter.chapterName}</h3>
+                <p className="mb-4 text-xs text-fg-subtle">
+                  {activeLine.moves[0]?.pathSan
+                    ? `Desde: ${activeLine.moves[0].pathSan}`
+                    : 'Desde la posición inicial'}
+                </p>
+                <LineTrainerBoard
+                  line={activeLine.moves}
+                  byPath={chapter.byPath}
+                  orientation={chapter.color === 'W' ? 'white' : 'black'}
+                  onGraded={onGraded}
+                  resetKey={`${chapter.chapterNo}-${activeLine.i}-${runId}`}
+                />
+              </>
+            ) : (
+              <p className="text-sm text-fg-muted">Elegí un capítulo para empezar.</p>
+            )}
+          </Card>
+        </div>
+
+        <div className="min-w-0 space-y-4 order-2">
           <Card>
             <label className="text-label mb-2 block" htmlFor="chapter-select">
               Capítulo
@@ -208,28 +242,6 @@ const MoveTrainerPanel = () => {
             </ul>
           </Card>
         </div>
-
-        <Card>
-          {chapter && activeLine ? (
-            <>
-              <h3 className="mb-1 text-h3 text-fg">{chapter.chapterName}</h3>
-              <p className="mb-4 text-xs text-fg-subtle">
-                {activeLine.moves[0]?.pathSan
-                  ? `Desde: ${activeLine.moves[0].pathSan}`
-                  : 'Desde la posición inicial'}
-              </p>
-              <LineTrainerBoard
-                line={activeLine.moves}
-                byPath={chapter.byPath}
-                orientation={chapter.color === 'W' ? 'white' : 'black'}
-                onGraded={onGraded}
-                resetKey={`${chapter.chapterNo}-${activeLine.i}-${runId}`}
-              />
-            </>
-          ) : (
-            <p className="text-sm text-fg-muted">Elegí un capítulo para empezar.</p>
-          )}
-        </Card>
       </div>
     </div>
   );
