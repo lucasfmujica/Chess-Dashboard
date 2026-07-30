@@ -53,6 +53,16 @@ const EndgameDrillsTab = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showContinuation, setShowContinuation] = useState(false);
   /**
+   * Drills played to a finish in this session.
+   *
+   * Finishing used to jump straight to the next drill, which meant the one
+   * moment you want to study — the position you just gave up in, and how the
+   * game actually continued — was the one you were never shown. Keeping the ids
+   * lets you finish, review the answer, and walk back to an earlier drill with
+   * its answer still reachable.
+   */
+  const [finishedIds, setFinishedIds] = useState<Set<string>>(new Set());
+  /**
    * `jugar` plays the ending out against Stockfish — what an endgame drill
    * really needs, and what Toto's 4v3 homework asks for. It leads because a
    * drill you can only watch isn't a drill; `repaso` replays how the game
@@ -120,6 +130,22 @@ const EndgameDrillsTab = () => {
     setCurrentIndex(i => (filtered.length ? (i + 1) % filtered.length : 0));
   };
 
+  /**
+   * Called when the playout ends, by resignation or by reaching a real result.
+   *
+   * Deliberately does not advance: the drill stays on screen so the answer can
+   * be looked at. Only the first finish per drill is sent to the SRS — playing
+   * it again with "Jugarlo de nuevo" would otherwise apply a second confidence
+   * adjustment for one sitting and distort the schedule.
+   */
+  const handleFinish = async (correct: boolean) => {
+    if (!current) return;
+    const alreadyReviewed = finishedIds.has(current.id);
+    setFinishedIds(prev => new Set(prev).add(current.id));
+    if (!alreadyReviewed) await review(current.id, correct);
+  };
+
+  /** Grade from the `repaso` buttons, which do move on. */
   const handleReview = async (correct: boolean) => {
     if (!current) return;
     await review(current.id, correct);
@@ -242,12 +268,25 @@ const EndgameDrillsTab = () => {
           >
             <div className="min-w-0">
               {mode === 'jugar' ? (
-                <PlayoutBoard
-                  fen={current.fen}
-                  orientation={orientation}
-                  resetKey={current.id}
-                  onFinish={clean => void handleReview(clean)}
-                />
+                <>
+                  {/* Hidden rather than unmounted: unmounting resets the playout,
+                      so toggling back to it would wipe the game just played. */}
+                  <div className={showContinuation ? 'hidden' : ''}>
+                    <PlayoutBoard
+                      fen={current.fen}
+                      orientation={orientation}
+                      resetKey={current.id}
+                      onFinish={clean => void handleFinish(clean)}
+                    />
+                  </div>
+                  {showContinuation && (
+                    <EndgameContinuationReplay
+                      gameId={current.gameId}
+                      fromPly={current.ply}
+                      orientation={orientation}
+                    />
+                  )}
+                </>
               ) : showContinuation ? (
                 <EndgameContinuationReplay gameId={current.gameId} fromPly={current.ply} orientation={orientation} />
               ) : (
@@ -284,10 +323,28 @@ const EndgameDrillsTab = () => {
                 </p>
                 <p className="text-sm text-fg-muted">
                   {mode === 'jugar'
-                    ? 'Jugalo contra el motor hasta el final. Cada jugada tuya se evalúa.'
+                    ? current && finishedIds.has(current.id)
+                      ? 'Terminado. Mirá cómo siguió la partida real, volvé atrás con ← Previous, o pasá al siguiente cuando quieras.'
+                      : 'Jugalo contra el motor hasta el final. Cada jugada tuya se evalúa.'
                     : 'Armá un plan y después mirá cómo siguió la partida real.'}
                 </p>
               </div>
+
+              {/* Playing mode, once the ending is over: look at the answer, then
+                  move on when you decide to — not the instant you resign. */}
+              {mode === 'jugar' && finishedIds.has(current.id) && (
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => setShowContinuation(v => !v)}
+                    className="flex-1 px-6 py-4 text-base font-bold text-app bg-fg rounded-lg hover:opacity-90 transition-all"
+                  >
+                    {showContinuation ? '← Volver a mi partida' : 'Ver cómo siguió la partida real'}
+                  </button>
+                  <Button variant="secondary" onClick={goNext}>
+                    Siguiente drill →
+                  </Button>
+                </div>
+              )}
 
               <div className={`flex gap-3 ${mode === 'jugar' ? 'hidden' : ''}`}>
                 {!showContinuation ? (

@@ -61,7 +61,12 @@ const timeToMinutes = (time?: string): number => {
  * streaks) need this real order instead. */
 const gameSortKey = (game: Game): number => {
   if (!game.date) return 0;
-  return new Date(`${game.date}T00:00:00Z`).getTime() + timeToMinutes(game.time) * 60_000;
+  // slice(0, 10) rather than trusting the field: when a full timestamp slipped
+  // through here, `${date}T00:00:00Z` parsed to Invalid Date and every game got
+  // a NaN key, which leaves Array.sort's order untouched — so all 442 online
+  // games silently stayed in database order instead of play order.
+  const day = game.date.slice(0, 10);
+  return new Date(`${day}T00:00:00Z`).getTime() + timeToMinutes(game.time) * 60_000;
 };
 
 export const fetchGames = () =>

@@ -34,6 +34,47 @@ export interface PlayoutSummary {
   outcome?: string;
 }
 
+/**
+ * One of your moves, kept so the ending can be walked back through afterwards.
+ *
+ * Playing an endgame out is only half a drill: the half that teaches is seeing,
+ * at the move you went wrong, what you should have played instead. That needs
+ * the position as you faced it and the engine's choice in it — neither of which
+ * survives if only the running FEN is kept.
+ */
+interface PlayedMove {
+  /** The position in front of you when you moved. */
+  fenBefore: string;
+  /** Your move. */
+  san: string;
+  /** Absent when the engine failed and the move could not be graded. */
+  verdict?: Verdict;
+  cpLoss?: number;
+  /** What the engine preferred here. Absent if it returned no best move. */
+  bestSan?: string;
+}
+
+/** Best move as SAN, for showing next to what you actually played. */
+const bestMoveSan = (fen: string, uci: string | undefined): string | undefined => {
+  if (!uci || uci === '(none)') return undefined;
+  try {
+    const move = new Chess(fen).move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci[4] : undefined,
+    });
+    return move?.san;
+  } catch {
+    return undefined;
+  }
+};
+
+const VERDICT_CLASS: Record<Verdict, string> = {
+  correcta: 'text-win',
+  imprecisa: 'text-draw',
+  mala: 'text-loss',
+};
+
 const PROMOTION_PIECES = ['q', 'r', 'b', 'n'] as const;
 const GLYPHS: Record<string, { w: string; b: string }> = {
   q: { w: '♕', b: '♛' },
@@ -67,6 +108,9 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
   const [grades, setGrades] = useState<Verdict[]>([]);
   const [lastLoss, setLastLoss] = useState<number | null>(null);
   const [outcome, setOutcome] = useState<string | null>(null);
+  const [history, setHistory] = useState<PlayedMove[]>([]);
+  /** While reviewing: which of your moves is on the board. null = live position. */
+  const [reviewIndex, setReviewIndex] = useState<number | null>(null);
 
   const solverSide: 'w' | 'b' = fen.split(' ')[1] === 'b' ? 'b' : 'w';
   const sideToMove: 'w' | 'b' = position.split(' ')[1] === 'b' ? 'b' : 'w';
@@ -81,6 +125,8 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
     setGrades([]);
     setLastLoss(null);
     setOutcome(null);
+    setHistory([]);
+    setReviewIndex(null);
   }, [fen]);
 
   useEffect(() => reset(), [resetKey, reset]);
@@ -141,6 +187,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
       }
       if (!move) return;
 
+      const san = move.san;
       setPosition(chess.fen());
       setSelectedSquare(null);
       setThinking(true);
@@ -154,34 +201,45 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
         const grade = gradeMove(beforeEval, afterEval);
         setGrades(g => [...g, grade.verdict]);
         setLastLoss(grade.cpLoss);
+        setHistory(h => [
+          ...h,
+          {
+            fenBefore: before,
+            san,
+            verdict: grade.verdict,
+            cpLoss: grade.cpLoss,
+            // The engine's pick in the position you were looking at — the
+            // "should have played", which only exists before your move.
+            bestSan: bestMoveSan(before, beforeEval.bestMove),
+          },
+        ]);
 
-        if (chess.isGameOver()) {
-          setThinking(false);
-          stop(outcomeOf(chess, solverSide));
-          return;
-        }
-
-        // Engine replies.
-        const reply = afterEval.bestMove;
-        if (reply && reply !== '(none)') {
-          try {
-            chess.move({
-              from: reply.slice(0, 2),
-              to: reply.slice(2, 4),
-              promotion: reply.length > 4 ? reply[4] : undefined,
-            });
-            setPosition(chess.fen());
-          } catch {
-            // Unplayable engine move; leave the position after your move.
+        // Engine replies, unless your move already ended it.
+        if (!chess.isGameOver()) {
+          const reply = afterEval.bestMove;
+          if (reply && reply !== '(none)') {
+            try {
+              chess.move({
+                from: reply.slice(0, 2),
+                to: reply.slice(2, 4),
+                promotion: reply.length > 4 ? reply[4] : undefined,
+              });
+              setPosition(chess.fen());
+            } catch {
+              // Unplayable engine move; leave the position after your move.
+            }
           }
         }
+
         if (chess.isGameOver()) {
           setThinking(false);
           stop(outcomeOf(chess, solverSide));
           return;
         }
       } catch {
-        // Engine failed; let the user keep playing rather than freezing.
+        // Engine failed; let the user keep playing rather than freezing. The
+        // move is still recorded, ungraded, so the review isn't missing a ply.
+        setHistory(h => [...h, { fenBefore: before, san }]);
       }
       setThinking(false);
     },
@@ -244,7 +302,9 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
       <BoardFrame>
         <Chessboard
           options={{
-            position,
+            // While stepping back, show the position as you faced it rather
+            // than the final one.
+            position: reviewIndex === null ? position : history[reviewIndex].fenBefore,
             boardOrientation: orientation,
             allowDragging: canMove,
             showNotation: true,
@@ -306,6 +366,89 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
               ? 'Lo jugaste sin errores graves.'
               : `${summary.mistakes} jugada${summary.mistakes === 1 ? '' : 's'} mala${summary.mistakes === 1 ? '' : 's'} en el camino.`}
           </p>
+
+          {history.length > 0 && (
+            <div className="mt-3">
+              <p className="text-label mb-2">Tus jugadas — tocá una para volver a esa posición</p>
+              <div className="flex flex-wrap gap-1.5">
+                {history.map((played, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setReviewIndex(reviewIndex === i ? null : i)}
+                    className={`px-2 py-1 rounded-md border text-sm tabular-nums transition-colors ${
+                      reviewIndex === i
+                        ? 'border-accent bg-accent/10 text-fg'
+                        : 'border-hairline text-fg-muted hover:bg-surface'
+                    }`}
+                    title={
+                      played.verdict
+                        ? `${played.verdict}${played.cpLoss ? ` · ${formatCpLoss(played.cpLoss)}` : ''}`
+                        : 'sin evaluar'
+                    }
+                  >
+                    <span className="text-fg-subtle">{i + 1}.</span>{' '}
+                    <span className={played.verdict ? VERDICT_CLASS[played.verdict] : 'text-fg-muted'}>
+                      {played.san}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {reviewIndex !== null && (
+                <div className="mt-3 rounded-lg border border-hairline bg-surface p-3">
+                  <p className="text-sm text-fg">
+                    Jugaste{' '}
+                    <span
+                      className={`font-bold ${
+                        history[reviewIndex].verdict
+                          ? VERDICT_CLASS[history[reviewIndex].verdict as Verdict]
+                          : ''
+                      }`}
+                    >
+                      {history[reviewIndex].san}
+                    </span>
+                    {history[reviewIndex].cpLoss ? (
+                      <span className="text-fg-muted">
+                        {' '}
+                        · perdiste {formatCpLoss(history[reviewIndex].cpLoss as number)}
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="text-sm text-fg-muted mt-1">
+                    {history[reviewIndex].bestSan
+                      ? history[reviewIndex].bestSan === history[reviewIndex].san
+                        ? 'Era la mejor del motor.'
+                        : `El motor jugaba ${history[reviewIndex].bestSan}.`
+                      : 'El motor no devolvió una mejor jugada para esta posición.'}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setReviewIndex(i => Math.max(0, (i ?? 0) - 1))}
+                      disabled={reviewIndex === 0}
+                    >
+                      ← Anterior
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        setReviewIndex(i => Math.min(history.length - 1, (i ?? 0) + 1))
+                      }
+                      disabled={reviewIndex === history.length - 1}
+                    >
+                      Siguiente →
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={() => setReviewIndex(null)}>
+                      Ir al final
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <Button variant="secondary" size="sm" icon={ArrowUturnLeftIcon} className="mt-3" onClick={reset}>
             Jugarlo de nuevo
           </Button>

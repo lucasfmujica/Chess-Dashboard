@@ -1,4 +1,5 @@
 /** Maps between the `games` table's columns and the client-facing `Game` shape. */
+import { toDateString } from './_dates.js';
 
 export interface GameRow {
   id: string;
@@ -13,7 +14,7 @@ export interface GameRow {
   opening_name: string | null;
   tournament: string | null;
   rated: boolean;
-  played_date: string | null;
+  played_date: string | Date | null;
   played_time: string | null;
   speed: string | null;
   time_control: string | null;
@@ -65,7 +66,9 @@ export const rowToGame = (row: GameRow) => ({
   tournament: row.tournament ?? undefined,
   rated: row.rated,
   time: row.played_time ?? undefined,
-  date: row.played_date ?? undefined,
+  // `Game.date` is documented as YYYY-MM-DD and compared as a string all over
+  // the app; a DATE column arrives here as a full timestamp. See _dates.ts.
+  date: toDateString(row.played_date),
   source: row.source,
   eloChange: row.elo_change ?? undefined,
   kFactor: row.k_factor ?? undefined,

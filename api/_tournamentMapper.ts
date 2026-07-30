@@ -1,5 +1,6 @@
 // Row -> domain mappers for reference data attached to games: tournament
 // metadata and the opening heroes' model games.
+import { toDateString } from './_dates.js';
 
 export interface TournamentRow {
   id: string;
@@ -22,20 +23,6 @@ export interface TournamentRow {
   notes: string | null;
   created_at: string;
 }
-
-/**
- * DATE columns come back as a Date at local midnight; formatting with the
- * local getters is the only variant that preserves the calendar day.
- */
-const toDateString = (value: unknown): string | undefined => {
-  if (value == null) return undefined;
-  if (value instanceof Date) {
-    const month = String(value.getMonth() + 1).padStart(2, '0');
-    const day = String(value.getDate()).padStart(2, '0');
-    return `${value.getFullYear()}-${month}-${day}`;
-  }
-  return String(value).slice(0, 10);
-};
 
 /** NUMERIC comes back as a string from the driver, to avoid precision loss. */
 const toNumber = (value: string | number | null): number | undefined =>

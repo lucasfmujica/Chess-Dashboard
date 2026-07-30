@@ -20,7 +20,7 @@ interface GamesAnalysisListProps {
 }
 
 type Book = Record<string, string>;
-type SortKey = 'order' | 'opponent' | 'result' | 'accuracy';
+type SortKey = 'order' | 'date' | 'opponent' | 'result' | 'accuracy';
 
 interface Row {
   index: number;
@@ -146,6 +146,15 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
           const bv = b.accuracy ?? -1;
           return dir * (av - bv);
         }
+        case 'date': {
+          // Undated games sort last whichever way the column is pointing —
+          // flipping the direction shouldn't park them on top.
+          if (!a.g.date || !b.g.date) return a.g.date ? -1 : b.g.date ? 1 : 0;
+          const byDay = a.g.date.localeCompare(b.g.date);
+          // Same day: fall back to the array order, which fetchGames already
+          // sorted by time of day.
+          return dir * (byDay !== 0 ? byDay : a.index - b.index);
+        }
         default:
           return dir * (a.index - b.index);
       }
@@ -198,7 +207,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
     if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSortKey(key);
-      setSortDir(key === 'accuracy' ? 'desc' : 'asc');
+      setSortDir(key === 'accuracy' || key === 'date' ? 'desc' : 'asc');
     }
   };
 
@@ -309,6 +318,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
           <thead className="bg-surface-2 sticky top-0 z-10">
             <tr>
               <SortableTh label="#" k="order" />
+              <SortableTh label="Fecha" k="date" />
               <SortableTh label="Opponent" k="opponent" />
               <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-fg-subtle">Color</th>
               <SortableTh label="Result" k="result" />
@@ -334,6 +344,10 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
                   className={`${r.hasMoves ? 'cursor-pointer' : 'opacity-60'} hover:bg-surface-2 ${isLoaded ? 'bg-accent/10' : ''}`}
                 >
                   <td className="px-3 py-2 text-fg-subtle tabular-nums">{r.index + 1}</td>
+                  <td className="px-3 py-2 text-fg-muted tabular-nums whitespace-nowrap">
+                    {r.g.date ?? '—'}
+                    {r.g.time && <span className="ml-1 text-xs text-fg-subtle">{r.g.time}</span>}
+                  </td>
                   <td className="px-3 py-2">
                     <span className="text-fg">{r.g.opp}</span>
                     {r.g.opp_elo > 0 && <span className="ml-1 text-xs text-fg-subtle tabular-nums">({r.g.opp_elo})</span>}
@@ -355,7 +369,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-sm text-fg-muted">No games match your search.</td>
+                <td colSpan={7} className="px-3 py-6 text-center text-sm text-fg-muted">No games match your search.</td>
               </tr>
             )}
           </tbody>
