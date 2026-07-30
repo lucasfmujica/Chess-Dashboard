@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ecoNames } from '../constants/ecoNames';
+import { hasEco } from '../utils/eco';
 import { TOURNAMENT_DATA, TOURNAMENT_ORDER, type TournamentDataEntry } from '../constants/chessConstants';
 import {
   calculateGameStats,
@@ -260,12 +261,14 @@ export const useGameStats = (ratedGames: Game[]) => {
     }));
   }, [ratedGames]);
 
-  // Helper to build per-ECO opening stats for a set of single-color games
+  // Helper to build per-ECO opening stats for a set of single-color games.
+  // The record (`stats`) covers every game; only the per-opening breakdown
+  // drops the unclassified ones, since they have no opening to break down by.
   const buildColorStats = (colorGames: Game[]) => {
     const stats = calculateGameStats(colorGames);
 
     const ecoStats: Record<string, EcoBucket> = {};
-    colorGames.forEach(game => {
+    colorGames.filter(g => hasEco(g.eco)).forEach(game => {
       if (!ecoStats[game.eco]) {
         ecoStats[game.eco] = { games: 0, wins: 0, draws: 0, losses: 0, name: ecoNames[game.eco] || game.eco };
       }
@@ -302,11 +305,18 @@ export const useGameStats = (ratedGames: Game[]) => {
     [ratedGames] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // All openings statistics
+  /**
+   * All openings statistics.
+   *
+   * Games with no ECO are left out instead of piling into an "Unknown"
+   * opening: they are crosstable imports with no movetext, and bucketing them
+   * invented the biggest and worst-scoring line in the repertoire tables,
+   * charts and recommendations. `gamesWithoutEco` keeps them countable.
+   */
   const allOpeningsStats = useMemo(() => {
     const ecoStats: Record<string, AllEcoBucket> = {};
 
-    ratedGames.forEach(game => {
+    ratedGames.filter(g => hasEco(g.eco)).forEach(game => {
       if (!ecoStats[game.eco]) {
         ecoStats[game.eco] = {
           games: 0,
@@ -344,6 +354,12 @@ export const useGameStats = (ratedGames: Game[]) => {
       .sort((a, b) => b.games - a.games);
   }, [ratedGames]);
 
+  /** How many rated games carry no ECO, so the gap can be stated rather than hidden. */
+  const gamesWithoutEco = useMemo(
+    () => ratedGames.filter(g => !hasEco(g.eco)).length,
+    [ratedGames]
+  );
+
   return {
     overallStats,
     eloHistory,
@@ -354,5 +370,6 @@ export const useGameStats = (ratedGames: Game[]) => {
     whiteStats,
     blackStats,
     allOpeningsStats,
+    gamesWithoutEco,
   };
 };

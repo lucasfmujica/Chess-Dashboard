@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ecoNames } from '../constants/ecoNames';
+import { hasEco } from '../utils/eco';
 import { OPENING_THRESHOLDS } from '../constants/chessConstants';
 import type { Game, OpeningStat, Repertoire, PlayerColor } from '../types/chess';
 
@@ -83,7 +84,9 @@ export const useRepertoireAnalysis = (
     const blackOpenings = ratedGames.filter(g => g.color === 'B');
     const opponentOpenings: Record<string, OpponentOpeningBucket> = {};
 
-    blackOpenings.forEach(g => {
+    // Unclassified games have no opening to prepare against, so they can't
+    // become a recommendation — otherwise "Unknown" leads the list.
+    blackOpenings.filter(g => hasEco(g.eco)).forEach(g => {
       if (!opponentOpenings[g.eco]) {
         opponentOpenings[g.eco] = { count: 0, wins: 0 };
       }

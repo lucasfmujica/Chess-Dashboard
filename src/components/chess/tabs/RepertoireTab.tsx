@@ -38,6 +38,8 @@ interface RepertoireTabProps {
   setMainRepertoire: (value: Repertoire) => Promise<void>;
   openingHeroes: OpeningHeroes;
   setOpeningHeroes: (value: OpeningHeroes) => Promise<void>;
+  /** Rated games with no ECO — excluded from the tables, stated below them. */
+  gamesWithoutEco: number;
 }
 
 const RepertoireTab = ({
@@ -46,7 +48,8 @@ const RepertoireTab = ({
   mainRepertoire,
   setMainRepertoire,
   openingHeroes,
-  setOpeningHeroes
+  setOpeningHeroes,
+  gamesWithoutEco
 }: RepertoireTabProps) => {
   return (
     <div className="space-y-6">
@@ -238,6 +241,16 @@ const RepertoireTab = ({
           </div>
         </div>
       </div>
+
+      {/* The games these tables can't classify. Said out loud rather than
+          bucketed as an "Unknown" opening, which is what they used to do. */}
+      {gamesWithoutEco > 0 && (
+        <p className="text-xs text-fg-subtle">
+          {gamesWithoutEco} rated game{gamesWithoutEco === 1 ? '' : 's'} carry no ECO — imported from
+          crosstables, with no movetext to classify. They count towards your record but not towards
+          these openings. Add the PGN to a game and it lands in the right line.
+        </p>
+      )}
     </div>
   );
 };

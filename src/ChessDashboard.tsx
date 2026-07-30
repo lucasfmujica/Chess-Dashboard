@@ -120,6 +120,7 @@ const ChessDashboard = () => {
     tournamentComparison,
     openingRepertoireAnalysis,
     openingRecommendations,
+    gamesWithoutEco,
     goalProjections,
     achievements,
     nextMilestones,
@@ -417,6 +418,7 @@ const ChessDashboard = () => {
               setMainRepertoire={setMainRepertoire}
               openingHeroes={openingHeroes}
               setOpeningHeroes={setOpeningHeroes}
+              gamesWithoutEco={gamesWithoutEco}
             />
           )}
 

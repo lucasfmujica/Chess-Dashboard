@@ -1,4 +1,5 @@
 import { isDue, nextReviewAt } from './srs';
+import { hasEco } from './eco';
 import { localDateKey, dateFromKey, weekdayIndex } from './localDate';
 import { programForWeekday } from '../constants/trainingProgram';
 import type { Game, RepertoireLine, Tournament } from '../types/chess';
@@ -105,7 +106,7 @@ export const isOtb = (game: Game): boolean => game.source !== 'lichess';
 export const ecoPerformance = (games: Game[]): EcoFocus[] => {
   const byEco = new Map<string, { games: number; points: number }>();
   for (const game of games) {
-    if (!game.eco || game.eco === 'Unknown') continue;
+    if (!hasEco(game.eco)) continue;
     const entry = byEco.get(game.eco) ?? { games: 0, points: 0 };
     entry.games += 1;
     entry.points += game.result === 'W' ? 1 : game.result === 'D' ? 0.5 : 0;
@@ -203,8 +204,8 @@ export const buildPrepPlan = (
     frozenOut,
     overflow: queue,
     ecoFocus,
-    ecoGamesConsidered: otbGames.filter(g => g.eco && g.eco !== 'Unknown').length,
-    gamesWithoutEco: otbGames.filter(g => !g.eco || g.eco === 'Unknown').length,
+    ecoGamesConsidered: otbGames.filter(g => hasEco(g.eco)).length,
+    gamesWithoutEco: otbGames.filter(g => !hasEco(g.eco)).length,
     ranked: {
       priority: new Set(due.map(l => l.priority ?? null)).size > 1,
       // Only meaningful once the lines differ in confidence or review history.
