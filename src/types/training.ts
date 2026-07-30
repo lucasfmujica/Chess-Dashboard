@@ -67,7 +67,19 @@ export interface TrainingSession {
   createdAt: number;
 }
 
-export type TrainingItemKind = 'blunder' | 'endgame' | 'repertoire' | 'external';
+/**
+ * `repertoire` is a whole chapter recalled as a card; `repertoire-move` is one
+ * move of it played on a board. Kept apart so the training log can tell which
+ * of the two a session actually was — they take the same minutes and teach
+ * different things.
+ */
+export type TrainingItemKind =
+  | 'blunder'
+  | 'endgame'
+  | 'repertoire'
+  | 'repertoire-move'
+  | 'concept'
+  | 'external';
 
 /**
  * One exercise attempted inside a session — the diagnostic record.
@@ -233,5 +245,7 @@ export interface Concept {
   gameIds: string[];
   confidence?: number;
   lastReviewed?: number;
+  /** How many times this concept has been reviewed. Incremented server-side. */
+  reviewCount?: number;
   createdAt: number;
 }

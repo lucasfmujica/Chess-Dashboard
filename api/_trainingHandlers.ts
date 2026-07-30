@@ -13,6 +13,7 @@ import {
   type ConceptRow,
   type HomeworkRow,
 } from './_trainingMapper.js';
+import { rowToRepertoireMove, type RepertoireMoveRow } from './_repertoireMoveMapper.js';
 
 // Handlers for the training-loop resources. These live in a `_`-prefixed
 // module (not picked up as a route) and are dispatched from prep.ts, because
@@ -390,14 +391,16 @@ interface ConceptInput {
   name: string;
   category: string;
   bookId?: string | null;
-  sourceChapter?: string;
-  sourceType?: string;
+  sourceChapter?: string | null;
+  sourceType?: string | null;
   status?: string;
-  summary?: string;
+  summary?: string | null;
   exampleFens?: string[];
   gameIds?: string[];
-  confidence?: number;
-  lastReviewed?: number;
+  confidence?: number | null;
+  lastReviewed?: number | null;
+  /** Applied server-side, so two screens reviewing the same concept both count. */
+  reviewCountInc?: number;
 }
 
 export const concepts = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
@@ -405,26 +408,43 @@ export const concepts = async (req: VercelRequest, res: VercelResponse, id: stri
     if (req.method === 'PUT') {
       if (!requireApiKey(req, res)) return;
       const c = req.body as Partial<ConceptInput>;
-      // book_id is intentionally NOT COALESCEd against itself the same way:
-      // unlinking a concept from its book means sending null, which COALESCE
-      // would silently ignore. `bookId === undefined` = leave alone,
-      // `bookId === null` = clear.
-      const clearBook = Object.prototype.hasOwnProperty.call(c, 'bookId') && c.bookId === null;
+      /**
+       * Present in the body = write it, even as null or []. Absent = leave it.
+       *
+       * COALESCE cannot express the first half: it treats null as "no value",
+       * so clearing a summary, dropping the last example FEN or unlinking the
+       * last game were all impossible — the write looked like it worked and
+       * the old value stayed. `bookId` already carried a hand-rolled exception
+       * for exactly this; generalising it removes the exception.
+       *
+       * `name`, `category` and `status` stay COALESCEd: they are NOT NULL, so
+       * "clear it" is not a thing they can mean.
+       */
+      const has = (key: keyof ConceptInput) => Object.prototype.hasOwnProperty.call(c, key);
       const rows = (await sql`
         UPDATE concepts SET
           name = COALESCE(${c.name ?? null}, name),
           category = COALESCE(${c.category ?? null}, category),
-          book_id = CASE WHEN ${clearBook} THEN NULL ELSE COALESCE(${c.bookId ?? null}, book_id) END,
-          source_chapter = COALESCE(${c.sourceChapter ?? null}, source_chapter),
-          source_type = COALESCE(${c.sourceType ?? null}, source_type),
           status = COALESCE(${c.status ?? null}, status),
-          summary = COALESCE(${c.summary ?? null}, summary),
-          example_fens = COALESCE(${c.exampleFens ?? null}, example_fens),
-          game_ids = COALESCE(${c.gameIds ?? null}::uuid[], game_ids),
-          confidence = COALESCE(${c.confidence ?? null}, confidence),
-          last_reviewed = COALESCE(
-            ${c.lastReviewed ? new Date(c.lastReviewed).toISOString() : null}, last_reviewed
-          )
+          book_id = CASE WHEN ${has('bookId')} THEN ${c.bookId ?? null} ELSE book_id END,
+          source_chapter =
+            CASE WHEN ${has('sourceChapter')} THEN ${c.sourceChapter ?? null} ELSE source_chapter END,
+          source_type =
+            CASE WHEN ${has('sourceType')} THEN ${c.sourceType ?? null} ELSE source_type END,
+          summary = CASE WHEN ${has('summary')} THEN ${c.summary ?? null} ELSE summary END,
+          example_fens =
+            CASE WHEN ${has('exampleFens')} THEN ${c.exampleFens ?? []} ELSE example_fens END,
+          game_ids =
+            CASE WHEN ${has('gameIds')} THEN ${c.gameIds ?? []}::uuid[] ELSE game_ids END,
+          confidence = CASE WHEN ${has('confidence')} THEN ${c.confidence ?? null} ELSE confidence END,
+          last_reviewed = CASE
+            WHEN ${has('lastReviewed')}
+            THEN ${c.lastReviewed ? new Date(c.lastReviewed).toISOString() : null}
+            ELSE last_reviewed
+          END,
+          -- Bumped in SQL, like every other drillable table, so the Concepts
+          -- tab and the daily queue can't clobber each other's total.
+          review_count = review_count + ${c.reviewCountInc ?? 0}
         WHERE id = ${id}
         RETURNING *
       `) as ConceptRow[];
@@ -476,5 +496,61 @@ export const concepts = async (req: VercelRequest, res: VercelResponse, id: stri
   }
 
   res.setHeader('Allow', 'GET, POST');
+  return res.status(405).json({ error: 'Method not allowed' });
+};
+
+/** The only fields a review outcome touches. */
+interface RepertoireMovePatch {
+  confidence?: number;
+  lastReviewed?: number;
+  reviewCountInc?: number;
+}
+
+/**
+ * Rows are produced by scripts/import-repertoire-moves.mts, not by the app, so
+ * there is no POST or DELETE here — only reading them and recording reviews.
+ *
+ * PATCH is deliberately partial, unlike PUT /repertoire-lines which replaces
+ * every column. That endpoint's full-replace semantics already forced callers
+ * to spread the whole object or silently null out plan/goldenRule/notes
+ * (see the note in useDailyQueue). A review outcome has no business carrying
+ * fen_before and comment along with it.
+ */
+export const repertoireMoves = async (
+  req: VercelRequest,
+  res: VercelResponse,
+  id: string | undefined
+) => {
+  if (id) {
+    if (req.method === 'PATCH') {
+      if (!requireApiKey(req, res)) return;
+      const m = req.body as RepertoireMovePatch;
+      const rows = (await sql`
+        UPDATE repertoire_moves SET
+          confidence = COALESCE(${m.confidence ?? null}, confidence),
+          last_reviewed = COALESCE(${m.lastReviewed ? new Date(m.lastReviewed).toISOString() : null}, last_reviewed),
+          review_count = review_count + ${m.reviewCountInc ?? 0}
+        WHERE id = ${id}
+        RETURNING *
+      `) as RepertoireMoveRow[];
+      if (rows.length === 0) {
+        return res.status(404).json({ error: 'Repertoire move not found' });
+      }
+      return res.status(200).json(rowToRepertoireMove(rows[0]));
+    }
+
+    res.setHeader('Allow', 'PATCH');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (req.method === 'GET') {
+    // Ordered so a chapter arrives ready to play front to back.
+    const rows = (await sql`
+      SELECT * FROM repertoire_moves ORDER BY chapter_no, depth, path_san
+    `) as RepertoireMoveRow[];
+    return res.status(200).json(rows.map(rowToRepertoireMove));
+  }
+
+  res.setHeader('Allow', 'GET');
   return res.status(405).json({ error: 'Method not allowed' });
 };

@@ -10,6 +10,7 @@ import {
   books,
   concepts,
   homework,
+  repertoireMoves,
 } from './_trainingHandlers.js';
 import { tournaments, modelGames } from './_tournamentHandlers.js';
 import {
@@ -573,6 +574,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'training-attempts') return trainingAttempts(req, res, itemId);
   if (resource === 'books') return books(req, res, itemId);
   if (resource === 'concepts') return concepts(req, res, itemId);
+  if (resource === 'repertoire-moves') return repertoireMoves(req, res, itemId);
   if (resource === 'homework') return homework(req, res, itemId);
   if (resource === 'tournaments') return tournaments(req, res, itemId);
   if (resource === 'model-games') return modelGames(req, res, itemId);
@@ -581,6 +583,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'chess-results-pgn') return chessResultsPgn(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
+      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
   });
 }

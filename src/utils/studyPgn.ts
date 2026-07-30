@@ -7,6 +7,13 @@ export interface StudyMoveNode {
   turn: 'w' | 'b';
   /** Free-text annotation attached to this move (may span multiple lines). */
   comment?: string;
+  /**
+   * Numeric Annotation Glyphs as the parser emits them, e.g. `['$2']` for `?`.
+   * The `!`/`?` suffix is NOT part of `san` — the parser strips it into here,
+   * which is the only way to tell a prepared move from a move the study
+   * records precisely because it loses.
+   */
+  nag?: string[];
   /** Alternative continuations replacing this move; each is its own move chain. */
   variations: StudyMoveNode[][];
 }
@@ -34,6 +41,7 @@ interface RawPgnMove {
   moveNumber: number;
   turn: 'w' | 'b';
   commentAfter?: string;
+  nag?: string[] | null;
   variations: RawPgnMove[][];
 }
 
@@ -43,6 +51,7 @@ const mapMoves = (moves: RawPgnMove[]): StudyMoveNode[] =>
     moveNumber: move.moveNumber,
     turn: move.turn,
     comment: move.commentAfter?.trim() || undefined,
+    nag: move.nag?.length ? move.nag : undefined,
     variations: (move.variations || []).map(mapMoves),
   }));
 

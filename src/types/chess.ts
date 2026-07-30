@@ -212,6 +212,12 @@ export interface AnnotatedGame {
   playedMove?: string;
   bestMove?: string;
   lesson?: string;
+  /**
+   * Studied concepts this game turned on. `Concept.gameIds` records the same
+   * link from the other side; this end exists so it can be made during the
+   * post-mortem, which is the moment you actually know it.
+   */
+  conceptIds?: string[];
 }
 
 /** Why a game was lost or nearly lost. Mirrors the DB CHECK constraint. */
@@ -250,6 +256,43 @@ export interface RepertoireLine {
   /** How many times this line has been drilled. Incremented server-side. */
   reviewCount?: number;
   notes?: string;
+}
+
+/** What a `RepertoireMove` row is for. Only `main` is scheduled by the SRS. */
+export type RepertoireMoveRole = 'main' | 'alt' | 'trap';
+
+/**
+ * One trainable decision of the repertoire study — the Chessable unit.
+ *
+ * A `RepertoireLine` is a whole chapter, which the flashcard trainer grades as
+ * a single card. This is one move inside it: the position, the move prepared
+ * there, and what the study says about it. Produced by the import script from
+ * the study PGN, never edited in the app.
+ */
+export interface RepertoireMove {
+  id: string;
+  /** 1-32, the `NN` prefix of the chapter title. Joins to `RepertoireLine`. */
+  chapterNo: number;
+  chapterName: string;
+  eco?: string;
+  /** The side the player has in this chapter. */
+  color: 'W' | 'B';
+  /** SAN moves reaching `fenBefore`, space-joined. Identity within the chapter. */
+  pathSan: string;
+  fenBefore: string;
+  expectedSan: string;
+  /** The opponent's scripted answer, so a line plays on without re-parsing. */
+  replySan?: string;
+  /** The study's own note — the golden rule, or a trap's refutation. */
+  comment?: string;
+  isMainline: boolean;
+  role: RepertoireMoveRole;
+  /** Ply count of `pathSan`, so a session runs front to back. */
+  depth: number;
+  confidence?: number;
+  lastReviewed?: number;
+  reviewCount?: number;
+  createdAt: number;
 }
 
 /** A rival being scouted before a tournament round. */

@@ -18,6 +18,19 @@ export interface QueueQuota {
   blunder: number;
   endgame: number;
   repertoire: number;
+  /**
+   * Single moves of the study, played on a board. Separate from `repertoire`
+   * (whole chapters, recalled as text) because they are different exercises at
+   * different rhythms: a plan is worth revisiting monthly, a move order that
+   * already cost a game is worth revisiting this week.
+   */
+  repertoireMove: number;
+  /**
+   * Studied concepts recalled against their own position. The Friday block has
+   * always been "read Silman, then create a concept row"; without a quota here
+   * nothing ever asked for one back.
+   */
+  concept: number;
 }
 
 export interface ProgramBlock {
@@ -44,7 +57,7 @@ export interface ProgramDay {
   isTrainingDay: boolean;
 }
 
-const NO_QUEUE: QueueQuota = { blunder: 0, endgame: 0, repertoire: 0 };
+const NO_QUEUE: QueueQuota = { blunder: 0, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 0 };
 
 /**
  * The 5 minutes of Studer appended to the short weekdays. Deliberately last
@@ -63,7 +76,7 @@ export const trainingProgram: ProgramDay[] = [
     weekday: 0,
     dayName: 'Lunes',
     focus: 'Cálculo escrito',
-    quota: { blunder: 5, endgame: 0, repertoire: 0 },
+    quota: { blunder: 5, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 0 },
     isTrainingDay: true,
     blocks: [
       {
@@ -96,7 +109,7 @@ export const trainingProgram: ProgramDay[] = [
     weekday: 2,
     dayName: 'Miércoles',
     focus: 'Finales de torre',
-    quota: { blunder: 0, endgame: 4, repertoire: 0 },
+    quota: { blunder: 0, endgame: 4, repertoire: 0, repertoireMove: 0, concept: 0 },
     isTrainingDay: true,
     blocks: [
       {
@@ -142,7 +155,9 @@ export const trainingProgram: ProgramDay[] = [
     weekday: 4,
     dayName: 'Viernes',
     focus: 'Conceptos',
-    quota: NO_QUEUE,
+    // The day was creating concepts and never revisiting them. Four back is
+    // small enough to leave the reading block intact.
+    quota: { blunder: 0, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 4 },
     isTrainingDay: true,
     blocks: [
       {
@@ -150,7 +165,7 @@ export const trainingProgram: ProgramDay[] = [
         minutes: 25,
         label: 'Silman, 15 variantes',
         detail:
-          'Después elegí 1 concepto del día y creá su fila en Concepts, con la partida tuya donde apareció y una línea escrita por vos. Un concepto sin partida propia no se aprendió.',
+          'Primero repasá los 4 conceptos que vuelven de la cola, después elegí 1 concepto nuevo y creá su fila en Concepts, con la partida tuya donde apareció y una línea escrita por vos. Un concepto sin partida propia no se aprendió.',
       },
       STUDER_TAIL,
     ],
@@ -159,7 +174,7 @@ export const trainingProgram: ProgramDay[] = [
     weekday: 5,
     dayName: 'Sábado',
     focus: 'Bloque largo',
-    quota: { blunder: 3, endgame: 0, repertoire: 0 },
+    quota: { blunder: 3, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 0 },
     isTrainingDay: true,
     blocks: [
       {
@@ -181,14 +196,17 @@ export const trainingProgram: ProgramDay[] = [
     weekday: 6,
     dayName: 'Domingo',
     focus: 'Repertorio y revisión',
-    quota: { blunder: 0, endgame: 0, repertoire: 6 },
+    // Weighted toward the moves: 2 chapter plans and 8 single moves fit the
+    // same 20 minutes, and the moves are where the losses actually come from.
+    quota: { blunder: 0, endgame: 0, repertoire: 2, repertoireMove: 8, concept: 0 },
     isTrainingDay: true,
     blocks: [
       {
         block: 'repertoire',
         minutes: 20,
         label: 'Repertorio',
-        detail: 'Sólo las líneas con menor confianza.',
+        detail:
+          'Las jugadas primero, en el tablero, y sólo después los planes de las líneas con menor confianza.',
       },
       {
         block: 'analysis',
@@ -219,7 +237,7 @@ export const plannedMinutes = (day: ProgramDay): number =>
 
 /** Total queue items a weekday asks for. */
 export const quotaTotal = (quota: QueueQuota): number =>
-  quota.blunder + quota.endgame + quota.repertoire;
+  quota.blunder + quota.endgame + quota.repertoire + quota.repertoireMove + quota.concept;
 
 /**
  * Queue items the whole week asks for — the denominator for weekly volume.

@@ -18,6 +18,7 @@ import { weekdayIndex } from '../../../../utils/localDate';
 import { formatMaterialDelta } from '../../../../engine/mineEndgames';
 import { Card, Button, Badge } from '../../../ui';
 import PuzzleBoard from '../../PuzzleBoard';
+import LineTrainerBoard from '../repertoire/LineTrainerBoard';
 import ThinkTimer from '../../ThinkTimer';
 import EndgameContinuationReplay from '../../EndgameContinuationReplay';
 import { isHomeworkOverdue } from '../../../../types/training';
@@ -40,6 +41,8 @@ const KIND_LABEL: Record<QueueItem['kind'], string> = {
   blunder: 'Cálculo',
   endgame: 'Final',
   repertoire: 'Repertorio',
+  'repertoire-move': 'Jugada',
+  concept: 'Concepto',
 };
 
 /** Which block a queue item's time is logged against. */
@@ -47,6 +50,8 @@ const KIND_BLOCK: Record<QueueItem['kind'], TrainingBlock> = {
   blunder: 'calculation',
   endgame: 'endgame',
   repertoire: 'repertoire',
+  'repertoire-move': 'repertoire',
+  concept: 'concept',
 };
 
 const TodayQueue = () => {
@@ -469,6 +474,21 @@ const QueueItemContext = ({ item }: { item: QueueItem }) => {
       </span>
     );
   }
+  if (item.kind === 'repertoire-move') {
+    return (
+      <span className="text-xs text-fg-muted truncate">
+        {item.move.chapterName} · {item.move.color === 'W' ? 'Blancas' : 'Negras'}
+      </span>
+    );
+  }
+  if (item.kind === 'concept') {
+    return (
+      <span className="text-xs text-fg-muted truncate">
+        {item.concept.sourceChapter ?? item.concept.sourceType ?? item.concept.category}
+        {item.concept.gameIds.length === 0 && ' · sin partida propia'}
+      </span>
+    );
+  }
   const game = item.drill.game;
   return (
     <span className="text-xs text-fg-muted truncate">
@@ -504,6 +524,58 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
         // the exercise here is the candidate list, not the continuation.
         maxSolverMoves={1}
       />
+    );
+  }
+
+  if (item.kind === 'repertoire-move') {
+    // Playable immediately, unlike the calculation exercises: here the whole
+    // exercise IS producing the move, so there is nothing to gate behind a
+    // written candidate list.
+    return (
+      <LineTrainerBoard
+        compact
+        line={[item.move]}
+        byPath={new Map([[item.move.pathSan, item.siblings]])}
+        orientation={item.move.color === 'W' ? 'white' : 'black'}
+        onGraded={(_move, correct) => onResult(correct)}
+        resetKey={item.id}
+      />
+    );
+  }
+
+  if (item.kind === 'concept') {
+    const fen = item.concept.exampleFens[0];
+    return (
+      <div>
+        {fen ? (
+          // Side to move decides the orientation: the concept was written
+          // about the position from whoever has to act in it.
+          <StaticBoard fen={fen} orientation={fen.split(' ')[1] === 'b' ? 'black' : 'white'} />
+        ) : (
+          <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
+            Este concepto no tiene posición de ejemplo guardada.
+          </div>
+        )}
+        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+          <p className="text-sm font-semibold text-fg">{item.concept.name}</p>
+          {!revealed ? (
+            <p className="mt-1 text-xs text-fg-subtle">
+              Decilo con tus palabras antes de revelar. ¿Qué pide esta posición?
+            </p>
+          ) : (
+            <>
+              {item.concept.summary && (
+                <p className="mt-2 whitespace-pre-line text-sm text-fg">{item.concept.summary}</p>
+              )}
+              {item.concept.gameIds.length === 0 && (
+                <p className="mt-2 text-xs text-draw">
+                  Leído, no aprendido — todavía no tiene una partida tuya vinculada.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     );
   }
 

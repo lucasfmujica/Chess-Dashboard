@@ -427,3 +427,72 @@ ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS province TEXT;
 -- counters at all, so drilling them left no volume trace.
 ALTER TABLE endgame_drills ADD COLUMN IF NOT EXISTS solved_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE repertoire_lines ADD COLUMN IF NOT EXISTS review_count INTEGER NOT NULL DEFAULT 0;
+
+-- One trainable decision of the repertoire study, the Chessable unit.
+--
+-- repertoire_lines already held the 32 chapters, but a chapter is one card:
+-- the trainer could ask "do you know the Accelerated Dragon" and nothing
+-- finer. The study PGN behind those chapters carries ~1100 moves across its
+-- mainlines and 295 variations, and half of them are the player's -- each one
+-- a separate thing to remember. This table is that explosion, produced by
+-- scripts/import-repertoire-moves.mts from src/utils/repertoireMoves.ts.
+--
+-- chapter_no (the NN prefix of the chapter title) is the join back to
+-- repertoire_lines. The lichess_url columns cannot serve: they point at an
+-- earlier export of the study with different chapter ids.
+--
+-- path_san -- the SAN moves reaching the position -- is the identity, NOT the
+-- FEN. Two move-orders that transpose are two things to remember, and keying
+-- on FEN would silently drop one of them.
+--
+-- role says what a row is for:
+--   main  the move to play. The only role the SRS schedules.
+--   alt   a second move the study also endorses. Accepted, not scheduled.
+--   trap  annotated ?/??/?! -- recorded because it LOSES, so the trainer can
+--         answer a wrong move with the study's own refutation.
+-- The unique key therefore carries expected_san: one position legitimately
+-- holds several candidate moves.
+CREATE TABLE IF NOT EXISTS repertoire_moves (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  chapter_no INTEGER NOT NULL,
+  chapter_name TEXT NOT NULL,
+  eco TEXT,
+  color CHAR(1) NOT NULL CHECK (color IN ('W','B')),
+  path_san TEXT NOT NULL,
+  fen_before TEXT NOT NULL,
+  expected_san TEXT NOT NULL,
+  reply_san TEXT,
+  comment TEXT,
+  is_mainline BOOLEAN NOT NULL DEFAULT true,
+  role TEXT NOT NULL DEFAULT 'main' CHECK (role IN ('main','alt','trap')),
+  depth INTEGER NOT NULL,
+  confidence INTEGER CHECK (confidence BETWEEN 1 AND 5),
+  last_reviewed TIMESTAMPTZ,
+  review_count INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (chapter_no, path_san, expected_san)
+);
+
+-- Serving a chapter front to back is the only read pattern.
+CREATE INDEX IF NOT EXISTS repertoire_moves_chapter_idx ON repertoire_moves (chapter_no, depth);
+
+-- Lets a graded repertoire move and a reviewed concept land in the training
+-- log like every other exercise. DROP-then-ADD so the swap stays re-runnable.
+ALTER TABLE training_attempts DROP CONSTRAINT IF EXISTS training_attempts_item_kind_check;
+ALTER TABLE training_attempts ADD CONSTRAINT training_attempts_item_kind_check
+  CHECK (item_kind IN ('blunder','endgame','repertoire','repertoire-move','concept','external'));
+
+-- Counter parity again: concepts carried confidence and last_reviewed from the
+-- start but no counter, so a concept that had been reviewed ten times looked
+-- identical to one reviewed once.
+ALTER TABLE concepts ADD COLUMN IF NOT EXISTS review_count INTEGER NOT NULL DEFAULT 0;
+
+-- Which concepts a post-mortem decided the game turned on.
+--
+-- `concepts.game_ids` already points the other way, and it is what the UI
+-- grades a concept by -- an empty array means "read, not learned". But it is
+-- written from the Concepts tab, which is the wrong moment: the game is
+-- analysed in Game Library, and asking there is what makes the link get made
+-- at all. An array column rather than a join table, matching the style already
+-- used by concepts.game_ids and opening_heroes.heroes.
+ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS concept_ids UUID[] NOT NULL DEFAULT '{}';

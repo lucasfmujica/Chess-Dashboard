@@ -4,6 +4,7 @@ import type {
   Repertoire,
   AnnotatedGame,
   RepertoireLine,
+  RepertoireMove,
   ScoutingTarget,
   Tournament,
   ModelGame,
@@ -271,7 +272,15 @@ export const deleteBook = (id: string) =>
 export const fetchConcepts = () => apiFetch<Concept[]>('/prep?resource=concepts');
 export const postConcept = (concept: Partial<Concept>) =>
   apiFetch<Concept>('/prep?resource=concepts', { method: 'POST', body: JSON.stringify(concept) });
-export const putConcept = (id: string, concept: Partial<Concept>) =>
+/**
+ * Writes exactly the fields present in `concept` — anything omitted is left
+ * alone, anything sent as null or [] is cleared. `reviewCountInc` is applied
+ * on top in SQL rather than replacing the counter.
+ */
+export const putConcept = (
+  id: string,
+  concept: Partial<Concept> & { reviewCountInc?: number }
+) =>
   apiFetch<Concept>(`/prep?resource=concepts&id=${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(concept),
@@ -279,6 +288,81 @@ export const putConcept = (id: string, concept: Partial<Concept>) =>
 export const deleteConcept = (id: string) =>
   apiFetch<{ ok: true }>(`/prep?resource=concepts&id=${encodeURIComponent(id)}`, {
     method: 'DELETE',
+  });
+
+// Lichess masters explorer, proxied server-side because the endpoint needs an
+// OAuth token that must not ship in the bundle (api/explorer.ts).
+
+/** One master game as the explorer reports it at a position. */
+export interface ExplorerTopGame {
+  uci: string;
+  id: string;
+  winner: 'white' | 'black' | null;
+  white: { name: string; rating: number };
+  black: { name: string; rating: number };
+  year?: number;
+  month?: string;
+}
+
+interface ExplorerResponse {
+  white: number;
+  draws: number;
+  black: number;
+  topGames?: ExplorerTopGame[];
+}
+
+/**
+ * The strongest master games that reached `fen`.
+ *
+ * `MovesExplorer` asks the same endpoint with `topGames=0` because it only
+ * wants the move statistics. Here the games are the point: they are both the
+ * model games worth storing and the evidence for who the hero of a line is.
+ */
+export const fetchExplorerTopGames = async (
+  fen: string,
+  count = 15
+): Promise<ExplorerTopGame[]> => {
+  const res = await fetch(
+    `/api/explorer?fen=${encodeURIComponent(fen)}&moves=0&topGames=${count}`
+  );
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(
+      res.status === 503
+        ? 'El servidor no tiene LICHESS_TOKEN configurado.'
+        : `El explorador respondió ${res.status}. ${body}`.trim()
+    );
+  }
+  const json = (await res.json()) as ExplorerResponse;
+  return json.topGames ?? [];
+};
+
+/** One master game's PGN. Same host and token, so it also goes through the proxy. */
+export const fetchMasterGamePgn = async (gameId: string): Promise<string> => {
+  const res = await fetch(`/api/explorer?gameId=${encodeURIComponent(gameId)}`);
+  if (!res.ok) {
+    throw new Error(`No se pudo traer el PGN de ${gameId}: ${res.status}`);
+  }
+  return res.text();
+};
+
+// Repertoire moves — the per-move explosion of the study PGN. Read-only from
+// the app: rows come from scripts/import-repertoire-moves.mts.
+export const fetchRepertoireMoves = () =>
+  apiFetch<RepertoireMove[]>('/prep?resource=repertoire-moves');
+
+/**
+ * Records a review outcome. PATCH, not PUT: only these three fields travel, so
+ * a review can never blank out the move's own content the way the full-replace
+ * PUT on /repertoire-lines can.
+ */
+export const patchRepertoireMove = (
+  id: string,
+  patch: { confidence?: number; lastReviewed?: number; reviewCountInc?: number }
+) =>
+  apiFetch<RepertoireMove>(`/prep?resource=repertoire-moves&id=${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
   });
 
 // Homework assigned in coaching sessions

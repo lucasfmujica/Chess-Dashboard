@@ -3,7 +3,7 @@ import LazyTab from '../../LazyTab';
 import { SegmentedControl, type Segment } from '../../ui';
 import { RepertoireLinesProvider } from '../../../context/RepertoireLinesContext';
 import RepertoireTab from './RepertoireTab';
-import OpeningsFlashcardsTab from './OpeningsFlashcardsTab';
+import RepertoireTrainTab from './RepertoireTrainTab';
 import TournamentPrepTab from './TournamentPrepTab';
 
 const RepertoireStudyTab = lazy(() => import('./RepertoireStudyTab'));
@@ -29,10 +29,16 @@ const VIEWS: Segment<RepertoireView>[] = [
   { value: 'study', label: 'Estudio' },
 ];
 
-/** Bare `repertoire` means the map; anything else is `repertoire-<view>`. */
+/**
+ * Bare `repertoire` means the map; anything else is `repertoire-<view>`.
+ *
+ * Only the first segment is matched, so a view with sub-tabs of its own
+ * (`repertoire-train-plans`) resolves to its parent instead of falling back to
+ * the map.
+ */
 export const viewFromTab = (activeTab: string): RepertoireView => {
-  const suffix = activeTab.slice('repertoire-'.length);
-  return VIEWS.some(v => v.value === suffix) ? (suffix as RepertoireView) : 'map';
+  const base = activeTab.slice('repertoire-'.length).split('-')[0];
+  return VIEWS.some(v => v.value === base) ? (base as RepertoireView) : 'map';
 };
 
 interface RepertoireHubTabProps extends ComponentProps<typeof RepertoireTab> {
@@ -55,7 +61,7 @@ const RepertoireHubTab = ({ activeTab, onNavigate, ...mapProps }: RepertoireHubT
 
         {view === 'map' && <RepertoireTab {...mapProps} />}
         {view === 'lines' && <TournamentPrepTab />}
-        {view === 'train' && <OpeningsFlashcardsTab />}
+        {view === 'train' && <RepertoireTrainTab activeTab={activeTab} onNavigate={onNavigate} />}
         {view === 'study' && (
           <LazyTab>
             <RepertoireStudyTab />
