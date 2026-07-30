@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { TOURNAMENT_DATA, TOURNAMENT_ORDER, type TournamentDataEntry } from '../constants/chessConstants';
+import { TOURNAMENT_DATA, type TournamentDataEntry } from '../constants/chessConstants';
 import { calculateGameStats } from '../utils/eloCalculations';
-import type { Game, StreakState, StreakType } from '../types/chess';
+import type { Game, StreakState, StreakType, Tournament } from '../types/chess';
 
 interface MonthBucket {
   tournament: string;
@@ -26,27 +26,65 @@ interface TimeSlotBucket {
 }
 
 /**
+ * Chronological list of the tournaments actually present in `games`.
+ *
+ * Derived, not declared. This used to walk a hardcoded TOURNAMENT_ORDER of the
+ * original seven events, which silently dropped every tournament played since —
+ * five of them, thirty games — from the trend line: a tournament missing from
+ * that list simply never got a bucket. Ordering by the earliest dated game of
+ * each event keeps new tournaments appearing on their own.
+ */
+const tournamentsInOrder = (games: Game[]): { name: string; firstDate?: string }[] => {
+  const earliest = new Map<string, string | undefined>();
+  games.forEach(game => {
+    if (!game.tournament) return;
+    const current = earliest.get(game.tournament);
+    if (!earliest.has(game.tournament)) {
+      earliest.set(game.tournament, game.date);
+    } else if (game.date && (!current || game.date < current)) {
+      earliest.set(game.tournament, game.date);
+    }
+  });
+
+  return [...earliest.entries()]
+    .map(([name, firstDate]) => ({ name, firstDate }))
+    // Undated events sort last rather than to the epoch, which would fake an
+    // early tournament and bend the start of the curve.
+    .sort((a, b) => (a.firstDate ?? '9999').localeCompare(b.firstDate ?? '9999'));
+};
+
+/**
  * Custom hook for trends, streaks, and time-based analytics.
  * Everything here derives from `ratedGames`, which the caller has already run
  * through the header's source filter — passing the raw games list for any of it
  * leaks Lichess games into panels the user filtered to OTB.
+ *
+ * `tournaments` carries the official record scraped from chess-results
+ * (performance, ELO change). It is looked up, never required: an event with no
+ * row still gets a bucket computed from its games.
  */
-export const useTrendsAndAnalytics = (ratedGames: Game[]) => {
+export const useTrendsAndAnalytics = (ratedGames: Game[], tournaments: Tournament[] = []) => {
+  const officialByName = useMemo(
+    () => new Map(tournaments.map(t => [t.name, t])),
+    [tournaments]
+  );
+
   // Monthly/Tournament statistics over time
   const monthlyStats = useMemo(() => {
-    const byMonth: Record<string, MonthBucket> = {};
+    const buckets: MonthBucket[] = [];
 
-    TOURNAMENT_ORDER.forEach((tournament, idx) => {
-      const tournamentGames = ratedGames.filter(g => g.tournament === tournament);
+    tournamentsInOrder(ratedGames).forEach(({ name, firstDate }, idx) => {
+      const tournamentGames = ratedGames.filter(g => g.tournament === name);
       if (tournamentGames.length === 0) return;
 
       const stats = calculateGameStats(tournamentGames);
-      const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[tournament] || {};
+      const official = officialByName.get(name);
+      const legacy: Partial<TournamentDataEntry> = TOURNAMENT_DATA[name] ?? {};
 
-      byMonth[tournament] = {
-        tournament,
+      buckets.push({
+        tournament: name,
         order: idx,
-        month: tournamentData.date || tournament,
+        month: firstDate?.slice(0, 10) ?? legacy.date ?? name,
         games: stats.total,
         wins: stats.wins,
         draws: stats.draws,
@@ -54,13 +92,16 @@ export const useTrendsAndAnalytics = (ratedGames: Game[]) => {
         winRate: parseFloat(stats.winRate),
         percentage: parseFloat(stats.winRate), // Add percentage for compatibility
         performanceRating: stats.performanceRating,
-        elo: tournamentGames[0].elo,
-        eloChange: tournamentData.eloChange || 0,
-      };
+        elo: official?.eloBefore ?? tournamentGames[0].elo,
+        // A team rapid event publishes a rating change that never reached the
+        // FIDE curve, so it contributes 0 here however chess-results computes it.
+        eloChange:
+          official && !official.affectsElo ? 0 : (official?.eloChange ?? legacy.eloChange ?? 0),
+      });
     });
 
-    return Object.values(byMonth).sort((a, b) => a.order - b.order);
-  }, [ratedGames]);
+    return buckets;
+  }, [ratedGames, officialByName]);
 
   // Recent form statistics
   const formStats = useMemo(() => {
@@ -199,8 +240,9 @@ export const useTrendsAndAnalytics = (ratedGames: Game[]) => {
         ? Math.round(oppElos.reduce((a, b) => a + b, 0) / oppElos.length)
         : 0;
 
-      const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[name] || {};
-      const playerElo = tournamentGames[0]?.elo || 0;
+      const official = officialByName.get(name);
+      const legacy: Partial<TournamentDataEntry> = TOURNAMENT_DATA[name] || {};
+      const playerElo = official?.eloBefore ?? tournamentGames[0]?.elo ?? 0;
 
       return {
         name,
@@ -215,18 +257,20 @@ export const useTrendsAndAnalytics = (ratedGames: Game[]) => {
         // event. It belongs in the table but not in a "best tournament
         // performance" figure, which it would win on volume alone.
         otb: tournamentGames.some(g => (g.source ?? 'otb') === 'otb'),
-        eloChange: tournamentData.eloChange || 0,
-        // Fall back to the computed rating, the way the Tournaments tab
-        // already does. TOURNAMENT_DATA is a hardcoded map of the original
-        // seven events, so reading it alone left every tournament added since
-        // — the team events, Lichess Online — with an empty performance cell
-        // and a hole in the trend line, despite having the games to compute it.
+        // Zero for an event that never reached the FIDE curve, whatever figure
+        // chess-results publishes for it.
+        eloChange:
+          official && !official.affectsElo ? 0 : (official?.eloChange ?? legacy.eloChange ?? 0),
+        // Prefer the official rating, then the hardcoded legacy map, then the
+        // rating computed from the games — so an event with no chess-results
+        // row still shows a performance instead of an empty cell.
         performance:
-          tournamentData.performanceRating ||
+          official?.officialPerformance ??
+          legacy.performanceRating ??
           (avgOppElo > 0 ? calculateGameStats(tournamentGames).performanceRating : null),
       };
     });
-  }, [ratedGames]);
+  }, [ratedGames, officialByName]);
 
   return {
     monthlyStats,

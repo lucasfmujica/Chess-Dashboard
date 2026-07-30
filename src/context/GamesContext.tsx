@@ -469,7 +469,7 @@ export const useSourceFilteredGames = (): Game[] => {
 
 // Hook to get computed stats (memoized)
 export const useComputedStats = (gameFilter: GameFilter) => {
-  const { games, mainRepertoire, targetElo, targetDate, playerInfo } = useGames();
+  const { games, mainRepertoire, targetElo, targetDate, playerInfo, tournaments } = useGames();
 
   // Filter games based on source
   const filteredGames = useMemo(() => filterGamesBySource(games, gameFilter), [games, gameFilter]);
@@ -478,7 +478,7 @@ export const useComputedStats = (gameFilter: GameFilter) => {
 
   // Use custom hooks for complex calculations
   const gameStats = useGameStats(ratedGames);
-  const trendsAndAnalytics = useTrendsAndAnalytics(ratedGames);
+  const trendsAndAnalytics = useTrendsAndAnalytics(ratedGames, tournaments);
 
   const { allOpeningsStats, overallStats, tournamentStats } = gameStats;
   const { streaks, monthlyStats } = trendsAndAnalytics;

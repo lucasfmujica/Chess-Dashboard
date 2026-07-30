@@ -21,6 +21,7 @@ interface RecentFormSectionProps {
 }
 
 const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) => {
+  const latestTournament = monthlyStats?.[monthlyStats.length - 1];
   if (!formStats) return null;
 
   return (
@@ -73,43 +74,45 @@ const RecentFormSection = ({ formStats, monthlyStats }: RecentFormSectionProps) 
             badgeColor="bg-surface"
           />
 
-          {/* Current Month */}
-          {monthlyStats && monthlyStats.length > 0 && (
+          {/* Most recent tournament. monthlyStats is ordered oldest-first and is
+              per tournament, not per calendar month, so this reads the last
+              entry: [0] is the first event ever played. */}
+          {latestTournament && (
             <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 bg-surface rounded-lg">
                   <CalendarIcon className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-fg">This Month</h4>
-                  <p className="text-xs text-fg-muted">{monthlyStats[0].month}</p>
+                  <h4 className="font-bold text-fg">Último torneo</h4>
+                  <p className="text-xs text-fg-muted">{latestTournament.tournament}</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-fg-muted">Games</span>
                   <span className="text-lg font-bold text-fg tabular-nums">
-                    {monthlyStats[0].games}
+                    {latestTournament.games}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-fg-muted">Score</span>
-                  <span className={`text-2xl font-bold tabular-nums ${monthlyStats[0].percentage >= 50 ? 'text-win' : 'text-loss'}`}>
-                    {monthlyStats[0].percentage}%
+                  <span className={`text-2xl font-bold tabular-nums ${latestTournament.percentage >= 50 ? 'text-win' : 'text-loss'}`}>
+                    {latestTournament.percentage}%
                   </span>
                 </div>
                 <div className="pt-2 mt-2 border-t border-hairline">
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
                     <div>
-                      <div className="text-win font-bold text-lg tabular-nums">{monthlyStats[0].wins}</div>
+                      <div className="text-win font-bold text-lg tabular-nums">{latestTournament.wins}</div>
                       <div className="text-fg-subtle">Wins</div>
                     </div>
                     <div>
-                      <div className="text-draw font-bold text-lg tabular-nums">{monthlyStats[0].draws}</div>
+                      <div className="text-draw font-bold text-lg tabular-nums">{latestTournament.draws}</div>
                       <div className="text-fg-subtle">Draws</div>
                     </div>
                     <div>
-                      <div className="text-loss font-bold text-lg tabular-nums">{monthlyStats[0].losses}</div>
+                      <div className="text-loss font-bold text-lg tabular-nums">{latestTournament.losses}</div>
                       <div className="text-fg-subtle">Losses</div>
                     </div>
                   </div>
