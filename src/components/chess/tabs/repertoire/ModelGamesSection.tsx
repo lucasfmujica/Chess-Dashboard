@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PlayCircleIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlayCircleIcon, PlusIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { fetchModelGames, postModelGame, deleteModelGame } from '../../../../api/client';
 import { ecoNames } from '../../../../constants/ecoNames';
 import { useModal } from '../../../modals/ModalContext';
 import { Card, Button, Badge } from '../../../ui';
 import GameViewer from '../../GameViewer';
 import ConceptQuickAdd from '../../ConceptQuickAdd';
+import MasterGameFinder from './MasterGameFinder';
 import type { ModelGame } from '../../../../types/chess';
 
 /**
@@ -25,12 +26,15 @@ const INPUT_CLASS =
 interface ModelGamesSectionProps {
   /** eco -> heroes, so the pickers offer what's already tracked. */
   openingHeroes: Record<string, string[]>;
+  /** Writing heroes back, so a player found in the explorer can become one. */
+  setOpeningHeroes: (value: Record<string, string[]>) => Promise<void> | void;
 }
 
 const openingLabel = (eco: string) => ecoNames[eco] || eco;
 
-const ModelGamesSection = ({ openingHeroes }: ModelGamesSectionProps) => {
+const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectionProps) => {
   const modal = useModal();
+  const [finding, setFinding] = useState(false);
   const [games, setGames] = useState<ModelGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,21 +139,38 @@ const ModelGamesSection = ({ openingHeroes }: ModelGamesSectionProps) => {
             que las tuyas.
           </p>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={PlusIcon}
-          onClick={() => setAdding(a => !a)}
-          disabled={ecoOptions.length === 0}
-        >
-          {adding ? 'Cancelar' : 'Sumar partida'}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            icon={MagnifyingGlassIcon}
+            onClick={() => setFinding(f => !f)}
+          >
+            {finding ? 'Cerrar buscador' : 'Buscar en maestros'}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={PlusIcon}
+            onClick={() => setAdding(a => !a)}
+            disabled={ecoOptions.length === 0}
+          >
+            {adding ? 'Cancelar' : 'Pegar PGN'}
+          </Button>
+        </div>
       </div>
 
-      {ecoOptions.length === 0 && (
+      {finding && (
+        <MasterGameFinder
+          openingHeroes={openingHeroes}
+          setOpeningHeroes={setOpeningHeroes}
+          onSaved={reload}
+        />
+      )}
+
+      {ecoOptions.length === 0 && !finding && (
         <p className="mt-4 text-sm text-fg-muted">
-          Primero agregá un héroe a alguna apertura acá arriba; las partidas se cuelgan de esa
-          apertura.
+          Todavía no hay héroes. Buscá en maestros: quien juega tu línea a ese nivel es el héroe, y
+          su partida es la partida modelo.
         </p>
       )}
 

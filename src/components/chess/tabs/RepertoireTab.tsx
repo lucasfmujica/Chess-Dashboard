@@ -86,13 +86,12 @@ const RepertoireTab = ({
       <OpeningHeroesGallery
         openingHeroes={openingHeroes}
         setOpeningHeroes={setOpeningHeroes}
-        mainRepertoire={mainRepertoire}
         whiteOpenings={openingRepertoireAnalysis.white}
         blackOpenings={openingRepertoireAnalysis.black}
       />
 
       {/* The games behind the names — the gallery was a directory until now. */}
-      <ModelGamesSection openingHeroes={openingHeroes} />
+      <ModelGamesSection openingHeroes={openingHeroes} setOpeningHeroes={setOpeningHeroes} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="p-6 bg-surface rounded-lg border border-hairline">

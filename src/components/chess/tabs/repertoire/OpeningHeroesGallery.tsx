@@ -1,7 +1,15 @@
 import { useMemo, useState } from 'react';
-import { StarIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  StarIcon,
+  PlusIcon,
+  XMarkIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 import { ecoNames } from '../../../../constants/ecoNames';
-import type { Repertoire } from '../../../../types/chess';
+import { useRepertoireLines } from '../../../../context/RepertoireLinesContext';
+import { buildRepertoireEcoIndex, type RepertoireEcoEntry } from '../../../../utils/repertoireEcos';
 import { Card } from '../../../ui/Card';
 import { SectionHeading } from '../../../ui/PageHeader';
 import SegmentedControl from '../../../ui/SegmentedControl';
@@ -21,9 +29,19 @@ interface AnalyzedOpening {
 interface OpeningHeroesGalleryProps {
   openingHeroes: OpeningHeroes;
   setOpeningHeroes: (value: OpeningHeroes) => Promise<void> | void;
-  mainRepertoire: Repertoire;
   whiteOpenings: AnalyzedOpening[];
   blackOpenings: AnalyzedOpening[];
+}
+
+interface GalleryEntry {
+  eco: string;
+  heroes: string[];
+  name: string;
+  color: 'W' | 'B' | null;
+  stats?: AnalyzedOpening;
+  /** Prepared chapters this code covers. Empty when it is off-repertoire. */
+  chapters: string[];
+  priority: number;
 }
 
 const AVATAR_PALETTE = [
@@ -48,17 +66,24 @@ const Avatar = ({ name }: { name: string }) => (
 );
 
 /**
- * Reads directly from `openingHeroes` (every ECO that has at least one hero),
- * not from played-game stats — so heroes attached to an opening you haven't
- * played yet still show up here.
+ * The players worth studying for each opening, laid out against the repertoire.
+ *
+ * It used to iterate `openingHeroes` alone, which made two things impossible:
+ * an opening with no hero could not appear (the gap was invisible), and the
+ * colour came from the `repertoire` singleton, which is empty — so all 39
+ * tracked codes resolved to "no colour" and piled into one unsorted "Other"
+ * group. Both are fixed by reading `repertoire_lines`, the table that is
+ * actually populated: it supplies the colour, the priority to sort by, and the
+ * full set of codes the repertoire covers, so the holes show up as holes.
  */
 const OpeningHeroesGallery = ({
   openingHeroes,
   setOpeningHeroes,
-  mainRepertoire,
   whiteOpenings,
   blackOpenings,
 }: OpeningHeroesGalleryProps) => {
+  const { lines } = useRepertoireLines();
+  const [showOffRepertoire, setShowOffRepertoire] = useState(false);
   const [view, setView] = useState<ViewMode>('opening');
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newHeroName, setNewHeroName] = useState('');
@@ -74,36 +99,60 @@ const OpeningHeroesGallery = ({
     return map;
   }, [whiteOpenings, blackOpenings]);
 
-  const entries = useMemo(() => {
-    return Object.entries(openingHeroes)
-      .filter(([, heroes]) => heroes.length > 0)
-      .map(([eco, heroes]) => {
-        const color: 'W' | 'B' | null = mainRepertoire.white.includes(eco)
-          ? 'W' : mainRepertoire.black.includes(eco) ? 'B' : null;
-        return {
-          eco,
-          heroes,
-          name: ecoNames[eco] || statsByEco[eco]?.name || eco,
-          color,
-          stats: statsByEco[eco],
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [openingHeroes, mainRepertoire, statsByEco]);
+  const repertoireEcos = useMemo(() => buildRepertoireEcoIndex(lines), [lines]);
+
+  /**
+   * The union of the repertoire's codes and the ones that have a hero. The
+   * union is the point: a prepared opening with nobody to study belongs on
+   * screen as a gap, and a hero kept for an opening you don't play should
+   * still be findable.
+   */
+  const entries = useMemo<GalleryEntry[]>(() => {
+    const codes = new Set([
+      ...repertoireEcos.keys(),
+      ...Object.entries(openingHeroes)
+        .filter(([, heroes]) => heroes.length > 0)
+        .map(([eco]) => eco),
+    ]);
+
+    return [...codes].map(eco => {
+      const prepared: RepertoireEcoEntry | undefined = repertoireEcos.get(eco);
+      return {
+        eco,
+        heroes: openingHeroes[eco] ?? [],
+        // A prepared chapter's own name beats a generic ECO label.
+        name: prepared?.chapters[0] ?? ecoNames[eco] ?? statsByEco[eco]?.name ?? eco,
+        color: prepared?.color ?? null,
+        stats: statsByEco[eco],
+        chapters: prepared?.chapters ?? [],
+        priority: prepared?.priority ?? Number.MAX_SAFE_INTEGER,
+      };
+    });
+  }, [openingHeroes, repertoireEcos, statsByEco]);
 
   const totalHeroes = entries.reduce((sum, e) => sum + e.heroes.length, 0);
+  const gaps = useMemo(
+    () => entries.filter(e => e.color !== null && e.heroes.length === 0),
+    [entries]
+  );
 
-  // Group entries by repertoire color for the "by opening" view.
+  /** Most urgent chapter first, so the list matches the order you'd work it. */
+  const byPriority = (a: GalleryEntry, b: GalleryEntry) =>
+    a.priority - b.priority || a.name.localeCompare(b.name);
+
   const grouped = useMemo(() => ({
-    W: entries.filter(e => e.color === 'W'),
-    B: entries.filter(e => e.color === 'B'),
-    other: entries.filter(e => e.color === null),
+    W: entries.filter(e => e.color === 'W').sort(byPriority),
+    B: entries.filter(e => e.color === 'B').sort(byPriority),
+    // Not in the repertoire: neighbouring Benoni codes, the King's Indian, and
+    // other leftovers. Kept as reference, collapsed so they stop competing
+    // with the openings actually being prepared.
+    other: entries.filter(e => e.color === null).sort((a, b) => a.name.localeCompare(b.name)),
   }), [entries]);
 
   // Invert to player → openings for the "by player" view.
   const byPlayer = useMemo(() => {
     const map = new Map<string, { eco: string; name: string; color: 'W' | 'B' | null }[]>();
-    entries.forEach(e => {
+    entries.filter(e => e.heroes.length > 0).forEach(e => {
       e.heroes.forEach(hero => {
         const list = map.get(hero) ?? [];
         list.push({ eco: e.eco, name: e.name, color: e.color });
@@ -164,8 +213,14 @@ const OpeningHeroesGallery = ({
     </span>
   );
 
-  const OpeningCardTile = ({ eco, heroes, name, color, stats }: typeof entries[number]) => (
-    <div className="border border-hairline rounded-lg p-4 bg-surface-2/40 hover:bg-surface-2 transition-colors">
+  const OpeningCardTile = ({ eco, heroes, name, color, stats, chapters }: GalleryEntry) => (
+    <div
+      className={`border rounded-lg p-4 transition-colors ${
+        color !== null && heroes.length === 0
+          ? 'border-draw/40 bg-draw/5 hover:bg-draw/10'
+          : 'border-hairline bg-surface-2/40 hover:bg-surface-2'
+      }`}
+    >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
@@ -176,6 +231,14 @@ const OpeningHeroesGallery = ({
             {eco}
             {stats && ` · ${stats.games} game${stats.games === 1 ? '' : 's'} · ${stats.winRate}% wins`}
           </p>
+          {/* An ECO is not unique per chapter — nine of them cover two. Naming
+              the second one stops the card from looking like it covers less
+              than it does. */}
+          {chapters.length > 1 && (
+            <p className="mt-0.5 text-xs text-fg-subtle truncate" title={chapters.join(' · ')}>
+              y {chapters.length - 1} capítulo{chapters.length - 1 === 1 ? '' : 's'} más
+            </p>
+          )}
         </div>
         <button
           onClick={() => setAddingFor(addingFor === eco ? null : eco)}
@@ -206,7 +269,14 @@ const OpeningHeroesGallery = ({
       )}
 
       <div className="flex flex-wrap gap-1.5">
-        {heroes.map(hero => <HeroPill key={hero} eco={eco} hero={hero} />)}
+        {heroes.length > 0 ? (
+          heroes.map(hero => <HeroPill key={hero} eco={eco} hero={hero} />)
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-xs text-draw">
+            <ExclamationTriangleIcon className="w-3.5 h-3.5" />
+            Sin héroe — nadie a quien estudiar acá
+          </span>
+        )}
       </div>
     </div>
   );
@@ -241,9 +311,23 @@ const OpeningHeroesGallery = ({
         </div>
       </div>
       <p className="text-sm text-fg-muted mb-4">
-        {totalHeroes > 0
-          ? `${totalHeroes} player${totalHeroes === 1 ? '' : 's'} tracked across ${entries.length} opening${entries.length === 1 ? '' : 's'} — including ones you haven't played yet.`
-          : "Track top players you study for each opening, even ones you haven't played yet."}
+        {totalHeroes > 0 ? (
+          <>
+            {totalHeroes} jugador{totalHeroes === 1 ? '' : 'es'} en{' '}
+            {entries.length - gaps.length} apertura
+            {entries.length - gaps.length === 1 ? '' : 's'}
+            {gaps.length > 0 && (
+              <>
+                {' · '}
+                <span className="text-draw font-medium">
+                  {gaps.length} de tu repertorio sin héroe
+                </span>
+              </>
+            )}
+          </>
+        ) : (
+          'Los jugadores que estudiás para cada apertura de tu repertorio.'
+        )}
       </p>
 
       {showAddOpening && (
@@ -330,8 +414,19 @@ const OpeningHeroesGallery = ({
           )}
           {grouped.other.length > 0 && (
             <div>
-              <SectionHeading className="mb-3">Other</SectionHeading>
-              <OpeningGrid list={grouped.other} />
+              <button
+                onClick={() => setShowOffRepertoire(o => !o)}
+                aria-expanded={showOffRepertoire}
+                className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-fg-muted hover:text-fg transition-colors"
+              >
+                {showOffRepertoire ? (
+                  <ChevronDownIcon className="w-4 h-4" />
+                ) : (
+                  <ChevronRightIcon className="w-4 h-4" />
+                )}
+                Fuera del repertorio ({grouped.other.length})
+              </button>
+              {showOffRepertoire && <OpeningGrid list={grouped.other} />}
             </div>
           )}
         </div>

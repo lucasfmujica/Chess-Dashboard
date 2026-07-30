@@ -72,6 +72,20 @@ const server = http.createServer(async (req, res) => {
       res.setHeader(name, value);
       return vercelRes;
     },
+    // api/explorer.ts forwards the upstream body verbatim rather than
+    // re-serialising it, so it calls send() and not json(). Without this the
+    // opening explorer 500s locally with "res.send is not a function" while
+    // working fine on Vercel — a difference that only shows up in dev.
+    // Content-Type is left to whatever setHeader already put there.
+    send(payload: unknown) {
+      const body =
+        typeof payload === 'string' || Buffer.isBuffer(payload)
+          ? payload
+          : JSON.stringify(payload);
+      res.writeHead(statusCode);
+      res.end(body);
+      return vercelRes;
+    },
     end() {
       res.writeHead(statusCode);
       res.end();
