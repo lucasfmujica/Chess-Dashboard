@@ -14,6 +14,7 @@ import {
   patchGamePgn,
   deleteGamesBySource,
   fetchProfile,
+  refreshProfileFromFide,
   fetchRepertoire,
   putRepertoire,
   fetchOpeningHeroes,
@@ -67,6 +68,8 @@ type Updater<T> = (value: T | ((prev: T) => T)) => void;
 interface GamesContextValue {
   games: Game[];
   playerInfo: PlayerInfo;
+  /** Re-read the current rating from the FIDE profile page. */
+  syncFideRating: () => Promise<void>;
 
   /** Merge newly-synced Lichess games in (upserts by Lichess game id). */
   syncLichessGames: (newGames: Game[]) => Promise<void>;
@@ -380,6 +383,15 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     setOpeningHeroesState(await putOpeningHeroes(value));
   };
 
+  /**
+   * Ask the server to re-read the FIDE profile. The weekly cron does this on
+   * its own; this is the "the new list is out today" button.
+   */
+  const syncFideRating = async () => {
+    const result = await refreshProfileFromFide();
+    if (result.profile) setPlayerInfo(result.profile);
+  };
+
   const setTournamentLocations = async (value: Record<string, string>) => {
     setTournamentLocationsState(await putTournamentLocations(value));
   };
@@ -396,6 +408,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
   const value: GamesContextValue = {
     games,
     playerInfo,
+    syncFideRating,
     syncLichessGames,
     removeLichessGames,
     importPgnGames,

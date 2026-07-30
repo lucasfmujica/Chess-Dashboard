@@ -91,6 +91,9 @@ export const fetchProfile = async (): Promise<PlayerInfo | null> => {
 };
 export const putProfile = (profile: PlayerInfo) =>
   apiFetch<PlayerInfo>('/profile', { method: 'PUT', body: JSON.stringify(profile) });
+/** Pull the current standard rating from the FIDE profile page. */
+export const refreshProfileFromFide = () =>
+  apiFetch<{ updated: boolean; profile?: PlayerInfo }>('/profile', { method: 'POST' });
 
 // Repertoire
 export const fetchRepertoire = () => apiFetch<Repertoire>('/repertoire');

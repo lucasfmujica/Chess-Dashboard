@@ -1,5 +1,14 @@
-import { useMemo } from 'react';
-import { TrophyIcon, StarIcon, FireIcon, UserGroupIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { useMemo, useState } from 'react';
+import {
+  TrophyIcon,
+  StarIcon,
+  FireIcon,
+  UserGroupIcon,
+  ChartBarIcon,
+  SparklesIcon,
+  ArrowTrendingUpIcon,
+} from '@heroicons/react/24/outline';
+import { useGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
 
 /** Game enriched with optional per-game fields used for record-keeping. */
@@ -11,6 +20,8 @@ type RecordGame = Game & {
 /** A single ELO-history datapoint. */
 interface EloHistoryEntry {
   elo: number;
+  /** Rating going into the game — the only place the pre-first-game rating exists. */
+  eloBefore?: number;
   date?: string;
   game?: number;
 }
@@ -41,7 +52,8 @@ interface FavoriteOpeningRecord {
 interface Records {
   highestRating: number;
   highestRatingDate: string;
-  lowestRating: number;
+  /** Rating before the first game — not the lowest one reached since. */
+  startingRating: number;
   longestWinStreak: number;
   longestUnbeatenStreak: number;
   bestTournament: TournamentRecord | null;
@@ -59,13 +71,29 @@ interface RecordsTabProps {
 }
 
 const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
+  const { playerInfo, syncFideRating } = useGames();
+  const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  const syncNow = async () => {
+    setSyncing(true);
+    setSyncError(null);
+    try {
+      await syncFideRating();
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'FIDE sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Calculate personal records
   const records = useMemo<Records>(() => {
     if (!games || games.length === 0) {
       return {
         highestRating: 0,
         highestRatingDate: 'N/A',
-        lowestRating: 0,
+        startingRating: 0,
         longestWinStreak: 0,
         longestUnbeatenStreak: 0,
         bestTournament: null,
@@ -81,16 +109,24 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     // Highest Rating
     let highestRating = 0;
     let highestRatingDate = '';
-    let lowestRating = Infinity;
+
+    /**
+     * Where the journey started: the rating going into the first game.
+     *
+     * This card used to show the *lowest* rating in the history, which is a
+     * different number — every entry is a rating already updated by its own
+     * game, so the rating you began with is never in the series. With a first
+     * game won, the "starting rating" read the post-win figure and the gain
+     * was understated by exactly that win.
+     */
+    const first = eloHistory?.[0];
+    const startingRating = first?.eloBefore ?? first?.elo ?? 0;
 
     if (eloHistory && eloHistory.length > 0) {
       eloHistory.forEach(entry => {
         if (entry.elo > highestRating) {
           highestRating = entry.elo;
           highestRatingDate = entry.date || `Game ${entry.game}`;
-        }
-        if (entry.elo < lowestRating) {
-          lowestRating = entry.elo;
         }
       });
     }
@@ -221,7 +257,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     return {
       highestRating,
       highestRatingDate,
-      lowestRating: lowestRating === Infinity ? 0 : lowestRating,
+      startingRating,
       longestWinStreak,
       longestUnbeatenStreak,
       bestTournament,
@@ -265,7 +301,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
             </div>
             <div className="bg-surface-2 rounded-lg p-4">
               <p className="text-fg-muted text-sm font-medium mb-1">Rating Gain</p>
-              <p className="text-4xl font-bold text-fg tabular-nums">+{records.highestRating - records.lowestRating}</p>
+              <p className="text-4xl font-bold text-fg tabular-nums">+{records.highestRating - records.startingRating}</p>
             </div>
           </div>
         </div>
@@ -278,7 +314,34 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
           <p className="text-fg-muted">Your journey through the rating ladder</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Where you are now — read from FIDE, not from the game log, which
+              only ever knows the rating the last recorded game produced. */}
+          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-surface-2 rounded-lg">
+                  <ArrowTrendingUpIcon className="w-6 h-6 text-accent" />
+                </div>
+                <h4 className="text-base font-semibold text-fg">Current Rating</h4>
+              </div>
+              <div className="text-center py-4">
+                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{playerInfo.current_elo}</p>
+                <p className="text-sm text-fg-muted">
+                  FIDE standard{playerInfo.updated_at ? ` · ${playerInfo.updated_at.slice(0, 10)}` : ''}
+                </p>
+                <button
+                  onClick={syncNow}
+                  disabled={syncing}
+                  className="mt-3 text-xs font-semibold text-accent hover:underline disabled:opacity-50 disabled:no-underline"
+                >
+                  {syncing ? 'Syncing…' : 'Sync from FIDE'}
+                </button>
+                {syncError && <p className="mt-2 text-xs text-loss">{syncError}</p>}
+              </div>
+            </div>
+          </div>
+
           <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -304,7 +367,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
                 <h4 className="text-base font-semibold text-fg">Starting Rating</h4>
               </div>
               <div className="text-center py-4">
-                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{records.lowestRating}</p>
+                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{records.startingRating}</p>
                 <p className="text-sm text-fg-muted">Initial rating</p>
               </div>
             </div>
@@ -320,7 +383,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
               </div>
               <div className="text-center py-4">
                 <p className="text-5xl font-bold text-fg mb-2 tabular-nums">
-                  +{records.highestRating - records.lowestRating}
+                  +{records.highestRating - records.startingRating}
                 </p>
                 <p className="text-sm text-fg-muted">points gained</p>
               </div>

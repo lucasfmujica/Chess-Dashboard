@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
 import { sql } from './_db.js';
+import { refreshProfile } from './profile.js';
 import { rowToHomework, type HomeworkRow } from './_trainingMapper.js';
 import {
   EXTRACTION_SCHEMA,
@@ -118,6 +119,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // Ratings publish monthly, so a weekly pull keeps the profile right with no
+  // manual step. It runs first and on its own: a FIDE outage must not cost the
+  // homework import, which is what this cron actually exists for.
+  let profile: unknown;
+  try {
+    profile = await refreshProfile();
+  } catch (err) {
+    profile = { error: err instanceof Error ? err.message : 'Profile refresh failed' };
+  }
+
   const fathomKey = process.env.FATHOM_API_KEY;
   if (!fathomKey) {
     return res.status(500).json({ error: 'FATHOM_API_KEY is not set' });
@@ -212,6 +223,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   `) as HomeworkRow[];
 
   return res.status(200).json({
+    profile,
     since: createdAfter,
     lessonsScanned: lessons.length,
     inserted: report.reduce((sum, r) => sum + r.inserted, 0),

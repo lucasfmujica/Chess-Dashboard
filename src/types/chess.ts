@@ -71,9 +71,12 @@ export interface Game {
 
 /** Tracked player's profile/summary info. */
 export interface PlayerInfo {
+  /** Standard rating as FIDE publishes it; synced weekly, not typed in. */
   current_elo: number;
   elo_change_last_tournament: number;
   last_tournament: string;
+  /** When `current_elo` was last written, ISO. Absent on the seed data. */
+  updated_at?: string;
 }
 
 /** Opening repertoire by color (ECO codes). */
