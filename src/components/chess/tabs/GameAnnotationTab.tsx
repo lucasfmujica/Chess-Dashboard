@@ -11,6 +11,7 @@ import {
 import { PlayIcon } from '@heroicons/react/24/solid';
 import { useModal } from '../../modals/ModalContext';
 import { useGameViewer } from '../../../context/GameViewerContext';
+import ConceptLinkPicker from '../ConceptLinkPicker';
 import type { Game, AnnotatedGame, AnnotationErrorType } from '../../../types/chess';
 import {
   fetchAnnotations,
@@ -403,6 +404,21 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
                   value={selectedGame.lesson || ''}
                   onChange={(e) => setSelectedGame({ ...selectedGame, lesson: e.target.value })}
                   className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-fg mb-1">
+                  Conceptos que decidieron la partida
+                </label>
+                <p className="text-xs text-fg-muted mb-2">
+                  Marcarlos acá también le suma esta partida al concepto — que es lo que lo saca
+                  de "leído, no aprendido".
+                </p>
+                <ConceptLinkPicker
+                  value={selectedGame.conceptIds ?? []}
+                  onChange={ids => setSelectedGame({ ...selectedGame, conceptIds: ids })}
+                  gameId={selectedGame.gameId}
                 />
               </div>
             </div>

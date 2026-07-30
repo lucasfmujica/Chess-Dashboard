@@ -45,3 +45,4 @@ pnpm-debug.log*
 .shipstudio/
 /public/engine
 .vercel
+concept-candidates.json

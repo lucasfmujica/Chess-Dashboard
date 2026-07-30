@@ -239,7 +239,13 @@ export interface PlayerCard {
  * label this parser keys on is translated. Pinning `lan=2` (Spanish) means the
  * labels are fixed regardless of where the link came from.
  */
-export const normalizePlayerCardUrl = (url: string): string => {
+/**
+ * `URL | string` because both call sites are real: `fetchChessResults` passes
+ * the already-parsed URL, and the origin check in prep.ts passes the raw
+ * string. The `URL` constructor accepts either, so narrowing the type to
+ * `string` was a type error over working code.
+ */
+export const normalizePlayerCardUrl = (url: URL | string): string => {
   const parsed = new URL(url);
   parsed.searchParams.set('lan', '2');
   parsed.searchParams.set('art', '9');

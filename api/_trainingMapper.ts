@@ -169,6 +169,7 @@ export interface ConceptRow {
   game_ids: string[];
   confidence: number | null;
   last_reviewed: string | null;
+  review_count: number;
   created_at: string;
 }
 
@@ -191,5 +192,6 @@ export const rowToConcept = (row: ConceptRow) => ({
   gameIds: row.game_ids ?? [],
   confidence: row.confidence ?? undefined,
   lastReviewed: row.last_reviewed ? new Date(row.last_reviewed).getTime() : undefined,
+  reviewCount: row.review_count ?? 0,
   createdAt: new Date(row.created_at).getTime(),
 });

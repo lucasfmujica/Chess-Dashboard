@@ -20,6 +20,9 @@ export interface AnnotationRow {
   played_move: string | null;
   best_move: string | null;
   lesson: string | null;
+  // Which studied concepts this game turned on. `concepts.game_ids` points the
+  // other way; this is the same link recorded at the moment of the post-mortem.
+  concept_ids: string[];
 }
 
 export type AnnotationErrorType =
@@ -51,4 +54,5 @@ export const rowToAnnotation = (row: AnnotationRow) => ({
   playedMove: row.played_move ?? undefined,
   bestMove: row.best_move ?? undefined,
   lesson: row.lesson ?? undefined,
+  conceptIds: row.concept_ids ?? [],
 });

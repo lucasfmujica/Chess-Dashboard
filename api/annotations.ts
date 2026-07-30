@@ -21,6 +21,7 @@ interface AnnotationInput {
   playedMove?: string;
   bestMove?: string;
   lesson?: string;
+  conceptIds?: string[];
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -40,7 +41,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           game_id = ${a.gameId ?? null}, error_type = ${a.errorType ?? null},
           critical_moment_fen = ${a.criticalMomentFen ?? null},
           played_move = ${a.playedMove ?? null}, best_move = ${a.bestMove ?? null},
-          lesson = ${a.lesson ?? null}
+          lesson = ${a.lesson ?? null},
+          concept_ids = ${a.conceptIds ?? []}::uuid[]
         WHERE id = ${id}
         RETURNING *
       `) as AnnotationRow[];
@@ -74,13 +76,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const rows = (await sql`
       INSERT INTO annotated_games (
         game_name, opponent, played_date, opening, eco, result, rating, tags, notes, key_moments, pgn,
-        game_id, error_type, critical_moment_fen, played_move, best_move, lesson
+        game_id, error_type, critical_moment_fen, played_move, best_move, lesson, concept_ids
       ) VALUES (
         ${a.gameName ?? null}, ${a.opponent ?? null}, ${a.date ?? null}, ${a.opening ?? null},
         ${a.eco ?? null}, ${a.result ?? null}, ${a.rating ?? null}, ${a.tags ?? []},
         ${a.notes ?? null}, ${JSON.stringify(a.keyMoments ?? [])}, ${a.pgn ?? null},
         ${a.gameId ?? null}, ${a.errorType ?? null}, ${a.criticalMomentFen ?? null},
-        ${a.playedMove ?? null}, ${a.bestMove ?? null}, ${a.lesson ?? null}
+        ${a.playedMove ?? null}, ${a.bestMove ?? null}, ${a.lesson ?? null},
+        ${a.conceptIds ?? []}::uuid[]
       ) RETURNING *
     `) as AnnotationRow[];
     return res.status(201).json(rowToAnnotation(rows[0]));
