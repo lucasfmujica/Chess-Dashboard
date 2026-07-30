@@ -335,6 +335,70 @@ export interface StartListResult {
 export const fetchChessResultsStartList = (url: string) =>
   apiFetch<StartListResult>(`/prep?resource=chess-results&url=${encodeURIComponent(url)}`);
 
+/** One round of a played tournament, from the player's chess-results card. */
+export interface PlayerCardRound {
+  round: number;
+  opponent: string;
+  opponentTitle?: string;
+  /** 0 for an unrated opponent, never undefined. */
+  opponentElo: number;
+  opponentPoints?: number;
+  color: 'W' | 'B' | null;
+  result: 'W' | 'D' | 'L' | null;
+  /** An unplayed round — bye or not paired. There is no game behind it. */
+  bye: boolean;
+  byePoints?: number;
+  /** Set when the event published this game's moves. */
+  pgnId?: string;
+  /** Absolute viewer URL, resolved server-side against the card's own origin. */
+  pgnUrl?: string;
+}
+export interface PlayerCard {
+  name?: string;
+  fideId?: string;
+  startingRank?: number;
+  eloBefore?: number;
+  performanceRating?: number;
+  /**
+   * As chess-results computes it — an unrated event (team rapid) still
+   * publishes a figure. Whether it moves the curve is the tournament's
+   * `affectsElo`, which is a per-event decision, not this number.
+   */
+  eloChange?: number;
+  points?: number;
+  place?: number;
+  rounds: PlayerCardRound[];
+}
+export interface PlayerCardResult {
+  card: PlayerCard;
+  /**
+   * Whether the rounds add up to the card's own official points. False means
+   * the page parsed only partly — do not store it without a look.
+   */
+  reconciles: boolean;
+  warning?: string;
+}
+export const fetchChessResultsCard = (url: string) =>
+  apiFetch<PlayerCardResult>(`/prep?resource=chess-results-card&url=${encodeURIComponent(url)}`);
+
+export interface GamePgnResult {
+  /** Absent when the page held no moves. */
+  pgn?: string;
+  game?: {
+    white: string;
+    whiteElo?: number;
+    black: string;
+    blackElo?: number;
+    event?: string;
+    date?: string;
+    result?: string;
+  };
+  warning?: string;
+}
+/** Reads one game's moves off the viewer page a player card round links to. */
+export const fetchChessResultsPgn = (url: string) =>
+  apiFetch<GamePgnResult>(`/prep?resource=chess-results-pgn&url=${encodeURIComponent(url)}`);
+
 // Model games for the opening heroes
 export const fetchModelGames = () => apiFetch<ModelGame[]>('/prep?resource=model-games');
 export const postModelGame = (g: Partial<ModelGame>) =>

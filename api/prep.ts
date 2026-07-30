@@ -12,7 +12,16 @@ import {
   homework,
 } from './_trainingHandlers.js';
 import { tournaments, modelGames } from './_tournamentHandlers.js';
-import { parseStartList, matchOpponents, type PlayedOpponent } from './_chessResults.js';
+import {
+  parseStartList,
+  matchOpponents,
+  parsePlayerCard,
+  normalizePlayerCardUrl,
+  playerCardReconciles,
+  parseGamePgn,
+  toPgn,
+  type PlayedOpponent,
+} from './_chessResults.js';
 
 // Several small, unrelated resources (Blunder Drills / Opponent Prep /
 // Endgame Drills / Norm Tracker / Training log / Concepts) merged into one
@@ -410,41 +419,55 @@ const normThresholds = async (req: VercelRequest, res: VercelResponse) => {
  * them: the source is someone else's HTML, so a layout change turns silent
  * inserts into junk rows in a table the user curates by hand.
  */
+/**
+ * Fetch a chess-results page, refusing anything else.
+ *
+ * The URL comes from the client, so the host allowlist is what keeps this
+ * endpoint from being a general-purpose fetcher for the server. Returns either
+ * the HTML or the response to send back.
+ */
+const fetchChessResults = async (
+  rawUrl: unknown,
+  transform: (url: URL) => string = url => url.toString()
+): Promise<{ html: string } | { status: number; error: string }> => {
+  const url = typeof rawUrl === 'string' ? rawUrl : undefined;
+  if (!url) return { status: 400, error: 'url is required' };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { status: 400, error: 'url is not a valid URL' };
+  }
+  if (!/(^|\.)chess-results\.com$/i.test(parsed.hostname) || parsed.protocol !== 'https:') {
+    return { status: 400, error: 'Only https chess-results.com URLs are supported' };
+  }
+
+  try {
+    const upstream = await fetch(transform(parsed), {
+      headers: { 'User-Agent': 'chess-dashboard/1.0 (personal tournament prep)' },
+    });
+    if (!upstream.ok) {
+      return { status: 502, error: `chess-results returned ${upstream.status}` };
+    }
+    return { html: await upstream.text() };
+  } catch (err) {
+    return {
+      status: 502,
+      error: err instanceof Error ? err.message : 'Could not reach chess-results',
+    };
+  }
+};
+
 const chessResults = async (req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const url = typeof req.query.url === 'string' ? req.query.url : undefined;
-  if (!url) return res.status(400).json({ error: 'url is required' });
-
-  // Only chess-results, so this endpoint can't be used to fetch arbitrary URLs
-  // from the server.
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return res.status(400).json({ error: 'url is not a valid URL' });
-  }
-  if (!/(^|\.)chess-results\.com$/i.test(parsed.hostname) || parsed.protocol !== 'https:') {
-    return res.status(400).json({ error: 'Only https chess-results.com URLs are supported' });
-  }
-
-  let html: string;
-  try {
-    const upstream = await fetch(parsed.toString(), {
-      headers: { 'User-Agent': 'chess-dashboard/1.0 (personal tournament prep)' },
-    });
-    if (!upstream.ok) {
-      return res.status(502).json({ error: `chess-results returned ${upstream.status}` });
-    }
-    html = await upstream.text();
-  } catch (err) {
-    return res
-      .status(502)
-      .json({ error: err instanceof Error ? err.message : 'Could not reach chess-results' });
-  }
+  const fetched = await fetchChessResults(req.query.url);
+  if ('error' in fetched) return res.status(fetched.status).json({ error: fetched.error });
+  const { html } = fetched;
 
   const entries = parseStartList(html);
   if (entries.length === 0) {
@@ -468,6 +491,75 @@ const chessResults = async (req: VercelRequest, res: VercelResponse) => {
   return res.status(200).json({ entries, matches: matchOpponents(entries, played) });
 };
 
+/**
+ * Reads one player's card for a played tournament: the official performance,
+ * points, place and starting rank, plus the round-by-round record.
+ *
+ * Read-only, like the start-list endpoint. It reports `reconciles` rather than
+ * deciding for the caller: the rounds and the official points come from
+ * different parts of someone else's HTML, and a card that half-parsed still
+ * looks plausible, so the caller confirms before any of it is stored.
+ */
+const chessResultsCard = async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const fetched = await fetchChessResults(req.query.url, normalizePlayerCardUrl);
+  if ('error' in fetched) return res.status(fetched.status).json({ error: fetched.error });
+
+  const card = parsePlayerCard(fetched.html);
+  if (card.rounds.length === 0) {
+    return res.status(200).json({
+      card,
+      reconciles: false,
+      warning:
+        'No se encontró la tabla de rondas en esa página. Revisá que el enlace sea la ficha del jugador (art=9) e incluya su número de inicio (snr=).',
+    });
+  }
+
+  // The viewer link is relative on the page and chess-results shards across
+  // s1/s2/s3, so resolve it here against the card's own origin rather than
+  // making the client guess which server this tournament lives on.
+  const origin = new URL(normalizePlayerCardUrl(req.query.url as string)).origin;
+  const rounds = card.rounds.map(round =>
+    round.pgnId
+      ? { ...round, pgnUrl: `${origin}/PartieSuche.aspx?lan=2&art=36&id=${round.pgnId}` }
+      : round
+  );
+
+  return res
+    .status(200)
+    .json({ card: { ...card, rounds }, reconciles: playerCardReconciles(card) });
+};
+
+/**
+ * Reads one game's moves off the viewer page a player card links to, and
+ * returns them as a PGN.
+ *
+ * Read-only: it hands back the PGN for the caller to attach to a game it has
+ * already matched. Nothing here knows which stored game this is.
+ */
+const chessResultsPgn = async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const fetched = await fetchChessResults(req.query.url);
+  if ('error' in fetched) return res.status(fetched.status).json({ error: fetched.error });
+
+  const game = parseGamePgn(fetched.html);
+  if (!game) {
+    return res.status(200).json({
+      warning: 'Esa página no tiene movimientos: el torneo no publicó el PGN de esta partida.',
+    });
+  }
+
+  return res.status(200).json({ game, pgn: toPgn(game) });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
   const itemId = typeof id === 'string' ? id : undefined;
@@ -485,8 +577,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'tournaments') return tournaments(req, res, itemId);
   if (resource === 'model-games') return modelGames(req, res, itemId);
   if (resource === 'chess-results') return chessResults(req, res);
+  if (resource === 'chess-results-card') return chessResultsCard(req, res);
+  if (resource === 'chess-results-pgn') return chessResultsPgn(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, homework, tournaments, model-games, or chess-results)',
+      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
   });
 }

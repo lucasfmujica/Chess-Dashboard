@@ -9,6 +9,7 @@ import TournamentSummaryCards from './tournaments/TournamentSummaryCards';
 import TournamentTable from './tournaments/TournamentTable';
 import PerformanceChart from './tournaments/PerformanceChart';
 import TournamentImportPanel from './tournaments/TournamentImportPanel';
+import OfficialResultsPanel from './tournaments/OfficialResultsPanel';
 import { useGames } from '../../../context/GamesContext';
 import { SegmentedControl, type Segment } from '../../ui';
 import type { Game, TournamentStat } from '../../../types/chess';
@@ -82,6 +83,9 @@ const TournamentsTab = ({ tournamentStats, ratedGames }: TournamentsTabProps) =>
         </>
       ) : (
         <>
+          {/* Pull an event's official record (and its PGNs) from chess-results */}
+          <OfficialResultsPanel />
+
           {/* Paste a crosstable for an event that has no PGN (team events) */}
           <TournamentImportPanel />
 
