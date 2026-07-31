@@ -83,11 +83,22 @@ const AnnotationCard = ({ annotation, onEdit, onDelete }: AnnotationCardProps) =
 
       {annotation.keyMoments && annotation.keyMoments.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-fg-muted uppercase">Momentos</p>
+          <p className="text-xs font-semibold text-fg-muted uppercase">
+            {annotation.keyMoments.length} momento{annotation.keyMoments.length > 1 ? 's' : ''}
+          </p>
           {annotation.keyMoments.slice(0, 3).map((moment, idx) => (
             <div key={idx} className="p-2 bg-surface-2 rounded-lg text-sm">
+              {moment.critical && (
+                <StarIcon
+                  className="inline w-3.5 h-3.5 text-draw mr-1 -mt-0.5"
+                  fill="currentColor"
+                />
+              )}
               <span className="font-mono font-bold text-accent">{moment.move}</span>
-              {moment.symbol && <span className="ml-2 font-bold text-win">{moment.symbol}</span>}
+              {moment.symbol && <span className="ml-1 font-bold text-loss">{moment.symbol}</span>}
+              {moment.bestMove && (
+                <span className="ml-2 text-xs text-fg-subtle font-mono">→ {moment.bestMove}</span>
+              )}
               {moment.comment && <span className="ml-2 text-fg-muted">— {moment.comment}</span>}
             </div>
           ))}

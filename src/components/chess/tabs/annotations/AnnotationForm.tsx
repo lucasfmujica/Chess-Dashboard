@@ -1,11 +1,14 @@
-import { PlusIcon, StarIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useCallback, useRef, useState } from 'react';
+import { StarIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import GameViewer from '../../GameViewer';
 import ConceptLinkPicker from '../../ConceptLinkPicker';
-import CaptureMomentPanel, { type CapturedMoment } from './CaptureMomentPanel';
-import { ERROR_TYPE_OPTIONS, NOTATION_SYMBOLS, TAGS } from './annotationMeta';
+import CaptureMomentPanel from './CaptureMomentPanel';
+import KeyMomentsList from './KeyMomentsList';
+import { addMoment, removeMoment, setCriticalMoment, updateMoment } from './moments';
+import { ERROR_TYPE_OPTIONS, TAGS } from './annotationMeta';
 import { gameLabel } from '../../../../utils/gameMapping';
-import type { AnnotatedGame, AnnotationErrorType, Game } from '../../../../types/chess';
+import type { AnnotatedGame, AnnotationErrorType, Game, KeyMoment } from '../../../../types/chess';
 
 const FIELD =
   'w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent';
@@ -36,9 +39,28 @@ const AnnotationForm = ({
 }: AnnotationFormProps) => {
   const set = (patch: Partial<AnnotatedGame>) => onChange({ ...draft, ...patch });
 
-  const applyCapture = (moment: CapturedMoment) => set(moment);
-
   const keyMoments = draft.keyMoments ?? [];
+  const recordedPlies = keyMoments
+    .map(m => m.ply)
+    .filter((p): p is number => p !== undefined);
+
+  /**
+   * The board's `goTo`, handed up by the capture slot so the moment list can
+   * jump back to a position. Kept in state rather than a ref so the list
+   * re-renders once it exists and can show its "Ver en el tablero" buttons.
+   */
+  const [goToPly, setGoToPly] = useState<((ply: number) => void) | undefined>();
+  // Stored as a thunk: React would otherwise call a function passed to a setter.
+  const handleNavigate = useCallback((goTo: (ply: number) => void) => setGoToPly(() => goTo), []);
+
+  // Scroll a freshly captured moment into view — it lands below the board.
+  const momentsRef = useRef<HTMLDivElement>(null);
+  const captureMoment = (moment: KeyMoment) => {
+    set(addMoment(keyMoments, moment));
+    requestAnimationFrame(() =>
+      momentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    );
+  };
 
   return (
     <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
@@ -50,7 +72,7 @@ const AnnotationForm = ({
 
       <div className="p-6 space-y-6">
         {/* The board first: the post-mortem is written while looking at it, and
-            the three fields below it are the ones the capture button fills. */}
+            the moments below it are collected from it, one per turning point. */}
         {draft.pgn ? (
           <GameViewer
             pgn={draft.pgn}
@@ -60,7 +82,12 @@ const AnnotationForm = ({
             result={draft.result}
             showEngine
             capture={position => (
-              <CaptureMomentPanel position={position} onUse={applyCapture} />
+              <CaptureMomentPanel
+                position={position}
+                recordedPlies={recordedPlies}
+                onCapture={captureMoment}
+                onNavigate={handleNavigate}
+              />
             )}
           />
         ) : (
@@ -70,50 +97,17 @@ const AnnotationForm = ({
           </div>
         )}
 
-        <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-4">
-          <div>
-            <h4 className="text-sm font-bold text-fg">Momento crítico</h4>
-            <p className="text-xs text-fg-muted mt-0.5">
-              Se llenan solos con «Usar esta posición» desde el tablero.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={LABEL} htmlFor="ann-played">Tu jugada</label>
-              <input
-                id="ann-played"
-                type="text"
-                placeholder="Ej: Rxd5"
-                value={draft.playedMove || ''}
-                onChange={e => set({ playedMove: e.target.value })}
-                className={FIELD}
-              />
-            </div>
-            <div>
-              <label className={LABEL} htmlFor="ann-best">La mejor</label>
-              <input
-                id="ann-best"
-                type="text"
-                placeholder="Ej: Nf5"
-                value={draft.bestMove || ''}
-                onChange={e => set({ bestMove: e.target.value })}
-                className={FIELD}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={LABEL} htmlFor="ann-fen">FEN de la posición</label>
-            <input
-              id="ann-fen"
-              type="text"
-              placeholder="Se llena solo desde el tablero"
-              value={draft.criticalMomentFen || ''}
-              onChange={e => set({ criticalMomentFen: e.target.value })}
-              className={`${FIELD} font-mono text-sm`}
-            />
-          </div>
+        <div ref={momentsRef}>
+          <KeyMomentsList
+            moments={keyMoments}
+            onUpdate={(idx, patch) => set(updateMoment(keyMoments, idx, patch))}
+            onRemove={idx => set(removeMoment(keyMoments, idx))}
+            onSetCritical={idx => set(setCriticalMoment(keyMoments, idx))}
+            onAddBlank={() =>
+              set(addMoment(keyMoments, { move: '', symbol: '', comment: '' }))
+            }
+            onGoTo={goToPly}
+          />
         </div>
 
         {/*
@@ -305,71 +299,6 @@ const AnnotationForm = ({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-bold text-fg mb-4">Momentos y variantes</label>
-          <div className="space-y-3">
-            {keyMoments.map((moment, idx) => (
-              <div key={idx} className="p-4 bg-surface-2 rounded-lg border border-hairline">
-                <div className="flex flex-wrap gap-3 items-start">
-                  <input
-                    type="text"
-                    aria-label="Jugada"
-                    placeholder="Jugada (ej: 15.Nxe5)"
-                    value={moment.move || ''}
-                    onChange={e => {
-                      const updated = [...keyMoments];
-                      updated[idx] = { ...moment, move: e.target.value };
-                      set({ keyMoments: updated });
-                    }}
-                    className="w-32 px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent"
-                  />
-                  <select
-                    aria-label="Símbolo"
-                    value={moment.symbol || ''}
-                    onChange={e => {
-                      const updated = [...keyMoments];
-                      updated[idx] = { ...moment, symbol: e.target.value };
-                      set({ keyMoments: updated });
-                    }}
-                    className="w-24 px-3 py-2 bg-surface border border-hairline text-fg rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
-                  >
-                    <option value="">Símbolo</option>
-                    {NOTATION_SYMBOLS.map(s => (
-                      <option key={s.symbol} value={s.symbol}>{s.symbol} {s.label}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    aria-label="Comentario"
-                    placeholder="Comentario / variante"
-                    value={moment.comment || ''}
-                    onChange={e => {
-                      const updated = [...keyMoments];
-                      updated[idx] = { ...moment, comment: e.target.value };
-                      set({ keyMoments: updated });
-                    }}
-                    className="flex-1 min-w-[200px] px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
-                  />
-                  <button
-                    onClick={() => set({ keyMoments: keyMoments.filter((_, i) => i !== idx) })}
-                    aria-label="Borrar momento"
-                    className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            <Button
-              icon={PlusIcon}
-              onClick={() => set({ keyMoments: [...keyMoments, { move: '', symbol: '', comment: '' }] })}
-              className="w-full"
-            >
-              Agregar momento
-            </Button>
-          </div>
-        </div>
 
         <div className="flex gap-4 pt-4">
           <Button variant="primary" onClick={onSave} className="flex-1">

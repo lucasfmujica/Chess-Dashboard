@@ -179,11 +179,31 @@ export interface MonthlyStat {
   eloChange: number;
 }
 
-/** A single annotated key moment within a game. */
+/**
+ * A single annotated moment within a game. A game gets as many as it has
+ * turning points — the fields below `comment` are filled when the moment was
+ * taken off the board rather than typed, which is what lets it be replayed.
+ *
+ * Stored in `annotated_games.key_moments` (JSONB), so extra fields need no
+ * migration and older rows simply lack them.
+ */
 export interface KeyMoment {
+  /** Numbered SAN of the move played here, e.g. `12...Nxe5`. */
   move: string;
   symbol: string;
   comment: string;
+  /** Position the move was played from. Absent on hand-typed moments. */
+  fen?: string;
+  /** Ply of `fen`, so the board can jump back to this moment. */
+  ply?: number;
+  /** The engine's move from `fen` at the time it was captured. */
+  bestMove?: string;
+  /**
+   * The one moment the game turned on. Exactly one moment carries this, and
+   * it is what fills the flat `criticalMomentFen` / `playedMove` / `bestMove`
+   * columns — the countable ones.
+   */
+  critical?: boolean;
 }
 
 /** A user-saved annotated game. */
