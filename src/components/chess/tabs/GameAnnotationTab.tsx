@@ -322,8 +322,10 @@ const GameAnnotationTab = () => {
             <p className="text-fg-muted max-w-xl mx-auto">
               Jueves: jugás la 15+10. Después venís acá, la partida aparece arriba en «sin
               analizar», tocás <strong className="text-fg">Analizar</strong> y el tablero se abre
-              con la partida cargada. Buscás el momento donde se decidió, tocás{' '}
-              <strong className="text-fg">«Usar esta posición»</strong> y escribís la lección.
+              con la partida cargada. Recorrés la partida y en cada punto donde giró tocás{' '}
+              <strong className="text-fg">«Agregar momento»</strong>: se van apilando en una lista,
+              cada uno con su comentario. Al final marcás con ★ el que la decidió y escribís la
+              lección.
             </p>
             {pending.length > 0 && (
               <Button
