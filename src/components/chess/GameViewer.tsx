@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { boardSquareStyles } from './boardTheme';
 import BoardFrame from './BoardFrame';
@@ -26,6 +26,30 @@ import EngineLines from './EngineLines';
 import PersonalMoves from './PersonalMoves';
 import EvalGraph from '../charts/EvalGraph';
 
+/**
+ * What the board is showing right now, handed to the `capture` slot.
+ *
+ * The whole point is that a caller can record a position without mirroring any
+ * of this in its own state: it reads the values at the moment the user clicks.
+ */
+export interface BoardPosition {
+  /** FEN on the board — the position `playedSan` was played *from*. */
+  fen: string;
+  ply: number;
+  /** SAN actually played from `fen`; absent at the final position. */
+  playedSan?: string;
+  /** Engine's move from `fen`: the live engine when on, else the batch analysis. */
+  bestSan?: string;
+  /** The batch verdict on `playedSan`. Mainline only. */
+  playedQuality?: MoveQuality;
+  /** Centipawn loss of `playedSan`. Mainline only. */
+  cpLoss?: number;
+  /** Ply of your own worst move — the position to jump to before capturing. */
+  worstPly?: number;
+  goTo: (ply: number) => void;
+  isVariation: boolean;
+}
+
 interface GameViewerProps {
   pgn?: string;
   orientation?: 'white' | 'black';
@@ -36,6 +60,13 @@ interface GameViewerProps {
   showExplorer?: boolean;
   /** Show the live Stockfish engine panel + best-move arrow. */
   showEngine?: boolean;
+  /**
+   * Panel rendered at the top of the analysis column, fed the current position.
+   * A render slot rather than a change callback on purpose: the live engine
+   * re-emits on every depth tick, so a pushed callback would re-render the
+   * caller continuously for a value it only needs when the user clicks.
+   */
+  capture?: (position: BoardPosition) => ReactNode;
   /**
    * Grow the board on large viewports instead of staying fixed at 460px.
    * Only safe when the parent gives the board room to grow (the full
@@ -81,6 +112,7 @@ const GameViewer = ({
   showExplorer = false,
   showEngine = false,
   wide = false,
+  capture,
 }: GameViewerProps) => {
   const replay = useGameReplay(pgn);
   const {
@@ -194,6 +226,10 @@ const GameViewer = ({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // The board can sit inside a form (the Game Library post-mortem), where
+      // arrow keys belong to whatever field has focus, not to the move list.
+      const el = e.target as HTMLElement | null;
+      if (el?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName ?? '')) return;
       if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
       else if (e.key === 'Home') { e.preventDefault(); first(); }
@@ -224,6 +260,60 @@ const GameViewer = ({
       return undefined;
     }
   }, [fen, playedMove]);
+
+  /**
+   * The position handed to the `capture` slot.
+   *
+   * `analysis.moves[i]` describes the move played from `fens[i]` — including
+   * the engine's answer there — so the current board ply indexes it directly.
+   * That fallback matters: the batch cache is seeded at startup, so a game
+   * analysed before already offers a best move with the live engine off.
+   */
+  const batchMove = isVariation ? undefined : analysis?.moves[ply];
+  const liveBestSan = showEngine && engineOn ? engineState.lines[0]?.sans[0] : undefined;
+  const batchBestSan = useMemo(() => {
+    const uci = batchMove?.bestMoveUci;
+    if (!uci || uci.length < 4) return undefined;
+    try {
+      return new Chess(fen).move({
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: uci.length > 4 ? uci[4] : undefined,
+      })?.san;
+    } catch {
+      return undefined;
+    }
+  }, [fen, batchMove?.bestMoveUci]);
+
+  /**
+   * Your own worst move by centipawn loss. Even ply indices are White's, so
+   * which half of the list counts depends on the side you're viewing from.
+   */
+  const worstPly = useMemo(() => {
+    if (!analysis) return undefined;
+    let worst: number | undefined;
+    let loss = 0;
+    analysis.moves.forEach((m, i) => {
+      const isMine = (i % 2 === 0) === (orientation === 'white');
+      if (isMine && m.cpLoss > loss) {
+        loss = m.cpLoss;
+        worst = i;
+      }
+    });
+    return worst;
+  }, [analysis, orientation]);
+
+  const capturePosition: BoardPosition = {
+    fen,
+    ply,
+    playedSan: playedMove,
+    bestSan: liveBestSan ?? batchBestSan,
+    playedQuality: batchMove?.quality,
+    cpLoss: batchMove?.cpLoss,
+    worstPly,
+    goTo,
+    isVariation,
+  };
 
   // Board arrows: engine best (green) + your move (muted).
   const arrows = useMemo(() => {
@@ -413,6 +503,8 @@ const GameViewer = ({
 
       {/* Right column: analysis, engine, compare, eval graph, move list */}
       <div className={`min-w-0 space-y-3 ${wide ? '' : 'flex-1'}`}>
+        {capture?.(capturePosition)}
+
         {(white || black) && (
           <div className="text-sm">
             <span className="font-semibold text-fg">{white || 'White'}</span>

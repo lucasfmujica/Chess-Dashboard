@@ -21,7 +21,10 @@ import {
   WEEKLY_ANNOTATION_TARGET,
 } from '../../../../constants/trainingProgram';
 import { localDateKey, daysAgoKey, dateFromKey } from '../../../../utils/localDate';
-import { useSourceFilteredGames } from '../../../../context/GamesContext';
+import { useGames } from '../../../../context/GamesContext';
+import { useUI } from '../../../../context/UIContext';
+import { unanalyzedGames } from '../../../../utils/annotationMatching';
+import { gameLabel } from '../../../../utils/gameMapping';
 import { Card, Badge, Button } from '../../../ui';
 import ReflectionHistory from './ReflectionHistory';
 import type { TrainingBlock, TrainingSession } from '../../../../types/training';
@@ -69,7 +72,10 @@ interface WeekProgramProps {
 }
 
 const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
-  const games = useSourceFilteredGames();
+  // The unfiltered list on purpose: the header filter defaults to OTB, and a
+  // Thursday game played online is exactly the one this card is chasing.
+  const { games } = useGames();
+  const { setActiveTab, setPendingAnnotationGameId } = useUI();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [annotations, setAnnotations] = useState<AnnotatedGame[]>([]);
   const [loading, setLoading] = useState(true);
@@ -166,20 +172,10 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
    * a warning rather than left for memory to track. Only meaningful for the
    * current week — a past week's backlog was either cleared or never will be.
    */
-  const unanalyzed = useMemo(() => {
-    if (!isCurrentWeek) return [];
-    const cutoff = daysAgoKey(7);
-    const annotatedGameIds = new Set(annotations.map(a => a.gameId).filter(Boolean));
-    // Fall back to opponent+date for rows created before game_id existed.
-    const annotatedKeys = new Set(annotations.map(a => `${a.opponent ?? ''}|${a.date ?? ''}`));
-    return games.filter(
-      g =>
-        g.date &&
-        g.date >= cutoff &&
-        !annotatedGameIds.has(g.id) &&
-        !annotatedKeys.has(`${g.opp}|${g.date}`)
-    );
-  }, [games, annotations, isCurrentWeek]);
+  const unanalyzed = useMemo(
+    () => (isCurrentWeek ? unanalyzedGames(games, annotations, daysAgoKey(7)) : []),
+    [games, annotations, isCurrentWeek]
+  );
 
   const doneMinutes = weekSessions.reduce((sum, s) => sum + s.minutes, 0);
   const plannedTotal = trainingDays.reduce((sum, d) => sum + plannedMinutes(d), 0);
@@ -287,10 +283,19 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
               <p className="text-sm text-fg-muted mt-1">
                 Una partida no cuenta como jugada hasta que tiene su fila en Game Library.
               </p>
-              <ul className="mt-2 space-y-1 text-sm text-fg-muted">
+              <ul className="mt-2 space-y-1">
                 {unanalyzed.slice(0, 5).map(g => (
-                  <li key={g.id}>
-                    vs {g.opp} · {g.date}
+                  <li key={g.id ?? `${g.opp}-${g.date}`}>
+                    <button
+                      onClick={() => {
+                        if (g.id) setPendingAnnotationGameId(g.id);
+                        setActiveTab('annotations');
+                      }}
+                      className="w-full text-left px-2 py-1 -mx-2 rounded-md text-sm text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors flex items-center justify-between gap-2"
+                    >
+                      <span>{gameLabel(g)}</span>
+                      <span className="text-xs text-accent shrink-0">Analizar →</span>
+                    </button>
                   </li>
                 ))}
               </ul>

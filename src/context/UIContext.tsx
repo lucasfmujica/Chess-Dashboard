@@ -35,6 +35,14 @@ interface UIContextValue {
   setCurrentWeek: Dispatch<SetStateAction<string>>;
   editingDay: string | null;
   setEditingDay: Dispatch<SetStateAction<string | null>>;
+
+  /**
+   * A `games` row id the Game Library should open a prefilled post-mortem for.
+   * There is no router, so this is how one tab hands a game to another; it is a
+   * one-shot signal, consumed and cleared by the Game Library tab.
+   */
+  pendingAnnotationGameId: string | null;
+  setPendingAnnotationGameId: Dispatch<SetStateAction<string | null>>;
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
@@ -67,6 +75,7 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   // Training State
   const [currentWeek, setCurrentWeek] = useState<string>(getCurrentWeekStart);
   const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [pendingAnnotationGameId, setPendingAnnotationGameId] = useState<string | null>(null);
 
   const value: UIContextValue = {
     activeTab,
@@ -93,6 +102,8 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     setCurrentWeek,
     editingDay,
     setEditingDay,
+    pendingAnnotationGameId,
+    setPendingAnnotationGameId,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

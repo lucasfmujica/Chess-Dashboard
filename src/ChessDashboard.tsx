@@ -445,9 +445,10 @@ const ChessDashboard = () => {
             />
           )}
 
-          {activeTab === 'annotations' && (
-            <GameAnnotationTab games={filteredGames} />
-          )}
+          {/* Deliberately not `filteredGames`: the header filter defaults to
+              OTB, and a post-mortem is owed for every game played, online
+              included — the tab reads the unfiltered list itself. */}
+          {activeTab === 'annotations' && <GameAnnotationTab />}
 
           {activeTab === 'streaks' && (
             <StreaksTab

@@ -1,4 +1,5 @@
 import { ecoNames } from '../constants/ecoNames';
+import { pgnResultTag } from './gameMapping';
 import type { Game } from '../types/chess';
 
 /** Triggers a browser download for arbitrary text content. */
@@ -12,15 +13,11 @@ export const downloadFile = (content: string, filename: string, mimeType: string
   URL.revokeObjectURL(url);
 };
 
-const RESULT_TAG: Record<Game['result'], string> = { W: '1-0', D: '1/2-1/2', L: '0-1' };
-
 /** Reconstructs a PGN header block (+ stored movetext, if any) for one game. */
 const gameToPgnBlock = (game: Game): string => {
   const white = game.color === 'W' ? 'You' : game.opp;
   const black = game.color === 'W' ? game.opp : 'You';
-  // A White win is recorded from the White player's perspective either way;
-  // flip the tag when `game.result` was recorded from the Black side.
-  const result = game.color === 'W' ? RESULT_TAG[game.result] : RESULT_TAG[game.result === 'W' ? 'L' : game.result === 'L' ? 'W' : 'D'];
+  const result = pgnResultTag(game);
 
   const headers = [
     `[Event "${(game.tournament || '?').replace(/"/g, "'")}"]`,

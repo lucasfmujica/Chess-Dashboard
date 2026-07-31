@@ -1,30 +1,14 @@
 import { useMemo, useState } from 'react';
 import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useGames, useSourceFilteredGames } from '../../../context/GamesContext';
-import type { Game } from '../../../types/chess';
+import { gameToViewerData } from '../../../utils/gameMapping';
+import type { GameViewerData } from '../../../context/GameViewerContext';
 import GameViewer from '../GameViewer';
 import GamesAnalysisList from '../GamesAnalysisList';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
 
-interface LoadedGame {
-  pgn: string;
-  white?: string;
-  black?: string;
-  result?: string;
-  orientation?: 'white' | 'black';
-}
-
 const headerValue = (text: string, key: string): string | undefined =>
   text.match(new RegExp(`\\[${key}\\s+"([^"]+)"\\]`))?.[1];
-
-/** Build the board's loaded-game state from a stored game + its movetext. */
-const toLoadedGame = (g: Game, pgn: string): LoadedGame => ({
-  pgn,
-  white: g.color === 'W' ? 'You' : g.opp,
-  black: g.color === 'B' ? 'You' : g.opp,
-  result: g.result === 'W' ? '1-0 / 0-1' : g.result === 'D' ? '½-½' : '',
-  orientation: g.color === 'B' ? 'black' : 'white',
-});
 
 /**
  * Full-page analysis board: load any game (pasted PGN or an imported game with
@@ -34,7 +18,7 @@ const AnalysisBoardTab = () => {
   const { updateGamePgn } = useGames();
   // Same filtered list GamesAnalysisList walks, so the indices below line up.
   const games = useSourceFilteredGames();
-  const [loaded, setLoaded] = useState<LoadedGame | null>(null);
+  const [loaded, setLoaded] = useState<GameViewerData | null>(null);
   // Index (into `games`) of the loaded stored game, so we can step ‹ prev/next ›.
   // null when nothing is loaded or a pasted PGN (not part of the library) is shown.
   const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
@@ -66,7 +50,7 @@ const AnalysisBoardTab = () => {
       setLoadedIndex(null);
       return;
     }
-    setLoaded(toLoadedGame(g, g.pgn));
+    setLoaded(gameToViewerData(g, g.pgn));
     setLoadedIndex(idx);
   };
 
@@ -90,7 +74,7 @@ const AnalysisBoardTab = () => {
     // Immediately load the just-saved game onto the board so the user sees it
     // replay (otherwise the board stays empty until they reselect the game).
     if (moves) {
-      setLoaded(toLoadedGame(updated, moves));
+      setLoaded(gameToViewerData(updated, moves));
     } else {
       setLoaded(null);
     }

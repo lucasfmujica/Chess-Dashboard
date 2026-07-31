@@ -1,18 +1,28 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DocumentTextIcon,
-  PencilIcon,
-  TagIcon,
-  StarIcon,
-  TrashIcon,
+  ExclamationTriangleIcon,
+  FunnelIcon,
   PlusIcon,
-  FunnelIcon
+  StarIcon,
 } from '@heroicons/react/24/outline';
-import { PlayIcon } from '@heroicons/react/24/solid';
 import { useModal } from '../../modals/ModalContext';
-import { useGameViewer } from '../../../context/GameViewerContext';
-import ConceptLinkPicker from '../ConceptLinkPicker';
-import type { Game, AnnotatedGame, AnnotationErrorType } from '../../../types/chess';
+import { useGames } from '../../../context/GamesContext';
+import { useUI } from '../../../context/UIContext';
+import { Button } from '../../ui';
+import AnnotationCard from './annotations/AnnotationCard';
+import AnnotationForm from './annotations/AnnotationForm';
+import UnanalyzedQueue from './annotations/UnanalyzedQueue';
+import { TAGS } from './annotations/annotationMeta';
+import { unanalyzedGames } from '../../../utils/annotationMatching';
+import {
+  gameLabel,
+  gameToAnnotationDraft,
+  mergeAnnotationDraft,
+  type AnnotationDraft,
+} from '../../../utils/gameMapping';
+import { daysAgoKey } from '../../../utils/localDate';
+import type { AnnotatedGame, Game } from '../../../types/chess';
 import {
   fetchAnnotations,
   postAnnotation,
@@ -20,44 +30,39 @@ import {
   deleteAnnotation as deleteAnnotationApi,
 } from '../../../api/client';
 
-/** A selectable annotation tag definition. */
-interface AnnotationTag {
-  id: string;
-  label: string;
-  color: string;
-  icon: string;
-}
-
 /**
- * The closed set of post-mortem error types. Deliberately short: a list long
- * enough to describe every game precisely is a list whose counts mean nothing.
+ * How far back the library chases missing post-mortems. Wider than the week
+ * view's 7 days on purpose: that one grades the current week, this one is the
+ * backlog you can still clear.
  */
-const ERROR_TYPE_OPTIONS: { value: AnnotationErrorType; label: string }[] = [
-  { value: 'candidate-miss', label: 'Pérdida de candidato — no se me ocurrió' },
-  { value: 'calculation', label: 'Cálculo — la vi y la calculé mal' },
-  { value: 'evaluation', label: 'Evaluación — juzgué mal la posición' },
-  { value: 'clock', label: 'Reloj — apuro de tiempo' },
-  { value: 'opening', label: 'Apertura — salí mal del libro' },
-  { value: 'technique', label: 'Técnica — no convertí' },
-  { value: 'none', label: 'Sin error claro' },
-];
+const BACKLOG_DAYS = 14;
 
-/** A notation symbol definition. */
-interface NotationSymbol {
-  symbol: string;
-  label: string;
-  color: string;
-}
-
-interface GameAnnotationTabProps {
-  games: Game[];
-}
-
-const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
+const GameAnnotationTab = () => {
   const modal = useModal();
-  const { openGameViewer } = useGameViewer();
+  // The unfiltered list: the header filter defaults to OTB, but the rule that a
+  // game isn't finished until it has a row here covers online games too.
+  const { games } = useGames();
+  const { pendingAnnotationGameId, setPendingAnnotationGameId } = useUI();
 
   const [annotatedGames, setAnnotatedGames] = useState<AnnotatedGame[]>([]);
+  const [selectedGame, setSelectedGame] = useState<Partial<AnnotatedGame> | null>(null);
+  const [editingAnnotation, setEditingAnnotation] = useState<AnnotatedGame | null>(null);
+  const [filterTag, setFilterTag] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  /**
+   * What the last auto-fill wrote, so changing the linked game can replace its
+   * own previous values without ever touching what was typed by hand. Null
+   * while editing a saved annotation — nothing there was auto-filled.
+   */
+  const autoFilled = useRef<AnnotationDraft | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchAnnotations()
+      .then(setAnnotatedGames)
+      .catch(err => console.error('Failed to load annotations', err));
+  }, []);
 
   /**
    * Candidates for the "linked game" picker, newest first. Capped because a
@@ -67,47 +72,77 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
   const linkableGames = useMemo(
     () =>
       [...games]
-        .filter(g => g.date)
+        .filter(g => g.date && g.id)
         .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
         .slice(0, 60),
     [games]
   );
 
-  useEffect(() => {
-    fetchAnnotations()
-      .then(setAnnotatedGames)
-      .catch(err => console.error('Failed to load annotations', err));
+  const pending = useMemo(
+    () => unanalyzedGames(games, annotatedGames, daysAgoKey(BACKLOG_DAYS)),
+    [games, annotatedGames]
+  );
+
+  const linkedGame = useMemo(
+    () => (selectedGame?.gameId ? games.find(g => g.id === selectedGame.gameId) : undefined),
+    [games, selectedGame?.gameId]
+  );
+
+  /** Open a fresh post-mortem for a game, with everything the row already knows. */
+  const startAnnotation = useCallback((game: Game) => {
+    const draft = gameToAnnotationDraft(game);
+    autoFilled.current = draft;
+    setEditingAnnotation(null);
+    setSelectedGame(draft);
+    requestAnimationFrame(() =>
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    );
   }, []);
 
-  const [selectedGame, setSelectedGame] = useState<Partial<AnnotatedGame> | null>(null);
-  const [editingAnnotation, setEditingAnnotation] = useState<AnnotatedGame | null>(null);
-  const [filterTag, setFilterTag] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  // Handoff from the week view's "sin analizar" card. Cleared unconditionally
+  // and first, so an id for a game that never loads can't wedge the tab.
+  useEffect(() => {
+    if (!pendingAnnotationGameId) return;
+    const game = games.find(g => g.id === pendingAnnotationGameId);
+    setPendingAnnotationGameId(null);
+    if (game) startAnnotation(game);
+  }, [pendingAnnotationGameId, games, setPendingAnnotationGameId, startAnnotation]);
 
-  // Available tags
-  const tags = useMemo<AnnotationTag[]>(() => [
-    { id: 'brilliant-attack', label: 'Brilliant Attack', color: 'emerald', icon: '⚔️' },
-    { id: 'endgame-technique', label: 'Endgame Technique', color: 'blue', icon: '♔' },
-    { id: 'tactical-shot', label: 'Tactical Shot', color: 'purple', icon: '⚡' },
-    { id: 'positional-masterclass', label: 'Positional Masterclass', color: 'indigo', icon: '🎯' },
-    { id: 'opening-trap', label: 'Opening Trap', color: 'amber', icon: '🎪' },
-    { id: 'blunder', label: 'Blunder to Study', color: 'rose', icon: '❌' },
-    { id: 'sacrifice', label: 'Brilliant Sacrifice', color: 'fuchsia', icon: '💎' },
-    { id: 'defensive-resource', label: 'Defensive Resource', color: 'cyan', icon: '🛡️' }
-  ], []);
+  const openBlankAnnotation = () => {
+    autoFilled.current = null;
+    setEditingAnnotation(null);
+    setSelectedGame({});
+  };
 
-  // Symbols for notation
-  const symbols: NotationSymbol[] = [
-    { symbol: '!', label: 'Good move', color: 'text-emerald-600 dark:text-emerald-400' },
-    { symbol: '!!', label: 'Brilliant move', color: 'text-emerald-700 dark:text-emerald-400' },
-    { symbol: '?', label: 'Mistake', color: 'text-amber-600 dark:text-amber-400' },
-    { symbol: '??', label: 'Blunder', color: 'text-rose-600 dark:text-rose-400' },
-    { symbol: '!?', label: 'Interesting move', color: 'text-indigo-600 dark:text-blue-400' },
-    { symbol: '?!', label: 'Dubious move', color: 'text-amber-700 dark:text-amber-400' },
-    { symbol: '±', label: 'White is better', color: 'text-fg-muted' },
-    { symbol: '∓', label: 'Black is better', color: 'text-fg' },
-    { symbol: '=', label: 'Equal position', color: 'text-fg-subtle' }
-  ];
+  const editAnnotation = (annotation: AnnotatedGame) => {
+    autoFilled.current = null;
+    setSelectedGame(annotation);
+    setEditingAnnotation(annotation);
+    requestAnimationFrame(() =>
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    );
+  };
+
+  const closeForm = () => {
+    autoFilled.current = null;
+    setSelectedGame(null);
+    setEditingAnnotation(null);
+  };
+
+  const linkGame = (gameId: string) => {
+    const game = gameId ? games.find(g => g.id === gameId) : undefined;
+    setSelectedGame(prev => {
+      const base = { ...(prev ?? {}), gameId: gameId || undefined };
+      if (!game) {
+        autoFilled.current = null;
+        return base;
+      }
+      const draft = gameToAnnotationDraft(game);
+      const merged = mergeAnnotationDraft(base, draft, autoFilled.current);
+      autoFilled.current = draft;
+      return merged;
+    });
+  };
 
   const saveAnnotation = async (annotation: Partial<AnnotatedGame>) => {
     if (editingAnnotation) {
@@ -117,12 +152,11 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
       const saved = await postAnnotation(annotation);
       setAnnotatedGames(prev => [...prev, saved]);
     }
-    setEditingAnnotation(null);
-    setSelectedGame(null);
+    closeForm();
   };
 
   const deleteAnnotation = async (id: string) => {
-    const confirmed = await modal.confirm('Delete this annotation?');
+    const confirmed = await modal.confirm('¿Borrar este análisis?');
     if (confirmed) {
       await deleteAnnotationApi(id);
       setAnnotatedGames(prev => prev.filter(a => a.id !== id));
@@ -137,33 +171,35 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
     }
 
     if (searchQuery) {
-      filtered = filtered.filter(a =>
-        a.gameName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.keyMoments?.some(m => m.comment?.toLowerCase().includes(searchQuery.toLowerCase()))
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        a =>
+          a.gameName?.toLowerCase().includes(q) ||
+          a.notes?.toLowerCase().includes(q) ||
+          a.lesson?.toLowerCase().includes(q) ||
+          a.keyMoments?.some(m => m.comment?.toLowerCase().includes(q))
       );
     }
 
-    return filtered.sort((a, b) => b.createdAt - a.createdAt);
+    return [...filtered].sort((a, b) => b.createdAt - a.createdAt);
   }, [annotatedGames, filterTag, searchQuery]);
 
-  // Stats
-  const stats = useMemo(() => {
-    const total = annotatedGames.length;
-    const byTag = tags.map(tag => ({
-      ...tag,
-      count: annotatedGames.filter(a => a.tags?.includes(tag.id)).length
-    }));
-    const avgRating = annotatedGames.length > 0
-      ? Math.round(annotatedGames.reduce((sum, a) => sum + (a.rating || 0), 0) / annotatedGames.length * 10) / 10
-      : 0;
+  const tagCounts = useMemo(
+    () =>
+      new Map(TAGS.map(tag => [tag.id, annotatedGames.filter(a => a.tags?.includes(tag.id)).length])),
+    [annotatedGames]
+  );
 
-    return { total, byTag, avgRating };
-  }, [annotatedGames, tags]);
+  const avgRating =
+    annotatedGames.length > 0
+      ? Math.round(
+          (annotatedGames.reduce((sum, a) => sum + (a.rating || 0), 0) / annotatedGames.length) * 10
+        ) / 10
+      : 0;
 
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
         <div className="relative px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -172,64 +208,77 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
                 <DocumentTextIcon className="w-8 h-8 text-accent" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-fg">Game Annotation Library</h2>
-                <p className="text-fg-muted">Build your personal database of analyzed games</p>
+                <h2 className="text-lg font-semibold text-fg">Game Library</h2>
+                <p className="text-fg-muted">Tus partidas analizadas, con el tablero al lado</p>
               </div>
             </div>
 
-            <button
-              onClick={() => {
-                setSelectedGame({});
-                setEditingAnnotation(null);
-              }}
-              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-semibold flex items-center justify-center gap-2 shrink-0"
-            >
-              <PlusIcon className="w-5 h-5" />
-              New Annotation
-            </button>
+            <Button variant="primary" icon={PlusIcon} onClick={openBlankAnnotation} className="shrink-0">
+              Análisis en blanco
+            </Button>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
                 <DocumentTextIcon className="w-5 h-5 text-accent" />
-                <p className="text-sm font-medium text-fg-muted">Total Annotations</p>
+                <p className="text-sm font-medium text-fg-muted">Partidas analizadas</p>
               </div>
-              <p className="text-2xl font-bold text-fg tabular-nums">{stats.total}</p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{annotatedGames.length}</p>
+            </div>
+
+            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
+              <div className="flex items-center gap-2 mb-2">
+                <ExclamationTriangleIcon
+                  className={`w-5 h-5 ${pending.length > 0 ? 'text-loss' : 'text-win'}`}
+                />
+                <p className="text-sm font-medium text-fg-muted">Sin analizar</p>
+              </div>
+              <p
+                className={`text-2xl font-bold tabular-nums ${pending.length > 0 ? 'text-loss' : 'text-win'}`}
+              >
+                {pending.length}
+              </p>
             </div>
 
             <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
               <div className="flex items-center gap-2 mb-2">
                 <StarIcon className="w-5 h-5 text-accent" />
-                <p className="text-sm font-medium text-fg-muted">Avg Rating</p>
+                <p className="text-sm font-medium text-fg-muted">Valoración media</p>
               </div>
-              <p className="text-2xl font-bold text-fg tabular-nums">{stats.avgRating} ★</p>
-            </div>
-
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center gap-2 mb-2">
-                <TagIcon className="w-5 h-5 text-accent" />
-                <p className="text-sm font-medium text-fg-muted">Most Used Tag</p>
-              </div>
-              <p className="text-lg font-bold text-fg">
-                {stats.byTag.sort((a, b) => b.count - a.count)[0]?.icon || '—'}{' '}
-                {stats.byTag.sort((a, b) => b.count - a.count)[0]?.label.split(' ')[0] || 'None'}
-              </p>
+              <p className="text-2xl font-bold text-fg tabular-nums">{avgRating} ★</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters & Search */}
+      <UnanalyzedQueue games={pending} onAnalyze={startAnnotation} />
+
+      <div ref={formRef}>
+        {selectedGame !== null && (
+          <AnnotationForm
+            draft={selectedGame}
+            onChange={setSelectedGame}
+            linkableGames={linkableGames}
+            linkedGame={linkedGame}
+            isEditing={!!editingAnnotation}
+            onLinkGame={linkGame}
+            onSave={() => saveAnnotation(selectedGame)}
+            onCancel={closeForm}
+          />
+        )}
+      </div>
+
+      {/* Filters */}
       <div className="bg-surface rounded-lg border border-hairline p-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[300px]">
             <input
               type="text"
-              placeholder="Search annotations..."
+              aria-label="Buscar análisis"
+              placeholder="Buscar en los análisis..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full px-4 py-2.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
@@ -237,14 +286,15 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
           <div className="flex items-center gap-2">
             <FunnelIcon className="w-5 h-5 text-fg-muted" />
             <select
+              aria-label="Filtrar por etiqueta"
               value={filterTag}
-              onChange={(e) => setFilterTag(e.target.value)}
+              onChange={e => setFilterTag(e.target.value)}
               className="px-4 py-2.5 bg-surface border border-hairline rounded-lg font-semibold text-fg focus:border-accent focus:ring-1 focus:ring-accent"
             >
-              <option value="all">All Tags</option>
-              {tags.map(tag => (
+              <option value="all">Todas las etiquetas</option>
+              {TAGS.map(tag => (
                 <option key={tag.id} value={tag.id}>
-                  {tag.icon} {tag.label} ({stats.byTag.find(t => t.id === tag.id)?.count || 0})
+                  {tag.icon} {tag.label} ({tagCounts.get(tag.id) ?? 0})
                 </option>
               ))}
             </select>
@@ -252,460 +302,38 @@ const GameAnnotationTab = ({ games }: GameAnnotationTabProps) => {
         </div>
       </div>
 
-      {/* Annotation Form */}
-      {selectedGame !== null && (
-        <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
-            <h3 className="text-base font-semibold text-fg">
-              {editingAnnotation ? 'Edit Annotation' : 'New Game Annotation'}
-            </h3>
-          </div>
-
-          <div className="p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-fg mb-2">Game Name / Event</label>
-              <input
-                type="text"
-                placeholder="e.g., vs. GM Carlsen - Tata Steel 2024"
-                value={selectedGame.gameName || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, gameName: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-fg mb-2">Date</label>
-                <input
-                  type="date"
-                  value={selectedGame.date || ''}
-                  onChange={(e) => setSelectedGame({ ...selectedGame, date: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-fg mb-2">Result</label>
-                <select
-                  value={selectedGame.result || ''}
-                  onChange={(e) => setSelectedGame({ ...selectedGame, result: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                >
-                  <option value="">Select result</option>
-                  <option value="1-0">1-0 (Win)</option>
-                  <option value="0-1">0-1 (Loss)</option>
-                  <option value="1/2-1/2">1/2-1/2 (Draw)</option>
-                </select>
-              </div>
-            </div>
-
-            {/*
-              Structured post-mortem. The tags/notes/keyMoments fields above
-              are free text and can't be aggregated, so "why do I lose" could
-              only ever be answered from memory. These few constrained fields
-              are what the Training Log charts.
-            */}
-            <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-4">
-              <div>
-                <h4 className="text-sm font-bold text-fg">Post-mortem</h4>
-                <p className="text-xs text-fg-muted mt-0.5">
-                  Un tipo de error y una lección por partida. Esto es lo que después se puede
-                  contar; las notas libres no.
-                </p>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-bold text-fg mb-2">Tipo de error</label>
-                  <select
-                    value={selectedGame.errorType || ''}
-                    onChange={(e) =>
-                      setSelectedGame({
-                        ...selectedGame,
-                        errorType: (e.target.value || undefined) as AnnotationErrorType | undefined,
-                      })
-                    }
-                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                  >
-                    <option value="">Sin clasificar</option>
-                    {ERROR_TYPE_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-fg mb-2">Partida vinculada</label>
-                  <select
-                    value={selectedGame.gameId || ''}
-                    onChange={(e) =>
-                      setSelectedGame({ ...selectedGame, gameId: e.target.value || undefined })
-                    }
-                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                  >
-                    <option value="">Ninguna</option>
-                    {linkableGames.map(g => (
-                      <option key={g.id} value={g.id}>
-                        vs {g.opp}
-                        {g.date ? ` · ${g.date}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-bold text-fg mb-2">Tu jugada</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Rxd5"
-                    value={selectedGame.playedMove || ''}
-                    onChange={(e) =>
-                      setSelectedGame({ ...selectedGame, playedMove: e.target.value })
-                    }
-                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-fg mb-2">La mejor</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Nf5"
-                    value={selectedGame.bestMove || ''}
-                    onChange={(e) => setSelectedGame({ ...selectedGame, bestMove: e.target.value })}
-                    className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-fg mb-2">
-                  FEN del momento crítico
-                </label>
-                <input
-                  type="text"
-                  placeholder="Pegá el FEN de la posición donde se decidió"
-                  value={selectedGame.criticalMomentFen || ''}
-                  onChange={(e) =>
-                    setSelectedGame({ ...selectedGame, criticalMomentFen: e.target.value })
-                  }
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg font-mono text-sm focus:border-accent focus:ring-1 focus:ring-accent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-fg mb-2">Lección, en una línea</label>
-                <input
-                  type="text"
-                  placeholder="Ej: antes de cambiar en el centro, mirá qué torre queda mal"
-                  value={selectedGame.lesson || ''}
-                  onChange={(e) => setSelectedGame({ ...selectedGame, lesson: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-fg mb-1">
-                  Conceptos que decidieron la partida
-                </label>
-                <p className="text-xs text-fg-muted mb-2">
-                  Marcarlos acá también le suma esta partida al concepto — que es lo que lo saca
-                  de "leído, no aprendido".
-                </p>
-                <ConceptLinkPicker
-                  value={selectedGame.conceptIds ?? []}
-                  onChange={ids => setSelectedGame({ ...selectedGame, conceptIds: ids })}
-                  gameId={selectedGame.gameId}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-fg mb-2">Personal Rating (1-5 stars)</label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map(rating => (
-                  <button
-                    key={rating}
-                    onClick={() => setSelectedGame({ ...selectedGame, rating })}
-                    className={`p-3 rounded-lg transition-all ${
-                      (selectedGame.rating || 0) >= rating
-                        ? 'bg-draw/12 text-draw'
-                        : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
-                    }`}
-                  >
-                    <StarIcon className="w-6 h-6" fill={(selectedGame.rating || 0) >= rating ? 'currentColor' : 'none'} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-fg mb-2">Tags</label>
-              <div className="flex flex-wrap gap-2">
-                {tags.map(tag => {
-                  const isSelected = selectedGame.tags?.includes(tag.id);
-                  return (
-                    <button
-                      key={tag.id}
-                      onClick={() => {
-                        const currentTags = selectedGame.tags || [];
-                        const newTags = isSelected
-                          ? currentTags.filter(t => t !== tag.id)
-                          : [...currentTags, tag.id];
-                        setSelectedGame({ ...selectedGame, tags: newTags });
-                      }}
-                      className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-all ${
-                        isSelected
-                          ? `bg-${tag.color}-100 border-${tag.color}-300 text-${tag.color}-700`
-                          : 'bg-surface border-hairline text-fg-muted hover:bg-surface-2'
-                      }`}
-                    >
-                      {tag.icon} {tag.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-fg mb-2">Overall Notes</label>
-              <textarea
-                placeholder="What made this game special? What did you learn? What patterns did you notice?"
-                value={selectedGame.notes || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, notes: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-32"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-fg mb-2">PGN moves (optional)</label>
-              <textarea
-                placeholder={'Paste the game moves to make it replayable & analysable\n1. e4 e5 2. Nf3 ...'}
-                value={selectedGame.pgn || ''}
-                onChange={(e) => setSelectedGame({ ...selectedGame, pgn: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-24 font-mono text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-fg mb-4">Key Moments & Variations</label>
-              <div className="space-y-3">
-                {(selectedGame.keyMoments || []).map((moment, idx) => (
-                  <div key={idx} className="p-4 bg-surface-2 rounded-lg border border-hairline">
-                    <div className="flex gap-3 items-start">
-                      <input
-                        type="text"
-                        placeholder="Move (e.g., 15.Nxe5)"
-                        value={moment.move || ''}
-                        onChange={(e) => {
-                          const updated = [...(selectedGame.keyMoments || [])];
-                          updated[idx] = { ...moment, move: e.target.value };
-                          setSelectedGame({ ...selectedGame, keyMoments: updated });
-                        }}
-                        className="w-32 px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent"
-                      />
-                      <select
-                        value={moment.symbol || ''}
-                        onChange={(e) => {
-                          const updated = [...(selectedGame.keyMoments || [])];
-                          updated[idx] = { ...moment, symbol: e.target.value };
-                          setSelectedGame({ ...selectedGame, keyMoments: updated });
-                        }}
-                        className="w-24 px-3 py-2 bg-surface border border-hairline text-fg rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
-                      >
-                        <option value="">Symbol</option>
-                        {symbols.map(s => (
-                          <option key={s.symbol} value={s.symbol}>{s.symbol} {s.label}</option>
-                        ))}
-                      </select>
-                      <input
-                        type="text"
-                        placeholder="Comment / Variation"
-                        value={moment.comment || ''}
-                        onChange={(e) => {
-                          const updated = [...(selectedGame.keyMoments || [])];
-                          updated[idx] = { ...moment, comment: e.target.value };
-                          setSelectedGame({ ...selectedGame, keyMoments: updated });
-                        }}
-                        className="flex-1 px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
-                      />
-                      <button
-                        onClick={() => {
-                          const updated = (selectedGame.keyMoments || []).filter((_, i) => i !== idx);
-                          setSelectedGame({ ...selectedGame, keyMoments: updated });
-                        }}
-                        className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  onClick={() => {
-                    const updated = [...(selectedGame.keyMoments || []), { move: '', symbol: '', comment: '' }];
-                    setSelectedGame({ ...selectedGame, keyMoments: updated });
-                  }}
-                  className="w-full px-4 py-3 text-sm font-semibold text-fg bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors flex items-center justify-center gap-2"
-                >
-                  <PlusIcon className="w-5 h-5" />
-                  Add Key Moment
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <button
-                onClick={() => saveAnnotation(selectedGame)}
-                className="flex-1 px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
-              >
-                {editingAnnotation ? 'Update Annotation' : 'Save Annotation'}
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedGame(null);
-                  setEditingAnnotation(null);
-                }}
-                className="px-6 py-3 text-fg bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors font-semibold"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Annotations List */}
+      {/* Saved annotations */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {filteredAnnotations.length > 0 ? (
           filteredAnnotations.map(annotation => (
-            <div key={annotation.id} className="bg-surface rounded-lg border border-hairline overflow-hidden hover:bg-surface-2 transition-colors">
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h4 className="text-xl font-bold text-fg mb-1">{annotation.gameName}</h4>
-                    <div className="flex items-center gap-3 text-sm text-fg-muted">
-                      <span>{annotation.date}</span>
-                      <span className="font-bold">{annotation.result}</span>
-                      {annotation.rating && (
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: annotation.rating }).map((_, i) => (
-                            <StarIcon key={i} className="w-4 h-4 text-yellow-500" fill="currentColor" />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {annotation.pgn && (
-                      <button
-                        onClick={() => openGameViewer({
-                          pgn: annotation.pgn,
-                          white: annotation.gameName || 'White',
-                          black: annotation.opponent || 'Black',
-                          result: annotation.result,
-                          title: annotation.gameName || 'Game Replay',
-                        })}
-                        aria-label="Replay and analyse"
-                        title="Replay & analyse"
-                        className="p-2 text-fg-muted hover:bg-surface-2 hover:text-fg rounded-lg transition-colors"
-                      >
-                        <PlayIcon className="w-5 h-5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setSelectedGame(annotation);
-                        setEditingAnnotation(annotation);
-                      }}
-                      className="p-2 text-accent hover:bg-surface-2 rounded-lg transition-colors"
-                    >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => deleteAnnotation(annotation.id)}
-                      className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {(annotation.errorType || annotation.lesson) && (
-                  <div className="mb-4 rounded-lg border border-hairline bg-surface-2 p-3">
-                    {annotation.errorType && (
-                      <span className="text-xs font-bold text-accent">
-                        {ERROR_TYPE_OPTIONS.find(o => o.value === annotation.errorType)?.label ??
-                          annotation.errorType}
-                      </span>
-                    )}
-                    {annotation.lesson && (
-                      <p className="text-sm text-fg mt-1">{annotation.lesson}</p>
-                    )}
-                    {(annotation.playedMove || annotation.bestMove) && (
-                      <p className="text-xs text-fg-muted mt-1 font-mono">
-                        {annotation.playedMove ?? '?'} → {annotation.bestMove ?? '?'}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {annotation.tags && annotation.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {annotation.tags.map(tagId => {
-                      const tag = tags.find(t => t.id === tagId);
-                      return tag ? (
-                        <span key={tagId} className={`px-2 py-1 text-xs font-bold rounded-lg bg-${tag.color}-100 text-${tag.color}-700`}>
-                          {tag.icon} {tag.label}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
-                )}
-
-                {annotation.notes && (
-                  <p className="text-sm text-fg-muted mb-4 line-clamp-3">{annotation.notes}</p>
-                )}
-
-                {annotation.keyMoments && annotation.keyMoments.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-fg-muted uppercase">Key Moments:</p>
-                    {annotation.keyMoments.slice(0, 3).map((moment, idx) => (
-                      <div key={idx} className="p-2 bg-surface-2 rounded-lg text-sm">
-                        <span className="font-mono font-bold text-accent">{moment.move}</span>
-                        {moment.symbol && <span className="ml-2 font-bold text-win">{moment.symbol}</span>}
-                        {moment.comment && <span className="ml-2 text-fg-muted">— {moment.comment}</span>}
-                      </div>
-                    ))}
-                    {annotation.keyMoments.length > 3 && (
-                      <p className="text-xs text-fg-subtle italic">+ {annotation.keyMoments.length - 3} more moments</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+            <AnnotationCard
+              key={annotation.id}
+              annotation={annotation}
+              onEdit={editAnnotation}
+              onDelete={deleteAnnotation}
+            />
           ))
         ) : (
-          <div className="col-span-2 bg-surface rounded-lg border border-hairline p-12 text-center">
+          <div className="col-span-full bg-surface rounded-lg border border-hairline p-12 text-center">
             <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
               <DocumentTextIcon className="w-12 h-12 text-fg-subtle" />
             </div>
-            <h3 className="text-base font-semibold text-fg mb-2">No annotations yet</h3>
-            <p className="text-fg-muted mb-4">Start building your personal game library by annotating your best games!</p>
-            <button
-              onClick={() => {
-                setSelectedGame({});
-                setEditingAnnotation(null);
-              }}
-              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
-            >
-              Create First Annotation
-            </button>
+            <h3 className="text-base font-semibold text-fg mb-2">Todavía no hay análisis</h3>
+            <p className="text-fg-muted max-w-xl mx-auto">
+              Jueves: jugás la 15+10. Después venís acá, la partida aparece arriba en «sin
+              analizar», tocás <strong className="text-fg">Analizar</strong> y el tablero se abre
+              con la partida cargada. Buscás el momento donde se decidió, tocás{' '}
+              <strong className="text-fg">«Usar esta posición»</strong> y escribís la lección.
+            </p>
+            {pending.length > 0 && (
+              <Button
+                variant="primary"
+                onClick={() => startAnnotation(pending[0])}
+                className="mt-4"
+              >
+                Empezar con {gameLabel(pending[0])}
+              </Button>
+            )}
           </div>
         )}
       </div>
