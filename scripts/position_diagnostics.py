@@ -86,165 +86,17 @@ from diagnostics.config import (
     REPO_ROOT, connect, env_from_dotenv, load_api_keys, load_database_url,
     with_reconnect,
 )
+from diagnostics.engines import MaiaEngine, engine_id
+# _POLICY_RE: andamio para que el test lo siga viendo por acá. Se va en el
+# paso final, cuando el test pase a importar el paquete.
+from diagnostics.engines import _POLICY_RE  # noqa: F401
+from diagnostics.pgn import parse_moves, sanitize_pgn
 from diagnostics.rules import (
     BRECHA_MIN_CP_LOSS, CP_LOSS_CAP, DEFAULT_DEPTH, ERROR_PROPIO_MIN_CP_LOSS,
     EVAL_CEILING_CP, FIRST_FULLMOVE, INHUMAN_MAX_CP_LOSS, INHUMAN_MIN_CP_LOSS,
     INHUMAN_POLICY, MAIA_RATINGS, MATE_SCORE, MULTIPV, PV_PLIES,
     classify, classifier_id,
 )
-
-
-# --- Maia via lc0 -----------------------------------------------------------
-# python-chess no expone bien las líneas `info string` de lc0, que es donde vive
-# el desglose de policy, así que se habla UCI crudo. Verificado contra lc0
-# 0.32.1: `go nodes 1` con VerboseMoveStats imprime una línea por jugada legal
-# más una línea resumen "node" que hay que descartar.
-_POLICY_RE = re.compile(
-    r"^info string\s+(\S+)\s+\(\s*\d+\s*\)\s+N:.*?\(P:\s*([0-9.]+)%\)"
-)
-
-
-class MaiaEngine:
-    """lc0 con pesos de Maia, en modo policy pura (sin búsqueda)."""
-
-    def __init__(self, lc0_path: str, weights: str, policy_temperature: float | None):
-        self.proc = subprocess.Popen(
-            [lc0_path, f"--weights={weights}"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-            text=True,
-            bufsize=1,
-        )
-        self._send("uci")
-        self._read_until("uciok")
-        for option in (
-            "VerboseMoveStats value true",
-            "Threads value 1",
-            "MinibatchSize value 1",
-            "MaxPrefetch value 0",
-            "SmartPruningFactor value 0",
-        ):
-            self._send(f"setoption name {option}")
-        if policy_temperature is not None:
-            self._send(f"setoption name PolicyTemperature value {policy_temperature}")
-        self._send("isready")
-        self._read_until("readyok")
-
-    def _send(self, command: str) -> None:
-        assert self.proc.stdin is not None
-        self.proc.stdin.write(command + "\n")
-        self.proc.stdin.flush()
-
-    def _read_until(self, token: str) -> list[str]:
-        assert self.proc.stdout is not None
-        lines: list[str] = []
-        while True:
-            line = self.proc.stdout.readline()
-            if not line:
-                raise RuntimeError(f"lc0 murió esperando '{token}'")
-            lines.append(line.rstrip("\n"))
-            if line.startswith(token):
-                return lines
-
-    def policy(self, board: chess.Board) -> dict[str, float]:
-        """{uci: probabilidad 0..1} para cada jugada legal, sin búsqueda."""
-        self._send(f"position fen {board.fen()}")
-        self._send("go nodes 1")
-        out = self._read_until("bestmove")
-        policies: dict[str, float] = {}
-        for line in out:
-            match = _POLICY_RE.match(line)
-            if not match:
-                continue
-            move, percent = match.group(1), match.group(2)
-            if move == "node":  # línea resumen de la raíz, no es una jugada
-                continue
-            policies[move] = float(percent) / 100.0
-        if not policies:
-            raise RuntimeError(f"lc0 no devolvió policy para {board.fen()}")
-        return policies
-
-    def close(self) -> None:
-        try:
-            self._send("quit")
-            self.proc.wait(timeout=5)
-        except Exception:
-            self.proc.kill()
-
-
-# --- Parseo de PGN ----------------------------------------------------------
-# En la DB conviven dos formatos: las OTB traen PGN completo con headers,
-# comentarios de estudio de Lichess y variantes, y las de lichess son movetext
-# SAN pelado, sin números de jugada. python-chess maneja los dos, pero un
-# enroque escrito "0-0" en vez de "O-O" le TRUNCA la partida en silencio, así
-# que si la primera pasada deja errores se reintenta sobre el texto normalizado.
-# Es el mismo saneo que hace sanitizePgn() en src/hooks/useGameReplay.ts.
-
-_TERMINATION = {"1-0", "0-1", "1/2-1/2", "*"}
-
-
-def sanitize_pgn(pgn: str) -> str:
-    text = re.sub(r"\{[^}]*\}", " ", pgn)
-    text = re.sub(r";[^\n]*", " ", text)
-    text = re.sub(r"\$\d+", " ", text)
-    while True:  # variantes, de la más interna hacia afuera
-        stripped = re.sub(r"\([^()]*\)", " ", text)
-        if stripped == text:
-            break
-        text = stripped
-    text = re.sub(r"0[-\u2013\u2014]0[-\u2013\u2014]0", "O-O-O", text)
-    text = re.sub(r"0[-\u2013\u2014]0", "O-O", text)
-    text = re.sub(r"[!?]", "", text)
-    text = re.sub(r"1\s*/\s*2\s*[-\u2013\u2014]\s*1\s*/\s*2", "1/2-1/2", text)
-    text = re.sub(r"(^|\s)1\s*[-\u2013\u2014]\s*0(\s|$)", r"\g<1>1-0\g<2>", text)
-    text = re.sub(r"(^|\s)0\s*[-\u2013\u2014]\s*1(\s|$)", r"\g<1>0-1\g<2>", text)
-    return re.sub(r"[ \t]+", " ", text)
-
-
-def _read_mainline(text: str) -> tuple[list[chess.Move], bool]:
-    game = chess.pgn.read_game(io.StringIO(text))
-    if game is None:
-        return [], False
-    return list(game.mainline_moves()), not game.errors
-
-
-def _push_tokens(text: str) -> list[chess.Move]:
-    """Último recurso: empujar tokens SAN uno por uno, ignorando la basura."""
-    movetext = "\n".join(
-        line for line in text.splitlines() if not line.lstrip().startswith("[")
-    )
-    board = chess.Board()
-    moves: list[chess.Move] = []
-    for token in movetext.split():
-        token = token.strip()
-        if not token or token in _TERMINATION or re.fullmatch(r"\d+\.*", token):
-            continue
-        token = re.sub(r"^\d+\.+", "", token)
-        if not token:
-            continue
-        try:
-            move = board.parse_san(token)
-        except (ValueError, AssertionError):
-            break  # a partir de acá la línea deja de ser confiable
-        board.push(move)
-        moves.append(move)
-    return moves
-
-
-def parse_moves(pgn: str | None) -> list[chess.Move]:
-    if not pgn or not pgn.strip():
-        return []
-    moves, clean = _read_mainline(pgn)
-    if clean and moves:
-        return moves
-    sanitized = sanitize_pgn(pgn)
-    retry, clean_retry = _read_mainline(sanitized)
-    if clean_retry and retry:
-        return retry
-    fallback = _push_tokens(sanitized)
-    # Quedarse con la lectura más larga: cualquiera puede haberse cortado antes.
-    return max([moves, retry, fallback], key=len)
 
 
 # --- Análisis ---------------------------------------------------------------
@@ -270,24 +122,6 @@ class Finding:
     @property
     def sf_best_san(self) -> str:
         return self.sf_top3[0]["move_san"]
-
-
-def engine_id(path: str) -> str:
-    """Primera línea del banner UCI, ej. "Stockfish 19".
-
-    Se guarda con cada corrida: sin esto, actualizar el motor deja filas viejas y
-    nuevas indistinguibles, y las evaluaciones de dos versiones no son
-    comparables entre sí.
-    """
-    try:
-        out = subprocess.run([path], input="uci\nquit\n", capture_output=True,
-                             text=True, timeout=30).stdout
-        for line in out.splitlines():
-            if line.strip() and not line.startswith("info"):
-                return line.strip()[:80]
-    except (subprocess.SubprocessError, OSError):
-        pass
-    return "desconocido"
 
 
 def _pv_san(board: chess.Board, pv: list[chess.Move]) -> str:
