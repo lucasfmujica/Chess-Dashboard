@@ -13,6 +13,7 @@ export interface BlunderDrillRow {
   review_count: number;
   solved_count: number;
   archived: boolean;
+  maia_policy: string | number | null;
   created_at: string;
   // Joined from `games`.
   opponent: string;
@@ -38,6 +39,14 @@ export const rowToBlunderDrill = (row: BlunderDrillRow) => ({
   reviewCount: row.review_count,
   solvedCount: row.solved_count,
   archived: row.archived,
+  // Qué policy le da Maia-1900 a la solución: si es ínfima, el drill es una
+  // curiosidad de motor y no entrenamiento. NUMERIC vuelve como string.
+  maiaPolicy:
+    row.maia_policy === null
+      ? undefined
+      : typeof row.maia_policy === 'number'
+        ? row.maia_policy
+        : Number(row.maia_policy),
   createdAt: new Date(row.created_at).getTime(),
   game: {
     opponent: row.opponent,

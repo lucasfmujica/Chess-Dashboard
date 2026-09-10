@@ -26,6 +26,12 @@ export interface BlunderDrill {
   reviewCount: number;
   solvedCount: number;
   archived: boolean;
+  /**
+   * Probabilidad 0..1 que Maia-1900 le da a la solución: qué tan encontrable es
+   * en el tablero para esta banda de rating (Lichess, ~1750-1800 FIDE). Por
+   * debajo de ~2% el drill es una curiosidad de motor, no entrenamiento.
+   */
+  maiaPolicy?: number;
   createdAt: number;
   game: BlunderDrillGame;
 }

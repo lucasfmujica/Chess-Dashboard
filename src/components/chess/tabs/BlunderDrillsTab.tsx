@@ -34,6 +34,21 @@ import type { BlunderDrill } from '../../../types/blunders';
 type Mode = 'solve' | 'calculo' | 'review';
 type ColorFilter = 'all' | 'W' | 'B';
 type ListFilter = 'due' | 'all';
+/**
+ * Qué tan encontrable tiene que ser la solución para que el drill entre.
+ *
+ * Los drills se minan por pérdida de centipeones, así que los más grandes
+ * suelen ser tácticas profundas cuya solución un humano de esta banda no ve: en
+ * este set, los que tienen menos de 2% de policy en Maia promedian 1215cp de
+ * pérdida. Entrenar con eso frustra y no enseña, pero mirarlos sí sirve, así que
+ * se filtran en vez de borrarlos.
+ *
+ * El umbral es policy de Maia-1900, que es rating de LICHESS (~1750-1800 FIDE).
+ */
+type FindFilter = 'all' | 'human' | 'engine';
+
+// Debajo de esto, la solución es prácticamente invisible en el tablero.
+const ENGINE_ONLY_POLICY = 0.02;
 
 /** How long the "Resuelto" banner stays up before the next puzzle loads. */
 const AUTO_ADVANCE_MS = 1400;
@@ -74,6 +89,7 @@ const BlunderDrillsTab = () => {
   const [mode, setMode] = useState<Mode>('solve');
   const [colorFilter, setColorFilter] = useState<ColorFilter>('all');
   const [listFilter, setListFilter] = useState<ListFilter>('due');
+  const [findFilter, setFindFilter] = useState<FindFilter>('all');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   /** Puzzles solved first-try in this sitting — the only reason to keep going. */
@@ -103,6 +119,12 @@ const BlunderDrillsTab = () => {
     let f = drillsRef.current;
     if (colorFilter !== 'all') f = f.filter(d => d.game.color === colorFilter);
     if (listFilter === 'due') f = f.filter(d => isDue(d.lastReviewed, d.confidence, at));
+    // Los drills sin policy calculada todavía se dejan pasar: no saber no es lo
+    // mismo que saber que son imposibles.
+    if (findFilter === 'human')
+      f = f.filter(d => d.maiaPolicy === undefined || d.maiaPolicy >= ENGINE_ONLY_POLICY);
+    if (findFilter === 'engine')
+      f = f.filter(d => d.maiaPolicy !== undefined && d.maiaPolicy < ENGINE_ONLY_POLICY);
     setQueue(
       [...f]
         .sort(
@@ -113,7 +135,7 @@ const BlunderDrillsTab = () => {
     );
     setCurrentIndex(0);
     setShowAnswer(false);
-  }, [colorFilter, listFilter]);
+  }, [colorFilter, listFilter, findFilter]);
 
   // `drills.length` rather than `drills`: it changes when a scan adds drills
   // and stays put when one is graded, which is exactly the distinction the
@@ -141,7 +163,11 @@ const BlunderDrillsTab = () => {
     const avgConfidence = scored.length
       ? Math.round((scored.reduce((s, d) => s + (d.confidence ?? 0), 0) / scored.length) * 10) / 10
       : 0;
-    return { total, due, mastered, avgConfidence };
+    const engineOnly = drills.filter(
+      d => d.maiaPolicy !== undefined && d.maiaPolicy < ENGINE_ONLY_POLICY
+    ).length;
+    const human = total - engineOnly;
+    return { total, due, mastered, avgConfidence, human, engineOnly };
   }, [drills, now]);
 
   /** Cancels a queued auto-advance so a manual click can't double-skip. */
@@ -281,6 +307,19 @@ const BlunderDrillsTab = () => {
               options={[
                 { value: 'due', label: `Due (${stats.due})` },
                 { value: 'all', label: 'All' },
+              ]}
+            />
+          </div>
+          <div>
+            <p className="text-label mb-2">Encontrable</p>
+            <SegmentedControl
+              aria-label="Findability filter"
+              value={findFilter}
+              onChange={setFindFilter}
+              options={[
+                { value: 'all', label: 'Todos' },
+                { value: 'human', label: `Humanos (${stats.human})` },
+                { value: 'engine', label: `De motor (${stats.engineOnly})` },
               ]}
             />
           </div>
