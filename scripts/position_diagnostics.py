@@ -502,6 +502,153 @@ def analyze_game(
     return findings, evaluated
 
 
+PATTERNS_SYSTEM = """Agrupás errores de ajedrez ya diagnosticados en TEMAS de estudio, \
+para un jugador argentino de ~1880 FIDE.
+
+Te paso una lista de divergencias. Cada una ya viene con su explicación, \
+calculada a partir de motores. Tu trabajo es encontrar qué tienen en común, no \
+volver a analizarlas.
+
+Reglas:
+1. Agrupá por MECANISMO, no por resultado. "Perdí material" no es un tema; \
+   "cambio piezas menores sin mirar la estructura que queda" sí.
+2. Un tema necesita al menos dos divergencias. Una sola es una anécdota.
+3. No fuerces: es mejor devolver tres temas sólidos y dejar el resto afuera que \
+   inventar categorías para que entre todo.
+4. No inventes ajedrez. Solo podés usar lo que dicen las explicaciones que te paso.
+5. `study_note` es la parte accionable: qué hacer esta semana al respecto. \
+   Concreto. Si no se te ocurre nada concreto, dejalo vacío.
+
+Escribí en rioplatense, de vos, sin solemnidad."""
+
+PATTERNS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "patterns": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Nombre corto del tema."},
+                    "summary": {"type": "string", "description": "Qué es, en 1-2 oraciones."},
+                    "study_note": {"type": "string", "description": "Qué hacer al respecto."},
+                    "finding_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Los id de las divergencias que caen acá.",
+                    },
+                },
+                "required": ["name", "summary", "study_note", "finding_ids"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["patterns"],
+    "additionalProperties": False,
+}
+
+
+def run_patterns(conn, args) -> int:
+    """Agrupa las divergencias explicadas en temas de estudio.
+
+    Trabaja sobre las explicaciones, no sobre las posiciones: el modelo agrupa
+    textos, no analiza ajedrez. Va en UNA sola llamada con todas las
+    divergencias porque el agrupamiento necesita verlas juntas — es justamente
+    lo que no se puede hacer de a una.
+
+    Solo por Anthropic: usa salida estructurada, que se configura distinto en
+    cada proveedor y no vale la pena duplicar para una llamada por corrida.
+    """
+    # Primero si hay material, después la clave: sin explicaciones el paso
+    # siguiente es correr --explain, no ir a buscar una API key.
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute("""
+            SELECT d.id::text, d.category, d.cp_loss, d.move_played, d.explanation,
+                   d.sf_top3 -> 0 ->> 'move_san' AS best_move, g.opponent
+              FROM position_diagnostics d JOIN games g ON g.id = d.game_id
+             WHERE d.explanation IS NOT NULL
+             ORDER BY d.cp_loss DESC
+        """)
+        rows = [dict(r) for r in cur.fetchall()]
+    if len(rows) < 4:
+        print(f"Solo {len(rows)} divergencias explicadas: con eso no hay patrones, "
+              "hay anécdotas. Corré --evidence y --explain primero.")
+        return 0
+
+    try:
+        import anthropic
+    except ImportError:
+        sys.exit("Falta el SDK: pip install anthropic")
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        sys.exit("Falta ANTHROPIC_API_KEY. Agregala a .env.local o exportala.")
+
+    lines = [f"{len(rows)} divergencias ya diagnosticadas y explicadas:\n"]
+    for r in rows:
+        lines.append(
+            f"id: {r['id']}\n"
+            f"  categoría: {r['category']}, pérdida {r['cp_loss']}cp\n"
+            f"  jugó {r['move_played']}, el motor quería {r['best_move']}\n"
+            f"  explicación: {r['explanation']}\n"
+        )
+
+    model = args.explain_model or EXPLAIN_MODEL
+    client = anthropic.Anthropic()
+    print(f"Agrupando {len(rows)} divergencias con {model}...")
+    message = client.messages.create(
+        model=model,
+        max_tokens=16000,
+        thinking={"type": "adaptive"},
+        output_config={
+            "effort": args.explain_effort,
+            "format": {"type": "json_schema", "schema": PATTERNS_SCHEMA},
+        },
+        system=PATTERNS_SYSTEM,
+        messages=[{"role": "user", "content": "\n".join(lines)}],
+    )
+    if message.stop_reason == "refusal":
+        sys.exit("El modelo declinó agrupar.")
+    payload = json.loads(
+        "".join(b.text for b in message.content if b.type == "text")
+    )
+    patterns = payload.get("patterns", [])
+    known = {r["id"] for r in rows}
+
+    label = f"{model}/{args.explain_effort}"
+    saved = 0
+    with conn.cursor() as cur:
+        if args.force:
+            cur.execute("DELETE FROM diagnostic_patterns")
+        for pat in patterns:
+            # Solo ids que existen: si el modelo inventó uno, se descarta en vez
+            # de guardar una referencia rota.
+            ids = [i for i in pat.get("finding_ids", []) if i in known]
+            if len(ids) < 2:
+                continue
+            cur.execute(
+                """INSERT INTO diagnostic_patterns
+                     (name, summary, study_note, finding_ids, grouped_with)
+                   VALUES (%s, %s, %s, %s::uuid[], %s)""",
+                (pat["name"], pat["summary"], pat.get("study_note") or None, ids, label),
+            )
+            saved += 1
+    conn.commit()
+
+    print(f"\n## {saved} temas de estudio\n")
+    for pat in patterns:
+        ids = [i for i in pat.get("finding_ids", []) if i in known]
+        if len(ids) < 2:
+            continue
+        print(f"### {pat['name']} ({len(ids)} divergencias)")
+        print(f"{pat['summary']}")
+        if pat.get("study_note"):
+            print(f"→ {pat['study_note']}")
+        print()
+    return 0
+
+
+# --- Trampas ----------------------------------------------------------------
+
+
 def run_traps(conn, args) -> int:
     """Busca posiciones donde el rival tenía una forma natural de equivocarse.
 
@@ -1375,6 +1522,13 @@ def build_parser() -> argparse.ArgumentParser:
              "Menos esfuerzo son menos tokens de salida, que es donde está el costo.",
     )
     p.add_argument(
+        "--patterns",
+        action="store_true",
+        help="Agrupa las divergencias ya explicadas en temas de estudio. Una "
+             "sola llamada al modelo con todas juntas: agrupar necesita verlas "
+             "a la vez. Requiere --evidence y --explain corridos antes.",
+    )
+    p.add_argument(
         "--traps",
         action="store_true",
         help="Da vuelta el análisis: busca posiciones donde MOVÍA EL RIVAL y lo "
@@ -1462,8 +1616,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
 
-    required = [] if args.explain else [("lc0", args.lc0_path), ("pesos de Maia", args.maia_weights)]
-    if not (args.ladder or args.explain or args.drills_policy):
+    no_engines = args.explain or args.patterns
+    required = [] if no_engines else [("lc0", args.lc0_path), ("pesos de Maia", args.maia_weights)]
+    if not (args.ladder or no_engines or args.drills_policy):
         required.insert(0, ("stockfish", args.stockfish_path))
     for label, path in required:
         if not Path(path).exists():
@@ -1482,6 +1637,12 @@ def main() -> int:
             )
         print("Nota: las tablas todavía no existen. En dry-run no hacen falta, "
               "pero no se puede saltear lo ya procesado.")
+    if args.patterns:
+        try:
+            return run_patterns(conn, args)
+        finally:
+            conn.close()
+
     if args.traps:
         try:
             return run_traps(conn, args)
