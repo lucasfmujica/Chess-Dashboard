@@ -841,8 +841,12 @@ const FACTS_TOOL_SCHEMA = {
  */
 const CONCEPTS_TOOL_DESCRIPTION =
   'Busca en los conceptos que Lucas estudió y devuelve su texto y de qué libro ' +
-  'y capítulo salieron. Pasá palabras del tema (por ejemplo "peón aislado" o ' +
-  '"outpost"), o el nombre exacto de uno del índice.';
+  'y capítulo salieron. Pasá palabras del tema, o el nombre exacto de uno del ' +
+  'índice. OJO: la búsqueda es por palabra literal y los datos son bilingües — ' +
+  'los títulos están en castellano pero los textos suelen estar en el idioma del ' +
+  'libro, casi siempre inglés. Si buscás en castellano y volvés con poco, ' +
+  'buscá de nuevo en inglés ("isolated pawn", "open file", "outpost"): sobre la ' +
+  'misma biblioteca eso puede triplicar los resultados.';
 
 const CONCEPTS_TOOL_SCHEMA = {
   type: 'object' as const,
