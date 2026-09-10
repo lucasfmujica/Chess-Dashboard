@@ -706,6 +706,8 @@ interface ChatToolCall {
   depth?: number;
   /** Solo para 'quitar_pieza'. */
   square?: string;
+  /** Solo para 'concepto'. */
+  query?: string;
 }
 
 type ChatTurn =
@@ -716,6 +718,7 @@ type ChatTurn =
 const CHAT_TOOL_NAME = 'evaluar';
 const ABLATION_TOOL_NAME = 'quitar_pieza';
 const FACTS_TOOL_NAME = 'rasgos';
+const CONCEPTS_TOOL_NAME = 'concepto';
 
 const CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una partida \
 de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, sin \
@@ -742,6 +745,10 @@ Tenés tres herramientas:
   en la posición. Con esto podés separar una ventaja de material de una \
   posicional, o nombrar qué cambió entre dos posiciones (pedilos en las dos y \
   comparalos).
+
+- "${CONCEPTS_TOOL_NAME}": trae el texto y la fuente de un concepto del índice \
+  de Lucas. Si vas a nombrar uno, pedilo primero: citarlo de memoria a partir del \
+  título es inventar.
 
 Podés hablar de estructura, movilidad, seguridad del rey e iniciativa, pero \
 apoyado en lo que estas herramientas devuelven. Una ventaja que no se mueve con \
@@ -825,6 +832,30 @@ const FACTS_TOOL_SCHEMA = {
   additionalProperties: false,
 };
 
+/**
+ * Trae el texto y la fuente de los conceptos que el modelo pida.
+ *
+ * El índice de nombres viaja en el prompt; los textos no, porque ciento y pico
+ * de resúmenes en cada pregunta se paga en cada vuelta del bucle. Pedirlos a
+ * demanda cuesta una llamada y trae solo lo que hace falta.
+ */
+const CONCEPTS_TOOL_DESCRIPTION =
+  'Busca en los conceptos que Lucas estudió y devuelve su texto y de qué libro ' +
+  'y capítulo salieron. Pasá palabras del tema (por ejemplo "peón aislado" o ' +
+  '"outpost"), o el nombre exacto de uno del índice.';
+
+const CONCEPTS_TOOL_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    busqueda: {
+      type: 'string',
+      description: 'Palabras del tema, o el nombre de un concepto del índice.',
+    },
+  },
+  required: ['busqueda'],
+  additionalProperties: false,
+};
+
 const CHAT_TOOL_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -855,6 +886,7 @@ const parseToolInput = (raw: unknown): { moves: string[]; depth?: number; square
     moves: Array.isArray(input?.jugadas) ? input.jugadas.map(String) : [],
     depth: typeof input?.profundidad === 'number' ? input.profundidad : undefined,
     square: typeof input?.casilla === 'string' ? input.casilla : undefined,
+    query: typeof input?.busqueda === 'string' ? input.busqueda : undefined,
   };
 };
 
@@ -880,9 +912,11 @@ const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
         type: 'tool_use',
         id: call.id,
         name: call.tool || CHAT_TOOL_NAME,
-        input: call.square
-          ? { jugadas: call.moves, casilla: call.square, profundidad: call.depth }
-          : { jugadas: call.moves, profundidad: call.depth },
+        input: call.query
+          ? { busqueda: call.query }
+          : call.square
+            ? { jugadas: call.moves, casilla: call.square, profundidad: call.depth }
+            : { jugadas: call.moves, profundidad: call.depth },
       });
     }
     return { role: 'assistant', content };
@@ -913,6 +947,12 @@ const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
         name: FACTS_TOOL_NAME,
         description: FACTS_TOOL_DESCRIPTION,
         input_schema: FACTS_TOOL_SCHEMA,
+        strict: true,
+      },
+      {
+        name: CONCEPTS_TOOL_NAME,
+        description: CONCEPTS_TOOL_DESCRIPTION,
+        input_schema: CONCEPTS_TOOL_SCHEMA,
         strict: true,
       },
     ],
@@ -955,9 +995,11 @@ const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
                 function: {
                   name: c.tool || CHAT_TOOL_NAME,
                   arguments: JSON.stringify(
-                    c.square
-                      ? { jugadas: c.moves, casilla: c.square, profundidad: c.depth }
-                      : { jugadas: c.moves, profundidad: c.depth }
+                    c.query
+                      ? { busqueda: c.query }
+                      : c.square
+                        ? { jugadas: c.moves, casilla: c.square, profundidad: c.depth }
+                        : { jugadas: c.moves, profundidad: c.depth }
                   ),
                 },
               })),
@@ -999,6 +1041,14 @@ const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
             name: FACTS_TOOL_NAME,
             description: FACTS_TOOL_DESCRIPTION,
             parameters: FACTS_TOOL_SCHEMA,
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: CONCEPTS_TOOL_NAME,
+            description: CONCEPTS_TOOL_DESCRIPTION,
+            parameters: CONCEPTS_TOOL_SCHEMA,
           },
         },
       ],
@@ -1058,24 +1108,25 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   // y el prompt queda igual que antes.
   let concepts = '';
   try {
+    // Solo el ÍNDICE de nombres, no los textos.
+    //
+    // Antes esto mandaba los primeros cuarenta conceptos enteros ordenados por
+    // review_count. Con todos en cero, esos cuarenta eran arbitrarios: los que
+    // Postgres devolviera primero. Cargar más libros habría empeorado la
+    // selección, no mejorado el vocabulario.
+    //
+    // El índice entra completo por poco (un nombre son ~8 tokens), el modelo ve
+    // TODO lo que hay disponible, y pide con la herramienta los que necesita.
     const rows = (await sql`
-      SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter
-        FROM concepts c LEFT JOIN books b ON b.id = c.book_id
-       WHERE c.status <> 'archivado'
-       ORDER BY c.review_count DESC NULLS LAST
-       LIMIT 40
-    `) as { name: string; category: string | null; summary: string | null; book: string | null; source_chapter: string | null }[];
+      SELECT c.name, c.category FROM concepts c
+       WHERE c.status <> 'archivado' ORDER BY c.name
+    `) as { name: string; category: string | null }[];
     if (rows.length > 0) {
       concepts =
-        '\n\nConceptos que Lucas estudió, con su fuente. Usá ESTE vocabulario cuando ' +
-        'aplique: es el que él reconoce. No inventes conceptos que no estén acá.\n' +
-        rows
-          .map(
-            r =>
-              `- ${r.name}${r.category ? ` (${r.category})` : ''}: ${r.summary ?? 'sin resumen'}` +
-              `${r.book ? ` [${r.book}${r.source_chapter ? `, ${r.source_chapter}` : ''}]` : ''}`
-          )
-          .join('\n');
+        `\n\nConceptos que Lucas estudió (${rows.length}). Este es el índice: para ` +
+        `leer el texto y la fuente de alguno, pedilo con "${CONCEPTS_TOOL_NAME}". ` +
+        'Usá ESTE vocabulario cuando aplique, y no inventes conceptos que no estén acá.\n' +
+        rows.map(r => `- ${r.name}${r.category ? ` (${r.category})` : ''}`).join('\n');
     }
   } catch {
     // Un fallo leyendo conceptos no puede tumbar el chat: se sigue sin ellos.
@@ -1112,6 +1163,29 @@ const diagnosticAggregates = async (req: VercelRequest, res: VercelResponse) => 
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (req.query.kind === 'concepts') {
+    // Búsqueda por texto sobre nombre y resumen. El chat la usa como herramienta:
+    // pide los conceptos que necesita en vez de recibir cuarenta de prepo.
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const rows = (await sql`
+      SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter
+        FROM concepts c LEFT JOIN books b ON b.id = c.book_id
+       WHERE c.status <> 'archivado'
+         AND (${q} = '' OR c.name ILIKE ${'%' + q + '%'} OR c.summary ILIKE ${'%' + q + '%'})
+       ORDER BY c.review_count DESC NULLS LAST
+       LIMIT 12
+    `) as { name: string; category: string | null; summary: string | null; book: string | null; source_chapter: string | null }[];
+    return res.status(200).json(
+      rows.map(r => ({
+        name: r.name,
+        category: r.category ?? undefined,
+        summary: r.summary ?? undefined,
+        book: r.book ?? undefined,
+        chapter: r.source_chapter ?? undefined,
+      }))
+    );
   }
 
   if (req.query.kind === 'patterns') {

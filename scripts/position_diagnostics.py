@@ -90,8 +90,8 @@ from diagnostics.rules import (
     DEFAULT_DEPTH, INHUMAN_MAX_CP_LOSS, INHUMAN_MIN_CP_LOSS, classifier_id,
 )
 from diagnostics.store import (
-    already_done, clear_request, fetch_games, persist, print_summary,
-    request_forces, tables_exist,
+    already_done, clear_request, fetch_games, persist, print_boundaries,
+    print_summary, request_forces, tables_exist,
 )
 from diagnostics.traps import run_traps
 
@@ -125,6 +125,13 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["low", "medium", "high", "xhigh", "max"],
         help=f"Esfuerzo de razonamiento para --explain (default {EXPLAIN_EFFORT}). "
              "Menos esfuerzo son menos tokens de salida, que es donde está el costo.",
+    )
+    p.add_argument(
+        "--boundaries",
+        action="store_true",
+        help="Muestra los hallazgos que caen justo a cada lado de los umbrales, "
+             "para revisarlos con criterio propio en vez de con estadística. "
+             "No cambia nada.",
     )
     p.add_argument(
         "--patterns",
@@ -229,7 +236,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
 
-    no_engines = args.explain or args.patterns
+    no_engines = args.explain or args.patterns or args.boundaries
     required = [] if no_engines else [("lc0", args.lc0_path), ("pesos de Maia", args.maia_weights)]
     if not (args.ladder or no_engines or args.drills_policy):
         required.insert(0, ("stockfish", args.stockfish_path))
@@ -255,6 +262,12 @@ def main() -> int:
             )
         print("Nota: las tablas todavía no existen. En dry-run no hacen falta, "
               "pero no se puede saltear lo ya procesado.")
+    if args.boundaries:
+        try:
+            return print_boundaries(conn, args)
+        finally:
+            conn.close()
+
     if args.patterns:
         try:
             return run_patterns(conn, args)

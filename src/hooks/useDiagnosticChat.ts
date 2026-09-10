@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { StockfishEngine } from '../engine/stockfishEngine';
 import { positionFacts } from '../engine/positionFacts';
-import { askDiagnosticChat, type ChatTurn as WireTurn } from '../api/client';
+import { askDiagnosticChat, searchConcepts, type ChatTurn as WireTurn } from '../api/client';
 
 /** Un turno visible del chat. Los `tool_use` y `tool_result` no se muestran. */
 export interface ChatTurn {
@@ -190,11 +190,13 @@ export const useDiagnosticChat = (fen: string) => {
             reply.toolCalls.map(async call => {
               const line = call.moves.length ? call.moves.join(' ') : '(la posición)';
               const label =
-                call.tool === 'rasgos'
-                  ? `rasgos de ${line}`
-                  : call.square
-                    ? `${line} sin ${call.square}`
-                    : line;
+                call.tool === 'concepto'
+                  ? `concepto: ${call.query}`
+                  : call.tool === 'rasgos'
+                    ? `rasgos de ${line}`
+                    : call.square
+                      ? `${line} sin ${call.square}`
+                      : line;
               const key = `${call.tool}|${label}|${call.depth ?? DEFAULT_DEPTH}`;
               const cached = cache.current.get(key);
               if (cached !== undefined) {
@@ -206,11 +208,13 @@ export const useDiagnosticChat = (fen: string) => {
               evaluated.push(label);
               try {
                 const out =
-                  call.tool === 'rasgos'
-                    ? facts(call.moves)
-                    : call.square
-                      ? await ablate(call.moves, call.square, call.depth ?? DEFAULT_DEPTH)
-                      : await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
+                  call.tool === 'concepto'
+                    ? await searchConcepts(call.query ?? '')
+                    : call.tool === 'rasgos'
+                      ? facts(call.moves)
+                      : call.square
+                        ? await ablate(call.moves, call.square, call.depth ?? DEFAULT_DEPTH)
+                        : await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
                 cache.current.set(key, out);
                 return { id: call.id, output: JSON.stringify(out) };
               } catch (err) {

@@ -153,6 +153,50 @@ def _summary_from_db(conn) -> tuple[dict[str, int], list[dict]]:
         return counts, [dict(zip(keys, row)) for row in cur.fetchall()]
 
 
+def print_boundaries(conn, args) -> int:
+    """Muestra los hallazgos que caen justo a cada lado de cada umbral.
+
+    Recalibrar era una tarea vaga: "fijate si los umbrales te sirven". Pero el
+    criterio no se aplica sobre estadística agregada, se aplica sobre casos, y
+    los que importan son los que están pegados a la línea. Si los de arriba te
+    parecen bien clasificados y los de abajo también, la línea está donde va.
+    Si no, ya sabés para qué lado moverla.
+
+    No cambia nada: imprime y sale.
+    """
+    from .rules import BRECHA_MIN_CP_LOSS, ERROR_PROPIO_MIN_CP_LOSS
+
+    umbrales = (
+        (f"brecha_conceptual >= {BRECHA_MIN_CP_LOSS}cp", BRECHA_MIN_CP_LOSS),
+        (f"jugada_inhumana hasta {args.inhumana_max_cp_loss}cp "
+         f"(arriba pasa a error_propio)", args.inhumana_max_cp_loss),
+        (f"error_propio >= {ERROR_PROPIO_MIN_CP_LOSS}cp", ERROR_PROPIO_MIN_CP_LOSS),
+    )
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        for etiqueta, corte in umbrales:
+            print(f"\n=== {etiqueta} ===")
+            for lado, orden, comp in (("justo DEBAJO", "DESC", "<"), ("justo ENCIMA", "ASC", ">=")):
+                cur.execute(
+                    f"""SELECT d.cp_loss, d.move_played, d.category,
+                               d.sf_top3 -> 0 ->> 'move_san' AS mejor,
+                               g.opponent, left(coalesce(d.explanation, ''), 120) AS expl
+                          FROM position_diagnostics d JOIN games g ON g.id = d.game_id
+                         WHERE d.cp_loss {comp} %s
+                         ORDER BY d.cp_loss {orden} LIMIT 3""",
+                    (corte,),
+                )
+                print(f"  --- {lado} ---")
+                for r in cur.fetchall():
+                    print(f"   {r['cp_loss']:5}cp  {r['move_played']:7} vs {r['mejor'] or '?':7} "
+                          f"[{r['category']}] {r['opponent'][:20]}")
+                    if r["expl"]:
+                        print(f"          {' '.join(r['expl'].split())}…")
+    print("\nSi alguno te parece mal clasificado, mover el umbral con")
+    print("--inhumana-min-cp-loss / --inhumana-max-cp-loss y reclasificar lo")
+    print("arregla sin volver a correr un motor.")
+    return 0
+
+
 def print_summary(conn, findings: list[Finding], dry_run: bool) -> None:
     if dry_run:
         counts, brechas = _summary_from_memory(findings)

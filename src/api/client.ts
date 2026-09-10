@@ -218,7 +218,23 @@ export interface ChatToolCall {
   depth?: number;
   /** Casilla de la pieza a sacar, solo en la ablación. */
   square?: string;
+  /** Búsqueda, solo en la herramienta de conceptos. */
+  query?: string;
 }
+
+/** Un concepto de la biblioteca de Lucas, con su fuente. */
+export interface ConceptHit {
+  name: string;
+  category?: string;
+  summary?: string;
+  book?: string;
+  chapter?: string;
+}
+
+export const searchConcepts = (q: string) =>
+  apiFetch<ConceptHit[]>(
+    `/prep?resource=diagnostic-aggregates&kind=concepts&q=${encodeURIComponent(q)}`
+  );
 
 export type ChatTurn =
   | { role: 'user'; text: string }
