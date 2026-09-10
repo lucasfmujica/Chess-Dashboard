@@ -20,11 +20,19 @@ import { chapterColor, chapterNumber } from './repertoireMoves';
  */
 
 export interface StudyConceptCandidate {
-  /** 1-32. */
-  chapterNo: number;
+  /**
+   * 1-32 en el estudio de repertorio; `null` en cualquier otro.
+   *
+   * El repertorio numera y colorea sus capítulos ("12. … (W)"), y esto se
+   * escribió exigiéndolo. Un estudio armado sobre un libro no tiene por qué
+   * seguir esa convención — los de Silman se llaman "Diagram 1" o "Superior
+   * minor piece" — y exigirla descartaba el estudio entero antes de leer una
+   * sola nota.
+   */
+  chapterNo: number | null;
   chapterName: string;
   eco: string;
-  color: 'W' | 'B';
+  color: 'W' | 'B' | null;
   /** SAN path to the position the note is attached to. */
   pathSan: string;
   /** The position AFTER the annotated move — what the note is talking about. */
@@ -66,6 +74,20 @@ export const citationsIn = (text: string): string[] =>
  */
 const MIN_TEXT_LENGTH = 25;
 
+/**
+ * Comentarios que puso el motor de Lichess, no una persona.
+ *
+ * El análisis automático deja notas con forma de nota — "Blunder. Best move was
+ * a5." — que pasan cualquier filtro de largo. En un estudio armado sobre los
+ * diagramas de un libro pueden ser la mayoría: uno de los probados tenía 196
+ * comentarios y casi todos eran esto. Como concepto no valen nada, y peor: si
+ * entran a la tabla se vuelven el vocabulario con el que después se razona.
+ */
+const ENGINE_NOISE =
+  /^(blunder|mistake|inaccuracy)\.\s|^(checkmate is now unavoidable|lost forced checkmate sequence|not the best checkmate sequence)/i;
+
+const isHumanNote = (text: string): boolean => !ENGINE_NOISE.test(text.trim());
+
 const walk = (
   nodes: StudyMoveNode[],
   startFen: string,
@@ -93,7 +115,7 @@ const walk = (
     if (!played) return;
 
     const text = node.comment?.trim();
-    if (text && text.length >= MIN_TEXT_LENGTH) {
+    if (text && text.length >= MIN_TEXT_LENGTH && isHumanNote(text)) {
       out.push({
         pathSan: pathBefore.join(' '),
         // AFTER the move: a note on 7...O-O is about the position it creates.
@@ -113,14 +135,20 @@ const walk = (
 };
 
 export const extractChapterConcepts = (chapter: StudyChapter): StudyConceptCandidate[] => {
-  const { chapterName, eco } = chapter.header;
+  const { chapterName, eco, fen } = chapter.header;
+  // Ausentes fuera del repertorio, y eso está bien: son metadatos suyos, no un
+  // requisito para que una nota anclada a una posición sea un concepto.
   const chapterNo = chapterNumber(chapterName);
   const color = chapterColor(chapterName);
-  if (chapterNo === null || color === null) return [];
 
+  // Un capítulo armado sobre un diagrama arranca de su propio FEN; reproducir
+  // sus jugadas desde la posición inicial falla en la primera.
+  const start = fen ?? new Chess().fen();
   const partial: Omit<StudyConceptCandidate, 'chapterNo' | 'chapterName' | 'eco' | 'color'>[] = [];
-  walk(chapter.mainline, new Chess().fen(), [], partial);
+  walk(chapter.mainline, start, [], partial);
 
+  // Sin jugadas anotadas, la nota del capítulo puede estar en su primer
+  // comentario sobre la posición de partida: eso también es un concepto.
   return partial.map(p => ({ ...p, chapterNo, chapterName, eco, color }));
 };
 

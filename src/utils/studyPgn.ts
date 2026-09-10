@@ -25,6 +25,14 @@ export interface StudyChapterHeader {
   opening: string;
   studyName: string;
   chapterUrl?: string;
+  /**
+   * Posición de partida, cuando el capítulo no arranca de la inicial.
+   *
+   * Un estudio de repertorio empieza siempre desde la salida, pero uno armado
+   * sobre los diagramas de un libro arma cada capítulo en una posición: sin
+   * esto, reproducir sus jugadas desde la inicial falla en la primera.
+   */
+  fen?: string;
 }
 
 export interface StudyChapter {
@@ -68,6 +76,7 @@ export const parseStudyPgn = async (pgnText: string): Promise<StudyChapter[]> =>
       opening: tags.Opening || '',
       studyName: tags.StudyName || '',
       chapterUrl: tags.ChapterURL,
+      fen: tags.FEN,
     };
     return { header, mainline: mapMoves(game.moves as unknown as RawPgnMove[]) };
   });
