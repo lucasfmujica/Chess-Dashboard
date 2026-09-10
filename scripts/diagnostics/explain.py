@@ -398,23 +398,35 @@ def run_patterns(conn, args) -> int:
 
     label = f"{model}/{args.explain_effort}"
     saved = 0
-    with conn.cursor() as cur:
-        if args.force:
-            cur.execute("DELETE FROM diagnostic_patterns")
-        for pat in patterns:
-            # Solo ids que existen: si el modelo inventó uno, se descarta en vez
-            # de guardar una referencia rota.
-            ids = [i for i in pat.get("finding_ids", []) if i in known]
-            if len(ids) < 2:
-                continue
-            cur.execute(
-                """INSERT INTO diagnostic_patterns
-                     (name, summary, study_note, finding_ids, grouped_with)
-                   VALUES (%s, %s, %s, %s::uuid[], %s)""",
-                (pat["name"], pat["summary"], pat.get("study_note") or None, ids, label),
-            )
-            saved += 1
-    conn.commit()
+
+    # La llamada al modelo tarda minutos con la conexión sin usar, y Neon cierra
+    # las ociosas: escribir con la misma conexión que se leyó revienta con "SSL
+    # connection has been closed unexpectedly" y tira a la basura una llamada
+    # cara que ya se pagó. Es la misma falla que en el bucle de análisis, y acá
+    # la ventana es la más larga de todas las pasadas.
+    def write(c):
+        nonlocal saved
+        saved = 0
+        with c.cursor() as cur:
+            if args.force:
+                cur.execute("DELETE FROM diagnostic_patterns")
+            for pat in patterns:
+                # Solo ids que existen: si el modelo inventó uno, se descarta en
+                # vez de guardar una referencia rota.
+                ids = [i for i in pat.get("finding_ids", []) if i in known]
+                if len(ids) < 2:
+                    continue
+                cur.execute(
+                    """INSERT INTO diagnostic_patterns
+                         (name, summary, study_note, finding_ids, grouped_with)
+                       VALUES (%s, %s, %s, %s::uuid[], %s)""",
+                    (pat["name"], pat["summary"], pat.get("study_note") or None, ids, label),
+                )
+                saved += 1
+        c.commit()
+
+    from .config import load_database_url, with_reconnect
+    with_reconnect(conn, load_database_url(), write)
 
     print(f"\n## {saved} temas de estudio\n")
     for pat in patterns:
