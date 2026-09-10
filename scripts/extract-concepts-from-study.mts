@@ -18,6 +18,7 @@
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --title
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --insert
+//   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --study <url|id>
 //
 // Bare: extract and write the review file with placeholder titles. Free.
 // --title: also call Claude to title/categorise (needs ANTHROPIC_API_KEY).
@@ -44,6 +45,47 @@ const PGN_PATH = path.join(__dirname, '../public/data/repertoire-study.pgn');
 
 const wantsTitles = process.argv.includes('--title');
 const wantsInsert = process.argv.includes('--insert');
+
+/**
+ * `--study <url o id>` baja un estudio de Lichess en vez de leer el archivo local.
+ *
+ * El script nació para el estudio de repertorio, que vive versionado en
+ * public/data. Pero en Lichess hay estudios de libros enteros, y el mismo
+ * mecanismo sirve: son notas ancladas a posiciones reales.
+ *
+ * Ojo con la diferencia, que no es técnica: las notas del repertorio las
+ * escribió Lucas, las de un estudio de un libro las escribió otro. Los conceptos
+ * guardan su fuente, así que la distinción queda registrada — pero conviene
+ * tenerla presente antes de tratar a las dos igual.
+ */
+const studyArg = (() => {
+  const i = process.argv.indexOf('--study');
+  if (i === -1) return undefined;
+  const raw = process.argv[i + 1];
+  if (!raw) {
+    console.error('--study necesita una URL o un id de estudio de Lichess.');
+    process.exit(1);
+  }
+  // Acepta la URL completa, la de un capítulo, o el id pelado.
+  const match = raw.match(/lichess\.org\/study\/([\w-]{8})/);
+  return match ? match[1] : raw.replace(/^.*\//, '');
+})();
+
+const fetchStudy = async (id: string): Promise<string> => {
+  const url = `https://lichess.org/api/study/${id}.pgn?comments=true&variations=true`;
+  // Un estudio privado necesita el token; uno público anda sin él.
+  const token = process.env.LICHESS_TOKEN;
+  const res = await fetch(url, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  if (!res.ok) {
+    console.error(
+      res.status === 404
+        ? `No encontré el estudio ${id}. Si es privado, hace falta LICHESS_TOKEN en .env.local.`
+        : `Lichess respondió ${res.status} para el estudio ${id}.`
+    );
+    process.exit(1);
+  }
+  return res.text();
+};
 
 const SYSTEM_PROMPT = `Sos un asistente que ordena las notas de un estudio de ajedrez en fichas de concepto.
 
@@ -190,7 +232,9 @@ if (wantsInsert) {
 
 // ------------------------------------------------------------- extract mode
 
-const chapters = await parseStudyPgn(readFileSync(PGN_PATH, 'utf8'));
+const pgn = studyArg ? await fetchStudy(studyArg) : readFileSync(PGN_PATH, 'utf8');
+if (studyArg) console.log(`Estudio ${studyArg} bajado de Lichess (${(pgn.length / 1024).toFixed(0)} KB)`);
+const chapters = await parseStudyPgn(pgn);
 const candidates = extractStudyConcepts(chapters);
 
 console.log(`Chapters parsed:   ${chapters.length}`);
