@@ -4,6 +4,7 @@ import { Badge, Button } from '../../../ui';
 import GameViewer from '../../GameViewer';
 import ConceptLinkPicker from '../../ConceptLinkPicker';
 import CaptureMomentPanel from './CaptureMomentPanel';
+import DiagnosticsPanel from './DiagnosticsPanel';
 import KeyMomentsList from './KeyMomentsList';
 import { addMoment, removeMoment, setCriticalMoment, updateMoment } from './moments';
 import { ERROR_TYPE_OPTIONS, TAGS } from './annotationMeta';
@@ -82,12 +83,18 @@ const AnnotationForm = ({
             result={draft.result}
             showEngine
             capture={position => (
-              <CaptureMomentPanel
-                position={position}
-                recordedPlies={recordedPlies}
-                onCapture={captureMoment}
-                onNavigate={handleNavigate}
-              />
+              <div className="space-y-3">
+                <CaptureMomentPanel
+                  position={position}
+                  recordedPlies={recordedPlies}
+                  onCapture={captureMoment}
+                  onNavigate={handleNavigate}
+                />
+                {/* El diagnóstico de motores va debajo de la captura: la
+                    anotación es lo que uno escribe, esto es lo que el cruce
+                    Stockfish/Maia encontró en la misma posición. */}
+                <DiagnosticsPanel position={position} gameId={linkedGame?.id} />
+              </div>
             )}
           />
         ) : (

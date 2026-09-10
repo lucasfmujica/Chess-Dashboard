@@ -11,6 +11,7 @@ import type {
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
+import type { DiagnosticRequest, DiagnosticsStatus, PositionDiagnostic } from '../types/diagnostics';
 import type { MinedEndgame, EndgameDrill } from '../types/endgames';
 import type { NormAttempt, NormThresholds } from '../types/norms';
 import type {
@@ -175,6 +176,30 @@ export const putBlunderDrill = (id: string, patch: BlunderDrillPatch) =>
     method: 'PUT',
     body: JSON.stringify(patch),
   });
+/**
+ * Diagnóstico de posiciones (Stockfish vs Maia-1900).
+ *
+ * El análisis corre en scripts/position_diagnostics.py, en la máquina local:
+ * necesita los binarios de los motores y minutos de CPU por partida, así que no
+ * puede correr en Vercel. Desde acá solo se leen resultados y se encolan pedidos.
+ */
+export const fetchPositionDiagnostics = (gameId: string) =>
+  apiFetch<PositionDiagnostic[]>(
+    `/prep?resource=position-diagnostics&gameId=${encodeURIComponent(gameId)}`
+  );
+export const fetchDiagnosticsStatus = () =>
+  apiFetch<DiagnosticsStatus>('/prep?resource=position-diagnostics');
+export const requestPositionDiagnostics = (gameId: string, force = false) =>
+  apiFetch<DiagnosticRequest>('/prep?resource=position-diagnostics', {
+    method: 'POST',
+    body: JSON.stringify({ gameId, force }),
+  });
+export const cancelPositionDiagnostics = (gameId: string) =>
+  apiFetch<{ ok: true }>(
+    `/prep?resource=position-diagnostics&gameId=${encodeURIComponent(gameId)}`,
+    { method: 'DELETE' }
+  );
+
 export const deleteBlunderDrill = (id: string) =>
   apiFetch<{ ok: true }>(`/prep?resource=blunder-drills&id=${encodeURIComponent(id)}`, { method: 'DELETE' });
 

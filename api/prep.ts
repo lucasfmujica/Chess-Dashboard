@@ -5,6 +5,10 @@ import { rowToBlunderDrill, type BlunderDrillRow } from './_blunderDrillMapper.j
 import { rowToScoutingTarget, type ScoutingTargetRow } from './_scoutingTargetMapper.js';
 import { rowToEndgameDrill, type EndgameDrillRow } from './_endgameDrillMapper.js';
 import {
+  rowToPositionDiagnostic,
+  type PositionDiagnosticRow,
+} from './_positionDiagnosticMapper.js';
+import {
   trainingSessions,
   trainingAttempts,
   books,
@@ -561,11 +565,98 @@ const chessResultsPgn = async (req: VercelRequest, res: VercelResponse) => {
   return res.status(200).json({ game, pgn: toPgn(game) });
 };
 
+/**
+ * Diagnóstico de posiciones: divergencias entre Stockfish y Maia-1900.
+ *
+ * El análisis NO corre acá. Necesita Stockfish y lc0 con los pesos de Maia,
+ * minutos de CPU por partida, así que vive en scripts/position_diagnostics.py y
+ * corre en la máquina local. Este endpoint solo lee resultados y encola pedidos:
+ * el POST marca una partida, y el script la levanta con --requested.
+ *
+ *   GET  ?resource=position-diagnostics&gameId=<uuid>  divergencias de esa partida
+ *   GET  ?resource=position-diagnostics                estado de la cola
+ *   POST ?resource=position-diagnostics  {gameId, force?}  encolar
+ */
+const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
+  const gameId = typeof req.query.gameId === 'string' ? req.query.gameId : undefined;
+
+  if (req.method === 'GET') {
+    if (!gameId) {
+      // Sin gameId: qué está pedido y qué ya se analizó, para que la app pueda
+      // mostrar el estado del botón sin traerse todas las divergencias.
+      const [requested, analyzed] = await Promise.all([
+        sql`SELECT game_id, requested_at, force FROM position_diagnostics_requests
+            ORDER BY requested_at`,
+        sql`SELECT game_id, analyzed_at, depth, positions, findings
+            FROM position_diagnostics_runs`,
+      ]);
+      return res.status(200).json({
+        requested: (requested as { game_id: string; requested_at: string; force: boolean }[]).map(r => ({
+          gameId: r.game_id,
+          requestedAt: new Date(r.requested_at).getTime(),
+          force: r.force,
+        })),
+        analyzed: (analyzed as {
+          game_id: string; analyzed_at: string; depth: number; positions: number; findings: number;
+        }[]).map(r => ({
+          gameId: r.game_id,
+          analyzedAt: new Date(r.analyzed_at).getTime(),
+          depth: r.depth,
+          positions: r.positions,
+          findings: r.findings,
+        })),
+      });
+    }
+
+    const rows = (await sql`
+      SELECT * FROM position_diagnostics
+      WHERE game_id = ${gameId}
+      ORDER BY ply
+    `) as PositionDiagnosticRow[];
+    return res.status(200).json(rows.map(rowToPositionDiagnostic));
+  }
+
+  if (req.method === 'POST') {
+    if (!requireApiKey(req, res)) return;
+    const body = (req.body ?? {}) as { gameId?: string; force?: boolean };
+    if (!body.gameId) return res.status(400).json({ error: 'gameId is required' });
+
+    const exists = (await sql`SELECT 1 FROM games WHERE id = ${body.gameId}`) as unknown[];
+    if (exists.length === 0) return res.status(404).json({ error: 'Game not found' });
+
+    // Re-pedir la misma partida actualiza el pedido en vez de fallar: sirve para
+    // convertir un pedido normal en uno con force.
+    const rows = (await sql`
+      INSERT INTO position_diagnostics_requests (game_id, force)
+      VALUES (${body.gameId}, ${body.force ?? false})
+      ON CONFLICT (game_id) DO UPDATE
+        SET requested_at = now(), force = EXCLUDED.force
+      RETURNING game_id, requested_at, force
+    `) as { game_id: string; requested_at: string; force: boolean }[];
+    return res.status(201).json({
+      gameId: rows[0].game_id,
+      requestedAt: new Date(rows[0].requested_at).getTime(),
+      force: rows[0].force,
+    });
+  }
+
+  if (req.method === 'DELETE') {
+    if (!requireApiKey(req, res)) return;
+    if (!gameId) return res.status(400).json({ error: 'gameId is required' });
+    await sql`DELETE FROM position_diagnostics_requests WHERE game_id = ${gameId}`;
+    return res.status(200).json({ ok: true });
+  }
+
+  res.setHeader('Allow', 'GET, POST, DELETE');
+  return res.status(405).json({ error: 'Method not allowed' });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
   const itemId = typeof id === 'string' ? id : undefined;
 
   if (resource === 'blunder-drills') return blunderDrills(req, res, itemId);
+  if (resource === 'position-diagnostics') return positionDiagnostics(req, res);
   if (resource === 'scouting-targets') return scoutingTargets(req, res, itemId);
   if (resource === 'endgame-drills') return endgameDrills(req, res, itemId);
   if (resource === 'norm-attempts') return normAttempts(req, res, itemId);
@@ -583,6 +674,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'chess-results-pgn') return chessResultsPgn(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
+      'Unknown or missing ?resource= (expected blunder-drills, position-diagnostics, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
   });
 }
