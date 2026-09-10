@@ -11,7 +11,13 @@ import type {
 } from '../types/chess';
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
-import type { DiagnosticRequest, DiagnosticsStatus, PositionDiagnostic } from '../types/diagnostics';
+import type {
+  DiagnosticPattern,
+  DiagnosticRequest,
+  DiagnosticsStatus,
+  PositionDiagnostic,
+  PositionTrap,
+} from '../types/diagnostics';
 import type { MinedEndgame, EndgameDrill } from '../types/endgames';
 import type { NormAttempt, NormThresholds } from '../types/norms';
 import type {
@@ -190,6 +196,12 @@ export const fetchPositionDiagnostics = (gameId: string) =>
 /** Todo el corpus, ordenado por pérdida. Para la vista que cruza partidas. */
 export const fetchAllPositionDiagnostics = (limit = 200) =>
   apiFetch<PositionDiagnostic[]>(`/prep?resource=position-diagnostics&all=1&limit=${limit}`);
+/** Trampas encontradas en las posiciones del rival, por tamaño de la caída. */
+export const fetchPositionTraps = (limit = 200) =>
+  apiFetch<PositionTrap[]>(`/prep?resource=diagnostic-aggregates&limit=${limit}`);
+/** Temas de estudio: divergencias agrupadas por mecanismo. */
+export const fetchDiagnosticPatterns = () =>
+  apiFetch<DiagnosticPattern[]>('/prep?resource=diagnostic-aggregates&kind=patterns');
 export const fetchDiagnosticsStatus = () =>
   apiFetch<DiagnosticsStatus>('/prep?resource=position-diagnostics');
 export const requestPositionDiagnostics = (gameId: string, force = false) =>

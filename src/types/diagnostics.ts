@@ -130,3 +130,42 @@ export interface DiagnosticsStatus {
   requested: DiagnosticRequest[];
   analyzed: DiagnosticRun[];
 }
+
+/**
+ * Una posición donde lo que juega un ~1900 de Lichess por instinto pierde.
+ *
+ * Es el análisis dado vuelta: en vez de mirar mis jugadas, mira las del rival y
+ * pregunta dónde tenía una forma natural de equivocarse. Sirve para preparación
+ * — son las posiciones a las que conviene llevar la partida, aunque
+ * objetivamente no sean las mejores.
+ */
+export interface PositionTrap {
+  id: string;
+  gameId: string;
+  ply: number;
+  moveNumber: number;
+  /** Posición con el RIVAL a mover. */
+  fen: string;
+  maiaMove: string;
+  maiaPolicy?: number;
+  bestMove: string;
+  /** Centipeones que pierde la jugada natural, desde el lado del rival. */
+  trapCp: number;
+  opponentMove: string;
+  /** Si el rival efectivamente cayó. Es lo que vuelve estadística a la teoría. */
+  fellForIt: boolean;
+  eco?: string;
+  game: Omit<DiagnosticGame, 'result'>;
+}
+
+/** Un tema de estudio: varias divergencias que comparten mecanismo. */
+export interface DiagnosticPattern {
+  id: string;
+  name: string;
+  summary: string;
+  /** Qué hacer al respecto. La parte accionable, si la hay. */
+  studyNote?: string;
+  findingIds: string[];
+  groupedWith?: string;
+  createdAt: number;
+}

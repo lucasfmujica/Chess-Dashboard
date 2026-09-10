@@ -4,6 +4,9 @@ import { Chess } from 'chess.js';
 import { Badge } from '../../ui';
 import BoardFrame from '../BoardFrame';
 import { boardSquareStyles } from '../boardTheme';
+import SegmentedControl from '../../ui/SegmentedControl';
+import TrapsView from './diagnostics/TrapsView';
+import PatternsView from './diagnostics/PatternsView';
 import { fetchAllPositionDiagnostics } from '../../../api/client';
 import type { DiagnosticCategory, PositionDiagnostic } from '../../../types/diagnostics';
 
@@ -50,7 +53,15 @@ const EMPTY_GAME = { opponent: 'partida desconocida', color: 'W' as const };
  * vez: en qué me equivoco siempre. Por eso ordena por pérdida y no por fecha, y
  * por eso la brecha conceptual va primera en los filtros.
  */
+/**
+ * Tres lecturas del mismo trabajo, y por eso viven juntas en vez de sumar tres
+ * entradas al sidebar: mis errores, los temas que comparten, y los errores que
+ * el rival podía cometer.
+ */
+type View = 'divergencias' | 'temas' | 'trampas';
+
 const DiagnosticsTab = () => {
+  const [view, setView] = useState<View>('divergencias');
   const [rows, setRows] = useState<PositionDiagnostic[]>([]);
   const [filter, setFilter] = useState<Filter>('brecha_conceptual');
   const [selectedId, setSelectedId] = useState<string>();
@@ -106,7 +117,31 @@ const DiagnosticsTab = () => {
     return styles;
   }, [selected]);
 
-  if (loading) return <p className="text-sm text-fg-muted">Cargando diagnóstico…</p>;
+  const header = (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-lg font-semibold text-fg">Stockfish vs Maia-1900</h2>
+        <p className="text-sm text-fg-muted">
+          Dónde te separaste del motor, y por qué. Ordenado por pérdida, no por fecha.
+        </p>
+      </div>
+      <SegmentedControl
+        aria-label="Vista del diagnóstico"
+        value={view}
+        onChange={setView}
+        options={[
+          { value: 'divergencias', label: 'Mis divergencias' },
+          { value: 'temas', label: 'Temas' },
+          { value: 'trampas', label: 'Trampas' },
+        ]}
+      />
+    </div>
+  );
+
+  if (view === 'temas') return <div className="space-y-4">{header}<PatternsView /></div>;
+  if (view === 'trampas') return <div className="space-y-4">{header}<TrapsView /></div>;
+
+  if (loading) return <div className="space-y-4">{header}<p className="text-sm text-fg-muted">Cargando diagnóstico…</p></div>;
   if (error) return <p className="text-sm text-loss">{error}</p>;
   if (rows.length === 0) {
     return (
@@ -120,12 +155,7 @@ const DiagnosticsTab = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-fg">Stockfish vs Maia-1900</h2>
-        <p className="text-sm text-fg-muted">
-          Dónde te separaste del motor, y por qué. Ordenado por pérdida, no por fecha.
-        </p>
-      </div>
+      {header}
 
       <div className="flex flex-wrap gap-1.5">
         {FILTERS.map(f => (

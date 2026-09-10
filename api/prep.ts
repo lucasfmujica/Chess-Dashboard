@@ -934,6 +934,85 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   }
 };
 
+/**
+ * Trampas y patrones: las dos lecturas que cruzan partidas.
+ *
+ * Las llena el batch local (position_diagnostics.py --traps / --patterns) y acá
+ * solo se leen. Van juntas en un recurso porque son la misma clase de cosa —
+ * agregados sobre el corpus, no sobre una partida — y porque prep.ts existe
+ * justamente para no gastar una función de Vercel por recurso.
+ */
+const diagnosticAggregates = async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', 'GET');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (req.query.kind === 'patterns') {
+    const rows = (await sql`
+      SELECT id, name, summary, study_note, finding_ids, grouped_with, created_at
+        FROM diagnostic_patterns
+       ORDER BY array_length(finding_ids, 1) DESC NULLS LAST, created_at DESC
+    `) as {
+      id: string; name: string; summary: string; study_note: string | null;
+      finding_ids: string[]; grouped_with: string | null; created_at: string;
+    }[];
+    return res.status(200).json(
+      rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        summary: r.summary,
+        studyNote: r.study_note ?? undefined,
+        findingIds: r.finding_ids ?? [],
+        groupedWith: r.grouped_with ?? undefined,
+        createdAt: new Date(r.created_at).getTime(),
+      }))
+    );
+  }
+
+  // Trampas: ordenadas por cuánto pierde la jugada natural, que es lo que las
+  // hace valer como preparación. Se agrupan por ECO del lado del cliente.
+  const limit = Math.min(500, Number(req.query.limit) || 200);
+  const rows = (await sql`
+    SELECT t.*, g.opponent, g.opponent_elo, g.played_date, g.tournament,
+           g.color, g.opening_name
+      FROM position_traps t
+      JOIN games g ON g.id = t.game_id
+     ORDER BY t.trap_cp DESC
+     LIMIT ${limit}
+  `) as {
+    id: string; game_id: string; ply: number; fen: string; maia_move: string;
+    maia_policy: string | number | null; best_move: string; trap_cp: number;
+    opponent_move: string; fell_for_it: boolean; eco: string | null;
+    opponent: string; opponent_elo: number | null; played_date: string | null;
+    tournament: string | null; color: string; opening_name: string | null;
+  }[];
+  return res.status(200).json(
+    rows.map(r => ({
+      id: r.id,
+      gameId: r.game_id,
+      ply: r.ply,
+      moveNumber: Math.floor((r.ply + 1) / 2),
+      fen: r.fen,
+      maiaMove: r.maia_move,
+      maiaPolicy: r.maia_policy === null ? undefined : Number(r.maia_policy),
+      bestMove: r.best_move,
+      trapCp: r.trap_cp,
+      opponentMove: r.opponent_move,
+      fellForIt: r.fell_for_it,
+      eco: r.eco ?? undefined,
+      game: {
+        opponent: r.opponent,
+        opponentElo: r.opponent_elo ?? undefined,
+        playedDate: r.played_date ?? undefined,
+        tournament: r.tournament ?? undefined,
+        color: r.color as 'W' | 'B',
+        openingName: r.opening_name ?? undefined,
+      },
+    }))
+  );
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
   const itemId = typeof id === 'string' ? id : undefined;
@@ -941,6 +1020,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'blunder-drills') return blunderDrills(req, res, itemId);
   if (resource === 'position-diagnostics') return positionDiagnostics(req, res);
   if (resource === 'diagnostic-chat') return diagnosticChat(req, res);
+  if (resource === 'diagnostic-aggregates') return diagnosticAggregates(req, res);
   if (resource === 'scouting-targets') return scoutingTargets(req, res, itemId);
   if (resource === 'endgame-drills') return endgameDrills(req, res, itemId);
   if (resource === 'norm-attempts') return normAttempts(req, res, itemId);
@@ -958,6 +1038,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'chess-results-pgn') return chessResultsPgn(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, position-diagnostics, diagnostic-chat, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
+      'Unknown or missing ?resource= (expected blunder-drills, position-diagnostics, diagnostic-chat, diagnostic-aggregates, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
   });
 }
