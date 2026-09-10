@@ -715,6 +715,7 @@ type ChatTurn =
 
 const CHAT_TOOL_NAME = 'evaluar';
 const ABLATION_TOOL_NAME = 'quitar_pieza';
+const FACTS_TOOL_NAME = 'rasgos';
 
 const CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una partida \
 de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, sin \
@@ -730,12 +731,23 @@ haga falta y explicá el mecanismo con eso. "No te puedo decir por qué, la eval
 me lo da" es una mala respuesta — significa que no usaste las herramientas que \
 tenés para averiguarlo.
 
-Tenés dos herramientas:
-- "${CHAT_TOOL_NAME}": evalúa una línea. Para saber cuánto vale algo.
+Tenés tres herramientas:
+- "${CHAT_TOOL_NAME}": evalúa una línea. Para saber CUÁNTO vale algo.
 - "${ABLATION_TOOL_NAME}": saca una pieza del tablero y vuelve a evaluar. Para \
   saber DE QUIÉN depende una posición. Si sacar la dama del rival cambia mucho la \
   evaluación, esa dama es el motivo; si no la cambia, no lo es. Es la forma de \
   contestar "¿es por la dama o por el desarrollo?".
+- "${FACTS_TOOL_NAME}": rasgos medidos de una posición — movilidad, peones \
+  doblados/aislados/pasados, atacantes cerca de cada rey, material. Para QUÉ HAY \
+  en la posición. Con esto podés separar una ventaja de material de una \
+  posicional, o nombrar qué cambió entre dos posiciones (pedilos en las dos y \
+  comparalos).
+
+Podés hablar de estructura, movilidad, seguridad del rey e iniciativa, pero \
+apoyado en lo que estas herramientas devuelven. Una ventaja que no se mueve con \
+el tiempo (estructura, material) y una que caduca si no se usa (desarrollo, \
+piezas mejor puestas) se distinguen midiendo: evaluá unas jugadas más adelante y \
+fijate si se sostiene.
 
 Cómo trabajar:
 - Si te pregunta por una jugada concreta ("¿y si jugaba Nc4?"), evaluala.
@@ -787,6 +799,32 @@ const ABLATION_TOOL_SCHEMA = {
   additionalProperties: false,
 };
 
+/**
+ * Rasgos posicionales medidos: movilidad, peones, presión sobre el rey, material.
+ *
+ * Existe para que el modelo pueda hablar de posición sin inventar. Una
+ * evaluación dice cuánto vale; esto dice qué hay. "Material parejo pero la eval
+ * da +1.4" es una frase que solo se puede decir teniendo las dos cosas.
+ */
+const FACTS_TOOL_DESCRIPTION =
+  'Devuelve rasgos posicionales medidos de una posición: movilidad de cada ' +
+  'bando, peones doblados, aislados y pasados, atacantes alrededor de cada rey, ' +
+  'y el balance de material. No los interpreta — eso es tu trabajo. Útil para ' +
+  'separar una ventaja material de una posicional, o para nombrar qué cambió.';
+
+const FACTS_TOOL_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    jugadas: {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'Jugadas en SAN hasta la posición. Lista vacía = la posición de partida.',
+    },
+  },
+  required: ['jugadas'],
+  additionalProperties: false,
+};
+
 const CHAT_TOOL_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -820,7 +858,7 @@ const parseToolInput = (raw: unknown): { moves: string[]; depth?: number; square
   };
 };
 
-const chatViaAnthropic = async (turns: ChatTurn[]) => {
+const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
   const client = new Anthropic();
   const messages: Anthropic.MessageParam[] = turns.map(turn => {
     if (turn.role === 'user') return { role: 'user', content: turn.text };
@@ -857,7 +895,7 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
     output_config: { effort: 'medium' },
     // El sistema y las herramientas no cambian entre vueltas del bucle:
     // cachearlos evita pagarlos una vez por evaluación.
-    system: [{ type: 'text', text: CHAT_SYSTEM, cache_control: { type: 'ephemeral' } }],
+    system: [{ type: 'text', text: CHAT_SYSTEM + concepts, cache_control: { type: 'ephemeral' } }],
     tools: [
       {
         name: CHAT_TOOL_NAME,
@@ -869,6 +907,12 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
         name: ABLATION_TOOL_NAME,
         description: ABLATION_TOOL_DESCRIPTION,
         input_schema: ABLATION_TOOL_SCHEMA,
+        strict: true,
+      },
+      {
+        name: FACTS_TOOL_NAME,
+        description: FACTS_TOOL_DESCRIPTION,
+        input_schema: FACTS_TOOL_SCHEMA,
         strict: true,
       },
     ],
@@ -892,8 +936,8 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
  * OpenAI, así que es un POST documentado, y agregar el paquete `openai` al
  * bundle de una función serverless por una sola llamada no se paga.
  */
-const chatViaXai = async (turns: ChatTurn[]) => {
-  const messages: Record<string, unknown>[] = [{ role: 'system', content: CHAT_SYSTEM }];
+const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
+  const messages: Record<string, unknown>[] = [{ role: 'system', content: CHAT_SYSTEM + concepts }];
   for (const turn of turns) {
     if (turn.role === 'user') messages.push({ role: 'user', content: turn.text });
     else if (turn.role === 'tool')
@@ -949,6 +993,14 @@ const chatViaXai = async (turns: ChatTurn[]) => {
             parameters: ABLATION_TOOL_SCHEMA,
           },
         },
+        {
+          type: 'function',
+          function: {
+            name: FACTS_TOOL_NAME,
+            description: FACTS_TOOL_DESCRIPTION,
+            parameters: FACTS_TOOL_SCHEMA,
+          },
+        },
       ],
     }),
   });
@@ -997,9 +1049,43 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
     });
   }
 
+  // Los conceptos que Lucas sacó de sus libros, si cargó alguno.
+  //
+  // Es la única forma honesta de acercarlo a "un GM explicando": no meterle
+  // conocimiento genérico de ajedrez —que lo haría hablar de memoria, justo lo
+  // que se evita acá— sino el vocabulario que él mismo extrajo de Silman, De la
+  // Villa o quien sea, con sus posiciones. Sin conceptos cargados esto es vacío
+  // y el prompt queda igual que antes.
+  let concepts = '';
+  try {
+    const rows = (await sql`
+      SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter
+        FROM concepts c LEFT JOIN books b ON b.id = c.book_id
+       WHERE c.status <> 'archivado'
+       ORDER BY c.review_count DESC NULLS LAST
+       LIMIT 40
+    `) as { name: string; category: string | null; summary: string | null; book: string | null; source_chapter: string | null }[];
+    if (rows.length > 0) {
+      concepts =
+        '\n\nConceptos que Lucas estudió, con su fuente. Usá ESTE vocabulario cuando ' +
+        'aplique: es el que él reconoce. No inventes conceptos que no estén acá.\n' +
+        rows
+          .map(
+            r =>
+              `- ${r.name}${r.category ? ` (${r.category})` : ''}: ${r.summary ?? 'sin resumen'}` +
+              `${r.book ? ` [${r.book}${r.source_chapter ? `, ${r.source_chapter}` : ''}]` : ''}`
+          )
+          .join('\n');
+    }
+  } catch {
+    // Un fallo leyendo conceptos no puede tumbar el chat: se sigue sin ellos.
+  }
+
   try {
     const reply =
-      provider === 'anthropic' ? await chatViaAnthropic(body.turns) : await chatViaXai(body.turns);
+      provider === 'anthropic'
+        ? await chatViaAnthropic(body.turns, concepts)
+        : await chatViaXai(body.turns, concepts);
     return res.status(200).json({ ...reply, provider });
   } catch (err) {
     if (err instanceof Anthropic.RateLimitError) {

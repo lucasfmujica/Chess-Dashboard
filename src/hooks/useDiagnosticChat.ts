@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { StockfishEngine } from '../engine/stockfishEngine';
+import { positionFacts } from '../engine/positionFacts';
 import { askDiagnosticChat, type ChatTurn as WireTurn } from '../api/client';
 
 /** Un turno visible del chat. Los `tool_use` y `tool_result` no se muestran. */
@@ -107,6 +108,23 @@ export const useDiagnosticChat = (fen: string) => {
    * lo único que puede separar "es mejor porque desarrolla" de "es mejor porque
    * echa a la dama", que una evaluación sola no distingue.
    */
+  /**
+   * Rasgos medidos de una posición. Sin motor: se calculan del tablero, así que
+   * son instantáneos y no compiten con las evaluaciones por la CPU.
+   */
+  const facts = useCallback(
+    (moves: string[]) => {
+      const walked = walk(moves);
+      if ('error' in walked) return walked;
+      return {
+        ...positionFacts(walked.board.fen()),
+        nota: 'movilidad = jugadas legales de cada bando. material en peones. '
+          + 'Son hechos medidos, sin interpretar.',
+      };
+    },
+    [walk]
+  );
+
   const ablate = useCallback(
     async (moves: string[], square: string, depth: number) => {
       const walked = walk(moves);
@@ -171,7 +189,12 @@ export const useDiagnosticChat = (fen: string) => {
           const results = await Promise.all(
             reply.toolCalls.map(async call => {
               const line = call.moves.length ? call.moves.join(' ') : '(la posición)';
-              const label = call.square ? `${line} sin ${call.square}` : line;
+              const label =
+                call.tool === 'rasgos'
+                  ? `rasgos de ${line}`
+                  : call.square
+                    ? `${line} sin ${call.square}`
+                    : line;
               const key = `${call.tool}|${label}|${call.depth ?? DEFAULT_DEPTH}`;
               const cached = cache.current.get(key);
               if (cached !== undefined) {
@@ -183,9 +206,11 @@ export const useDiagnosticChat = (fen: string) => {
               evaluated.push(label);
               try {
                 const out =
-                  call.square
-                    ? await ablate(call.moves, call.square, call.depth ?? DEFAULT_DEPTH)
-                    : await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
+                  call.tool === 'rasgos'
+                    ? facts(call.moves)
+                    : call.square
+                      ? await ablate(call.moves, call.square, call.depth ?? DEFAULT_DEPTH)
+                      : await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
                 cache.current.set(key, out);
                 return { id: call.id, output: JSON.stringify(out) };
               } catch (err) {
@@ -209,7 +234,7 @@ export const useDiagnosticChat = (fen: string) => {
         setThinking(false);
       }
     },
-    [evaluate, ablate]
+    [evaluate, ablate, facts]
   );
 
   /** Descarta el hilo. La posición cambió, así que el contexto ya no aplica. */
