@@ -119,6 +119,42 @@ MAIA_RATINGS = [1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900]
 
 # --- Config -----------------------------------------------------------------
 
+def connect(url: str):
+    """Conexión a Neon con keepalives.
+
+    Sin esto la corrida larga se muere: entre partida y partida pasan minutos de
+    CPU sin tocar la base, Neon cierra la conexión ociosa, y el commit siguiente
+    revienta con "SSL connection has been closed unexpectedly". Los keepalives
+    hacen que el socket siga dando señales de vida durante esos huecos.
+    """
+    return psycopg2.connect(
+        url,
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=5,
+    )
+
+
+def with_reconnect(conn, url: str, operation):
+    """Corre `operation(conn)` y, si la conexión murió, reconecta y reintenta.
+
+    Los keepalives reducen el problema pero no lo eliminan: Neon puede cerrar
+    igual, y una corrida de horas no puede perderse por eso. Reintenta una sola
+    vez — si la segunda también falla, el problema no es la conexión ociosa.
+    """
+    try:
+        return operation(conn), conn
+    except (psycopg2.OperationalError, psycopg2.InterfaceError) as err:
+        print(f"  conexión perdida ({err.__class__.__name__}), reconectando...", file=sys.stderr)
+        try:
+            conn.close()
+        except Exception:
+            pass
+        fresh = connect(url)
+        return operation(fresh), fresh
+
+
 def load_database_url() -> str:
     """DATABASE_URL del entorno; si no está, del .env.local gitignoreado."""
     url = os.environ.get("DATABASE_URL")
@@ -623,6 +659,7 @@ def run_evidence(conn, args) -> int:
 
     sf = chess.engine.SimpleEngine.popen_uci(args.stockfish_path)
     sf.configure({"Threads": args.threads, "Hash": args.hash})
+    database_url = load_database_url()
     depth = args.evidence_depth
     done = 0
     try:
@@ -655,12 +692,14 @@ def run_evidence(conn, args) -> int:
                     "after": _structure(after, me),
                 },
             }
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE position_diagnostics SET evidence = %s WHERE id = %s",
-                    (psycopg2.extras.Json(evidence), row_id),
-                )
-            conn.commit()
+            def save(c, _ev=evidence, _id=row_id):
+                with c.cursor() as cur:
+                    cur.execute(
+                        "UPDATE position_diagnostics SET evidence = %s WHERE id = %s",
+                        (psycopg2.extras.Json(_ev), _id),
+                    )
+                c.commit()
+            _, conn = with_reconnect(conn, database_url, save)
             done += 1
             print(f"[{index}/{len(rows)}] {move_played} — evidencia lista")
     except KeyboardInterrupt:
@@ -719,7 +758,13 @@ def run_drills_policy(conn, args) -> int:
 # se le pide que explique una posición por su cuenta escribe algo que suena bien
 # y suele estar mal. Todo lo que aparece en el prompt salió de un motor.
 
+# El modelo y el esfuerzo son los dos manijazos de costo, y el output domina la
+# cuenta (el pliego de hechos son ~350 tokens, la prosa con thinking ~1100).
+# Sobre las ~153 divergencias de las 51 OTB: Opus 5 ~US$4.6, Sonnet 5 ~US$2.7,
+# Haiku 4.5 ~US$0.9, y Opus con effort low ~US$1.3. Se paga una sola vez porque
+# la explicación queda cacheada en la tabla.
 EXPLAIN_MODEL = "claude-opus-5"
+EXPLAIN_EFFORT = "medium"
 
 EXPLAIN_SYSTEM = """Sos un entrenador de ajedrez escribiendo la nota al pie de un error \
 concreto, para un jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, \
@@ -849,15 +894,16 @@ def run_explain(conn, args) -> int:
         return 0
 
     client = anthropic.Anthropic()
-    print(f"{len(rows)} hallazgos a explicar con {EXPLAIN_MODEL}.")
+    print(f"{len(rows)} hallazgos a explicar con {args.explain_model} "
+          f"(effort {args.explain_effort}).")
     done = 0
     try:
         for index, row in enumerate(rows, start=1):
             message = client.messages.create(
-                model=EXPLAIN_MODEL,
+                model=args.explain_model,
                 max_tokens=8000,
                 thinking={"type": "adaptive"},
-                output_config={"effort": "medium"},
+                output_config={"effort": args.explain_effort},
                 # El sistema no cambia entre hallazgos: cachearlo evita pagarlo
                 # una vez por fila.
                 system=[{"type": "text", "text": EXPLAIN_SYSTEM,
@@ -873,7 +919,7 @@ def run_explain(conn, args) -> int:
             with conn.cursor() as cur:
                 cur.execute(
                     "UPDATE position_diagnostics SET explanation = %s, explained_with = %s WHERE id = %s",
-                    (text, EXPLAIN_MODEL, row["id"]),
+                    (text, f"{args.explain_model}/{args.explain_effort}", row["id"]),
                 )
             conn.commit()
             done += 1
@@ -1136,6 +1182,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true", help="Analizar e imprimir sin escribir en la DB.")
     p.add_argument("--source", choices=["otb", "lichess"], help="Filtrar por origen.")
     p.add_argument(
+        "--explain-model", default=EXPLAIN_MODEL,
+        help=f"Modelo para --explain (default {EXPLAIN_MODEL}). Bajar de tier es "
+             "el manijazo de costo más grande: Haiku 4.5 sale como un quinto de Opus.",
+    )
+    p.add_argument(
+        "--explain-effort", default=EXPLAIN_EFFORT,
+        choices=["low", "medium", "high", "xhigh", "max"],
+        help=f"Esfuerzo de razonamiento para --explain (default {EXPLAIN_EFFORT}). "
+             "Menos esfuerzo son menos tokens de salida, que es donde está el costo.",
+    )
+    p.add_argument(
         "--drills-policy",
         action="store_true",
         help="Pasada aparte sobre blunder_drills: guarda qué policy le da "
@@ -1213,7 +1270,8 @@ def main() -> int:
         if not Path(path).exists():
             sys.exit(f"No encuentro {label} en {path}. Ver el docstring del script para el setup.")
 
-    conn = psycopg2.connect(load_database_url())
+    database_url = load_database_url()
+    conn = connect(database_url)
     has_tables = tables_exist(conn, needs_queue=args.requested)
     if not has_tables:
         if not args.dry_run or args.requested:
@@ -1283,8 +1341,13 @@ def main() -> int:
                       f"{len(findings)} hallazgos ({time.time() - t0:.0f}s)")
             all_findings.extend(findings)
             if not args.dry_run:
-                persist(conn, row["id"], findings, evaluated, args.depth,
-                        drop_request=args.requested)
+                # El punto más frágil de la corrida: acá es donde se acumulan los
+                # minutos de silencio contra la base mientras corren los motores.
+                _, conn = with_reconnect(
+                    conn, database_url,
+                    lambda c: persist(c, row["id"], findings, evaluated, args.depth,
+                                      drop_request=args.requested),
+                )
     except KeyboardInterrupt:
         print("\nInterrumpido. Lo analizado hasta acá quedó guardado.", file=sys.stderr)
     finally:

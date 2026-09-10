@@ -68,6 +68,23 @@ interface GameViewerProps {
    */
   capture?: (position: BoardPosition) => ReactNode;
   /**
+   * Marcas que pone el slot `capture` sobre el tablero.
+   *
+   * Las flechas del visor son suyas (mejor jugada del motor + la jugada real) y
+   * se siguen calculando acá; esto se suma. Existe porque el diagnóstico sabe
+   * cosas que el tablero no puede deducir — por ejemplo qué pieza rival se
+   * volvió peligrosa, que sale de una ablación con Stockfish, no de la posición.
+   *
+   * Va como prop y no como estado interno porque quien lo sabe es el panel, y
+   * el panel se renderiza adentro de este componente: la única forma de que la
+   * información suba es que el padre la tenga.
+   */
+  marks?: {
+    arrows?: { from: string; to: string; color: string }[];
+    /** Casillas a destacar, con el color del recuadro. */
+    squares?: { square: string; color: string }[];
+  };
+  /**
    * Grow the board on large viewports instead of staying fixed at 460px.
    * Only safe when the parent gives the board room to grow (the full
    * Analysis Board page) — the game-replay modal stays at the compact size.
@@ -113,6 +130,7 @@ const GameViewer = ({
   showEngine = false,
   wide = false,
   capture,
+  marks,
 }: GameViewerProps) => {
   const replay = useGameReplay(pgn);
   const {
@@ -196,8 +214,13 @@ const GameViewer = ({
         styles[sq] = { background: 'radial-gradient(circle, rgb(var(--board-highlight) / 0.5) 22%, transparent 25%)' };
       });
     }
+    // Las marcas del panel van después: si el usuario tiene una casilla
+    // seleccionada, lo que está haciendo ahora gana sobre el diagnóstico.
+    marks?.squares?.forEach(({ square, color }) => {
+      if (!styles[square]) styles[square] = { boxShadow: `inset 0 0 0 3px ${color}` };
+    });
     return styles;
-  }, [selectedSquare, legalTargets]);
+  }, [selectedSquare, legalTargets, marks]);
 
   // `sideToMove` still reflects the promoting side here — `fen` hasn't
   // changed yet while the picker is up, since the move isn't played until
@@ -325,8 +348,11 @@ const GameViewer = ({
     if (playedUci) {
       list.push({ startSquare: playedUci.slice(0, 2), endSquare: playedUci.slice(2, 4), color: 'rgb(var(--fg-muted) / 0.55)' });
     }
+    marks?.arrows?.forEach(a =>
+      list.push({ startSquare: a.from, endSquare: a.to, color: a.color })
+    );
     return list;
-  }, [engineState.lines, showEngine, engineOn, playedUci]);
+  }, [engineState.lines, showEngine, engineOn, playedUci, marks]);
 
   // Eval bar — prefer the live engine (reflects the exact position you're on,
   // including variations); fall back to the full-game batch analysis, which

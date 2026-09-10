@@ -48,6 +48,22 @@ export interface MaiaRung {
   playedIsTop: boolean;
 }
 
+/**
+ * Una pieza rival que se volvió más peligrosa por culpa de mi jugada.
+ *
+ * Sale de una ablación: se saca la pieza del tablero antes y después de la
+ * jugada y se compara cuánto mejora la evaluación en cada caso. La diferencia
+ * de las diferencias cancela el valor material de la pieza y deja solo cuánto
+ * MÁS estorba después. No es deducible mirando la posición.
+ */
+export interface Culprit {
+  /** Símbolo FEN de la pieza, ej. "B" o "q". */
+  piece: string;
+  square: string;
+  /** Centipeones de culpa: cuánto más estorba después que antes. */
+  blameCp: number;
+}
+
 export interface PositionDiagnostic {
   id: string;
   gameId: string;
@@ -74,6 +90,8 @@ export interface PositionDiagnostic {
   maiaLadder?: MaiaRung[];
   /** Prosa generada a partir de la evidencia de motores. Ver migración 004. */
   explanation?: string;
+  /** Piezas rivales que la jugada activó, de mayor a menor culpa. */
+  culprits?: Culprit[];
   createdAt: number;
 }
 

@@ -1,4 +1,5 @@
-import { BeakerIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+import { BeakerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import { usePositionDiagnostics } from '../../../../hooks/usePositionDiagnostics';
 import type { BoardPosition } from '../../GameViewer';
@@ -8,10 +9,21 @@ import type {
   PositionDiagnostic,
 } from '../../../../types/diagnostics';
 
+export interface BoardMarks {
+  arrows?: { from: string; to: string; color: string }[];
+  squares?: { square: string; color: string }[];
+}
+
 interface DiagnosticsPanelProps {
   position: BoardPosition;
   /** `games.id` de la partida abierta. Sin él no hay nada que pedir ni mostrar. */
   gameId?: string;
+  /**
+   * Sube al tablero la jugada que quería el motor y las piezas culpables. El
+   * panel se renderiza adentro de GameViewer, así que la única forma de pintar
+   * el tablero es que el padre sostenga esto.
+   */
+  onMarks?: (marks: BoardMarks) => void;
 }
 
 const CATEGORY_LABEL: Record<DiagnosticCategory, string> = {
@@ -102,13 +114,45 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
  * posición ANTERIOR, o sea el ply N-1 del replay: por eso "Ver en el tablero"
  * navega a `ply - 1` y el detalle se abre cuando el tablero está justo ahí.
  */
-const DiagnosticsPanel = ({ position, gameId }: DiagnosticsPanelProps) => {
+const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) => {
   const { diagnostics, run, state, loading, error, request } = usePositionDiagnostics(gameId);
-
-  if (!gameId) return null;
+  // Las tres líneas de Stockfish son la evidencia, no la respuesta: plegadas por
+  // defecto para que la explicación no quede sepultada bajo una pared de cifras.
+  const [showLines, setShowLines] = useState(false);
 
   const atDecisionPoint = (d: PositionDiagnostic) => position.ply === d.ply - 1;
   const current = diagnostics.find(atDecisionPoint);
+
+  // Pintar el tablero cuando el usuario llega a una posición diagnosticada, y
+  // limpiarlo cuando se va. Depende del id y no del objeto, que se re-crea en
+  // cada fetch y volvería a disparar esto sin que haya cambiado nada.
+  const currentId = current?.id;
+  useEffect(() => {
+    if (!onMarks) return;
+    if (!current) {
+      onMarks({});
+      return;
+    }
+    onMarks({
+      arrows: current.sfTop3[0]
+        ? [
+            {
+              from: current.sfTop3[0].moveUci.slice(0, 2),
+              to: current.sfTop3[0].moveUci.slice(2, 4),
+              color: 'rgb(var(--win) / 0.75)',
+            },
+          ]
+        : [],
+      // La pieza más culpable primero, con el recuadro más fuerte.
+      squares: (current.culprits ?? []).map((c, i) => ({
+        square: c.square,
+        color: `rgb(var(--loss) / ${(0.75 - i * 0.2).toFixed(2)})`,
+      })),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentId, onMarks]);
+
+  if (!gameId) return null;
 
   return (
     <div className="rounded-lg border border-hairline bg-surface-2 p-3 space-y-3">
@@ -180,11 +224,26 @@ const DiagnosticsPanel = ({ position, gameId }: DiagnosticsPanelProps) => {
             </dt>
             <dd className="text-fg font-medium">{current.maiaTopMove}</dd>
           </dl>
-          <div className="pt-1 border-t border-hairline">
-            <p className="text-xs text-fg-subtle mb-1">
-              Stockfish · la mejor tiene {pct(current.maiaPolicySfTop)} de policy en Maia
+          {current.culprits && current.culprits.length > 0 && (
+            <p className="text-xs text-fg-muted">
+              Marcado en rojo lo que tu jugada activó:{' '}
+              {current.culprits.map(c => `${c.piece} en ${c.square}`).join(', ')}. En verde, la
+              jugada del motor.
             </p>
-            <ol className="space-y-1.5">
+          )}
+
+          <div className="pt-1 border-t border-hairline">
+            <button
+              type="button"
+              onClick={() => setShowLines(v => !v)}
+              className="flex w-full items-center gap-1 text-xs text-fg-subtle hover:text-fg"
+            >
+              <ChevronRightIcon
+                className={`w-3 h-3 transition-transform ${showLines ? 'rotate-90' : ''}`}
+              />
+              Stockfish · la mejor tiene {pct(current.maiaPolicySfTop)} de policy en Maia
+            </button>
+            <ol className={`space-y-1.5 ${showLines ? 'mt-1.5' : 'hidden'}`}>
               {current.sfTop3.map(c => (
                 <li key={c.rank} className="text-xs">
                   <div className="flex justify-between gap-2">

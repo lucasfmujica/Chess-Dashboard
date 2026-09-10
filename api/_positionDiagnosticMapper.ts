@@ -26,6 +26,10 @@ export interface PositionDiagnosticRow {
     played_is_top: boolean;
   }> | null;
   explanation: string | null;
+  /** Ver migración 004. Solo se expone `culprits`: el resto alimenta la prosa. */
+  evidence: {
+    culprits?: { piece: string; square: string; blame_cp: number }[];
+  } | null;
   created_at: string;
 }
 
@@ -66,5 +70,12 @@ export const rowToPositionDiagnostic = (row: PositionDiagnosticRow) => ({
         .sort((a, b) => a.rating - b.rating)
     : undefined,
   explanation: row.explanation ?? undefined,
+  // Qué pieza rival se volvió peligrosa por culpa de la jugada, medido sacándola
+  // del tablero. Es lo que se pinta sobre las casillas.
+  culprits: row.evidence?.culprits?.map(c => ({
+    piece: c.piece,
+    square: c.square,
+    blameCp: c.blame_cp,
+  })),
   createdAt: new Date(row.created_at).getTime(),
 });

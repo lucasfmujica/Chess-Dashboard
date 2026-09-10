@@ -4,7 +4,7 @@ import { Badge, Button } from '../../../ui';
 import GameViewer from '../../GameViewer';
 import ConceptLinkPicker from '../../ConceptLinkPicker';
 import CaptureMomentPanel from './CaptureMomentPanel';
-import DiagnosticsPanel from './DiagnosticsPanel';
+import DiagnosticsPanel, { type BoardMarks } from './DiagnosticsPanel';
 import KeyMomentsList from './KeyMomentsList';
 import { addMoment, removeMoment, setCriticalMoment, updateMoment } from './moments';
 import { ERROR_TYPE_OPTIONS, TAGS } from './annotationMeta';
@@ -51,6 +51,13 @@ const AnnotationForm = ({
    * re-renders once it exists and can show its "Ver en el tablero" buttons.
    */
   const [goToPly, setGoToPly] = useState<((ply: number) => void) | undefined>();
+
+  /**
+   * Lo que el diagnóstico quiere pintar en el tablero. Vive acá porque el panel
+   * que lo sabe se renderiza dentro del visor: la información tiene que subir
+   * hasta el padre común para poder bajar como prop.
+   */
+  const [marks, setMarks] = useState<BoardMarks>({});
   // Stored as a thunk: React would otherwise call a function passed to a setter.
   const handleNavigate = useCallback((goTo: (ply: number) => void) => setGoToPly(() => goTo), []);
 
@@ -82,6 +89,7 @@ const AnnotationForm = ({
             black={linkedGame ? (linkedGame.color === 'W' ? linkedGame.opp : 'Vos') : 'Negras'}
             result={draft.result}
             showEngine
+            marks={marks}
             capture={position => (
               <div className="space-y-3">
                 <CaptureMomentPanel
@@ -93,7 +101,11 @@ const AnnotationForm = ({
                 {/* El diagnóstico de motores va debajo de la captura: la
                     anotación es lo que uno escribe, esto es lo que el cruce
                     Stockfish/Maia encontró en la misma posición. */}
-                <DiagnosticsPanel position={position} gameId={linkedGame?.id} />
+                <DiagnosticsPanel
+                  position={position}
+                  gameId={linkedGame?.id}
+                  onMarks={setMarks}
+                />
               </div>
             )}
           />
