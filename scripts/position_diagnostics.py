@@ -1159,7 +1159,14 @@ def _narrator(args):
         model = args.explain_model or XAI_MODEL
         # La API de xAI es compatible con la de OpenAI, así que se usa ese SDK
         # apuntado a su base URL. No sirve el de Anthropic.
-        client = OpenAI(api_key=os.environ["XAI_API_KEY"], base_url=XAI_BASE_URL)
+        # Timeout y reintentos explícitos: son 88 llamadas seguidas, y sin
+        # tope una sola colgada frena la pasada entera sin decir nada.
+        client = OpenAI(
+            api_key=os.environ["XAI_API_KEY"],
+            base_url=XAI_BASE_URL,
+            timeout=180.0,
+            max_retries=3,
+        )
 
         def generate(system: str, prompt: str) -> str | None:
             completion = client.chat.completions.create(
@@ -1187,7 +1194,7 @@ def _narrator(args):
             "en .env.example) o exportala en el entorno."
         )
     model = args.explain_model or EXPLAIN_MODEL
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(timeout=180.0, max_retries=3)
 
     def generate(system: str, prompt: str) -> str | None:
         message = client.messages.create(

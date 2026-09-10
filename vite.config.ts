@@ -17,6 +17,13 @@ export default defineConfig({
       // Local stand-in for Vercel's serverless functions; see scripts/dev-api-server.mts.
       '/api': 'http://localhost:3001',
     },
+    watch: {
+      // Ship Studio guarda sus capturas de pantalla acá dentro. Sin esto, sacar
+      // una captura escribe un archivo en el proyecto, Vite lo ve y recarga la
+      // página — o sea que la herramienta que sirve para mirar la app rompe lo
+      // que estabas mirando.
+      ignored: ['**/.shipstudio/**'],
+    },
     // Cross-origin isolation, required for the multi-threaded Stockfish WASM
     // build to use SharedArrayBuffer. Mirrored in vercel.json for prod.
     headers: {

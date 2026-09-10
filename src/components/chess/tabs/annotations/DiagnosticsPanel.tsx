@@ -300,6 +300,7 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
             <button
               type="button"
               onClick={() => setShowLines(v => !v)}
+              aria-expanded={showLines}
               className="flex w-full items-center gap-1 text-xs text-fg-subtle hover:text-fg"
             >
               <ChevronRightIcon
@@ -307,7 +308,8 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               />
               Stockfish · la mejor tiene {pct(current.maiaPolicySfTop)} de policy en Maia
             </button>
-            <ol className={`space-y-1.5 ${showLines ? 'mt-1.5' : 'hidden'}`}>
+            {showLines && (
+            <ol className="mt-1.5 space-y-1.5">
               {current.sfTop3.map(c => (
                 <li key={c.rank} className="text-xs">
                   <div className="flex justify-between gap-2">
@@ -329,6 +331,7 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
                 </li>
               ))}
             </ol>
+            )}
           </div>
           {current.maiaLadder && current.maiaLadder.length > 0 && (
             <MaiaLadder rungs={current.maiaLadder} />
