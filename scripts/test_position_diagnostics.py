@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import chess
 import chess.pgn
-import position_diagnostics as pd
+import diagnostics as pd
 
 # python-chess loguea cada SAN ilegal que encuentra. El parser los provoca a
 # propósito —así detecta que una lectura quedó sucia y reintenta— así que en los

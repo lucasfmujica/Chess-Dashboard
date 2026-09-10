@@ -60,56 +60,42 @@ donde quedó la anterior.
 Costo medido: ~5.6s por posición a profundidad 20 en un M2 Pro, y hay 14.888
 posiciones mías en las 491 partidas con PGN. Las 51 OTB son ~2.5h, el corpus
 completo ~23h.
+
+Este archivo es solo el entrypoint: el parser y el despacho de cada pasada. El
+código vive en scripts/diagnostics/ — `rules` los umbrales, `analysis` la pasada
+principal, y un módulo por cada una de las otras pasadas.
 """
 
 from __future__ import annotations
 
 import argparse
-import io
-import json
 import os
-import re
-import subprocess
 import sys
 import time
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
-import chess
 import chess.engine
-import chess.pgn
-import psycopg2
-import psycopg2.extras
 
 from diagnostics.analysis import Finding, analyze_game
 from diagnostics.config import (
-    REPO_ROOT, connect, env_from_dotenv, load_api_keys, load_database_url,
-    with_reconnect,
+    REPO_ROOT, connect, load_api_keys, load_database_url, with_reconnect,
 )
 from diagnostics.engines import MaiaEngine, engine_id
 from diagnostics.evidence import EVIDENCE_DEPTH, run_evidence
 from diagnostics.explain import (
     EXPLAIN_EFFORT, EXPLAIN_MODEL, XAI_MODEL, run_explain, run_patterns,
 )
-# _structure: andamio para el test, igual que _POLICY_RE. Se va en el paso final.
-from diagnostics.evidence import _structure  # noqa: F401
-# _POLICY_RE: andamio para que el test lo siga viendo por acá. Se va en el
-# paso final, cuando el test pase a importar el paquete.
-from diagnostics.engines import _POLICY_RE  # noqa: F401
 from diagnostics.maia_passes import run_drills_policy, run_ladder
-from diagnostics.pgn import parse_moves, sanitize_pgn
 from diagnostics.rules import (
-    BRECHA_MIN_CP_LOSS, CP_LOSS_CAP, DEFAULT_DEPTH, ERROR_PROPIO_MIN_CP_LOSS,
-    EVAL_CEILING_CP, FIRST_FULLMOVE, INHUMAN_MAX_CP_LOSS, INHUMAN_MIN_CP_LOSS,
-    INHUMAN_POLICY, MAIA_RATINGS, MATE_SCORE, MULTIPV, PV_PLIES,
-    classify, classifier_id,
+    DEFAULT_DEPTH, INHUMAN_MAX_CP_LOSS, INHUMAN_MIN_CP_LOSS, classifier_id,
 )
 from diagnostics.store import (
     already_done, clear_request, fetch_games, persist, print_summary,
     request_forces, tables_exist,
 )
 from diagnostics.traps import run_traps
+
+
 # --- Main -------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
