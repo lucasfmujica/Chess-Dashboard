@@ -18,6 +18,14 @@ export interface PositionDiagnosticRow {
   maia_policy_played: string | number | null;
   maia_policy_sf_top: string | number | null;
   category: 'brecha_conceptual' | 'jugada_inhumana' | 'error_propio';
+  /** {"1100": {played, sf_top, top_move, played_is_top}, ...} — ratings de Lichess. */
+  maia_ladder: Record<string, {
+    played: number;
+    sf_top: number | null;
+    top_move: string;
+    played_is_top: boolean;
+  }> | null;
+  explanation: string | null;
   created_at: string;
 }
 
@@ -46,5 +54,17 @@ export const rowToPositionDiagnostic = (row: PositionDiagnosticRow) => ({
   maiaPolicyPlayed: toNumber(row.maia_policy_played),
   maiaPolicySfTop: toNumber(row.maia_policy_sf_top),
   category: row.category,
+  maiaLadder: row.maia_ladder
+    ? Object.entries(row.maia_ladder)
+        .map(([rating, step]) => ({
+          rating: Number(rating),
+          played: step.played,
+          sfTop: step.sf_top ?? undefined,
+          topMove: step.top_move,
+          playedIsTop: step.played_is_top,
+        }))
+        .sort((a, b) => a.rating - b.rating)
+    : undefined,
+  explanation: row.explanation ?? undefined,
   createdAt: new Date(row.created_at).getTime(),
 });

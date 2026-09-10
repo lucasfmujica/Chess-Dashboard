@@ -2,7 +2,11 @@ import { BeakerIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import { usePositionDiagnostics } from '../../../../hooks/usePositionDiagnostics';
 import type { BoardPosition } from '../../GameViewer';
-import type { DiagnosticCategory, PositionDiagnostic } from '../../../../types/diagnostics';
+import type {
+  DiagnosticCategory,
+  MaiaRung,
+  PositionDiagnostic,
+} from '../../../../types/diagnostics';
 
 interface DiagnosticsPanelProps {
   position: BoardPosition;
@@ -37,6 +41,58 @@ const CATEGORY_HINT: Record<DiagnosticCategory, string> = {
 const pct = (value?: number) => (value === undefined ? '—' : `${(value * 100).toFixed(1)}%`);
 
 const evalLabel = (cp: number) => `${cp > 0 ? '+' : ''}${(cp / 100).toFixed(2)}`;
+
+/**
+ * La escalera de Maia como una tira de escalones, 1100 a 1900.
+ *
+ * Un escalón lleno significa que a ese nivel mi jugada sigue siendo la primera
+ * opción. Dónde se corta la racha es la lectura: si se corta abajo, el error ya
+ * no se comete a niveles menores y es un descuido mío. Si llega entera hasta
+ * 1900, es un hábito compartido por toda la banda de justo debajo mío.
+ *
+ * Son ratings de LICHESS: 1900 acá es del orden de 1750-1800 FIDE, así que la
+ * escalera no dice nada sobre lo que haría alguien por encima de eso.
+ */
+const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
+  const stillPlayed = rungs.filter(r => r.playedIsTop);
+  const highest = stillPlayed.length ? Math.max(...stillPlayed.map(r => r.rating)) : undefined;
+  const lowest = stillPlayed.length ? Math.min(...stillPlayed.map(r => r.rating)) : undefined;
+
+  return (
+    <div className="pt-1 border-t border-hairline">
+      <p className="text-xs text-fg-subtle mb-1">
+        ¿A qué nivel se sigue jugando tu jugada?{' '}
+        <span title="Maia usa rating de Lichess, no FIDE">(rating de Lichess)</span>
+      </p>
+      <div className="flex gap-0.5">
+        {rungs.map(rung => (
+          <div
+            key={rung.rating}
+            title={`${rung.rating}: ${
+              rung.playedIsTop ? 'tu jugada es su primera opción' : `juega ${rung.topMove}`
+            } — policy ${(rung.played * 100).toFixed(1)}%`}
+            className={`flex-1 rounded-sm text-center text-[10px] leading-4 ${
+              rung.playedIsTop ? 'bg-loss/25 text-fg' : 'bg-surface text-fg-subtle'
+            }`}
+          >
+            {String(rung.rating).slice(0, 2)}
+          </div>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-fg-muted">
+        {highest === undefined ? (
+          <>Ningún nivel de Maia juega esto: es un error tuyo, no del nivel.</>
+        ) : highest === 1900 && lowest === 1100 ? (
+          <>Se juega en toda la escalera, de 1100 a 1900: es un hábito de la banda entera.</>
+        ) : highest === 1900 ? (
+          <>Se sigue jugando hasta arriba de la escalera (desde {lowest}).</>
+        ) : (
+          <>Deja de jugarse a partir de {highest + 100}: por encima de ese nivel ya no se comete.</>
+        )}
+      </p>
+    </div>
+  );
+};
 
 /**
  * Diagnóstico de la partida sobre el tablero.
@@ -106,6 +162,13 @@ const DiagnosticsPanel = ({ position, gameId }: DiagnosticsPanelProps) => {
             <span className="text-xs text-fg-muted">−{current.cpLoss}cp</span>
           </div>
           <p className="text-xs text-fg-muted">{CATEGORY_HINT[current.category]}</p>
+          {/* La explicación primero: es la respuesta a "por qué", y los números
+              de abajo son la evidencia que la sostiene. */}
+          {current.explanation && (
+            <p className="rounded border-l-2 border-accent/40 bg-surface/60 py-1.5 pl-2 text-xs leading-relaxed text-fg">
+              {current.explanation}
+            </p>
+          )}
           <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
             <dt className="text-fg-subtle">Jugaste</dt>
             <dd className="text-fg font-medium">
@@ -144,6 +207,9 @@ const DiagnosticsPanel = ({ position, gameId }: DiagnosticsPanelProps) => {
               ))}
             </ol>
           </div>
+          {current.maiaLadder && current.maiaLadder.length > 0 && (
+            <MaiaLadder rungs={current.maiaLadder} />
+          )}
         </div>
       )}
 

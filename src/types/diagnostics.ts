@@ -31,6 +31,23 @@ export interface SfCandidate {
  */
 export type DiagnosticCategory = 'brecha_conceptual' | 'jugada_inhumana' | 'error_propio';
 
+/**
+ * Un escalón de la escalera de Maia: la misma posición vista por el modelo de
+ * ese rating. `rating` es escala de LICHESS — 1900 acá es del orden de
+ * 1750-1800 FIDE, o sea que la escalera termina algo por debajo de 1880 FIDE.
+ */
+export interface MaiaRung {
+  rating: number;
+  /** Probabilidad 0..1 que este nivel le da a la jugada que jugué. */
+  played: number;
+  /** Probabilidad que le da a la jugada top de Stockfish. */
+  sfTop?: number;
+  /** Lo que este nivel jugaría. */
+  topMove: string;
+  /** Si a este nivel mi jugada sigue siendo la primera opción. */
+  playedIsTop: boolean;
+}
+
 export interface PositionDiagnostic {
   id: string;
   gameId: string;
@@ -49,6 +66,14 @@ export interface PositionDiagnostic {
   /** Probabilidad 0..1 que Maia-1900 le da a la jugada top de Stockfish. */
   maiaPolicySfTop?: number;
   category: DiagnosticCategory;
+  /**
+   * Los nueve modelos de Maia sobre esta posición, de 1100 a 1900. Sitúa el
+   * error en la curva humana: si a 1100 ya no se juega es un descuido, si
+   * persiste hasta arriba es un hábito de toda la banda.
+   */
+  maiaLadder?: MaiaRung[];
+  /** Prosa generada a partir de la evidencia de motores. Ver migración 004. */
+  explanation?: string;
   createdAt: number;
 }
 
