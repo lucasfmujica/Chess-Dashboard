@@ -12,6 +12,7 @@ import type {
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
 import type { DiagnosticRequest, DiagnosticsStatus, PositionDiagnostic } from '../types/diagnostics';
+import type { ContentBlock as ChatContentBlock } from '@anthropic-ai/sdk/resources/messages';
 import type { MinedEndgame, EndgameDrill } from '../types/endgames';
 import type { NormAttempt, NormThresholds } from '../types/norms';
 import type {
@@ -194,6 +195,17 @@ export const requestPositionDiagnostics = (gameId: string, force = false) =>
     method: 'POST',
     body: JSON.stringify({ gameId, force }),
   });
+/**
+ * Una vuelta del chat sobre una posición. El endpoint es un proxy sin estado:
+ * el historial lo sostiene el cliente, porque el bucle de herramientas corre
+ * acá — el motor que contesta es el Stockfish del navegador.
+ */
+export const askDiagnosticChat = (messages: unknown[]) =>
+  apiFetch<{ content: ChatContentBlock[]; stopReason: string | null }>(
+    '/prep?resource=diagnostic-chat',
+    { method: 'POST', body: JSON.stringify({ messages }) }
+  );
+
 export const cancelPositionDiagnostics = (gameId: string) =>
   apiFetch<{ ok: true }>(
     `/prep?resource=position-diagnostics&gameId=${encodeURIComponent(gameId)}`,

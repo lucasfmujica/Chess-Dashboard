@@ -8,6 +8,7 @@ import {
   rowToPositionDiagnostic,
   type PositionDiagnosticRow,
 } from './_positionDiagnosticMapper.js';
+import Anthropic from '@anthropic-ai/sdk';
 import {
   trainingSessions,
   trainingAttempts,
@@ -651,12 +652,140 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
   return res.status(405).json({ error: 'Method not allowed' });
 };
 
+/**
+ * Preguntas sobre una posición diagnosticada, contestadas con motor.
+ *
+ * Un chat pelado sobre un FEN es peor que nada: el modelo contesta con
+ * seguridad y se equivoca seguido, que es exactamente lo que todo el resto de
+ * este pipeline está diseñado para evitar. Acá el modelo NO analiza: pide
+ * evaluaciones y contesta con lo que vuelve.
+ *
+ * Quien corre el motor es el NAVEGADOR — la app ya tiene Stockfish en WASM, y
+ * una función de Vercel no puede tener uno. Así que el bucle de herramientas lo
+ * maneja el cliente y este endpoint es un proxy sin estado: recibe el historial
+ * completo, llama al modelo, y devuelve la respuesta cruda. Si viene un
+ * `tool_use`, el navegador evalúa, agrega el `tool_result` y vuelve a llamar.
+ *
+ * El historial llega del cliente, así que es texto que el usuario controla. En
+ * una app de un solo usuario detrás de API_SECRET eso es aceptable; en una
+ * multiusuario habría que validarlo.
+ */
+const DIAGNOSTIC_CHAT_MODEL = 'claude-opus-5';
+
+const DIAGNOSTIC_CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una \
+partida de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, \
+sin solemnidad y sin dar clase.
+
+REGLA CENTRAL, por encima de todo: no analizás ajedrez de tu cabeza. Para \
+cualquier afirmación sobre si una jugada es buena, mala, o qué pasa después, \
+usás la herramienta "evaluar" y contestás con lo que devuelve. Si no evaluaste, \
+no lo afirmás.
+
+Cómo trabajar:
+- Si te pregunta por una jugada concreta ("¿y si jugaba Nc4?"), evaluala.
+- Si querés comparar, evaluá las dos y decí la diferencia en peones.
+- Podés encadenar varias evaluaciones antes de contestar. Es barato.
+- Una evaluación vuelve desde el lado del que mueve en ESA posición. Fijate de \
+  quién es el turno antes de decir si es buena o mala para Lucas.
+- Si la pregunta no se puede contestar evaluando (por ejemplo, sobre qué pensaba \
+  el rival), decilo en vez de inventar.
+
+Respuestas de 1 a 3 oraciones. Texto plano, sin markdown ni viñetas. Cuando cites \
+una evaluación, dala en peones con un decimal, no en centipeones.`;
+
+const DIAGNOSTIC_CHAT_TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'evaluar',
+    description:
+      'Evalúa una línea con Stockfish partiendo de la posición del diagnóstico. ' +
+      'Devuelve la evaluación en centipeones desde el lado que mueve en la ' +
+      'posición resultante, y la mejor respuesta del motor. Pasá lista vacía ' +
+      'para evaluar la posición de partida tal cual.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        jugadas: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Jugadas en SAN desde la posición del diagnóstico, en orden, ' +
+            'alternando bandos. Ej: ["Nc4", "Qb3", "Nxb2"].',
+        },
+        profundidad: {
+          type: 'integer',
+          description: 'Profundidad de búsqueda, 12 a 22. Por defecto 18.',
+        },
+      },
+      required: ['jugadas'],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+];
+
+const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  if (!requireApiKey(req, res)) return;
+
+  // La forma del pedido se valida antes que la config del servidor: un cliente
+  // que manda cualquier cosa tiene que enterarse de eso, no de que falta una
+  // variable de entorno.
+  const body = (req.body ?? {}) as { messages?: Anthropic.MessageParam[] };
+  if (!Array.isArray(body.messages) || body.messages.length === 0) {
+    return res.status(400).json({ error: 'messages is required' });
+  }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(503).json({
+      error:
+        'ANTHROPIC_API_KEY no está configurada. Agregala en las variables de ' +
+        'entorno del proyecto (y en .env.local para desarrollo).',
+    });
+  }
+
+  const client = new Anthropic();
+  try {
+    const message = await client.messages.create({
+      model: DIAGNOSTIC_CHAT_MODEL,
+      max_tokens: 8000,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: 'medium' },
+      system: [
+        {
+          type: 'text',
+          text: DIAGNOSTIC_CHAT_SYSTEM,
+          // El sistema y las herramientas no cambian entre vueltas del bucle:
+          // cachearlos evita pagarlos una vez por evaluación.
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      tools: DIAGNOSTIC_CHAT_TOOLS,
+      messages: body.messages,
+    });
+    return res.status(200).json({
+      content: message.content,
+      stopReason: message.stop_reason,
+    });
+  } catch (err) {
+    if (err instanceof Anthropic.RateLimitError) {
+      return res.status(429).json({ error: 'El modelo está saturado, probá en un momento.' });
+    }
+    if (err instanceof Anthropic.APIError) {
+      return res.status(502).json({ error: `Error del modelo (${err.status})` });
+    }
+    throw err;
+  }
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
   const itemId = typeof id === 'string' ? id : undefined;
 
   if (resource === 'blunder-drills') return blunderDrills(req, res, itemId);
   if (resource === 'position-diagnostics') return positionDiagnostics(req, res);
+  if (resource === 'diagnostic-chat') return diagnosticChat(req, res);
   if (resource === 'scouting-targets') return scoutingTargets(req, res, itemId);
   if (resource === 'endgame-drills') return endgameDrills(req, res, itemId);
   if (resource === 'norm-attempts') return normAttempts(req, res, itemId);
@@ -674,6 +803,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (resource === 'chess-results-pgn') return chessResultsPgn(req, res);
   return res.status(400).json({
     error:
-      'Unknown or missing ?resource= (expected blunder-drills, position-diagnostics, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
+      'Unknown or missing ?resource= (expected blunder-drills, position-diagnostics, diagnostic-chat, scouting-targets, endgame-drills, norm-attempts, norm-thresholds, training-sessions, training-attempts, books, concepts, repertoire-moves, homework, tournaments, model-games, chess-results, chess-results-card, or chess-results-pgn)',
   });
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BeakerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import { usePositionDiagnostics } from '../../../../hooks/usePositionDiagnostics';
+import { useDiagnosticChat } from '../../../../hooks/useDiagnosticChat';
 import type { BoardPosition } from '../../GameViewer';
 import type {
   DiagnosticCategory,
@@ -114,6 +115,69 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
  * posición ANTERIOR, o sea el ply N-1 del replay: por eso "Ver en el tablero"
  * navega a `ply - 1` y el detalle se abre cuando el tablero está justo ahí.
  */
+
+/**
+ * Preguntas sobre esta posición, contestadas con el Stockfish del navegador.
+ *
+ * Se monta con `key` por diagnóstico, así que cambiar de posición descarta el
+ * hilo en vez de arrastrar un contexto que ya no aplica.
+ *
+ * Muestra qué líneas evaluó para contestar. No es decoración: el modelo tiene
+ * prohibido analizar de su cabeza, y esa lista es la única forma de ver si
+ * cumplió.
+ */
+const PositionChat = ({ diagnostic }: { diagnostic: PositionDiagnostic }) => {
+  const { turns, thinking, error, ask } = useDiagnosticChat(diagnostic.fen);
+  const [draft, setDraft] = useState('');
+
+  const context = [
+    `Posición (FEN): ${diagnostic.fen}`,
+    `Lucas jugó ${diagnostic.movePlayed} y perdió ${diagnostic.cpLoss} centipeones.`,
+    `Stockfish quería ${diagnostic.sfTop3[0]?.moveSan}${
+      diagnostic.sfTop3[0]?.line ? ` (${diagnostic.sfTop3[0].line})` : ''
+    }.`,
+    `Maia-1900 juega ${diagnostic.maiaTopMove}.`,
+  ].join('\n');
+
+  const send = () => {
+    const question = draft.trim();
+    if (!question || thinking) return;
+    setDraft('');
+    void ask(question, context);
+  };
+
+  return (
+    <div className="pt-2 border-t border-hairline space-y-2">
+      {turns.map((t, i) => (
+        <div key={i} className={t.role === 'user' ? 'text-xs text-fg-muted' : 'text-xs text-fg'}>
+          <span className="text-fg-subtle">{t.role === 'user' ? 'Vos: ' : ''}</span>
+          {t.text}
+          {t.evaluated && t.evaluated.length > 0 && (
+            <p className="mt-0.5 font-mono text-[10px] text-fg-subtle">
+              evaluó: {t.evaluated.join(' · ')}
+            </p>
+          )}
+        </div>
+      ))}
+      {thinking && <p className="text-xs text-fg-subtle">Evaluando con Stockfish…</p>}
+      {error && <p className="text-xs text-loss">{error}</p>}
+      <div className="flex gap-1.5">
+        <input
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+          placeholder="¿Y si jugaba otra cosa?"
+          aria-label="Preguntar sobre esta posición"
+          className="min-w-0 flex-1 rounded border border-hairline bg-surface px-2 py-1 text-xs text-fg placeholder-fg-subtle focus:border-accent focus:outline-none"
+        />
+        <Button size="sm" onClick={send} disabled={thinking || !draft.trim()}>
+          Preguntar
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) => {
   const { diagnostics, run, state, loading, error, request } = usePositionDiagnostics(gameId);
   // Las tres líneas de Stockfish son la evidencia, no la respuesta: plegadas por
@@ -269,6 +333,8 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           {current.maiaLadder && current.maiaLadder.length > 0 && (
             <MaiaLadder rungs={current.maiaLadder} />
           )}
+
+          <PositionChat key={current.id} diagnostic={current} />
         </div>
       )}
 
