@@ -762,6 +762,11 @@ Cómo trabajar:
   usá la ablación sobre las piezas candidatas para aislar el motivo.
 - NO repitas evaluaciones. Si ya mediste una línea en esta conversación, el \
   resultado sigue ahí arriba: usalo en vez de volver a pedirlo.
+- Tenés presupuesto. Apuntá a contestar en dos o tres tandas de mediciones, no \
+  en ocho. Medí lo que decide la respuesta y dejá el resto: una respuesta buena \
+  apoyada en seis mediciones vale más que una perfecta que nunca llega. Si la \
+  pregunta trae varias partes ("por qué es mejor, qué ventajas da, qué planes \
+  hay"), contestá la que se puede medir y decí en una frase cuál no.
 - Una evaluación vuelve desde el lado del que mueve en ESA posición. Fijate de \
   quién es el turno antes de decir si es buena o mala para Lucas.
 - Si de verdad no se puede contestar con las herramientas (por ejemplo, qué \

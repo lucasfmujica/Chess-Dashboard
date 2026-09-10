@@ -31,7 +31,16 @@ const MIN_DEPTH = 10;
  * cambian la respuesta.
  */
 const MAX_PER_ROUND = 8;
-/** Tope de vueltas del bucle: un modelo en loop no puede colgar el navegador. */
+/**
+ * Vueltas antes de exigir una respuesta.
+ *
+ * En la anteúltima se le avisa que se quedó sin mediciones y que conteste con lo
+ * que tiene. Antes el tope simplemente cortaba y devolvía "probá algo más
+ * concreto", que le echa la culpa al usuario de que el modelo no supo parar:
+ * había medido treinta y seis líneas, repetido varias y buscado conceptos ocho
+ * veces. Con una pregunta amplia eso no es raro, y la respuesta tiene que salir
+ * igual.
+ */
 const MAX_ROUNDS = 8;
 
 /**
@@ -187,6 +196,15 @@ export const useDiagnosticChat = (fen: string) => {
       const evaluated: string[] = [];
       try {
         for (let round = 0; round < MAX_ROUNDS; round++) {
+          // Última vuelta: se corta la exploración y se pide la respuesta.
+          if (round === MAX_ROUNDS - 1) {
+            history.current.push({
+              role: 'user',
+              text:
+                'Basta de mediciones: contestá ahora con lo que ya mediste. Si algo ' +
+                'quedó sin verificar, decilo en una frase en vez de seguir buscando.',
+            });
+          }
           const reply = await askDiagnosticChat(history.current);
           history.current.push({
             role: 'assistant',
@@ -252,9 +270,17 @@ export const useDiagnosticChat = (fen: string) => {
           history.current.push({ role: 'tool', results });
           setProgress(undefined);
         }
+        // Solo se llega acá si pidió herramientas incluso después de que se le
+        // dijera que contestara. Es un fallo del modelo, no de la pregunta.
         setTurns(prev => [
           ...prev,
-          { role: 'assistant', text: 'Me quedé dando vueltas evaluando. Probá preguntando algo más concreto.', evaluated },
+          {
+            role: 'assistant',
+            text:
+              'No logré cerrar una respuesta: seguí pidiendo mediciones aun después de ' +
+              'que se le pidiera contestar. Lo medido está abajo por si sirve.',
+            evaluated,
+          },
         ]);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'No se pudo consultar');
