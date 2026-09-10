@@ -19,6 +19,7 @@
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --title
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --insert
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --study <url|id>
+//   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --filter
 //
 // Bare: extract and write the review file with placeholder titles. Free.
 // --title: also call Claude to title/categorise (needs ANTHROPIC_API_KEY).
@@ -45,6 +46,40 @@ const PGN_PATH = path.join(__dirname, '../public/data/repertoire-study.pgn');
 
 const wantsTitles = process.argv.includes('--title');
 const wantsInsert = process.argv.includes('--insert');
+const wantsFilter = process.argv.includes('--filter');
+
+/**
+ * Descarta las notas que no son conceptos, sobre el archivo de revisión.
+ *
+ * Un estudio de un libro entero deja doscientos candidatos, y aprobarlos de a
+ * uno en un JSON de booleanos no es revisar: es rendirse. Esto marca `approve`
+ * en los que pasan y deja el resto en false, con el motivo, para que la
+ * revisión sea sobre lo que quedó y no sobre todo.
+ *
+ * Los cuatro motivos salieron de mirar la salida real de Simple Chess:
+ *  - muy corto: anotaciones sueltas de una partida, no principios.
+ *  - volcado de variantes: más notación que prosa; es una línea, no una idea.
+ *  - OCR dudoso: el estudio se escaneó del libro y quedaron restos
+ *    ("the lime he has gained", "whtch", "Rct7"). Guardarlos es guardar basura.
+ *  - frase de transición: "ahora dirigimos nuestra atención a…" no dice nada.
+ *
+ * Es una heurística, no un juicio: se equivoca en los dos sentidos, y por eso
+ * imprime ejemplos de lo que tira en vez de descartarlo en silencio.
+ */
+const MOVE_NOTATION = /\b[KQRBN]?[a-h]?[1-8]?x?[a-h][1-8][+#]?\b|\bO-O(-O)?\b/g;
+const TRANSITION = /^(we now|now we|this time|let us|here we)\b/i;
+const OCR_JUNK = /\b(whtch|lime he|Rct\d|BdS|BeS|Rxdl|Rhdl)\b/;
+
+const rejectionFor = (text: string): string | null => {
+  const t = text.replace(/\s+/g, ' ').trim();
+  const words = t.split(' ').length;
+  if (OCR_JUNK.test(t)) return 'OCR dudoso';
+  if (words < 20) return 'muy corto';
+  if ((t.match(MOVE_NOTATION) ?? []).length / Math.max(words, 1) > 0.18)
+    return 'volcado de variantes';
+  if (TRANSITION.test(t)) return 'frase de transición';
+  return null;
+};
 
 /**
  * `--study <url o id>` baja un estudio de Lichess en vez de leer el archivo local.
@@ -269,6 +304,34 @@ if (wantsInsert) {
     inserted += 1;
   }
   console.log(`Inserted ${inserted} concepts.`);
+  process.exit(0);
+}
+
+// -------------------------------------------------------------- filter mode
+
+if (wantsFilter) {
+  const review = readReview();
+  if (review.length === 0) {
+    console.error('No hay archivo de revisión. Corré primero la extracción.');
+    process.exit(1);
+  }
+  const motivos = new Map<string, ReviewEntry[]>();
+  let aprobados = 0;
+  for (const entry of review) {
+    const motivo = rejectionFor(entry.summary);
+    entry.approve = motivo === null;
+    if (motivo === null) aprobados += 1;
+    else motivos.set(motivo, [...(motivos.get(motivo) ?? []), entry]);
+  }
+  writeReview(review);
+  console.log(`Aprobados ${aprobados} de ${review.length}.\n`);
+  for (const [motivo, entries] of motivos) {
+    console.log(`  ${entries.length} descartados por ${motivo}, por ejemplo:`);
+    for (const e of entries.slice(0, 2)) {
+      console.log(`     "${e.summary.replace(/\s+/g, ' ').trim().slice(0, 96)}…"`);
+    }
+  }
+  console.log('\nRevisá el archivo y corré con --insert cuando estés conforme.');
   process.exit(0);
 }
 
