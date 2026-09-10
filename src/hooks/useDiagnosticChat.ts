@@ -12,9 +12,25 @@ export interface ChatTurn {
   evaluated?: string[];
 }
 
-const DEFAULT_DEPTH = 18;
-const MAX_DEPTH = 22;
-const MIN_DEPTH = 12;
+/**
+ * Profundidad por defecto de las evaluaciones del chat.
+ *
+ * Baja a propósito frente a la del análisis batch (20): acá el motor corre en el
+ * navegador, no en la máquina, y una respuesta puede pedir quince o veinte
+ * líneas. A 18 eso son varios minutos de espera; a 14 es cosa de segundos, y
+ * para comparar dos jugadas la diferencia entre 14 y 18 casi nunca cambia cuál
+ * es mejor. El modelo puede pedir más profundidad cuando la necesite.
+ */
+const DEFAULT_DEPTH = 14;
+const MAX_DEPTH = 20;
+const MIN_DEPTH = 10;
+
+/**
+ * Tope de evaluaciones por vuelta. El motor las serializa, así que veinte
+ * pedidas de golpe son veinte esperas seguidas — y las últimas casi nunca
+ * cambian la respuesta.
+ */
+const MAX_PER_ROUND = 8;
 /** Tope de vueltas del bucle: un modelo en loop no puede colgar el navegador. */
 const MAX_ROUNDS = 8;
 
@@ -33,6 +49,8 @@ const MAX_ROUNDS = 8;
 export const useDiagnosticChat = (fen: string) => {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [thinking, setThinking] = useState(false);
+  /** Qué está midiendo ahora mismo, para que la espera no parezca un cuelgue. */
+  const [progress, setProgress] = useState<string>();
   const [error, setError] = useState<string | null>(null);
   const history = useRef<WireTurn[]>([]);
   const engine = useRef<StockfishEngine | null>(null);
@@ -186,8 +204,12 @@ export const useDiagnosticChat = (fen: string) => {
 
           // Las evaluaciones de una misma vuelta van todas juntas en UN turno:
           // partirlas le enseña al modelo a dejar de pedirlas en paralelo.
+          // Recortadas y no rechazadas: pedir de más es un exceso de entusiasmo
+          // del modelo, no un error, y las primeras son las que le importan.
+          const calls = reply.toolCalls.slice(0, MAX_PER_ROUND);
+          let hechas = 0;
           const results = await Promise.all(
-            reply.toolCalls.map(async call => {
+            calls.map(async call => {
               const line = call.moves.length ? call.moves.join(' ') : '(la posición)';
               const label =
                 call.tool === 'concepto'
@@ -206,6 +228,7 @@ export const useDiagnosticChat = (fen: string) => {
                 return { id: call.id, output: JSON.stringify(cached) };
               }
               evaluated.push(label);
+              setProgress(`${label} (${++hechas} de ${calls.length})`);
               try {
                 const out =
                   call.tool === 'concepto'
@@ -227,6 +250,7 @@ export const useDiagnosticChat = (fen: string) => {
             })
           );
           history.current.push({ role: 'tool', results });
+          setProgress(undefined);
         }
         setTurns(prev => [
           ...prev,
@@ -236,6 +260,7 @@ export const useDiagnosticChat = (fen: string) => {
         setError(err instanceof Error ? err.message : 'No se pudo consultar');
       } finally {
         setThinking(false);
+        setProgress(undefined);
       }
     },
     [evaluate, ablate, facts]
@@ -249,5 +274,5 @@ export const useDiagnosticChat = (fen: string) => {
     setError(null);
   }, []);
 
-  return { turns, thinking, error, ask, reset };
+  return { turns, thinking, progress, error, ask, reset };
 };

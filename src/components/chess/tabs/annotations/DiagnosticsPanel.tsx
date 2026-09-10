@@ -140,7 +140,7 @@ const PositionChat = ({
   /** Cuando la posición está diagnosticada, se le pasa como contexto. */
   diagnostic?: PositionDiagnostic;
 }) => {
-  const { turns, thinking, error, ask } = useDiagnosticChat(fen);
+  const { turns, thinking, progress, error, ask } = useDiagnosticChat(fen);
   const [draft, setDraft] = useState('');
 
   const context = diagnostic
@@ -174,7 +174,11 @@ const PositionChat = ({
           )}
         </div>
       ))}
-      {thinking && <p className="text-xs text-fg-subtle">Evaluando con Stockfish…</p>}
+      {thinking && (
+        <p className="text-xs text-fg-subtle">
+          {progress ? `Evaluando ${progress}…` : 'Pensando…'}
+        </p>
+      )}
       {error && <p className="text-xs text-loss">{error}</p>}
       <div className="flex gap-1.5">
         <input

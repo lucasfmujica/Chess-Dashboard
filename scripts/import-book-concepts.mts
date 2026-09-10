@@ -27,6 +27,8 @@
 //   --chapter  label stored as source_chapter (defaults to "<book> pp.45-72")
 //   --dry-run  slice the pages and report, without calling the API
 import { readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
 import { neon } from '@neondatabase/serverless';
@@ -213,11 +215,73 @@ interface ExtractedConcept {
   fen: string;
 }
 
+/**
+ * Lee el capítulo con el proveedor que haya configurado.
+ *
+ * Los dos quieren las páginas distinto: Claude acepta el PDF nativo, Grok solo
+ * imágenes. El prompt y el esquema son los mismos para los dos — es lo que hace
+ * que la salida sea comparable — y lo único que cambia es cómo viajan las
+ * páginas. Rasterizar lo hace scripts/_pdf_to_png.py, porque en Node haría
+ * falta canvas y pdfjs para lo que en Python es una línea.
+ */
+const readChapterWithGrok = async (): Promise<string> => {
+  const dir = path.join(os.tmpdir(), `book-pages-${Date.now()}`);
+  const rendered = execFileSync(
+    'python3',
+    [path.join(__dirname, '_pdf_to_png.py'), pdfPath, String(fromPage), String(toPage), dir],
+    { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 }
+  )
+    .trim()
+    .split('\n')
+    .filter(Boolean);
+
+  const content: Record<string, unknown>[] = rendered.map(file => ({
+    type: 'image_url',
+    image_url: { url: `data:image/png;base64,${readFileSync(file).toString('base64')}` },
+  }));
+  content.push({
+    type: 'text',
+    text: `Estas son las páginas ${fromPage} a ${toPage} del capítulo "${label}"${book ? ` del libro "${book.title}"` : ''}, en orden. Extraé las ideas entrenables.`,
+  });
+
+  const res = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.XAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'grok-4.6',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: 'conceptos', schema: SCHEMA, strict: true },
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error(`xAI respondió ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    process.exit(1);
+  }
+  const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return body.choices?.[0]?.message?.content ?? '{"concepts":[]}';
+};
+
+const useGrok = !process.env.ANTHROPIC_API_KEY && !!process.env.XAI_API_KEY;
+if (!useGrok && !process.env.ANTHROPIC_API_KEY) {
+  console.error('Hace falta ANTHROPIC_API_KEY o XAI_API_KEY en el entorno.');
+  process.exit(1);
+}
+
+console.log(`\nLeyendo el capítulo con ${useGrok ? 'Grok' : 'Claude'}…`);
+
+const rawJson = useGrok ? await readChapterWithGrok() : null;
 const anthropic = new Anthropic();
 
-console.log('\nLeyendo el capítulo…');
-
-const response = await anthropic.messages.create({
+const response = rawJson ? null : await anthropic.messages.create({
   model: 'claude-sonnet-5',
   // Adaptive thinking is on by default on Sonnet 5 and shares this budget with
   // the response, so this sits well above the JSON payload itself. Effort is
