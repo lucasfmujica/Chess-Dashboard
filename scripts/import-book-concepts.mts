@@ -41,6 +41,8 @@ import {
   type ReviewEntry,
 } from './_conceptReview.mjs';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** Pages per request. Chess books are dense; a chapter is normally well under this. */
 const MAX_PAGES = 40;
 
@@ -153,8 +155,8 @@ if (bookQuery) {
 
 // ------------------------------------------------------------------- extract
 
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('\nANTHROPIC_API_KEY is not set, which this needs to read the pages.');
+if (!process.env.ANTHROPIC_API_KEY && !process.env.XAI_API_KEY) {
+  console.error('\nHace falta ANTHROPIC_API_KEY o XAI_API_KEY para leer las páginas.');
   process.exit(1);
 }
 
@@ -314,21 +316,31 @@ const response = rawJson ? null : await anthropic.messages.create({
 });
 
 // A safety refusal returns 200 with no content — reading content[0] would throw.
-if (response.stop_reason === 'refusal') {
+if (response && response.stop_reason === 'refusal') {
   console.error('La lectura fue rechazada por los clasificadores de seguridad. Nada que revisar.');
   process.exit(1);
 }
 
-const block = response.content[0];
-const parsed =
-  block?.type === 'text'
-    ? (JSON.parse(block.text) as { concepts: ExtractedConcept[] })
-    : { concepts: [] };
+const payload = (() => {
+  if (rawJson !== null) return rawJson;
+  const block = response!.content[0];
+  return block?.type === 'text' ? block.text : '{"concepts":[]}';
+})();
+
+let parsed: { concepts: ExtractedConcept[] };
+try {
+  parsed = JSON.parse(payload) as { concepts: ExtractedConcept[] };
+} catch {
+  console.error('El modelo devolvió algo que no es JSON. Nada que revisar.');
+  process.exit(1);
+}
 
 console.log(`Ideas propuestas: ${parsed.concepts.length}`);
-console.log(
-  `Tokens: ${response.usage.input_tokens} entrada / ${response.usage.output_tokens} salida`
-);
+if (response) {
+  console.log(
+    `Tokens: ${response.usage.input_tokens} entrada / ${response.usage.output_tokens} salida`
+  );
+}
 
 // ------------------------------------------------------ validate and stage
 
