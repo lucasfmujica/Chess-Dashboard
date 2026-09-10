@@ -46,3 +46,7 @@ pnpm-debug.log*
 /public/engine
 .vercel
 concept-candidates.json
+
+# Pesos de motores para scripts/position_diagnostics.py (binarios, se bajan aparte)
+engines/
+__pycache__/
