@@ -1,8 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
-import type Anthropic from '@anthropic-ai/sdk';
 import { StockfishEngine } from '../engine/stockfishEngine';
-import { askDiagnosticChat } from '../api/client';
+import { askDiagnosticChat, type ChatTurn as WireTurn } from '../api/client';
 
 /** Un turno visible del chat. Los `tool_use` y `tool_result` no se muestran. */
 export interface ChatTurn {
@@ -34,7 +33,7 @@ export const useDiagnosticChat = (fen: string) => {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [thinking, setThinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const history = useRef<Anthropic.MessageParam[]>([]);
+  const history = useRef<WireTurn[]>([]);
   const engine = useRef<StockfishEngine | null>(null);
 
   /**
@@ -87,55 +86,44 @@ export const useDiagnosticChat = (fen: string) => {
 
       // El contexto del diagnóstico va una sola vez, en el primer mensaje.
       const opening = history.current.length === 0 ? `${context}\n\nPregunta: ` : '';
-      history.current.push({ role: 'user', content: `${opening}${question}` });
+      history.current.push({ role: 'user', text: `${opening}${question}` });
 
       const evaluated: string[] = [];
       try {
         for (let round = 0; round < MAX_ROUNDS; round++) {
           const reply = await askDiagnosticChat(history.current);
-          history.current.push({ role: 'assistant', content: reply.content });
+          history.current.push({
+            role: 'assistant',
+            text: reply.text || undefined,
+            toolCalls: reply.toolCalls.length ? reply.toolCalls : undefined,
+          });
 
-          const toolUses = reply.content.filter(
-            (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-          );
-          if (toolUses.length === 0) {
-            const text = reply.content
-              .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-              .map(b => b.text)
-              .join('\n')
-              .trim();
+          if (reply.toolCalls.length === 0) {
             setTurns(prev => [
               ...prev,
-              { role: 'assistant', text: text || 'No pude contestar eso.', evaluated },
+              { role: 'assistant', text: reply.text || 'No pude contestar eso.', evaluated },
             ]);
             return;
           }
 
-          // Las evaluaciones de una misma vuelta van todas juntas en UN mensaje:
+          // Las evaluaciones de una misma vuelta van todas juntas en UN turno:
           // partirlas le enseña al modelo a dejar de pedirlas en paralelo.
           const results = await Promise.all(
-            toolUses.map(async use => {
-              const input = use.input as { jugadas?: string[]; profundidad?: number };
-              const moves = input.jugadas ?? [];
-              evaluated.push(moves.length ? moves.join(' ') : '(la posición)');
+            reply.toolCalls.map(async call => {
+              evaluated.push(call.moves.length ? call.moves.join(' ') : '(la posición)');
               try {
-                const out = await evaluate(moves, input.profundidad ?? DEFAULT_DEPTH);
-                return {
-                  type: 'tool_result' as const,
-                  tool_use_id: use.id,
-                  content: JSON.stringify(out),
-                };
+                const out = await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
+                return { id: call.id, output: JSON.stringify(out) };
               } catch (err) {
                 return {
-                  type: 'tool_result' as const,
-                  tool_use_id: use.id,
-                  is_error: true,
-                  content: err instanceof Error ? err.message : 'falló la evaluación',
+                  id: call.id,
+                  isError: true,
+                  output: err instanceof Error ? err.message : 'falló la evaluación',
                 };
               }
             })
           );
-          history.current.push({ role: 'user', content: results });
+          history.current.push({ role: 'tool', results });
         }
         setTurns(prev => [
           ...prev,

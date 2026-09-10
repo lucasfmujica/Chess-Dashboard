@@ -662,24 +662,37 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
  *
  * Quien corre el motor es el NAVEGADOR — la app ya tiene Stockfish en WASM, y
  * una función de Vercel no puede tener uno. Así que el bucle de herramientas lo
- * maneja el cliente y este endpoint es un proxy sin estado: recibe el historial
- * completo, llama al modelo, y devuelve la respuesta cruda. Si viene un
- * `tool_use`, el navegador evalúa, agrega el `tool_result` y vuelve a llamar.
+ * maneja el cliente y esto es un proxy sin estado.
+ *
+ * El protocolo con el cliente es NEUTRAL: el navegador manda turnos genéricos y
+ * recibe `{text, toolCalls}`, sin saber qué proveedor hay detrás. La traducción
+ * al formato de cada uno vive acá. Sin eso, cambiar de proveedor obligaría a
+ * reescribir el bucle del cliente, que es donde menos se quiere tocar.
  *
  * El historial llega del cliente, así que es texto que el usuario controla. En
- * una app de un solo usuario detrás de API_SECRET eso es aceptable; en una
- * multiusuario habría que validarlo.
+ * una app de un solo usuario detrás de API_SECRET eso es aceptable.
  */
-const DIAGNOSTIC_CHAT_MODEL = 'claude-opus-5';
+interface ChatToolCall {
+  id: string;
+  moves: string[];
+  depth?: number;
+}
 
-const DIAGNOSTIC_CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una \
-partida de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, \
-sin solemnidad y sin dar clase.
+type ChatTurn =
+  | { role: 'user'; text: string }
+  | { role: 'assistant'; text?: string; toolCalls?: ChatToolCall[] }
+  | { role: 'tool'; results: { id: string; output: string; isError?: boolean }[] };
+
+const CHAT_TOOL_NAME = 'evaluar';
+
+const CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una partida \
+de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, sin \
+solemnidad y sin dar clase.
 
 REGLA CENTRAL, por encima de todo: no analizás ajedrez de tu cabeza. Para \
 cualquier afirmación sobre si una jugada es buena, mala, o qué pasa después, \
-usás la herramienta "evaluar" y contestás con lo que devuelve. Si no evaluaste, \
-no lo afirmás.
+usás la herramienta "${CHAT_TOOL_NAME}" y contestás con lo que devuelve. Si no \
+evaluaste, no lo afirmás.
 
 Cómo trabajar:
 - Si te pregunta por una jugada concreta ("¿y si jugaba Nc4?"), evaluala.
@@ -693,35 +706,168 @@ Cómo trabajar:
 Respuestas de 1 a 3 oraciones. Texto plano, sin markdown ni viñetas. Cuando cites \
 una evaluación, dala en peones con un decimal, no en centipeones.`;
 
-const DIAGNOSTIC_CHAT_TOOLS: Anthropic.Tool[] = [
-  {
-    name: 'evaluar',
-    description:
-      'Evalúa una línea con Stockfish partiendo de la posición del diagnóstico. ' +
-      'Devuelve la evaluación en centipeones desde el lado que mueve en la ' +
-      'posición resultante, y la mejor respuesta del motor. Pasá lista vacía ' +
-      'para evaluar la posición de partida tal cual.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        jugadas: {
-          type: 'array',
-          items: { type: 'string' },
-          description:
-            'Jugadas en SAN desde la posición del diagnóstico, en orden, ' +
-            'alternando bandos. Ej: ["Nc4", "Qb3", "Nxb2"].',
-        },
-        profundidad: {
-          type: 'integer',
-          description: 'Profundidad de búsqueda, 12 a 22. Por defecto 18.',
-        },
-      },
-      required: ['jugadas'],
-      additionalProperties: false,
+const CHAT_TOOL_DESCRIPTION =
+  'Evalúa una línea con Stockfish partiendo de la posición del diagnóstico. ' +
+  'Devuelve la evaluación en centipeones desde el lado que mueve en la posición ' +
+  'resultante, y la mejor respuesta del motor. Pasá lista vacía para evaluar la ' +
+  'posición de partida tal cual.';
+
+const CHAT_TOOL_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    jugadas: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Jugadas en SAN desde la posición del diagnóstico, en orden, alternando ' +
+        'bandos. Ej: ["Nc4", "Qb3", "Nxb2"].',
     },
-    strict: true,
+    profundidad: {
+      type: 'integer',
+      description: 'Profundidad de búsqueda, 12 a 22. Por defecto 18.',
+    },
   },
-];
+  required: ['jugadas'],
+  additionalProperties: false,
+};
+
+/** Lo que el modelo pidió evaluar, normalizado desde el formato de cada proveedor. */
+const parseToolInput = (raw: unknown): { moves: string[]; depth?: number } => {
+  const input = (typeof raw === 'string' ? JSON.parse(raw) : raw) as {
+    jugadas?: unknown;
+    profundidad?: unknown;
+  };
+  return {
+    moves: Array.isArray(input?.jugadas) ? input.jugadas.map(String) : [],
+    depth: typeof input?.profundidad === 'number' ? input.profundidad : undefined,
+  };
+};
+
+const chatViaAnthropic = async (turns: ChatTurn[]) => {
+  const client = new Anthropic();
+  const messages: Anthropic.MessageParam[] = turns.map(turn => {
+    if (turn.role === 'user') return { role: 'user', content: turn.text };
+    if (turn.role === 'tool') {
+      return {
+        role: 'user',
+        content: turn.results.map(r => ({
+          type: 'tool_result' as const,
+          tool_use_id: r.id,
+          content: r.output,
+          ...(r.isError ? { is_error: true } : {}),
+        })),
+      };
+    }
+    const content: Anthropic.ContentBlockParam[] = [];
+    if (turn.text) content.push({ type: 'text', text: turn.text });
+    for (const call of turn.toolCalls ?? []) {
+      content.push({
+        type: 'tool_use',
+        id: call.id,
+        name: CHAT_TOOL_NAME,
+        input: { jugadas: call.moves, profundidad: call.depth },
+      });
+    }
+    return { role: 'assistant', content };
+  });
+
+  const message = await client.messages.create({
+    model: 'claude-opus-5',
+    max_tokens: 8000,
+    thinking: { type: 'adaptive' },
+    output_config: { effort: 'medium' },
+    // El sistema y las herramientas no cambian entre vueltas del bucle:
+    // cachearlos evita pagarlos una vez por evaluación.
+    system: [{ type: 'text', text: CHAT_SYSTEM, cache_control: { type: 'ephemeral' } }],
+    tools: [
+      {
+        name: CHAT_TOOL_NAME,
+        description: CHAT_TOOL_DESCRIPTION,
+        input_schema: CHAT_TOOL_SCHEMA,
+        strict: true,
+      },
+    ],
+    messages,
+  });
+
+  return {
+    text: message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map(b => b.text)
+      .join('\n')
+      .trim(),
+    toolCalls: message.content
+      .filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
+      .map(b => ({ id: b.id, ...parseToolInput(b.input) })),
+  };
+};
+
+/**
+ * xAI por `fetch` y no por SDK a propósito: su API es compatible con la de
+ * OpenAI, así que es un POST documentado, y agregar el paquete `openai` al
+ * bundle de una función serverless por una sola llamada no se paga.
+ */
+const chatViaXai = async (turns: ChatTurn[]) => {
+  const messages: Record<string, unknown>[] = [{ role: 'system', content: CHAT_SYSTEM }];
+  for (const turn of turns) {
+    if (turn.role === 'user') messages.push({ role: 'user', content: turn.text });
+    else if (turn.role === 'tool')
+      for (const r of turn.results)
+        messages.push({ role: 'tool', tool_call_id: r.id, content: r.output });
+    else
+      messages.push({
+        role: 'assistant',
+        content: turn.text ?? null,
+        ...(turn.toolCalls?.length
+          ? {
+              tool_calls: turn.toolCalls.map(c => ({
+                id: c.id,
+                type: 'function',
+                function: {
+                  name: CHAT_TOOL_NAME,
+                  arguments: JSON.stringify({ jugadas: c.moves, profundidad: c.depth }),
+                },
+              })),
+            }
+          : {}),
+      });
+  }
+
+  const res = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.XAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'grok-4.6',
+      messages,
+      reasoning: { effort: 'medium' },
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: CHAT_TOOL_NAME,
+            description: CHAT_TOOL_DESCRIPTION,
+            parameters: CHAT_TOOL_SCHEMA,
+          },
+        },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`xAI respondió ${res.status}`);
+  const body = (await res.json()) as {
+    choices?: { message?: { content?: string | null; tool_calls?: { id: string; function: { arguments: string } }[] } }[];
+  };
+  const msg = body.choices?.[0]?.message;
+  return {
+    text: (msg?.content ?? '').trim(),
+    toolCalls: (msg?.tool_calls ?? []).map(c => ({
+      id: c.id,
+      ...parseToolInput(c.function.arguments),
+    })),
+  };
+};
 
 const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'POST') {
@@ -733,41 +879,30 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   // La forma del pedido se valida antes que la config del servidor: un cliente
   // que manda cualquier cosa tiene que enterarse de eso, no de que falta una
   // variable de entorno.
-  const body = (req.body ?? {}) as { messages?: Anthropic.MessageParam[] };
-  if (!Array.isArray(body.messages) || body.messages.length === 0) {
-    return res.status(400).json({ error: 'messages is required' });
+  const body = (req.body ?? {}) as { turns?: ChatTurn[] };
+  if (!Array.isArray(body.turns) || body.turns.length === 0) {
+    return res.status(400).json({ error: 'turns is required' });
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
+
+  // Se usa la clave que haya. Anthropic primero solo porque es la que soporta
+  // más del pipeline; con cualquiera de las dos el chat funciona igual.
+  const provider = process.env.ANTHROPIC_API_KEY
+    ? 'anthropic'
+    : process.env.XAI_API_KEY
+      ? 'xai'
+      : null;
+  if (!provider) {
     return res.status(503).json({
       error:
-        'ANTHROPIC_API_KEY no está configurada. Agregala en las variables de ' +
-        'entorno del proyecto (y en .env.local para desarrollo).',
+        'No hay clave de narrador configurada. Agregá ANTHROPIC_API_KEY o ' +
+        'XAI_API_KEY a las variables de entorno del proyecto.',
     });
   }
 
-  const client = new Anthropic();
   try {
-    const message = await client.messages.create({
-      model: DIAGNOSTIC_CHAT_MODEL,
-      max_tokens: 8000,
-      thinking: { type: 'adaptive' },
-      output_config: { effort: 'medium' },
-      system: [
-        {
-          type: 'text',
-          text: DIAGNOSTIC_CHAT_SYSTEM,
-          // El sistema y las herramientas no cambian entre vueltas del bucle:
-          // cachearlos evita pagarlos una vez por evaluación.
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      tools: DIAGNOSTIC_CHAT_TOOLS,
-      messages: body.messages,
-    });
-    return res.status(200).json({
-      content: message.content,
-      stopReason: message.stop_reason,
-    });
+    const reply =
+      provider === 'anthropic' ? await chatViaAnthropic(body.turns) : await chatViaXai(body.turns);
+    return res.status(200).json({ ...reply, provider });
   } catch (err) {
     if (err instanceof Anthropic.RateLimitError) {
       return res.status(429).json({ error: 'El modelo está saturado, probá en un momento.' });
@@ -775,7 +910,9 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
     if (err instanceof Anthropic.APIError) {
       return res.status(502).json({ error: `Error del modelo (${err.status})` });
     }
-    throw err;
+    return res.status(502).json({
+      error: err instanceof Error ? err.message : 'Error del modelo',
+    });
   }
 };
 

@@ -12,7 +12,6 @@ import type {
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { MinedBlunder, BlunderDrill } from '../types/blunders';
 import type { DiagnosticRequest, DiagnosticsStatus, PositionDiagnostic } from '../types/diagnostics';
-import type { ContentBlock as ChatContentBlock } from '@anthropic-ai/sdk/resources/messages';
 import type { MinedEndgame, EndgameDrill } from '../types/endgames';
 import type { NormAttempt, NormThresholds } from '../types/norms';
 import type {
@@ -195,15 +194,30 @@ export const requestPositionDiagnostics = (gameId: string, force = false) =>
     method: 'POST',
     body: JSON.stringify({ gameId, force }),
   });
+/** Una evaluación que el modelo pidió, ya normalizada por el servidor. */
+export interface ChatToolCall {
+  id: string;
+  moves: string[];
+  depth?: number;
+}
+
+export type ChatTurn =
+  | { role: 'user'; text: string }
+  | { role: 'assistant'; text?: string; toolCalls?: ChatToolCall[] }
+  | { role: 'tool'; results: { id: string; output: string; isError?: boolean }[] };
+
 /**
  * Una vuelta del chat sobre una posición. El endpoint es un proxy sin estado:
  * el historial lo sostiene el cliente, porque el bucle de herramientas corre
  * acá — el motor que contesta es el Stockfish del navegador.
+ *
+ * El protocolo es neutral: el servidor traduce al formato del proveedor que
+ * tenga configurado, así que acá no hay nada que cambiar si se cambia de modelo.
  */
-export const askDiagnosticChat = (messages: unknown[]) =>
-  apiFetch<{ content: ChatContentBlock[]; stopReason: string | null }>(
+export const askDiagnosticChat = (turns: ChatTurn[]) =>
+  apiFetch<{ text: string; toolCalls: ChatToolCall[]; provider: string }>(
     '/prep?resource=diagnostic-chat',
-    { method: 'POST', body: JSON.stringify({ messages }) }
+    { method: 'POST', body: JSON.stringify({ turns }) }
   );
 
 export const cancelPositionDiagnostics = (gameId: string) =>

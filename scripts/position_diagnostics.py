@@ -1168,7 +1168,10 @@ def _narrator(args):
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt},
                 ],
-                reasoning={"effort": args.explain_effort},
+                # `reasoning` es una extensión de xAI: el SDK de OpenAI rechaza
+                # los parámetros que no conoce como argumento directo, así que
+                # va en extra_body para llegar tal cual al cuerpo del request.
+                extra_body={"reasoning": {"effort": args.explain_effort}},
             )
             return (completion.choices[0].message.content or "").strip() or None
 
