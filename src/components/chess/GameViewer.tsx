@@ -262,9 +262,25 @@ const GameViewer = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [prev, next, first, last]);
 
+  /**
+   * Mantiene la jugada actual a la vista DENTRO de la lista, sin tocar la página.
+   *
+   * Antes esto era `scrollIntoView({ block: 'nearest' })`, que scrollea todos los
+   * ancestros scrolleables: si la lista quedaba fuera del viewport, avanzar con
+   * la flecha derecha saltaba la página entera y se llevaba el tablero de la
+   * pantalla. Mover el scroll del contenedor a mano es lo único que garantiza
+   * que el salto no se propague.
+   */
   useEffect(() => {
-    const el = moveListRef.current?.querySelector('[data-active="true"]');
-    el?.scrollIntoView({ block: 'nearest' });
+    const container = moveListRef.current;
+    const el = container?.querySelector<HTMLElement>('[data-active="true"]');
+    if (!container || !el) return;
+    const top = el.offsetTop - container.offsetTop;
+    const bottom = top + el.offsetHeight;
+    if (top < container.scrollTop) container.scrollTop = top;
+    else if (bottom > container.scrollTop + container.clientHeight) {
+      container.scrollTop = bottom - container.clientHeight;
+    }
   }, [ply]);
 
   const rows: { num: number; white?: string; black?: string }[] = [];

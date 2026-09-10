@@ -78,20 +78,25 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
         ¿A qué nivel se sigue jugando tu jugada?{' '}
         <span title="Maia usa rating de Lichess, no FIDE">(rating de Lichess)</span>
       </p>
-      <div className="flex gap-0.5">
-        {rungs.map(rung => (
-          <div
-            key={rung.rating}
-            title={`${rung.rating}: ${
-              rung.playedIsTop ? 'tu jugada es su primera opción' : `juega ${rung.topMove}`
-            } — policy ${(rung.played * 100).toFixed(1)}%`}
-            className={`flex-1 rounded-sm text-center text-[10px] leading-4 ${
-              rung.playedIsTop ? 'bg-loss/25 text-fg' : 'bg-surface text-fg-subtle'
-            }`}
-          >
-            {String(rung.rating).slice(0, 2)}
-          </div>
-        ))}
+      {/* Los escalones van sin número: recortar el rating a dos dígitos los hacía
+          leer como "11 a 19". El rating completo está en el tooltip, y los
+          extremos alcanzan para ubicar la escala. */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] tabular-nums text-fg-subtle">1100</span>
+        <div className="flex flex-1 gap-0.5">
+          {rungs.map(rung => (
+            <div
+              key={rung.rating}
+              title={`${rung.rating}: ${
+                rung.playedIsTop ? 'tu jugada es su primera opción' : `juega ${rung.topMove}`
+              } — policy ${(rung.played * 100).toFixed(1)}%`}
+              className={`h-3 flex-1 rounded-sm ${
+                rung.playedIsTop ? 'bg-loss/40' : 'bg-surface border border-hairline'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="text-[10px] tabular-nums text-fg-subtle">1900</span>
       </div>
       <p className="mt-1 text-xs text-fg-muted">
         {highest === undefined ? (
@@ -285,10 +290,22 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
       {current && (
         <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-2">
           <div className="flex items-center gap-2">
-            <Badge tone={CATEGORY_TONE[current.category]}>{CATEGORY_LABEL[current.category]}</Badge>
+            <span title={CATEGORY_HINT[current.category]}>
+              <Badge tone={CATEGORY_TONE[current.category]}>
+                {CATEGORY_LABEL[current.category]}
+              </Badge>
+            </span>
             <span className="text-xs text-fg-muted">−{current.cpLoss}cp</span>
+            <span className="ml-auto text-xs text-fg-subtle tabular-nums">
+              jugada {current.moveNumber}
+            </span>
           </div>
-          <p className="text-xs text-fg-muted">{CATEGORY_HINT[current.category]}</p>
+          {/* Sin explicación propia, el texto de la categoría es lo único que hay.
+              Con explicación, sería repetir en general lo que ya se dijo en
+              concreto — ahí queda solo en el tooltip del badge. */}
+          {!current.explanation && (
+            <p className="text-xs text-fg-muted">{CATEGORY_HINT[current.category]}</p>
+          )}
           {/* La explicación primero: es la respuesta a "por qué", y los números
               de abajo son la evidencia que la sostiene. */}
           {current.explanation && (
@@ -296,17 +313,19 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               {current.explanation}
             </p>
           )}
-          <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-            <dt className="text-fg-subtle">Jugaste</dt>
-            <dd className="text-fg font-medium">
-              {current.movePlayed}{' '}
-              <span className="text-fg-subtle">({pct(current.maiaPolicyPlayed)} en Maia)</span>
-            </dd>
-            <dt className="text-fg-subtle" title="Rating de Lichess: ~1750-1800 FIDE">
-              Maia-1900 juega
-            </dt>
-            <dd className="text-fg font-medium">{current.maiaTopMove}</dd>
-          </dl>
+          <p className="text-xs text-fg-muted">
+            Jugaste <strong className="text-fg">{current.movePlayed}</strong>
+            <span className="text-fg-subtle"> ({pct(current.maiaPolicyPlayed)} en Maia)</span>
+            {current.maiaTopMove === current.movePlayed ? (
+              <span title="Rating de Lichess: ~1750-1800 FIDE">
+                , que es justo lo que juega Maia-1900.
+              </span>
+            ) : (
+              <span title="Rating de Lichess: ~1750-1800 FIDE">
+                ; Maia-1900 juega <strong className="text-fg">{current.maiaTopMove}</strong>.
+              </span>
+            )}
+          </p>
           {current.culprits && current.culprits.length > 0 && (
             <p className="text-xs text-fg-muted">
               Marcado en rojo lo que tu jugada activó:{' '}

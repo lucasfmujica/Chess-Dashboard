@@ -92,6 +92,10 @@ describe('DiagnosticsPanel', () => {
     await waitFor(() =>
       expect(screen.getByText(/Deja de jugarse a partir de 1600/)).toBeInTheDocument()
     );
+    // Los extremos van con el rating entero: recortarlos a dos dígitos los hacía
+    // leer como "11 a 19", que fue exactamente lo que se veía en producción.
+    expect(screen.getByText('1100')).toBeInTheDocument();
+    expect(screen.getByText('1900')).toBeInTheDocument();
   });
 
   it('hands the board the engine move and the culprit squares, and clears them on the way out', async () => {
