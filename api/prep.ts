@@ -582,6 +582,21 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
   const gameId = typeof req.query.gameId === 'string' ? req.query.gameId : undefined;
 
   if (req.method === 'GET') {
+    // ?all=1 trae el corpus entero, que es lo que necesita la vista propia: el
+    // valor de esto está en cruzar partidas, no en mirar una. Va acotado y
+    // ordenado por pérdida porque nadie lee 183 filas en orden de partida.
+    if (!gameId && req.query.all) {
+      const limit = Math.min(500, Number(req.query.limit) || 200);
+      const rows = (await sql`
+        SELECT d.*, g.opponent, g.opponent_elo, g.played_date, g.tournament,
+               g.color, g.result, g.eco, g.opening_name
+          FROM position_diagnostics d
+          JOIN games g ON g.id = d.game_id
+         ORDER BY d.cp_loss DESC
+         LIMIT ${limit}
+      `) as PositionDiagnosticRow[];
+      return res.status(200).json(rows.map(rowToPositionDiagnostic));
+    }
     if (!gameId) {
       // Sin gameId: qué está pedido y qué ya se analizó, para que la app pueda
       // mostrar el estado del botón sin traerse todas las divergencias.
@@ -610,9 +625,12 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
     }
 
     const rows = (await sql`
-      SELECT * FROM position_diagnostics
-      WHERE game_id = ${gameId}
-      ORDER BY ply
+      SELECT d.*, g.opponent, g.opponent_elo, g.played_date, g.tournament,
+             g.color, g.result, g.eco, g.opening_name
+        FROM position_diagnostics d
+        JOIN games g ON g.id = d.game_id
+       WHERE d.game_id = ${gameId}
+       ORDER BY d.ply
     `) as PositionDiagnosticRow[];
     return res.status(200).json(rows.map(rowToPositionDiagnostic));
   }

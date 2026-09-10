@@ -24,10 +24,10 @@ export default defineConfig({
       '/api': 'http://localhost:3001',
     },
     watch: {
-      // Ship Studio guarda sus capturas de pantalla acá dentro. Sin esto, sacar
-      // una captura escribe un archivo en el proyecto, Vite lo ve y recarga la
-      // página — o sea que la herramienta que sirve para mirar la app rompe lo
-      // que estabas mirando.
+      // Ship Studio escribe capturas y estado acá dentro; nada de eso es código
+      // de la app, así que no tiene por qué disparar un recargado. (Ojo: no
+      // alcanza para la preview embebida de Ship Studio, que recarga igual al
+      // sacar una captura — parece no usar este watcher.)
       ignored: ['**/.shipstudio/**'],
     },
     // Cross-origin isolation, required for the multi-threaded Stockfish WASM

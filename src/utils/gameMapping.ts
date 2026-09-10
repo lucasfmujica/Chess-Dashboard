@@ -84,6 +84,7 @@ export const mergeAnnotationDraft = (
 
 /** Board-viewer props for a game: you are always named, the board faces your side. */
 export const gameToViewerData = (game: Game, pgn?: string): GameViewerData => ({
+  gameId: game.id,
   pgn: pgn ?? game.pgn,
   white: game.color === 'W' ? 'Vos' : game.opp,
   black: game.color === 'W' ? game.opp : 'Vos',

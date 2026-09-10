@@ -24,6 +24,9 @@ const AnalysisBoardTab = lazy(() => import('./components/chess/tabs/AnalysisBoar
 const OpponentPrepTab = lazy(() => import('./components/chess/tabs/OpponentPrepTab'));
 const NormTrackerTab = lazy(() => import('./components/chess/tabs/NormTrackerTab'));
 const ConceptsTab = lazy(() => import('./components/chess/tabs/ConceptsTab'));
+// Diferida: trae un tablero y todo el corpus de divergencias, no tiene por
+// qué pesar en el arranque de la app.
+const DiagnosticsTab = lazy(() => import('./components/chess/tabs/DiagnosticsTab'));
 import {
   Squares2X2Icon,
   CpuChipIcon,
@@ -234,6 +237,7 @@ const ChessDashboard = () => {
       items: [
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
         { id: 'drills', label: 'Drills', icon: ExclamationTriangleIcon },
+        { id: 'diagnostics', label: 'Diagnóstico', icon: BeakerIcon },
         { id: 'concepts', label: 'Concepts & Books', icon: PuzzlePieceIcon },
         { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
@@ -427,6 +431,7 @@ const ChessDashboard = () => {
           {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
 
           {activeTab === 'norm-tracker' && <LazyTab><NormTrackerTab /></LazyTab>}
+          {activeTab === 'diagnostics' && <LazyTab><DiagnosticsTab /></LazyTab>}
           {activeTab === 'concepts' && <LazyTab><ConceptsTab /></LazyTab>}
 
           {activeTab === 'training' && (

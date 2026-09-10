@@ -36,6 +36,7 @@ const diagnostic = (over: Partial<PositionDiagnostic> = {}): PositionDiagnostic 
   maiaPolicySfTop: 0.168,
   category: 'brecha_conceptual',
   createdAt: 0,
+  game: { opponent: 'Gustavo Aguila', color: 'B', result: 'L', playedDate: '2026-02-17' },
   ...over,
 });
 

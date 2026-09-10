@@ -4,6 +4,7 @@ import { useGames, useSourceFilteredGames } from '../../../context/GamesContext'
 import { gameToViewerData } from '../../../utils/gameMapping';
 import type { GameViewerData } from '../../../context/GameViewerContext';
 import GameViewer from '../GameViewer';
+import DiagnosticsPanel, { type BoardMarks } from './annotations/DiagnosticsPanel';
 import GamesAnalysisList from '../GamesAnalysisList';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
 
@@ -19,6 +20,10 @@ const AnalysisBoardTab = () => {
   // Same filtered list GamesAnalysisList walks, so the indices below line up.
   const games = useSourceFilteredGames();
   const [loaded, setLoaded] = useState<GameViewerData | null>(null);
+  /** Lo que el diagnóstico pinta sobre el tablero: la jugada del motor y las
+   *  piezas que la jugada activó. Vive acá porque el panel se renderiza dentro
+   *  del visor y la información tiene que subir al padre para poder bajar. */
+  const [marks, setMarks] = useState<BoardMarks>({});
   // Index (into `games`) of the loaded stored game, so we can step ‹ prev/next ›.
   // null when nothing is loaded or a pasted PGN (not part of the library) is shown.
   const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
@@ -263,6 +268,10 @@ const AnalysisBoardTab = () => {
           showExplorer
           showEngine
           wide
+          marks={marks}
+          capture={position => (
+            <DiagnosticsPanel position={position} gameId={loaded?.gameId} onMarks={setMarks} />
+          )}
         />
       </div>
 

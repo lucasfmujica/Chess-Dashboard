@@ -5,6 +5,12 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 const GameViewer = lazy(() => import('../components/chess/GameViewer'));
 
 export interface GameViewerData {
+  /**
+   * `games.id`, cuando lo cargado es una partida guardada y no un PGN pegado.
+   * Es lo que permite que el diagnóstico de motores aparezca junto al tablero:
+   * sin él no hay contra qué buscar.
+   */
+  gameId?: string;
   pgn?: string;
   orientation?: 'white' | 'black';
   white?: string;

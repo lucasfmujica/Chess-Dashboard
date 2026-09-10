@@ -31,6 +31,15 @@ export interface PositionDiagnosticRow {
     culprits?: { piece: string; square: string; blame_cp: number }[];
   } | null;
   created_at: string;
+  // Vienen del JOIN con `games`: sin esto una divergencia no se puede ubicar.
+  opponent: string;
+  opponent_elo: number | null;
+  played_date: string | null;
+  tournament: string | null;
+  color: string;
+  result: string;
+  eco: string | null;
+  opening_name: string | null;
 }
 
 // NUMERIC vuelve como string por el driver de Postgres, no como number.
@@ -78,4 +87,14 @@ export const rowToPositionDiagnostic = (row: PositionDiagnosticRow) => ({
     blameCp: c.blame_cp,
   })),
   createdAt: new Date(row.created_at).getTime(),
+  game: {
+    opponent: row.opponent,
+    opponentElo: row.opponent_elo ?? undefined,
+    playedDate: row.played_date ?? undefined,
+    tournament: row.tournament ?? undefined,
+    color: row.color as 'W' | 'B',
+    result: row.result as 'W' | 'D' | 'L',
+    eco: row.eco ?? undefined,
+    openingName: row.opening_name ?? undefined,
+  },
 });

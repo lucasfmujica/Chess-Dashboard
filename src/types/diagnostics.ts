@@ -64,6 +64,18 @@ export interface Culprit {
   blameCp: number;
 }
 
+/** Contexto mínimo de la partida, para ubicar una divergencia sin otro fetch. */
+export interface DiagnosticGame {
+  opponent: string;
+  opponentElo?: number;
+  playedDate?: string;
+  tournament?: string;
+  color: 'W' | 'B';
+  result: 'W' | 'D' | 'L';
+  eco?: string;
+  openingName?: string;
+}
+
 export interface PositionDiagnostic {
   id: string;
   gameId: string;
@@ -92,6 +104,8 @@ export interface PositionDiagnostic {
   explanation?: string;
   /** Piezas rivales que la jugada activó, de mayor a menor culpa. */
   culprits?: Culprit[];
+  /** Solo viene en las lecturas que hacen JOIN con `games`. */
+  game?: DiagnosticGame;
   createdAt: number;
 }
 
