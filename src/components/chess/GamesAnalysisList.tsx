@@ -381,7 +381,7 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
         </p>
       )}
       <p className="mt-2 text-xs text-fg-subtle">
-        Click a game to load it on the board. “Analyze all” runs Stockfish 18 over every game with moves — it can take a while and fills the accuracy trend.
+        Click a game to load it on the board. “Analyze all” runs Stockfish over every game with moves — it can take a while and fills the accuracy trend.
       </p>
     </div>
   );

@@ -16,6 +16,10 @@ interface EngineLinesProps {
 
 const HASH_OPTIONS = [16, 32, 64, 128, 256];
 const MAX_THREADS = supportsMultiThread ? Math.max(1, navigator.hardwareConcurrency || 4) : 1;
+// Cuál motor está corriendo de verdad: el 19 necesita SharedArrayBuffer, así que
+// sin aislamiento entre orígenes la app cae al 18 de un solo hilo. Decirlo mal
+// sería peor que no decirlo — el usuario compara evaluaciones contra el batch.
+const ENGINE_NAME = supportsMultiThread ? 'Stockfish 19' : 'Stockfish 18';
 
 const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }: EngineLinesProps) => {
   const [showSettings, setShowSettings] = useState(false);
@@ -26,7 +30,7 @@ const EngineLines = ({ state, enabled, onToggle, settings, setSettings, onPlay }
       <div className="px-4 py-2.5 border-b border-hairline flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CpuChipIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-sm font-semibold text-fg">Stockfish 18</h3>
+          <h3 className="text-sm font-semibold text-fg">{ENGINE_NAME}</h3>
           {enabled && (
             <span className="text-xs text-fg-subtle tabular-nums">
               {state.analyzing ? `d${state.depth}…` : `depth ${state.depth}`}

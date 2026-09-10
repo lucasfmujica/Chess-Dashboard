@@ -5,6 +5,12 @@ import react from '@vitejs/plugin-react';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // El worker del motor se declara con { type: 'module' }, y el build de
+  // Stockfish 19 de Lichess usa await de nivel superior. Sin esto Vite emite los
+  // workers como iife, que no lo soporta, y el build falla.
+  worker: {
+    format: 'es',
+  },
   // Resolve the @components/@hooks/... aliases from tsconfig.json natively
   // (Vite 8 supports this without the vite-tsconfig-paths plugin).
   resolve: {

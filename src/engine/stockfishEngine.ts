@@ -9,9 +9,15 @@
 export const supportsMultiThread =
   typeof SharedArrayBuffer !== 'undefined' && self.crossOriginIsolated === true;
 
-const ENGINE_URL = supportsMultiThread
-  ? '/engine/stockfish-18-lite.js'
-  : '/engine/stockfish-18-lite-single.js';
+/**
+ * Stockfish 19 cuando se puede, 18 cuando no.
+ *
+ * El único build de Stockfish 19 para navegador es el de Lichess, y usa pthreads:
+ * sin aislamiento entre orígenes no hay SharedArrayBuffer y no arranca. El 18 de
+ * un solo hilo sigue siendo el piso para ese caso — es autocontenido y no
+ * depende de nada más.
+ */
+const FALLBACK_ENGINE_URL = '/engine/stockfish-18-lite-single.js';
 
 export interface PositionEval {
   /** Centipawns from the side-to-move's perspective (undefined if mate). */
@@ -88,7 +94,9 @@ export class StockfishEngine {
 
   async init(): Promise<void> {
     if (this.ready) return;
-    this.worker = new Worker(ENGINE_URL);
+    this.worker = supportsMultiThread
+      ? new Worker(new URL('./sf19.worker.ts', import.meta.url), { type: 'module' })
+      : new Worker(FALLBACK_ENGINE_URL);
     this.worker.onmessage = (e: MessageEvent) => {
       const line = typeof e.data === 'string' ? e.data : String(e.data);
       this.onLine(line);
