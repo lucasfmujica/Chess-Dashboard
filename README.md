@@ -11,7 +11,7 @@ The sidebar is grouped into four sections.
 ### Play & Review
 
 - **Overview** — Record, win rate, form, ELO trend, upcoming tournaments, and a "today" strip with the day's training block and any overdue coach homework. Also the place where you import games (Lichess sync, PGN paste, manual entry).
-- **Analysis Board** — Full-page board running Stockfish 18 (WASM) locally: eval bar, MultiPV engine lines, eval graph over the whole game, move-by-move accuracy. Analyse a pasted PGN or any imported game; results are cached in the database so a game is only analysed once.
+- **Analysis Board** — Full-page board running Stockfish 19 (WASM) locally: eval bar, MultiPV engine lines, eval graph over the whole game, move-by-move accuracy. Analyse a pasted PGN or any imported game; results are cached in the database so a game is only analysed once.
 - **Game Library** — Every game with filters, replay, annotations and personal notes.
 
 ### Analytics
@@ -62,7 +62,7 @@ The sidebar is grouped into four sections.
 | Styling | TailwindCSS with a token-based design system (`src/components/ui/`) |
 | Charts | Recharts, d3-geo + world-atlas for the map |
 | Chess | chess.js, react-chessboard, `@mliebelt/pgn-parser` |
-| Engine | Stockfish 18 Lite (WASM), multi-threaded when the page is cross-origin isolated, single-threaded fallback otherwise |
+| Engine | Stockfish 19 (WASM, Lichess build) when the page is cross-origin isolated; falls back to single-threaded Stockfish 18 Lite otherwise. SF19's neural net is a separate ~94MB file that `scripts/copy-engine.mjs` downloads into `public/engine/` at build time |
 | Backend | Vercel serverless functions (`api/`) over Neon serverless Postgres |
 | AI | Anthropic SDK (`claude`) for the weekly homework extraction |
 | State | React Context + custom hooks; `localStorage` only for UI preferences and caches |
