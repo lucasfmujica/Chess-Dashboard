@@ -19,6 +19,7 @@
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --title
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --insert
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --study <url|id>
+//   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --pgn <archivo>
 //   npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --filter
 //
 // Bare: extract and write the review file with placeholder titles. Free.
@@ -93,6 +94,25 @@ const rejectionFor = (text: string): string | null => {
  * guardan su fuente, así que la distinción queda registrada — pero conviene
  * tenerla presente antes de tratar a las dos igual.
  */
+/**
+ * `--pgn <archivo>` lee un PGN de cualquier lado en vez de Lichess.
+ *
+ * Un curso de Chessable exportado tiene la forma correcta —capítulos,
+ * posiciones y texto— y suele ser mejor material que un estudio de Lichess,
+ * donde la calidad depende de quién lo armó. El extractor nunca necesitó que el
+ * PGN viniera de Lichess: necesitaba un PGN con comentarios.
+ */
+const pgnArg = (() => {
+  const i = process.argv.indexOf('--pgn');
+  if (i === -1) return undefined;
+  const raw = process.argv[i + 1];
+  if (!raw) {
+    console.error('--pgn necesita la ruta a un archivo .pgn.');
+    process.exit(1);
+  }
+  return path.resolve(raw);
+})();
+
 const studyArg = (() => {
   const i = process.argv.indexOf('--study');
   if (i === -1) return undefined;
@@ -337,8 +357,23 @@ if (wantsFilter) {
 
 // ------------------------------------------------------------- extract mode
 
-const pgn = studyArg ? await fetchStudy(studyArg) : readFileSync(PGN_PATH, 'utf8');
+const pgn = pgnArg
+  ? readFileSync(pgnArg, 'utf8')
+  : studyArg
+    ? await fetchStudy(studyArg)
+    : readFileSync(PGN_PATH, 'utf8');
+if (pgnArg) console.log(`Leído ${path.basename(pgnArg)} (${(pgn.length / 1024).toFixed(0)} KB)`);
 if (studyArg) console.log(`Estudio ${studyArg} bajado de Lichess (${(pgn.length / 1024).toFixed(0)} KB)`);
+
+// Un PGN sin comentarios no deja nada que extraer, y el motivo suele ser la
+// exportación: varias herramientas ofrecen "solo jugadas". Decirlo acá evita
+// buscar el problema en el extractor.
+if (!pgn.includes('{')) {
+  console.warn(
+    '\nOJO: este PGN no tiene ni un comentario. Si viene de una exportación,\n' +
+    'fijate que la opción incluya las anotaciones — sin ellas no hay conceptos.\n'
+  );
+}
 const chapters = await parseStudyPgn(pgn);
 const candidates = extractStudyConcepts(chapters);
 
