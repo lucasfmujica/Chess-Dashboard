@@ -4,7 +4,9 @@ import type { StudyChapter } from './studyPgn';
 
 const chapter = (over: Partial<StudyChapter['header']>, comment: string): StudyChapter => ({
   header: { chapterName: 'Superior minor piece', eco: '', opening: '', studyName: '', ...over },
-  mainline: [{ san: 'e4', comment, variations: [] }] as StudyChapter['mainline'],
+  mainline: [
+    { san: 'e4', moveNumber: 1, turn: 'w', comment, variations: [] },
+  ] as StudyChapter['mainline'],
 });
 
 describe('extractChapterConcepts', () => {

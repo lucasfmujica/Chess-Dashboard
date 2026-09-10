@@ -127,8 +127,81 @@ const placeholderName = (text: string): string => {
   return sentence.length > 60 ? `${sentence.slice(0, 57)}…` : sentence;
 };
 
-async function titleCandidates(candidates: StudyConceptCandidate[]) {
+/**
+ * Titula un lote con el proveedor que haya configurado.
+ *
+ * Igual que el chat y las explicaciones: se usa la clave que exista, en vez de
+ * pedir una segunda. Devuelve `null` si el modelo se negó o contestó algo que
+ * no se puede leer, y ahí el llamador cae a títulos genéricos.
+ */
+async function titleBatch(
+  batch: StudyConceptCandidate[]
+): Promise<{ name: string; category: string }[] | null> {
+  const prompt = batch
+    .map((c, n) => `--- Nota ${n + 1} (capítulo ${c.chapterName}) ---\n${c.text}`)
+    .join('\n\n');
+
+  if (!process.env.ANTHROPIC_API_KEY && process.env.XAI_API_KEY) {
+    const res = await fetch('https://api.x.ai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.XAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'grok-4-fast',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: prompt },
+        ],
+        // Titular una nota ya escrita es una transformación corta y acotada, no
+        // algo que necesite razonar: grok-4-fast alcanza y cuesta una fracción.
+        response_format: {
+          type: 'json_schema',
+          json_schema: { name: 'conceptos', schema: TITLE_SCHEMA, strict: true },
+        },
+      }),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    try {
+      return (JSON.parse(body.choices?.[0]?.message?.content ?? '{}') as {
+        concepts: { name: string; category: string }[];
+      }).concepts;
+    } catch {
+      return null;
+    }
+  }
+
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-5',
+    // Adaptive thinking is on by default on Sonnet 5 and shares this budget
+    // with the response. 25 titles is ~750 tokens of actual output, so this
+    // leaves ample room for the thinking that precedes them.
+    max_tokens: 8000,
+    system: SYSTEM_PROMPT,
+    output_config: {
+      // Naming a note that is already written is a short, scoped
+      // transformation — not intelligence-sensitive. `low` cuts the thinking
+      // tokens, which are billed as output and are the expensive half.
+      effort: 'low',
+      format: { type: 'json_schema', schema: TITLE_SCHEMA },
+    },
+    messages: [{ role: 'user', content: prompt }],
+  });
+  // A safety refusal returns 200 with an empty content array.
+  if (response.stop_reason === 'refusal') return null;
+  const block = response.content[0];
+  if (block?.type !== 'text') return null;
+  try {
+    return (JSON.parse(block.text) as { concepts: { name: string; category: string }[] }).concepts;
+  } catch {
+    return null;
+  }
+}
+
+async function titleCandidates(candidates: StudyConceptCandidate[]) {
   const titled: { name: string; category: string }[] = [];
 
   // Batched so one oversized request can't lose the whole run, and so a
@@ -136,44 +209,13 @@ async function titleCandidates(candidates: StudyConceptCandidate[]) {
   const BATCH = 25;
   for (let i = 0; i < candidates.length; i += BATCH) {
     const batch = candidates.slice(i, i + BATCH);
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-5',
-      // Adaptive thinking is on by default on Sonnet 5 and shares this budget
-      // with the response. 25 titles is ~750 tokens of actual output, so this
-      // leaves ample room for the thinking that precedes them.
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      output_config: {
-        // Naming a note that is already written is a short, scoped
-        // transformation — not intelligence-sensitive. `low` cuts the thinking
-        // tokens, which are billed as output and are the expensive half.
-        effort: 'low',
-        format: { type: 'json_schema', schema: TITLE_SCHEMA },
-      },
-      messages: [
-        {
-          role: 'user',
-          content: batch
-            .map((c, n) => `--- Nota ${n + 1} (capítulo ${c.chapterName}) ---\n${c.text}`)
-            .join('\n\n'),
-        },
-      ],
-    });
+    const parsed = { concepts: (await titleBatch(batch)) ?? [] };
 
-    // A safety refusal returns 200 with an empty content array.
-    if (response.stop_reason === 'refusal') {
-      console.warn(`  batch ${i / BATCH + 1}: refused, falling back to placeholders`);
-      titled.push(
-        ...batch.map(c => ({ name: placeholderName(c.text), category: 'opening' }))
-      );
+    if (parsed.concepts.length === 0) {
+      console.warn(`  lote ${i / BATCH + 1}: sin títulos utilizables, van genéricos`);
+      titled.push(...batch.map(c => ({ name: placeholderName(c.text), category: 'opening' })));
       continue;
     }
-
-    const block = response.content[0];
-    const parsed =
-      block?.type === 'text'
-        ? (JSON.parse(block.text) as { concepts: { name: string; category: string }[] })
-        : { concepts: [] };
 
     // Order is the only thing tying a title back to its note, so a short
     // response must not silently shift every later candidate's title.
@@ -266,19 +308,41 @@ const bookFor = (citations: string[]) => {
 
 let titles: { name: string; category: string }[];
 if (wantsTitles) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('ANTHROPIC_API_KEY is not set, which --title needs.');
+  const titler = process.env.ANTHROPIC_API_KEY
+    ? 'Claude'
+    : process.env.XAI_API_KEY
+      ? 'Grok'
+      : null;
+  if (!titler) {
+    console.error('--title necesita ANTHROPIC_API_KEY o XAI_API_KEY en el entorno.');
     process.exit(1);
   }
-  console.log('\nTitling with Claude…');
+  console.log(`\nTitulando con ${titler}…`);
   titles = await titleCandidates(candidates);
 } else {
   titles = candidates.map(c => ({ name: placeholderName(c.text), category: 'opening' }));
   console.log('\nUsing placeholder titles (pass --title to have Claude name them).');
 }
 
+/**
+ * El libro de un estudio armado sobre un libro está en el nombre del capítulo,
+ * no citado dentro de la nota.
+ *
+ * Las notas del repertorio dicen "Silman cap. 3" porque son de Lucas leyendo a
+ * Silman. Las de un estudio de Simple Chess no citan a Stean: SON Stean, y lo
+ * que lo dice es el capítulo ("Simple Chess: Chapter 2: Outposts"). Sin esto,
+ * doscientos conceptos de un libro entero quedan sin apuntar al estante.
+ */
+const bookFromChapter = (chapterName: string) => {
+  const prefix = chapterName.split(':')[0]?.trim();
+  if (!prefix || prefix.length < 4) return undefined;
+  const needle = prefix.toLowerCase();
+  const matches = books.filter(b => b.title.toLowerCase().includes(needle));
+  return matches.length === 1 ? matches[0] : undefined;
+};
+
 const review: ReviewEntry[] = candidates.map((c, i) => {
-  const book = bookFor(c.citations);
+  const book = bookFor(c.citations) ?? bookFromChapter(c.chapterName);
   return {
     approve: false,
     name: titles[i]?.name ?? placeholderName(c.text),
