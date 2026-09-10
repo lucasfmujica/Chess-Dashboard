@@ -574,8 +574,9 @@ def run_patterns(conn, args) -> int:
     divergencias porque el agrupamiento necesita verlas juntas — es justamente
     lo que no se puede hacer de a una.
 
-    Solo por Anthropic: usa salida estructurada, que se configura distinto en
-    cada proveedor y no vale la pena duplicar para una llamada por corrida.
+    Los dos proveedores soportan salida estructurada, pero la configuran
+    distinto: Anthropic con output_config.format, xAI con el response_format de
+    OpenAI. El esquema es el mismo, así que la comparación sigue siendo justa.
     """
     # Primero si hay material, después la clave: sin explicaciones el paso
     # siguiente es correr --explain, no ir a buscar una API key.
@@ -593,12 +594,6 @@ def run_patterns(conn, args) -> int:
               "hay anécdotas. Corré --evidence y --explain primero.")
         return 0
 
-    try:
-        import anthropic
-    except ImportError:
-        sys.exit("Falta el SDK: pip install anthropic")
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        sys.exit("Falta ANTHROPIC_API_KEY. Agregala a .env.local o exportala.")
 
     lines = [f"{len(rows)} divergencias ya diagnosticadas y explicadas:\n"]
     for r in rows:
@@ -609,25 +604,56 @@ def run_patterns(conn, args) -> int:
             f"  explicación: {r['explanation']}\n"
         )
 
-    model = args.explain_model or EXPLAIN_MODEL
-    client = anthropic.Anthropic()
-    print(f"Agrupando {len(rows)} divergencias con {model}...")
-    message = client.messages.create(
-        model=model,
-        max_tokens=16000,
-        thinking={"type": "adaptive"},
-        output_config={
-            "effort": args.explain_effort,
-            "format": {"type": "json_schema", "schema": PATTERNS_SCHEMA},
-        },
-        system=PATTERNS_SYSTEM,
-        messages=[{"role": "user", "content": "\n".join(lines)}],
-    )
-    if message.stop_reason == "refusal":
-        sys.exit("El modelo declinó agrupar.")
-    payload = json.loads(
-        "".join(b.text for b in message.content if b.type == "text")
-    )
+    prompt = "\n".join(lines)
+    if args.explain_provider == "xai":
+        try:
+            from openai import OpenAI
+        except ImportError:
+            sys.exit("Falta el SDK: pip install openai")
+        if not os.environ.get("XAI_API_KEY"):
+            sys.exit("Falta XAI_API_KEY. Agregala a .env.local o exportala.")
+        model = args.explain_model or XAI_MODEL
+        print(f"Agrupando {len(rows)} divergencias con {model}...")
+        client = OpenAI(api_key=os.environ["XAI_API_KEY"], base_url=XAI_BASE_URL,
+                        timeout=300.0, max_retries=3)
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": PATTERNS_SYSTEM},
+                      {"role": "user", "content": prompt}],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {"name": "patrones", "schema": PATTERNS_SCHEMA,
+                                "strict": True},
+            },
+            extra_body={"reasoning": {"effort": args.explain_effort}},
+        )
+        payload = json.loads(completion.choices[0].message.content or "{}")
+    else:
+        try:
+            import anthropic
+        except ImportError:
+            sys.exit("Falta el SDK: pip install anthropic")
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            sys.exit("Falta ANTHROPIC_API_KEY. Agregala a .env.local o exportala.")
+        model = args.explain_model or EXPLAIN_MODEL
+        print(f"Agrupando {len(rows)} divergencias con {model}...")
+        client = anthropic.Anthropic(timeout=300.0, max_retries=3)
+        message = client.messages.create(
+            model=model,
+            max_tokens=16000,
+            thinking={"type": "adaptive"},
+            output_config={
+                "effort": args.explain_effort,
+                "format": {"type": "json_schema", "schema": PATTERNS_SCHEMA},
+            },
+            system=PATTERNS_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if message.stop_reason == "refusal":
+            sys.exit("El modelo declinó agrupar.")
+        payload = json.loads(
+            "".join(b.text for b in message.content if b.type == "text")
+        )
     patterns = payload.get("patterns", [])
     known = {r["id"] for r in rows}
 
@@ -1554,7 +1580,8 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Agrupa las divergencias ya explicadas en temas de estudio. Una "
              "sola llamada al modelo con todas juntas: agrupar necesita verlas "
-             "a la vez. Requiere --evidence y --explain corridos antes.",
+             "a la vez. Requiere --evidence y --explain corridos antes, y respeta "
+             "--explain-provider.",
     )
     p.add_argument(
         "--traps",
