@@ -127,18 +127,27 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
  * prohibido analizar de su cabeza, y esa lista es la única forma de ver si
  * cumplió.
  */
-const PositionChat = ({ diagnostic }: { diagnostic: PositionDiagnostic }) => {
-  const { turns, thinking, error, ask } = useDiagnosticChat(diagnostic.fen);
+const PositionChat = ({
+  fen,
+  diagnostic,
+}: {
+  fen: string;
+  /** Cuando la posición está diagnosticada, se le pasa como contexto. */
+  diagnostic?: PositionDiagnostic;
+}) => {
+  const { turns, thinking, error, ask } = useDiagnosticChat(fen);
   const [draft, setDraft] = useState('');
 
-  const context = [
-    `Posición (FEN): ${diagnostic.fen}`,
-    `Lucas jugó ${diagnostic.movePlayed} y perdió ${diagnostic.cpLoss} centipeones.`,
-    `Stockfish quería ${diagnostic.sfTop3[0]?.moveSan}${
-      diagnostic.sfTop3[0]?.line ? ` (${diagnostic.sfTop3[0].line})` : ''
-    }.`,
-    `Maia-1900 juega ${diagnostic.maiaTopMove}.`,
-  ].join('\n');
+  const context = diagnostic
+    ? [
+        `Posición (FEN): ${diagnostic.fen}`,
+        `Lucas jugó ${diagnostic.movePlayed} y perdió ${diagnostic.cpLoss} centipeones.`,
+        `Stockfish quería ${diagnostic.sfTop3[0]?.moveSan}${
+          diagnostic.sfTop3[0]?.line ? ` (${diagnostic.sfTop3[0].line})` : ''
+        }.`,
+        `Maia-1900 juega ${diagnostic.maiaTopMove}.`,
+      ].join('\n')
+    : `Posición (FEN): ${fen}\nEsta posición no está diagnosticada: no hay nada precalculado sobre ella, evaluá lo que necesites.`;
 
   const send = () => {
     const question = draft.trim();
@@ -217,7 +226,16 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentId, onMarks]);
 
-  if (!gameId) return null;
+  // Sin partida guardada no hay diagnóstico que buscar, pero preguntarle al
+  // motor sobre la posición sigue teniendo sentido — por ejemplo sobre un PGN
+  // pegado en el Analysis Board.
+  if (!gameId) {
+    return (
+      <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+        <PositionChat key={position.ply} fen={position.fen} />
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border border-hairline bg-surface-2 p-3 space-y-3">
@@ -339,8 +357,6 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           )}
 
           <FindingActions key={`acciones-${current.id}`} finding={current} />
-
-          <PositionChat key={current.id} diagnostic={current} />
         </div>
       )}
 
@@ -373,6 +389,12 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           Re-analizar
         </Button>
       )}
+
+      {/* Fuera del bloque del hallazgo a propósito: preguntar sobre una posición
+          no tiene por qué depender de que el pipeline la haya marcado. Cuando hay
+          diagnóstico se le pasa como contexto; cuando no, el modelo igual puede
+          contestar, porque su fuente es el motor del navegador y no lo que sabe. */}
+      <PositionChat key={position.ply} fen={position.fen} diagnostic={current} />
     </div>
   );
 };

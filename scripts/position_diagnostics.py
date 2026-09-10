@@ -110,7 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true", help="Analizar e imprimir sin escribir en la DB.")
     p.add_argument("--source", choices=["otb", "lichess"], help="Filtrar por origen.")
     p.add_argument(
-        "--explain-provider", default="anthropic", choices=["anthropic", "xai"],
+        "--explain-provider", default=None, choices=["anthropic", "xai"],
         help="Quién redacta. El prompt es el mismo para los dos, así que sirve "
              "para compararlos sobre los mismos hallazgos.",
     )
@@ -238,6 +238,11 @@ def main() -> int:
             sys.exit(f"No encuentro {label} en {path}. Ver el docstring del script para el setup.")
 
     load_api_keys()
+    # Sin proveedor explícito se usa la clave que haya, igual que el endpoint del
+    # chat. Antes el default era "anthropic" a secas, así que drenar la cola con
+    # solo una clave de xAI configurada salteaba las explicaciones en silencio.
+    if args.explain_provider is None:
+        args.explain_provider = "anthropic" if os.environ.get("ANTHROPIC_API_KEY") else "xai"
     database_url = load_database_url()
     conn = connect(database_url)
     has_tables = tables_exist(conn, needs_queue=args.requested)
@@ -337,6 +342,23 @@ def main() -> int:
     finally:
         sf.quit()
         maia.close()
+
+    # Drenar la cola corre la cadena entera, no solo el análisis principal.
+    # El botón de la app dice "pedir análisis", y un pedido que devuelve
+    # divergencias sin explicación, sin escalera y sin piezas culpables no es lo
+    # que promete. Las pasadas siguientes ya rellenan solo lo que falta, así que
+    # alcanza con invocarlas: tocan las filas nuevas y nada más.
+    if args.requested and not args.dry_run and all_findings:
+        for etiqueta, pasada in (("evidencia", run_evidence),
+                                 ("escalera de Maia", run_ladder),
+                                 ("explicaciones", run_explain)):
+            print(f"\n--- {etiqueta} de lo recién analizado ---")
+            try:
+                pasada(conn, args)
+            except SystemExit as err:
+                # Falta una clave o un peso: se dice y se sigue. Media cadena
+                # hecha es mejor que perder el análisis que ya se pagó en CPU.
+                print(f"  {etiqueta} salteada: {err}", file=sys.stderr)
 
     print(f"\nListo en {(time.time() - started) / 60:.1f} min.")
     print_summary(conn, all_findings, args.dry_run)
