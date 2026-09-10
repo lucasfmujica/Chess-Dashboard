@@ -60,6 +60,15 @@ export const useDiagnosticChat = (fen: string) => {
   const [thinking, setThinking] = useState(false);
   /** Qué está midiendo ahora mismo, para que la espera no parezca un cuelgue. */
   const [progress, setProgress] = useState<string>();
+  /**
+   * Vuelta actual y segundos transcurridos.
+   *
+   * Mientras el modelo razona no hay nada que medir, así que el indicador de
+   * mediciones queda vacío y la pantalla decía "Pensando…" sin más. Una espera
+   * de medio minuto sin señal se lee como un cuelgue; con la vuelta y el reloj
+   * se lee como trabajo.
+   */
+  const [round, setRound] = useState<{ n: number; since: number }>();
   const [error, setError] = useState<string | null>(null);
   const history = useRef<WireTurn[]>([]);
   const engine = useRef<StockfishEngine | null>(null);
@@ -205,6 +214,7 @@ export const useDiagnosticChat = (fen: string) => {
                 'quedó sin verificar, decilo en una frase en vez de seguir buscando.',
             });
           }
+          setRound({ n: round + 1, since: Date.now() });
           const reply = await askDiagnosticChat(history.current);
           history.current.push({
             role: 'assistant',
@@ -287,6 +297,7 @@ export const useDiagnosticChat = (fen: string) => {
       } finally {
         setThinking(false);
         setProgress(undefined);
+        setRound(undefined);
       }
     },
     [evaluate, ablate, facts]
@@ -300,5 +311,5 @@ export const useDiagnosticChat = (fen: string) => {
     setError(null);
   }, []);
 
-  return { turns, thinking, progress, error, ask, reset };
+  return { turns, thinking, progress, round, error, ask, reset };
 };

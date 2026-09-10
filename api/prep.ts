@@ -1026,7 +1026,12 @@ const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
     body: JSON.stringify({
       model: 'grok-4.6',
       messages,
-      reasoning: { effort: 'medium' },
+      // Medido sobre la misma pregunta: medium tarda 27s por vuelta y low 8s,
+      // con la misma cantidad de mediciones pedidas. Acá el esfuerzo SÍ es
+      // palanca, al revés que al redactar una explicación, donde apenas recorta
+      // un cuarto — decidir qué medir razona mucho más que titular una nota que
+      // ya está escrita. Con tres vueltas la diferencia es un minuto de espera.
+      reasoning: { effort: 'low' },
       tools: [
         {
           type: 'function',

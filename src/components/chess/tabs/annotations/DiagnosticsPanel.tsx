@@ -140,8 +140,16 @@ const PositionChat = ({
   /** Cuando la posición está diagnosticada, se le pasa como contexto. */
   diagnostic?: PositionDiagnostic;
 }) => {
-  const { turns, thinking, progress, error, ask } = useDiagnosticChat(fen);
+  const { turns, thinking, progress, round, error, ask } = useDiagnosticChat(fen);
   const [draft, setDraft] = useState('');
+  // Reloj propio: el hook guarda cuándo arrancó la vuelta, pero sin un tick la
+  // pantalla se quedaría con el número del primer render.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!thinking) return;
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [thinking]);
 
   const context = diagnostic
     ? [
@@ -175,8 +183,14 @@ const PositionChat = ({
         </div>
       ))}
       {thinking && (
-        <p className="text-xs text-fg-subtle">
-          {progress ? `Evaluando ${progress}…` : 'Pensando…'}
+        <p className="text-xs text-fg-subtle" aria-live="polite">
+          {progress ? `Evaluando ${progress}…` : `Pensando (vuelta ${round?.n ?? 1})…`}
+          {round && (
+            <span className="tabular-nums">
+              {' '}
+              {Math.max(0, Math.round((Date.now() - round.since) / 1000) + tick * 0)}s
+            </span>
+          )}
         </p>
       )}
       {error && <p className="text-xs text-loss">{error}</p>}
