@@ -100,10 +100,21 @@ INHUMAN_POLICY = 0.05
 # En la práctica eso marca posiciones donde mi jugada era casi igual de buena
 # (se vieron divergencias de 9cp entrando en la categoría), que es ruido.
 # Subirlo a ~50 deja solo las que además costaron algo. Se ajusta por CLI.
-INHUMAN_MIN_CP_LOSS = 0
+INHUMAN_MIN_CP_LOSS = 50
+# Techo de jugada_inhumana. Sin él la categoría se queda con errores grandes que
+# son claramente propios: sobre las 271 divergencias de las 51 OTB se llevaba 146
+# (el 54%), mezclando divergencias de 0cp con desastres de 678cp. Con piso 50 y
+# techo 300 el reparto queda 56 brechas, 85 errores propios y 35 inhumanas.
+INHUMAN_MAX_CP_LOSS = 300
 # Mate convertido a centipeones: deliberadamente enorme para que todo mate caiga
 # solo por el filtro EVAL_CEILING_CP, sin necesitar un caso especial.
 MATE_SCORE = 100_000
+# Tope de cp_loss. Cuando la jugada jugada permite mate, la resta contra
+# MATE_SCORE da números como 99609, que no son una pérdida: son la codificación
+# del mate. Y pasados unos 20 peones la diferencia deja de significar algo — la
+# posición está perdida igual. Acotarlo mantiene legibles los promedios y la UI
+# sin perder el hallazgo, que igual queda como error_propio.
+CP_LOSS_CAP = 2000
 
 DEFAULT_DEPTH = 20
 MULTIPV = 3
@@ -380,11 +391,16 @@ def classify(
     played_is_maia_top: bool,
     policy_sf_top: float,
     inhuman_min_cp_loss: int = INHUMAN_MIN_CP_LOSS,
+    inhuman_max_cp_loss: int = INHUMAN_MAX_CP_LOSS,
 ) -> str | None:
     """Prioridad: brecha > inhumana > error propio. None = no se guarda."""
     if played_is_maia_top and cp_loss >= BRECHA_MIN_CP_LOSS:
         return "brecha_conceptual"
-    if policy_sf_top < INHUMAN_POLICY and cp_loss >= inhuman_min_cp_loss:
+    # La rareza de la jugada del motor solo explica el error dentro de una banda:
+    # por debajo del piso no perdiste nada, y por encima del techo el desastre es
+    # tuyo por más raro que fuera lo que había que encontrar.
+    if (policy_sf_top < INHUMAN_POLICY
+            and inhuman_min_cp_loss <= cp_loss <= inhuman_max_cp_loss):
         return "jugada_inhumana"
     if cp_loss >= ERROR_PROPIO_MIN_CP_LOSS:
         return "error_propio"
@@ -410,6 +426,7 @@ def analyze_game(
     maia: MaiaEngine,
     depth: int,
     inhuman_min_cp_loss: int = INHUMAN_MIN_CP_LOSS,
+    inhuman_max_cp_loss: int = INHUMAN_MAX_CP_LOSS,
 ) -> tuple[list[Finding], int]:
     """Devuelve (hallazgos, posiciones evaluadas con Stockfish)."""
     moves = parse_moves(row["pgn"])
@@ -466,7 +483,7 @@ def analyze_game(
         else:
             played_info = sf.analyse(board, limit, root_moves=[played])
             played_eval = _eval_cp(played_info, my_color)
-        cp_loss = max(0, best_eval - played_eval)
+        cp_loss = min(CP_LOSS_CAP, max(0, best_eval - played_eval))
 
         policies = maia.policy(board)
         maia_top_uci = max(policies, key=policies.__getitem__)
@@ -477,6 +494,7 @@ def analyze_game(
             played_is_maia_top=(maia_top_uci == played.uci()),
             policy_sf_top=policies.get(top3[0]["move_uci"], 0.0),
             inhuman_min_cp_loss=inhuman_min_cp_loss,
+            inhuman_max_cp_loss=inhuman_max_cp_loss,
         )
         if category is not None:
             findings.append(
@@ -1598,10 +1616,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--inhumana-min-cp-loss",
         type=int,
         default=INHUMAN_MIN_CP_LOSS,
-        help="Pérdida mínima para que una posición cuente como jugada_inhumana "
-             f"(default {INHUMAN_MIN_CP_LOSS}, la regla tal cual se pidió). Con 0 "
-             "entran divergencias de pocos centipeones, donde mi jugada era casi "
-             "tan buena como la del motor.",
+        help=f"Pérdida mínima para jugada_inhumana (default {INHUMAN_MIN_CP_LOSS}). "
+             "Con 0 entran divergencias de pocos centipeones, donde mi jugada era "
+             "casi tan buena como la del motor.",
+    )
+    p.add_argument(
+        "--inhumana-max-cp-loss",
+        type=int,
+        default=INHUMAN_MAX_CP_LOSS,
+        help=f"Pérdida máxima para jugada_inhumana (default {INHUMAN_MAX_CP_LOSS}). "
+             "Por encima, el error pasa a error_propio: que la jugada del motor "
+             "fuera rara no explica un desastre.",
     )
     # Medido en un M2 Pro (12 cores) sobre la misma partida a profundidad 20:
     # 1 hilo 179s, 2 hilos 215s, 6 hilos 240s, 10 hilos 318s. A profundidad FIJA
@@ -1709,7 +1734,8 @@ def main() -> int:
                 continue
             t0 = time.time()
             findings, evaluated = analyze_game(
-                row, sf, maia, args.depth, args.inhumana_min_cp_loss
+                row, sf, maia, args.depth,
+                args.inhumana_min_cp_loss, args.inhumana_max_cp_loss,
             )
             if evaluated == 0 and not findings:
                 print(f"[{index}/{len(games)}] {row['opponent']} — PGN no analizable o sin posiciones tras los filtros.")
