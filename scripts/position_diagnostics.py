@@ -407,6 +407,30 @@ def classify(
     return None
 
 
+def engine_id(path: str) -> str:
+    """Primera línea del banner UCI, ej. "Stockfish 19".
+
+    Se guarda con cada corrida: sin esto, actualizar el motor deja filas viejas y
+    nuevas indistinguibles, y las evaluaciones de dos versiones no son
+    comparables entre sí.
+    """
+    try:
+        out = subprocess.run([path], input="uci\nquit\n", capture_output=True,
+                             text=True, timeout=30).stdout
+        for line in out.splitlines():
+            if line.strip() and not line.startswith("info"):
+                return line.strip()[:80]
+    except (subprocess.SubprocessError, OSError):
+        pass
+    return "desconocido"
+
+
+def classifier_id(args) -> str:
+    """Los umbrales con los que se clasificó, para saber qué quedó viejo."""
+    return (f"brecha>={BRECHA_MIN_CP_LOSS}/inhumana{args.inhumana_min_cp_loss}-"
+            f"{args.inhumana_max_cp_loss}@{INHUMAN_POLICY}/propio>={ERROR_PROPIO_MIN_CP_LOSS}")
+
+
 def _pv_san(board: chess.Board, pv: list[chess.Move]) -> str:
     """La variante en SAN con numeración, ej. "9...Bf5 10.Bxf5 gxf5"."""
     try:
@@ -733,6 +757,7 @@ def run_traps(conn, args) -> int:
     sf.configure({"Threads": args.threads, "Hash": args.hash})
     maia = MaiaEngine(args.lc0_path, args.maia_weights, args.policy_temperature)
     limit = chess.engine.Limit(depth=args.trap_depth)
+    trap_engine = engine_id(args.stockfish_path)
     total = 0
     try:
         for index, row in enumerate(games, start=1):
@@ -775,7 +800,8 @@ def run_traps(conn, args) -> int:
                     ))
                 board.push(played)
 
-            def save(c, _found=found, _gid=row["id"], _n=evaluated):
+            def save(c, _found=found, _gid=row["id"], _n=evaluated,
+                     _engine=trap_engine, _cls=f"trampa>={args.trap_min_cp}"):
                 with c.cursor() as cur:
                     cur.execute("DELETE FROM position_traps WHERE game_id = %s", (_gid,))
                     for f in _found:
@@ -785,12 +811,14 @@ def run_traps(conn, args) -> int:
                                   trap_cp, opponent_move, fell_for_it, eco)
                                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""", f)
                     cur.execute(
-                        """INSERT INTO position_traps_runs (game_id, depth, positions, traps)
-                           VALUES (%s,%s,%s,%s)
+                        """INSERT INTO position_traps_runs
+                             (game_id, depth, positions, traps, engine, classifier)
+                           VALUES (%s,%s,%s,%s,%s,%s)
                            ON CONFLICT (game_id) DO UPDATE
                              SET analyzed_at = now(), depth = EXCLUDED.depth,
-                                 positions = EXCLUDED.positions, traps = EXCLUDED.traps""",
-                        (_gid, args.trap_depth, _n, len(_found)))
+                                 positions = EXCLUDED.positions, traps = EXCLUDED.traps,
+                                 engine = EXCLUDED.engine, classifier = EXCLUDED.classifier""",
+                        (_gid, args.trap_depth, _n, len(_found), _engine, _cls))
                 c.commit()
             if not args.dry_run:
                 _, conn = with_reconnect(conn, database_url, save)
@@ -982,6 +1010,7 @@ def run_evidence(conn, args) -> int:
     sf = chess.engine.SimpleEngine.popen_uci(args.stockfish_path)
     sf.configure({"Threads": args.threads, "Hash": args.hash})
     database_url = load_database_url()
+    engine = engine_id(args.stockfish_path)
     depth = args.evidence_depth
     done = 0
     try:
@@ -1014,11 +1043,12 @@ def run_evidence(conn, args) -> int:
                     "after": _structure(after, me),
                 },
             }
-            def save(c, _ev=evidence, _id=row_id):
+            def save(c, _ev=evidence, _id=row_id, _engine=engine):
                 with c.cursor() as cur:
                     cur.execute(
-                        "UPDATE position_diagnostics SET evidence = %s WHERE id = %s",
-                        (psycopg2.extras.Json(_ev), _id),
+                        """UPDATE position_diagnostics
+                              SET evidence = %s, evidence_engine = %s WHERE id = %s""",
+                        (psycopg2.extras.Json(_ev), _engine, _id),
                     )
                 c.commit()
             _, conn = with_reconnect(conn, database_url, save)
@@ -1442,7 +1472,7 @@ def already_done(conn, game_id: str) -> bool:
 
 
 def persist(conn, game_id: str, findings: list[Finding], evaluated: int, depth: int,
-            drop_request: bool = False) -> None:
+            drop_request: bool = False, engine: str = "", classifier: str = "") -> None:
     """Una transacción por partida: cortar con Ctrl-C no pierde lo ya analizado."""
     with conn.cursor() as cur:
         cur.execute("DELETE FROM position_diagnostics WHERE game_id = %s", (game_id,))
@@ -1462,13 +1492,15 @@ def persist(conn, game_id: str, findings: list[Finding], evaluated: int, depth: 
             )
         cur.execute(
             """
-            INSERT INTO position_diagnostics_runs (game_id, depth, positions, findings)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO position_diagnostics_runs
+              (game_id, depth, positions, findings, engine, classifier)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (game_id) DO UPDATE
                SET analyzed_at = now(), depth = EXCLUDED.depth,
-                   positions = EXCLUDED.positions, findings = EXCLUDED.findings
+                   positions = EXCLUDED.positions, findings = EXCLUDED.findings,
+                   engine = EXCLUDED.engine, classifier = EXCLUDED.classifier
             """,
-            (game_id, depth, evaluated, len(findings)),
+            (game_id, depth, evaluated, len(findings), engine, classifier),
         )
         if drop_request:
             cur.execute("DELETE FROM position_diagnostics_requests WHERE game_id = %s", (game_id,))
@@ -1746,6 +1778,8 @@ def main() -> int:
     sf = chess.engine.SimpleEngine.popen_uci(args.stockfish_path)
     sf.configure({"Threads": args.threads, "Hash": args.hash})
     maia = MaiaEngine(args.lc0_path, args.maia_weights, args.policy_temperature)
+    engine, classifier = engine_id(args.stockfish_path), classifier_id(args)
+    print(f"motor: {engine} · umbrales: {classifier}")
 
     all_findings: list[Finding] = []
     started = time.time()
@@ -1776,7 +1810,8 @@ def main() -> int:
                 _, conn = with_reconnect(
                     conn, database_url,
                     lambda c: persist(c, row["id"], findings, evaluated, args.depth,
-                                      drop_request=args.requested),
+                                      drop_request=args.requested,
+                                      engine=engine, classifier=classifier),
                 )
     except KeyboardInterrupt:
         print("\nInterrumpido. Lo analizado hasta acá quedó guardado.", file=sys.stderr)

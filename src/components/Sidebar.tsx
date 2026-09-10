@@ -4,6 +4,13 @@ import type { Game, PlayerInfo } from '../types/chess';
 import ThemeToggle from './ThemeToggle';
 
 interface NavigationTab {
+  /**
+   * Contador que se muestra al lado del nombre. Existe para el diagnóstico:
+   * pedir un análisis desde la app solo lo encola, y el trabajo real corre en
+   * la máquina de Lucas, así que sin un número acá un pedido se queda esperando
+   * sin que nada lo diga.
+   */
+  badge?: number;
   id: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
@@ -129,6 +136,14 @@ const Sidebar = ({
                   >
                     <tab.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
                     {!isSidebarCollapsed && <span>{tab.label}</span>}
+                    {tab.badge ? (
+                      <span
+                        className="ml-auto rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-accent-fg"
+                        title={`${tab.badge} pendiente${tab.badge > 1 ? 's' : ''}`}
+                      >
+                        {tab.badge}
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}

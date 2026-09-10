@@ -3,6 +3,7 @@ import { useModal } from './components/modals/ModalContext';
 import LazyTab from './components/LazyTab';
 import { useGames, useComputedStats } from './context/GamesContext';
 import { useUI } from './context/UIContext';
+import { useDiagnosticsQueue } from './hooks/useDiagnosticsQueue';
 import Sidebar from './components/Sidebar';
 import MobileHeader from './components/MobileHeader';
 import GameFilter from './components/GameFilter';
@@ -213,6 +214,10 @@ const ChessDashboard = () => {
   const isDrillsTab = resolvedTab === 'drills' || resolvedTab.startsWith('drills-');
 
   // Navigation grouped into sections for a clearer information architecture.
+  // Análisis pedidos desde la app y todavía sin correr. El sidebar es el único
+  // lugar donde se ve sin ir a buscarlo.
+  const pendingDiagnostics = useDiagnosticsQueue();
+
   const navigationSections = [
     {
       section: 'Play & Review',
@@ -237,7 +242,7 @@ const ChessDashboard = () => {
       items: [
         { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
         { id: 'drills', label: 'Drills', icon: ExclamationTriangleIcon },
-        { id: 'diagnostics', label: 'Diagnóstico', icon: BeakerIcon },
+        { id: 'diagnostics', label: 'Diagnóstico', icon: BeakerIcon, badge: pendingDiagnostics },
         { id: 'concepts', label: 'Concepts & Books', icon: PuzzlePieceIcon },
         { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
         { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },

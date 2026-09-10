@@ -29,6 +29,8 @@ vi.mock('./api/client', () => ({
   putAnnotation: vi.fn(),
   deleteAnnotation: vi.fn(),
   postMigrate: vi.fn().mockResolvedValue({ migrated: false }),
+  // El sidebar muestra cuántos análisis están pedidos, así que la raíz lee esto.
+  fetchDiagnosticsStatus: vi.fn().mockResolvedValue({ requested: [], analyzed: [] }),
   // Tournaments moved out of localStorage into the database, so the provider's
   // initial load now fetches them too.
   fetchTournaments: vi.fn().mockResolvedValue([]),

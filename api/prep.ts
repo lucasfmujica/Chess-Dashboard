@@ -45,6 +45,13 @@ interface MinedBlunderInput {
   cpLoss: number;
   evalBefore: number;
   evalAfter: number;
+  /**
+   * Policy que Maia-1900 le da a la solución, cuando quien crea el drill ya la
+   * sabe — un drill nacido de un diagnóstico la trae. Sin esto el drill entra
+   * sin clasificar y hay que esperar a la pasada --drills-policy para saber si
+   * es entrenable o una curiosidad de motor.
+   */
+  maiaPolicy?: number;
 }
 
 interface BlunderDrillPatch {
@@ -118,10 +125,11 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
     }
     const queries = drills.map(b => sql`
       INSERT INTO blunder_drills (
-        game_id, ply, fen_before, played_san, best_move_uci, cp_loss, eval_before, eval_after
+        game_id, ply, fen_before, played_san, best_move_uci, cp_loss, eval_before,
+        eval_after, maia_policy
       ) VALUES (
         ${b.gameId}, ${b.ply}, ${b.fenBefore}, ${b.playedSan}, ${b.bestMoveUci},
-        ${b.cpLoss}, ${b.evalBefore}, ${b.evalAfter}
+        ${b.cpLoss}, ${b.evalBefore}, ${b.evalAfter}, ${b.maiaPolicy ?? null}
       )
       ON CONFLICT (game_id, ply) DO NOTHING
     `);

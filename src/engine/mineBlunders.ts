@@ -11,6 +11,8 @@ export interface MinedBlunder {
   cpLoss: number;
   evalBefore: number;
   evalAfter: number;
+  /** Policy de Maia-1900 para la solución, cuando quien crea el drill la sabe. */
+  maiaPolicy?: number;
 }
 
 /**

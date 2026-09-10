@@ -6,8 +6,10 @@ import BoardFrame from '../BoardFrame';
 import { boardSquareStyles } from '../boardTheme';
 import SegmentedControl from '../../ui/SegmentedControl';
 import TrapsView from './diagnostics/TrapsView';
+import FindingActions from './diagnostics/FindingActions';
 import PatternsView from './diagnostics/PatternsView';
 import { fetchAllPositionDiagnostics } from '../../../api/client';
+import { useDiagnosticsQueue } from '../../../hooks/useDiagnosticsQueue';
 import type { DiagnosticCategory, PositionDiagnostic } from '../../../types/diagnostics';
 
 const CATEGORY_LABEL: Record<DiagnosticCategory, string> = {
@@ -62,6 +64,7 @@ type View = 'divergencias' | 'temas' | 'trampas';
 
 const DiagnosticsTab = () => {
   const [view, setView] = useState<View>('divergencias');
+  const pending = useDiagnosticsQueue();
   const [rows, setRows] = useState<PositionDiagnostic[]>([]);
   const [filter, setFilter] = useState<Filter>('brecha_conceptual');
   const [selectedId, setSelectedId] = useState<string>();
@@ -135,6 +138,15 @@ const DiagnosticsTab = () => {
           { value: 'trampas', label: 'Trampas' },
         ]}
       />
+      {/* Pedir no dispara nada: el análisis corre local. Sin este aviso un
+          pedido se queda esperando sin que nada lo diga. */}
+      {pending > 0 && (
+        <p className="rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-fg-muted">
+          {pending} partida{pending > 1 ? 's' : ''} esperando análisis. Corré{' '}
+          <code className="text-fg">python3 scripts/position_diagnostics.py --requested</code> en tu
+          máquina.
+        </p>
+      )}
     </div>
   );
 
@@ -233,6 +245,8 @@ const DiagnosticsTab = () => {
                   {selected.culprits.map(c => `${c.piece} en ${c.square}`).join(', ')}.
                 </p>
               )}
+              {/* El paso que faltaba: de saber en qué me equivoco, a entrenarlo. */}
+              <FindingActions key={selected.id} finding={selected} />
             </div>
           )}
         </div>

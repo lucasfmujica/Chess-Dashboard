@@ -3,6 +3,7 @@ import { BeakerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import { usePositionDiagnostics } from '../../../../hooks/usePositionDiagnostics';
 import { useDiagnosticChat } from '../../../../hooks/useDiagnosticChat';
+import FindingActions from '../diagnostics/FindingActions';
 import type { BoardPosition } from '../../GameViewer';
 import type {
   DiagnosticCategory,
@@ -336,6 +337,8 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           {current.maiaLadder && current.maiaLadder.length > 0 && (
             <MaiaLadder rungs={current.maiaLadder} />
           )}
+
+          <FindingActions key={`acciones-${current.id}`} finding={current} />
 
           <PositionChat key={current.id} diagnostic={current} />
         </div>
