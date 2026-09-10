@@ -30,16 +30,17 @@ EXPLAIN_EFFORT = "medium"
 # ~153 divergencias de las 51 OTB), aunque Haiku 4.5 sale menos que los dos. El
 # prompt es el mismo para ambos proveedores a propósito: son instrucciones de
 # redacción, no dependen del modelo, y eso hace que la comparación sea justa.
-# grok-4-fast y no grok-4.6 por una diferencia medida de 50x: sobre el mismo
-# hallazgo, 4.6 factura ~4.400 tokens de salida (de los cuales ~4.300 son
-# razonamiento invisible que igual se paga) contra ~670 de fast. US$ 0,0304
-# contra US$ 0,0006 por explicación. La prosa de fast aguanta: usa la línea de
-# tiempo, las piezas culpables y la escalera igual que el grande.
+# grok-4.6 por decisión de Lucas, tomada con el costo medido delante: sobre el
+# mismo hallazgo factura ~4.400 tokens de salida (de los cuales ~4.300 son
+# razonamiento invisible que igual se paga) contra ~670 de grok-4-fast, o sea
+# US$ 0,0304 contra US$ 0,0006 por explicación. Eligió la prosa por encima de
+# los 50x, sabiendo lo que cuesta.
 #
-# El esfuerzo NO es la palanca acá: medido sobre la misma posición, "low" apenas
-# recorta el razonamiento un 24% frente a "medium", y "none" directamente se
-# ignora en 4.6 — sigue razonando lo mismo. Lo que cambia el costo es el modelo.
-XAI_MODEL = "grok-4-fast"
+# Lo que NO sirve de palanca acá es el esfuerzo: medido sobre la misma posición,
+# "low" recorta el razonamiento apenas un 24% frente a "medium", y "none" se
+# ignora — 4.6 razona lo mismo igual. Si alguna vez hay que abaratar esto, se
+# cambia el modelo (--explain-model grok-4-fast), no el effort.
+XAI_MODEL = "grok-4.6"
 XAI_BASE_URL = "https://api.x.ai/v1"
 
 EXPLAIN_SYSTEM = """Sos un entrenador de ajedrez escribiendo la nota al pie de un error \
