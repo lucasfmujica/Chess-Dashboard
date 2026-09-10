@@ -155,25 +155,42 @@ def with_reconnect(conn, url: str, operation):
         return operation(fresh), fresh
 
 
+def env_from_dotenv(name: str) -> str | None:
+    """Lee una variable de .env.local. El repo no usa dotenv: los scripts Node
+    leen ese archivo con `node --env-file=.env.local`."""
+    env_local = REPO_ROOT / ".env.local"
+    if not env_local.is_file():
+        return None
+    for raw in env_local.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        if key.strip() != name:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if value:
+            return value
+    return None
+
+
+def load_api_keys() -> None:
+    """Mete en el entorno las claves de los narradores, si están en .env.local.
+    Los SDKs las leen de ahí, no reciben la clave por parámetro."""
+    for name in ("ANTHROPIC_API_KEY", "XAI_API_KEY"):
+        if not os.environ.get(name):
+            value = env_from_dotenv(name)
+            if value:
+                os.environ[name] = value
+
+
 def load_database_url() -> str:
     """DATABASE_URL del entorno; si no está, del .env.local gitignoreado."""
-    url = os.environ.get("DATABASE_URL")
+    url = os.environ.get("DATABASE_URL") or env_from_dotenv("DATABASE_URL")
     if url:
         return url
-    env_local = REPO_ROOT / ".env.local"
-    if env_local.is_file():
-        for raw in env_local.read_text(encoding="utf-8").splitlines():
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            if key.strip() != "DATABASE_URL":
-                continue
-            value = value.strip()
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                value = value[1:-1]
-            if value:
-                return value
     sys.exit(
         "DATABASE_URL is not set. Run with: DATABASE_URL=... python3 "
         "scripts/position_diagnostics.py, or leave it in .env.local"
@@ -765,6 +782,12 @@ def run_drills_policy(conn, args) -> int:
 # la explicación queda cacheada en la tabla.
 EXPLAIN_MODEL = "claude-opus-5"
 EXPLAIN_EFFORT = "medium"
+# Grok sale más barato que Opus para esto (~US$1.15 contra ~US$4.57 sobre las
+# ~153 divergencias de las 51 OTB), aunque Haiku 4.5 sale menos que los dos. El
+# prompt es el mismo para ambos proveedores a propósito: son instrucciones de
+# redacción, no dependen del modelo, y eso hace que la comparación sea justa.
+XAI_MODEL = "grok-4.6"
+XAI_BASE_URL = "https://api.x.ai/v1"
 
 EXPLAIN_SYSTEM = """Sos un entrenador de ajedrez escribiendo la nota al pie de un error \
 concreto, para un jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, \
@@ -859,8 +882,37 @@ def _explain_prompt(row: dict) -> str:
     return "\n".join(lines)
 
 
-def run_explain(conn, args) -> int:
-    """Convierte la evidencia en prosa, una vez por hallazgo, y la cachea."""
+def _narrator(args):
+    """Devuelve `(fn, etiqueta)` donde fn(system, prompt) -> texto o None.
+
+    None significa "el modelo declinó", que no es lo mismo que un error: se
+    saltea el hallazgo y la corrida sigue.
+    """
+    if args.explain_provider == "xai":
+        try:
+            from openai import OpenAI
+        except ImportError:
+            sys.exit("Falta el SDK: pip install openai")
+        if not os.environ.get("XAI_API_KEY"):
+            sys.exit("Falta XAI_API_KEY. Agregala a .env.local o exportala en el entorno.")
+        model = args.explain_model or XAI_MODEL
+        # La API de xAI es compatible con la de OpenAI, así que se usa ese SDK
+        # apuntado a su base URL. No sirve el de Anthropic.
+        client = OpenAI(api_key=os.environ["XAI_API_KEY"], base_url=XAI_BASE_URL)
+
+        def generate(system: str, prompt: str) -> str | None:
+            completion = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt},
+                ],
+                reasoning={"effort": args.explain_effort},
+            )
+            return (completion.choices[0].message.content or "").strip() or None
+
+        return generate, f"{model}/{args.explain_effort}"
+
     try:
         import anthropic
     except ImportError:
@@ -870,6 +922,31 @@ def run_explain(conn, args) -> int:
             "Falta ANTHROPIC_API_KEY. Agregala a .env.local (ya figura comentada "
             "en .env.example) o exportala en el entorno."
         )
+    model = args.explain_model or EXPLAIN_MODEL
+    client = anthropic.Anthropic()
+
+    def generate(system: str, prompt: str) -> str | None:
+        message = client.messages.create(
+            model=model,
+            max_tokens=8000,
+            thinking={"type": "adaptive"},
+            output_config={"effort": args.explain_effort},
+            # El sistema no cambia entre hallazgos: cachearlo evita pagarlo una
+            # vez por fila.
+            system=[{"type": "text", "text": system,
+                     "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if message.stop_reason == "refusal":
+            return None
+        return "\n".join(b.text for b in message.content if b.type == "text").strip() or None
+
+    return generate, f"{model}/{args.explain_effort}"
+
+
+def run_explain(conn, args) -> int:
+    """Convierte la evidencia en prosa, una vez por hallazgo, y la cachea."""
+    generate, label = _narrator(args)
 
     where = "evidence IS NOT NULL" + ("" if args.force else " AND explanation IS NULL")
     params: list = []
@@ -893,33 +970,18 @@ def run_explain(conn, args) -> int:
               "¿Corriste --evidence primero?")
         return 0
 
-    client = anthropic.Anthropic()
-    print(f"{len(rows)} hallazgos a explicar con {args.explain_model} "
-          f"(effort {args.explain_effort}).")
+    print(f"{len(rows)} hallazgos a explicar con {label}.")
     done = 0
     try:
         for index, row in enumerate(rows, start=1):
-            message = client.messages.create(
-                model=args.explain_model,
-                max_tokens=8000,
-                thinking={"type": "adaptive"},
-                output_config={"effort": args.explain_effort},
-                # El sistema no cambia entre hallazgos: cachearlo evita pagarlo
-                # una vez por fila.
-                system=[{"type": "text", "text": EXPLAIN_SYSTEM,
-                         "cache_control": {"type": "ephemeral"}}],
-                messages=[{"role": "user", "content": _explain_prompt(row)}],
-            )
-            if message.stop_reason == "refusal":
-                print(f"[{index}/{len(rows)}] {row['move_played']} — el modelo declinó, salteando")
-                continue
-            text = "\n".join(b.text for b in message.content if b.type == "text").strip()
+            text = generate(EXPLAIN_SYSTEM, _explain_prompt(row))
             if not text:
+                print(f"[{index}/{len(rows)}] {row['move_played']} — sin respuesta, salteando")
                 continue
             with conn.cursor() as cur:
                 cur.execute(
                     "UPDATE position_diagnostics SET explanation = %s, explained_with = %s WHERE id = %s",
-                    (text, f"{args.explain_model}/{args.explain_effort}", row["id"]),
+                    (text, label, row["id"]),
                 )
             conn.commit()
             done += 1
@@ -1182,9 +1244,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--dry-run", action="store_true", help="Analizar e imprimir sin escribir en la DB.")
     p.add_argument("--source", choices=["otb", "lichess"], help="Filtrar por origen.")
     p.add_argument(
-        "--explain-model", default=EXPLAIN_MODEL,
-        help=f"Modelo para --explain (default {EXPLAIN_MODEL}). Bajar de tier es "
-             "el manijazo de costo más grande: Haiku 4.5 sale como un quinto de Opus.",
+        "--explain-provider", default="anthropic", choices=["anthropic", "xai"],
+        help="Quién redacta. El prompt es el mismo para los dos, así que sirve "
+             "para compararlos sobre los mismos hallazgos.",
+    )
+    p.add_argument(
+        "--explain-model", default=None,
+        help=f"Modelo para --explain (default {EXPLAIN_MODEL} en anthropic, "
+             f"{XAI_MODEL} en xai). Bajar de tier es el manijazo de costo más "
+             "grande: Haiku 4.5 sale como un quinto de Opus.",
     )
     p.add_argument(
         "--explain-effort", default=EXPLAIN_EFFORT,
@@ -1270,6 +1338,7 @@ def main() -> int:
         if not Path(path).exists():
             sys.exit(f"No encuentro {label} en {path}. Ver el docstring del script para el setup.")
 
+    load_api_keys()
     database_url = load_database_url()
     conn = connect(database_url)
     has_tables = tables_exist(conn, needs_queue=args.requested)
