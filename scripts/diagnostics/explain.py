@@ -30,7 +30,16 @@ EXPLAIN_EFFORT = "medium"
 # ~153 divergencias de las 51 OTB), aunque Haiku 4.5 sale menos que los dos. El
 # prompt es el mismo para ambos proveedores a propósito: son instrucciones de
 # redacción, no dependen del modelo, y eso hace que la comparación sea justa.
-XAI_MODEL = "grok-4.6"
+# grok-4-fast y no grok-4.6 por una diferencia medida de 50x: sobre el mismo
+# hallazgo, 4.6 factura ~4.400 tokens de salida (de los cuales ~4.300 son
+# razonamiento invisible que igual se paga) contra ~670 de fast. US$ 0,0304
+# contra US$ 0,0006 por explicación. La prosa de fast aguanta: usa la línea de
+# tiempo, las piezas culpables y la escalera igual que el grande.
+#
+# El esfuerzo NO es la palanca acá: medido sobre la misma posición, "low" apenas
+# recorta el razonamiento un 24% frente a "medium", y "none" directamente se
+# ignora en 4.6 — sigue razonando lo mismo. Lo que cambia el costo es el modelo.
+XAI_MODEL = "grok-4-fast"
 XAI_BASE_URL = "https://api.x.ai/v1"
 
 EXPLAIN_SYSTEM = """Sos un entrenador de ajedrez escribiendo la nota al pie de un error \
@@ -344,7 +353,7 @@ def run_patterns(conn, args) -> int:
         model = args.explain_model or XAI_MODEL
         print(f"Agrupando {len(rows)} divergencias con {model}...")
         client = OpenAI(api_key=os.environ["XAI_API_KEY"], base_url=XAI_BASE_URL,
-                        timeout=300.0, max_retries=3)
+                        timeout=600.0, max_retries=1)
         completion = client.chat.completions.create(
             model=model,
             messages=[{"role": "system", "content": PATTERNS_SYSTEM},
@@ -366,7 +375,7 @@ def run_patterns(conn, args) -> int:
             sys.exit("Falta ANTHROPIC_API_KEY. Agregala a .env.local o exportala.")
         model = args.explain_model or EXPLAIN_MODEL
         print(f"Agrupando {len(rows)} divergencias con {model}...")
-        client = anthropic.Anthropic(timeout=300.0, max_retries=3)
+        client = anthropic.Anthropic(timeout=600.0, max_retries=1)
         message = client.messages.create(
             model=model,
             max_tokens=16000,
