@@ -114,14 +114,6 @@ if (megabytes > 20) {
   process.exit(1);
 }
 
-if (dryRun) {
-  const out = path.join(os.tmpdir(), `chapter-${fromPage}-${toPage}.pdf`);
-  writeFileSync(out, chapterBytes);
-  console.log(`\nDry run — wrote the slice to ${out} so you can check the page range.`);
-  console.log('Open it, confirm it is the chapter you meant, then re-run without --dry-run.');
-  process.exit(0);
-}
-
 // -------------------------------------------------------------- resolve book
 
 const books = (await sql`
@@ -151,6 +143,47 @@ if (bookQuery) {
     // active books get studied, and concepts from a shelved one will sit unread.
     console.log(`          (marked "${status}" — the weekly plan only studies 'activo' books)`);
   }
+}
+
+// ------------------------------------------- qué ya se leyó de este libro
+
+/**
+ * Un capítulo por corrida no sirve de nada si hay que recordar dónde quedaste.
+ * Esto lo dice, y avisa cuando el rango pedido pisa uno ya leído — releer no
+ * está prohibido (podés querer mejores fichas), pero duplica conceptos y no
+ * debería pasar por descuido.
+ */
+const previos = book
+  ? ((await sql`
+      SELECT from_page, to_page, chapter, candidates, imported_at
+        FROM book_imports WHERE book_id = ${book.id}
+       ORDER BY from_page
+    `) as { from_page: number; to_page: number; chapter: string; candidates: number; imported_at: string }[])
+  : [];
+
+if (previos.length > 0) {
+  console.log('\nDe este libro ya se leyó:');
+  for (const p of previos) {
+    console.log(`  pp.${p.from_page}-${p.to_page}  ${p.chapter} (${p.candidates} fichas)`);
+  }
+  const ultimo = Math.max(...previos.map(p => p.to_page));
+  console.log(`  -> lo siguiente sin leer arranca en la página ${ultimo + 1}`);
+
+  const pisa = previos.find(p => fromPage <= p.to_page && toPage >= p.from_page);
+  if (pisa) {
+    console.log(
+      `\nOJO: pp.${fromPage}-${toPage} pisa un rango ya leído (pp.${pisa.from_page}-${pisa.to_page}).\n` +
+        'Si es a propósito seguí; si no, vas a terminar con conceptos repetidos.'
+    );
+  }
+}
+
+if (dryRun) {
+  const out = path.join(os.tmpdir(), `chapter-${fromPage}-${toPage}.pdf`);
+  writeFileSync(out, chapterBytes);
+  console.log(`\nDry run — wrote the slice to ${out} so you can check the page range.`);
+  console.log('Open it, confirm it is the chapter you meant, then re-run without --dry-run.');
+  process.exit(0);
 }
 
 // ------------------------------------------------------------------- extract
@@ -383,7 +416,16 @@ if (dupes > 0) {
 
 const { added, total } = appendReview(entries);
 
+// Se registra la LECTURA, no la aprobación: las páginas ya se leyeron y se
+// pagaron, aunque después no apruebes ninguna ficha.
+await sql`
+  INSERT INTO book_imports (book_id, pdf_path, from_page, to_page, chapter, candidates, read_with)
+  VALUES (${book?.id ?? null}, ${pdfPath}, ${fromPage}, ${toPage}, ${label},
+          ${entries.length}, ${useGrok ? 'grok-4.6' : 'claude-sonnet-5'})
+`;
+
 console.log(`\nAgregados a la cola de revisión: ${added} (la cola tiene ${total})`);
+console.log(`Registrado: ${label}, pp.${fromPage}-${toPage}. La próxima corrida te lo recuerda.`);
 console.log('\nNada fue insertado. Cada ficha trae su página y una cita textual — revisalas');
 console.log('contra el libro, poné "approve": true en las que valgan, y después:');
 console.log('  npx tsx --env-file=.env.local scripts/extract-concepts-from-study.mts --insert');
