@@ -13,6 +13,8 @@ import json
 import os
 import sys
 
+import psycopg2.extras
+
 # Regla de oro: el modelo REDACTA hechos ya calculados, no analiza ajedrez. Si
 # se le pide que explique una posición por su cuenta escribe algo que suena bien
 # y suele estar mal. Todo lo que aparece en el prompt salió de un motor.
