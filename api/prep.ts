@@ -700,8 +700,12 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
  */
 interface ChatToolCall {
   id: string;
+  /** Cuál de las dos herramientas: 'evaluar' o 'quitar_pieza'. */
+  tool: string;
   moves: string[];
   depth?: number;
+  /** Solo para 'quitar_pieza'. */
+  square?: string;
 }
 
 type ChatTurn =
@@ -710,26 +714,41 @@ type ChatTurn =
   | { role: 'tool'; results: { id: string; output: string; isError?: boolean }[] };
 
 const CHAT_TOOL_NAME = 'evaluar';
+const ABLATION_TOOL_NAME = 'quitar_pieza';
 
 const CHAT_SYSTEM = `Contestás preguntas sobre una posición concreta de una partida \
 de Lucas, jugador argentino de ~1880 FIDE. Hablás de vos, en rioplatense, sin \
 solemnidad y sin dar clase.
 
-REGLA CENTRAL, por encima de todo: no analizás ajedrez de tu cabeza. Para \
-cualquier afirmación sobre si una jugada es buena, mala, o qué pasa después, \
-usás la herramienta "${CHAT_TOOL_NAME}" y contestás con lo que devuelve. Si no \
-evaluaste, no lo afirmás.
+REGLA CENTRAL: los HECHOS salen de las herramientas, no de tu memoria. Cualquier \
+afirmación sobre cuánto vale una jugada o qué pasa después tiene que venir de \
+haber evaluado. No inventes variantes ni evaluaciones.
+
+Pero interpretar lo que las herramientas devuelven es TU TRABAJO, no algo \
+prohibido. Si Lucas pregunta POR QUÉ una jugada es mejor, contestale: medí lo que \
+haga falta y explicá el mecanismo con eso. "No te puedo decir por qué, la eval no \
+me lo da" es una mala respuesta — significa que no usaste las herramientas que \
+tenés para averiguarlo.
+
+Tenés dos herramientas:
+- "${CHAT_TOOL_NAME}": evalúa una línea. Para saber cuánto vale algo.
+- "${ABLATION_TOOL_NAME}": saca una pieza del tablero y vuelve a evaluar. Para \
+  saber DE QUIÉN depende una posición. Si sacar la dama del rival cambia mucho la \
+  evaluación, esa dama es el motivo; si no la cambia, no lo es. Es la forma de \
+  contestar "¿es por la dama o por el desarrollo?".
 
 Cómo trabajar:
 - Si te pregunta por una jugada concreta ("¿y si jugaba Nc4?"), evaluala.
-- Si querés comparar, evaluá las dos y decí la diferencia en peones.
-- Podés encadenar varias evaluaciones antes de contestar. Es barato.
+- Si te pregunta por qué una jugada es mejor que otra, evaluá las dos y después \
+  usá la ablación sobre las piezas candidatas para aislar el motivo.
+- NO repitas evaluaciones. Si ya mediste una línea en esta conversación, el \
+  resultado sigue ahí arriba: usalo en vez de volver a pedirlo.
 - Una evaluación vuelve desde el lado del que mueve en ESA posición. Fijate de \
   quién es el turno antes de decir si es buena o mala para Lucas.
-- Si la pregunta no se puede contestar evaluando (por ejemplo, sobre qué pensaba \
-  el rival), decilo en vez de inventar.
+- Si de verdad no se puede contestar con las herramientas (por ejemplo, qué \
+  pensaba el rival), decilo. Pero primero fijate si se puede.
 
-Respuestas de 1 a 3 oraciones. Texto plano, sin markdown ni viñetas. Cuando cites \
+Respuestas de 1 a 4 oraciones. Texto plano, sin markdown ni viñetas. Cuando cites \
 una evaluación, dala en peones con un decimal, no en centipeones.`;
 
 const CHAT_TOOL_DESCRIPTION =
@@ -737,6 +756,36 @@ const CHAT_TOOL_DESCRIPTION =
   'Devuelve la evaluación en centipeones desde el lado que mueve en la posición ' +
   'resultante, y la mejor respuesta del motor. Pasá lista vacía para evaluar la ' +
   'posición de partida tal cual.';
+
+/**
+ * Ablación: sacar una pieza y volver a evaluar.
+ *
+ * Es la misma técnica con la que el pipeline decide qué pieza activó un error, y
+ * es lo único que puede contestar "¿es por la dama o por el desarrollo?". Una
+ * evaluación dice CUÁNTO; sacar una pieza dice DE QUIÉN depende.
+ */
+const ABLATION_TOOL_DESCRIPTION =
+  'Saca una pieza del tablero y vuelve a evaluar, para aislar de qué pieza ' +
+  'depende una posición. Devuelve la evaluación con y sin ella. Si sacarla ' +
+  'cambia mucho el número, esa pieza es el motivo; si no lo cambia, no lo es.';
+
+const ABLATION_TOOL_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    jugadas: {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'Jugadas en SAN hasta la posición a examinar. Lista vacía = la posición de partida.',
+    },
+    casilla: {
+      type: 'string',
+      description: 'Casilla de la pieza a sacar, ej. "d3". No se puede sacar un rey.',
+    },
+    profundidad: { type: 'integer', description: 'Profundidad, 12 a 22. Por defecto 16.' },
+  },
+  required: ['jugadas', 'casilla'],
+  additionalProperties: false,
+};
 
 const CHAT_TOOL_SCHEMA = {
   type: 'object' as const,
@@ -758,14 +807,16 @@ const CHAT_TOOL_SCHEMA = {
 };
 
 /** Lo que el modelo pidió evaluar, normalizado desde el formato de cada proveedor. */
-const parseToolInput = (raw: unknown): { moves: string[]; depth?: number } => {
+const parseToolInput = (raw: unknown): { moves: string[]; depth?: number; square?: string } => {
   const input = (typeof raw === 'string' ? JSON.parse(raw) : raw) as {
     jugadas?: unknown;
     profundidad?: unknown;
+    casilla?: unknown;
   };
   return {
     moves: Array.isArray(input?.jugadas) ? input.jugadas.map(String) : [],
     depth: typeof input?.profundidad === 'number' ? input.profundidad : undefined,
+    square: typeof input?.casilla === 'string' ? input.casilla : undefined,
   };
 };
 
@@ -790,8 +841,10 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
       content.push({
         type: 'tool_use',
         id: call.id,
-        name: CHAT_TOOL_NAME,
-        input: { jugadas: call.moves, profundidad: call.depth },
+        name: call.tool || CHAT_TOOL_NAME,
+        input: call.square
+          ? { jugadas: call.moves, casilla: call.square, profundidad: call.depth }
+          : { jugadas: call.moves, profundidad: call.depth },
       });
     }
     return { role: 'assistant', content };
@@ -812,6 +865,12 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
         input_schema: CHAT_TOOL_SCHEMA,
         strict: true,
       },
+      {
+        name: ABLATION_TOOL_NAME,
+        description: ABLATION_TOOL_DESCRIPTION,
+        input_schema: ABLATION_TOOL_SCHEMA,
+        strict: true,
+      },
     ],
     messages,
   });
@@ -824,7 +883,7 @@ const chatViaAnthropic = async (turns: ChatTurn[]) => {
       .trim(),
     toolCalls: message.content
       .filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
-      .map(b => ({ id: b.id, ...parseToolInput(b.input) })),
+      .map(b => ({ id: b.id, tool: b.name, ...parseToolInput(b.input) })),
   };
 };
 
@@ -850,8 +909,12 @@ const chatViaXai = async (turns: ChatTurn[]) => {
                 id: c.id,
                 type: 'function',
                 function: {
-                  name: CHAT_TOOL_NAME,
-                  arguments: JSON.stringify({ jugadas: c.moves, profundidad: c.depth }),
+                  name: c.tool || CHAT_TOOL_NAME,
+                  arguments: JSON.stringify(
+                    c.square
+                      ? { jugadas: c.moves, casilla: c.square, profundidad: c.depth }
+                      : { jugadas: c.moves, profundidad: c.depth }
+                  ),
                 },
               })),
             }
@@ -878,18 +941,27 @@ const chatViaXai = async (turns: ChatTurn[]) => {
             parameters: CHAT_TOOL_SCHEMA,
           },
         },
+        {
+          type: 'function',
+          function: {
+            name: ABLATION_TOOL_NAME,
+            description: ABLATION_TOOL_DESCRIPTION,
+            parameters: ABLATION_TOOL_SCHEMA,
+          },
+        },
       ],
     }),
   });
   if (!res.ok) throw new Error(`xAI respondió ${res.status}`);
   const body = (await res.json()) as {
-    choices?: { message?: { content?: string | null; tool_calls?: { id: string; function: { arguments: string } }[] } }[];
+    choices?: { message?: { content?: string | null; tool_calls?: { id: string; function: { name: string; arguments: string } }[] } }[];
   };
   const msg = body.choices?.[0]?.message;
   return {
     text: (msg?.content ?? '').trim(),
     toolCalls: (msg?.tool_calls ?? []).map(c => ({
       id: c.id,
+      tool: c.function.name,
       ...parseToolInput(c.function.arguments),
     })),
   };

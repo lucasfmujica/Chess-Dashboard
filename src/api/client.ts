@@ -212,8 +212,12 @@ export const requestPositionDiagnostics = (gameId: string, force = false) =>
 /** Una evaluación que el modelo pidió, ya normalizada por el servidor. */
 export interface ChatToolCall {
   id: string;
+  /** Cuál herramienta pidió: evaluar una línea o sacar una pieza. */
+  tool: string;
   moves: string[];
   depth?: number;
+  /** Casilla de la pieza a sacar, solo en la ablación. */
+  square?: string;
 }
 
 export type ChatTurn =

@@ -35,6 +35,14 @@ export const useDiagnosticChat = (fen: string) => {
   const [error, setError] = useState<string | null>(null);
   const history = useRef<WireTurn[]>([]);
   const engine = useRef<StockfishEngine | null>(null);
+  /**
+   * Evaluaciones ya hechas en este hilo.
+   *
+   * El modelo vuelve a pedir líneas que ya midió — en una conversación real pidió
+   * Nxa4 y Bf5 cuatro veces cada una. Cachearlas hace que repetir salga gratis en
+   * vez de costar otra búsqueda de Stockfish, que corre en esta misma máquina.
+   */
+  const cache = useRef<Map<string, unknown>>(new Map());
 
   /**
    * Juega las jugadas desde la posición y evalúa lo que queda.
@@ -43,39 +51,91 @@ export const useDiagnosticChat = (fen: string) => {
    * desde el de Lucas: se dice explícitamente en el resultado para que el
    * modelo no tenga que deducir el signo.
    */
-  const evaluate = useCallback(
-    async (moves: string[], depth: number) => {
+  /** Corre las jugadas desde la posición; devuelve el tablero o el error. */
+  const walk = useCallback(
+    (moves: string[]) => {
       const board = new Chess(fen);
       for (const san of moves) {
         try {
           board.move(san);
         } catch {
-          return { error: `"${san}" no es legal en esa posición. Jugadas válidas hasta ahí: ${board.moves().join(', ')}` };
+          return {
+            error: `"${san}" no es legal en esa posición. Jugadas válidas hasta ahí: ${board.moves().join(', ')}`,
+          };
         }
       }
+      return { board };
+    },
+    [fen]
+  );
+
+  const scoreOf = useCallback(async (positionFen: string, depth: number) => {
+    if (!engine.current) {
+      engine.current = new StockfishEngine();
+      await engine.current.init();
+    }
+    const clamped = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, depth));
+    return { ...(await engine.current.evaluate(positionFen, clamped)), profundidad: clamped };
+  }, []);
+
+  const evaluate = useCallback(
+    async (moves: string[], depth: number) => {
+      const walked = walk(moves);
+      if ('error' in walked) return walked;
+      const { board } = walked;
       if (board.isGameOver()) {
-        return {
-          fen: board.fen(),
-          fin: board.isCheckmate() ? 'jaque mate' : 'tablas',
-        };
+        return { fen: board.fen(), fin: board.isCheckmate() ? 'jaque mate' : 'tablas' };
       }
-      if (!engine.current) {
-        engine.current = new StockfishEngine();
-        await engine.current.init();
-      }
-      const clamped = Math.min(MAX_DEPTH, Math.max(MIN_DEPTH, depth));
-      const result = await engine.current.evaluate(board.fen(), clamped);
+      const r = await scoreOf(board.fen(), depth);
       return {
         fen: board.fen(),
         mueve: board.turn() === 'w' ? 'blancas' : 'negras',
-        evaluacion_cp: result.cp,
-        mate_en: result.mate,
+        evaluacion_cp: r.cp,
+        mate_en: r.mate,
         nota: 'evaluacion_cp es desde el lado que mueve en esta posición',
-        mejor_respuesta_uci: result.bestMove,
-        profundidad: clamped,
+        mejor_respuesta_uci: r.bestMove,
+        profundidad: r.profundidad,
       };
     },
-    [fen]
+    [walk, scoreOf]
+  );
+
+  /**
+   * Ablación: la misma posición con y sin una pieza.
+   *
+   * Una evaluación dice cuánto vale una posición; esto dice de quién depende. Es
+   * lo único que puede separar "es mejor porque desarrolla" de "es mejor porque
+   * echa a la dama", que una evaluación sola no distingue.
+   */
+  const ablate = useCallback(
+    async (moves: string[], square: string, depth: number) => {
+      const walked = walk(moves);
+      if ('error' in walked) return walked;
+      const { board } = walked;
+      const piece = board.get(square as Parameters<Chess['get']>[0]);
+      if (!piece) return { error: `No hay ninguna pieza en ${square}.` };
+      if (piece.type === 'k') return { error: 'No se puede sacar un rey del tablero.' };
+
+      const con = await scoreOf(board.fen(), depth);
+      board.remove(square as Parameters<Chess['remove']>[0]);
+      // Sacar una pieza puede dejar una posición que ningún motor acepta —
+      // por ejemplo el rey que no mueve en jaque.
+      let sin;
+      try {
+        sin = await scoreOf(board.fen(), depth);
+      } catch {
+        return { error: `Sin la pieza de ${square} la posición queda ilegal y no se puede evaluar.` };
+      }
+      return {
+        pieza: `${piece.color === 'w' ? 'blanca' : 'negra'} ${piece.type} en ${square}`,
+        mueve: board.turn() === 'w' ? 'blancas' : 'negras',
+        con_la_pieza_cp: con.cp,
+        sin_la_pieza_cp: sin.cp,
+        nota: 'ambas desde el lado que mueve. La diferencia es cuánto depende la posición de esa pieza',
+        profundidad: con.profundidad,
+      };
+    },
+    [walk, scoreOf]
   );
 
   const ask = useCallback(
@@ -110,9 +170,23 @@ export const useDiagnosticChat = (fen: string) => {
           // partirlas le enseña al modelo a dejar de pedirlas en paralelo.
           const results = await Promise.all(
             reply.toolCalls.map(async call => {
-              evaluated.push(call.moves.length ? call.moves.join(' ') : '(la posición)');
+              const line = call.moves.length ? call.moves.join(' ') : '(la posición)';
+              const label = call.square ? `${line} sin ${call.square}` : line;
+              const key = `${call.tool}|${label}|${call.depth ?? DEFAULT_DEPTH}`;
+              const cached = cache.current.get(key);
+              if (cached !== undefined) {
+                // Se anota igual, para que la lista muestre en qué se apoyó la
+                // respuesta aunque el motor no haya vuelto a correr.
+                evaluated.push(label);
+                return { id: call.id, output: JSON.stringify(cached) };
+              }
+              evaluated.push(label);
               try {
-                const out = await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
+                const out =
+                  call.square
+                    ? await ablate(call.moves, call.square, call.depth ?? DEFAULT_DEPTH)
+                    : await evaluate(call.moves, call.depth ?? DEFAULT_DEPTH);
+                cache.current.set(key, out);
                 return { id: call.id, output: JSON.stringify(out) };
               } catch (err) {
                 return {
@@ -135,12 +209,13 @@ export const useDiagnosticChat = (fen: string) => {
         setThinking(false);
       }
     },
-    [evaluate]
+    [evaluate, ablate]
   );
 
   /** Descarta el hilo. La posición cambió, así que el contexto ya no aplica. */
   const reset = useCallback(() => {
     history.current = [];
+    cache.current.clear();
     setTurns([]);
     setError(null);
   }, []);
