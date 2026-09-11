@@ -226,7 +226,16 @@ export type ConceptCategory =
   | 'strategy'
   | 'mindset';
 
-export type ConceptStatus = 'to-study' | 'studying' | 'applied' | 'mastered';
+/**
+ * 'archivado' es el único que no se estudia: saca el concepto del vocabulario
+ * que se le pasa al chat, sin borrarlo ni sacarlo de la cola de repaso.
+ */
+export type ConceptStatus =
+  | 'to-study'
+  | 'studying'
+  | 'applied'
+  | 'mastered'
+  | 'archivado';
 
 /**
  * A studied concept, tied back to the player's own games. A concept with an

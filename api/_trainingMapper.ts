@@ -186,7 +186,7 @@ export const rowToConcept = (row: ConceptRow) => ({
   bookId: row.book_id ?? undefined,
   sourceChapter: row.source_chapter ?? undefined,
   sourceType: row.source_type ?? undefined,
-  status: row.status as 'to-study' | 'studying' | 'applied' | 'mastered',
+  status: row.status as 'to-study' | 'studying' | 'applied' | 'mastered' | 'archivado',
   summary: row.summary ?? undefined,
   exampleFens: row.example_fens ?? [],
   gameIds: row.game_ids ?? [],

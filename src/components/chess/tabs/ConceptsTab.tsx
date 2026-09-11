@@ -72,6 +72,7 @@ const STATUSES: { value: ConceptStatus; label: string }[] = [
   { value: 'studying', label: 'Estudiando' },
   { value: 'applied', label: 'Aplicado' },
   { value: 'mastered', label: 'Dominado' },
+  { value: 'archivado', label: 'Archivado' },
 ];
 
 const SOURCE_TYPES = [

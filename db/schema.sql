@@ -327,8 +327,10 @@ CREATE TABLE IF NOT EXISTS concepts (
   book_id UUID REFERENCES books(id) ON DELETE SET NULL,
   source_chapter TEXT,
   source_type TEXT,
+  -- 'archivado' saca el concepto del vocabulario que ve el chat (api/prep.ts)
+  -- sin borrarlo: sigue en la tab y en la cola de repaso con su posición.
   status TEXT NOT NULL DEFAULT 'to-study' CHECK (status IN (
-    'to-study','studying','applied','mastered'
+    'to-study','studying','applied','mastered','archivado'
   )),
   summary TEXT,
   example_fens TEXT[] NOT NULL DEFAULT '{}',
