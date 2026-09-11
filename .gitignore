@@ -14,6 +14,9 @@
 # production
 /build
 
+# chat eval runs (scripts/chat-eval.mts --save)
+/.eval
+
 # storybook
 /storybook-static
 

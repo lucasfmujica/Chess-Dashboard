@@ -34,6 +34,7 @@
     "typecheck:api": "tsc --noEmit -p api/tsconfig.json",
     "test": "vitest run && npm run test:py",
     "test:watch": "vitest",
+    "eval:chat": "tsx --env-file=.env.local scripts/chat-eval.mts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",

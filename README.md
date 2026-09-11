@@ -133,6 +133,7 @@ Vite serves with `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy` h
 | `npm run test:watch` | Unit tests in watch mode |
 | `npm run test:e2e` | Playwright end-to-end + accessibility tests |
 | `npm run test:e2e:ui` | Playwright UI runner |
+| `npm run eval:chat` | Measure the position chat against fixed questions (see below) |
 | `npm run storybook` | Storybook on port 6006 |
 
 One-off maintenance scripts (all take `node --env-file=.env.local`):
@@ -143,6 +144,43 @@ One-off maintenance scripts (all take `node --env-file=.env.local`):
 | `scripts/seed-team-tournaments.mjs` | Load the team rapid events that have no PGN (idempotent) |
 | `scripts/backfill-game-metadata.mts` | Derive `played_date` / `opening_name` for older rows |
 | `scripts/gen-openings.mjs` | Regenerate the openings book from the Lichess dataset (needs network) |
+
+### Changing the position chat
+
+The chat in the diagnostics panel answers questions about a position, and every
+fact in its answers has to come from a tool (Stockfish, ablation, measured
+positional traits, the concept library) rather than from the model's memory. The
+prompt that enforces that lives in `api/prep.ts` (`CHAT_SYSTEM`) and the tool
+loop in `src/engine/diagnosticChatLoop.ts`.
+
+Reading an answer on screen and deciding it "looks better" is not evidence: the
+model is non-deterministic, and a fluent answer can be resting on nothing. So a
+change to the prompt or the loop gets measured:
+
+```bash
+npm run dev:api                     # in another terminal
+npm run eval:chat -- --runs 3       # or: --case planes --verbose
+```
+
+It runs fixed questions through the same loop the app uses, with the native
+Stockfish (`brew install stockfish`) standing in for the browser's WASM one, and
+reports per question: rounds spent, measurements requested vs. actually run vs.
+repeated, seconds waiting on the model, how many figures in the answer are *not*
+backed by something it measured, and whether it reached the facts the question
+needs. Engine time is not comparable to production (native is far faster than
+WASM); rounds, measurements and model time are.
+
+To compare against the previous behaviour, keep both halves in step — the loop's
+old behaviour is behind `--legacy`, the server's behind `git stash`:
+
+```bash
+git stash push api/prep.ts
+npm run dev:api                     # restart: handlers are cached per process
+npm run eval:chat -- --legacy --runs 3 --save .eval/chat-eval-before.json
+git stash pop
+npm run dev:api                     # restart again
+npm run eval:chat -- --runs 3 --compare .eval/chat-eval-before.json
+```
 
 ## 📁 Project structure
 

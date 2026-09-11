@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
 import { requireApiKey } from './_auth.js';
+import { expandConceptQuery, TERM_WEIGHT } from './_conceptSearch.js';
 import { rowToBlunderDrill, type BlunderDrillRow } from './_blunderDrillMapper.js';
 import { rowToScoutingTarget, type ScoutingTargetRow } from './_scoutingTargetMapper.js';
 import { rowToEndgameDrill, type EndgameDrillRow } from './_endgameDrillMapper.js';
@@ -734,7 +735,7 @@ haga falta y explicá el mecanismo con eso. "No te puedo decir por qué, la eval
 me lo da" es una mala respuesta — significa que no usaste las herramientas que \
 tenés para averiguarlo.
 
-Tenés tres herramientas:
+Tenés cuatro herramientas:
 - "${CHAT_TOOL_NAME}": evalúa una línea. Para saber CUÁNTO vale algo.
 - "${ABLATION_TOOL_NAME}": saca una pieza del tablero y vuelve a evaluar. Para \
   saber DE QUIÉN depende una posición. Si sacar la dama del rival cambia mucho la \
@@ -770,13 +771,17 @@ Cómo trabajar:
 - Si te pregunta por una jugada concreta ("¿y si jugaba Nc4?"), evaluala.
 - Si te pregunta por qué una jugada es mejor que otra, evaluá las dos y después \
   usá la ablación sobre las piezas candidatas para aislar el motivo.
-- NO repitas evaluaciones. Si ya mediste una línea en esta conversación, el \
-  resultado sigue ahí arriba: usalo en vez de volver a pedirlo.
-- Tenés presupuesto. Apuntá a contestar en dos o tres tandas de mediciones, no \
-  en ocho. Medí lo que decide la respuesta y dejá el resto: una respuesta buena \
+- Después de cada tanda te llega una libreta con TODO lo que ya está medido en \
+  el hilo. Leela antes de pedir: si algo ya está ahí, ya lo tenés, y pedirlo de \
+  nuevo te gasta una vuelta sin traerte nada.
+- Podés pedir hasta 8 mediciones por vuelta; si pedís más, las de sobra se \
+  descartan. Y en la ÚLTIMA vuelta las herramientas quedan cerradas: ahí se \
+  contesta con lo que haya. Así que medí primero lo que decide la respuesta.
+- Apuntá a contestar en dos o tres tandas, no en ocho. Una respuesta buena \
   apoyada en seis mediciones vale más que una perfecta que nunca llega. Si la \
   pregunta trae varias partes ("por qué es mejor, qué ventajas da, qué planes \
-  hay"), contestá la que se puede medir y decí en una frase cuál no.
+  hay"), contestá cada una con lo que hayas medido, y de la que no se pueda \
+  medir decí en una frase que es lectura tuya.
 - Una evaluación vuelve desde el lado del que mueve en ESA posición. Fijate de \
   quién es el turno antes de decir si es buena o mala para Lucas.
 - Si de verdad no se puede contestar con las herramientas (por ejemplo, qué \
@@ -857,11 +862,10 @@ const FACTS_TOOL_SCHEMA = {
 const CONCEPTS_TOOL_DESCRIPTION =
   'Busca en los conceptos que Lucas estudió y devuelve su texto y de qué libro ' +
   'y capítulo salieron. Pasá palabras del tema, o el nombre exacto de uno del ' +
-  'índice. OJO: la búsqueda es por palabra literal y los datos son bilingües — ' +
-  'los títulos están en castellano pero los textos suelen estar en el idioma del ' +
-  'libro, casi siempre inglés. Si buscás en castellano y volvés con poco, ' +
-  'buscá de nuevo en inglés ("isolated pawn", "open file", "outpost"): sobre la ' +
-  'misma biblioteca eso puede triplicar los resultados.';
+  'índice. La biblioteca es bilingüe (títulos en castellano, textos casi siempre ' +
+  'en inglés) pero la búsqueda ya traduce los términos de ajedrez en los dos ' +
+  'sentidos: pedilo en castellano y encuentra igual. Con UNA búsqueda por tema ' +
+  'alcanza; no la repitas en inglés.';
 
 const CONCEPTS_TOOL_SCHEMA = {
   type: 'object' as const,
@@ -895,11 +899,14 @@ const CHAT_TOOL_SCHEMA = {
 };
 
 /** Lo que el modelo pidió evaluar, normalizado desde el formato de cada proveedor. */
-const parseToolInput = (raw: unknown): { moves: string[]; depth?: number; square?: string } => {
+const parseToolInput = (
+  raw: unknown
+): { moves: string[]; depth?: number; square?: string; query?: string } => {
   const input = (typeof raw === 'string' ? JSON.parse(raw) : raw) as {
     jugadas?: unknown;
     profundidad?: unknown;
     casilla?: unknown;
+    busqueda?: unknown;
   };
   return {
     moves: Array.isArray(input?.jugadas) ? input.jugadas.map(String) : [],
@@ -909,9 +916,9 @@ const parseToolInput = (raw: unknown): { moves: string[]; depth?: number; square
   };
 };
 
-const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
+const chatViaAnthropic = async (turns: ChatTurn[], concepts = '', final = false) => {
   const client = new Anthropic();
-  const messages: Anthropic.MessageParam[] = turns.map(turn => {
+  const raw: Anthropic.MessageParam[] = turns.map(turn => {
     if (turn.role === 'user') return { role: 'user', content: turn.text };
     if (turn.role === 'tool') {
       return {
@@ -941,6 +948,22 @@ const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
     return { role: 'assistant', content };
   });
 
+  // Un turno `tool` y la libreta que lo sigue son dos mensajes `user` seguidos
+  // en el protocolo neutral, y Anthropic espera que los roles alternen. Se
+  // fusionan acá, que es el único lugar que conoce ese detalle del proveedor.
+  const messages = raw.reduce<Anthropic.MessageParam[]>((acc, msg) => {
+    const prev = acc[acc.length - 1];
+    if (prev && prev.role === msg.role) {
+      const blocks = (m: Anthropic.MessageParam) =>
+        typeof m.content === 'string'
+          ? [{ type: 'text' as const, text: m.content }]
+          : m.content;
+      prev.content = [...blocks(prev), ...blocks(msg)];
+      return acc;
+    }
+    return [...acc, msg];
+  }, []);
+
   const message = await client.messages.create({
     model: 'claude-opus-5',
     max_tokens: 8000,
@@ -949,6 +972,10 @@ const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
     // El sistema y las herramientas no cambian entre vueltas del bucle:
     // cachearlos evita pagarlos una vez por evaluación.
     system: [{ type: 'text', text: CHAT_SYSTEM + concepts, cache_control: { type: 'ephemeral' } }],
+    // En la vuelta de cierre las herramientas quedan cerradas del lado del
+    // proveedor. Pedirlo por texto no alcanzaba: seguía pidiendo mediciones y la
+    // respuesta no salía nunca.
+    ...(final ? { tool_choice: { type: 'none' as const } } : {}),
     tools: [
       {
         name: CHAT_TOOL_NAME,
@@ -995,7 +1022,7 @@ const chatViaAnthropic = async (turns: ChatTurn[], concepts = '') => {
  * OpenAI, así que es un POST documentado, y agregar el paquete `openai` al
  * bundle de una función serverless por una sola llamada no se paga.
  */
-const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
+const chatViaXai = async (turns: ChatTurn[], concepts = '', final = false) => {
   const messages: Record<string, unknown>[] = [{ role: 'system', content: CHAT_SYSTEM + concepts }];
   for (const turn of turns) {
     if (turn.role === 'user') messages.push({ role: 'user', content: turn.text });
@@ -1042,6 +1069,7 @@ const chatViaXai = async (turns: ChatTurn[], concepts = '') => {
       // un cuarto — decidir qué medir razona mucho más que titular una nota que
       // ya está escrita. Con tres vueltas la diferencia es un minuto de espera.
       reasoning: { effort: 'low' },
+      ...(final ? { tool_choice: 'none' } : {}),
       tools: [
         {
           type: 'function',
@@ -1103,7 +1131,7 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   // La forma del pedido se valida antes que la config del servidor: un cliente
   // que manda cualquier cosa tiene que enterarse de eso, no de que falta una
   // variable de entorno.
-  const body = (req.body ?? {}) as { turns?: ChatTurn[] };
+  const body = (req.body ?? {}) as { turns?: ChatTurn[]; final?: boolean };
   if (!Array.isArray(body.turns) || body.turns.length === 0) {
     return res.status(400).json({ error: 'turns is required' });
   }
@@ -1157,10 +1185,11 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   }
 
   try {
+    const final = body.final === true;
     const reply =
       provider === 'anthropic'
-        ? await chatViaAnthropic(body.turns, concepts)
-        : await chatViaXai(body.turns, concepts);
+        ? await chatViaAnthropic(body.turns, concepts, final)
+        : await chatViaXai(body.turns, concepts, final);
     return res.status(200).json({ ...reply, provider });
   } catch (err) {
     if (err instanceof Anthropic.RateLimitError) {
@@ -1190,19 +1219,54 @@ const diagnosticAggregates = async (req: VercelRequest, res: VercelResponse) => 
   }
 
   if (req.query.kind === 'concepts') {
-    // Búsqueda por texto sobre nombre y resumen. El chat la usa como herramienta:
-    // pide los conceptos que necesita en vez de recibir cuarenta de prepo.
+    // El chat la usa como herramienta: pide los conceptos que necesita en vez de
+    // recibir cuarenta de prepo. Se puntúa por términos —con el glosario
+    // traduciendo castellano <-> inglés, ver TERM_GROUPS— y no por frase
+    // literal, que era lo que hacía que "peón aislado" trajera 2 resultados y
+    // "isolated pawn", sobre los mismos datos, trajera 6.
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
-    const rows = (await sql`
-      SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter
-        FROM concepts c LEFT JOIN books b ON b.id = c.book_id
-       WHERE c.status <> 'archivado'
-         AND (${q} = '' OR c.name ILIKE ${'%' + q + '%'} OR c.summary ILIKE ${'%' + q + '%'})
-       ORDER BY c.review_count DESC NULLS LAST
-       LIMIT 12
-    `) as { name: string; category: string | null; summary: string | null; book: string | null; source_chapter: string | null }[];
+    const { terms, words } = expandConceptQuery(q);
+    const rows = (terms.length === 0 && words.length === 0
+      ? await sql`
+          SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter, 0 AS score
+            FROM concepts c LEFT JOIN books b ON b.id = c.book_id
+           WHERE c.status <> 'archivado'
+           ORDER BY c.review_count DESC NULLS LAST
+           LIMIT 12
+        `
+      : await sql`
+          SELECT name, category, summary, book, source_chapter, score FROM (
+            SELECT c.name, c.category, c.summary, b.title AS book, c.source_chapter,
+                   c.review_count,
+                   ${TERM_WEIGHT} * (SELECT count(*) FROM unnest(${terms}::text[]) AS p(term)
+                                      WHERE haystack.text LIKE '%' || p.term || '%')
+                   + (SELECT count(*) FROM unnest(${words}::text[]) AS w(term)
+                       WHERE haystack.text LIKE '%' || w.term || '%') AS score
+              FROM concepts c
+              LEFT JOIN books b ON b.id = c.book_id
+              CROSS JOIN LATERAL (
+                SELECT translate(
+                         lower(c.name || ' ' || coalesce(c.summary, '')),
+                         'áàäéèëíìïóòöúùüñ', 'aaaeeeiiiooouuun'
+                       ) AS text
+              ) haystack
+             WHERE c.status <> 'archivado'
+          ) s
+           WHERE score > 0
+           ORDER BY score DESC, review_count DESC NULLS LAST
+           LIMIT 40
+        `) as {
+      name: string; category: string | null; summary: string | null;
+      book: string | null; source_chapter: string | null; score: number;
+    }[];
+
+    // Si alguno pegó por término, los que pegaron solo por una palabra suelta
+    // sobran: son los que convertían cualquier consulta en doce resultados.
+    const best = Number(rows[0]?.score ?? 0);
+    const floor = best >= TERM_WEIGHT ? TERM_WEIGHT : 1;
+    const kept = rows.filter(r => Number(r.score) >= floor).slice(0, 12);
     return res.status(200).json(
-      rows.map(r => ({
+      kept.map(r => ({
         name: r.name,
         category: r.category ?? undefined,
         summary: r.summary ?? undefined,

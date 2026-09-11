@@ -248,11 +248,15 @@ export type ChatTurn =
  *
  * El protocolo es neutral: el servidor traduce al formato del proveedor que
  * tenga configurado, así que acá no hay nada que cambiar si se cambia de modelo.
+ *
+ * Con `final` el servidor le cierra las herramientas al proveedor: en la última
+ * vuelta el modelo no puede pedir más mediciones ni queriendo, así que la
+ * respuesta sale. Pedírselo por texto no alcanzaba — las pedía igual.
  */
-export const askDiagnosticChat = (turns: ChatTurn[]) =>
+export const askDiagnosticChat = (turns: ChatTurn[], final = false) =>
   apiFetch<{ text: string; toolCalls: ChatToolCall[]; provider: string }>(
     '/prep?resource=diagnostic-chat',
-    { method: 'POST', body: JSON.stringify({ turns }) }
+    { method: 'POST', body: JSON.stringify({ turns, final }) }
   );
 
 export const cancelPositionDiagnostics = (gameId: string) =>
