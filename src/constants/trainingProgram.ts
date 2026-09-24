@@ -84,7 +84,7 @@ export const trainingProgram: ProgramDay[] = [
         minutes: 25,
         label: 'Cálculo escrito',
         detail:
-          '5 blunder drills de la cola. Candidatos escritos antes de mover (jaques, capturas, una amenaza tranquila), bote salvavidas marcado, evaluación en una palabra al final de cada línea.',
+          '5 blunder drills de la cola. Candidatos en papel antes de mover (jaques, capturas, una amenaza tranquila), bote salvavidas marcado, evaluación en una palabra al final de cada línea. Después pasalos al cuadro de la app; la foto del papel va a Juan Cruz.',
       },
       STUDER_TAIL,
     ],
@@ -156,16 +156,24 @@ export const trainingProgram: ProgramDay[] = [
     dayName: 'Viernes',
     focus: 'Conceptos',
     // The day was creating concepts and never revisiting them. Four back is
-    // small enough to leave the reading block intact.
-    quota: { blunder: 0, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 4 },
+    // small enough to leave the reading block intact. The 3 blunders make the
+    // paper calculation every other day that Juan Cruz asks for (Lun/Vie/Sáb).
+    quota: { blunder: 3, endgame: 0, repertoire: 0, repertoireMove: 0, concept: 4 },
     isTrainingDay: true,
     blocks: [
+      {
+        block: 'calculation',
+        minutes: 15,
+        label: 'Cálculo en papel',
+        detail:
+          '3 blunder drills de la cola, mismo método que el lunes: candidatos en papel primero, después al cuadro de la app.',
+      },
       {
         block: 'concept',
         minutes: 25,
         label: 'Silman, 15 variantes',
         detail:
-          'Primero repasá los 4 conceptos que vuelven de la cola, después elegí 1 concepto nuevo y creá su fila en Concepts, con la partida tuya donde apareció y una línea escrita por vos. Un concepto sin partida propia no se aprendió.',
+          'Primero repasá los conceptos en estudio que vuelven de la cola (al principio no hay ninguno), después elegí 1 concepto nuevo y creá su fila en Concepts, con la partida tuya donde apareció y una línea escrita por vos. Un concepto sin partida propia no se aprendió.',
       },
       STUDER_TAIL,
     ],
@@ -182,6 +190,12 @@ export const trainingProgram: ProgramDay[] = [
         minutes: 30,
         label: 'Partida larga',
         detail: '30 minutos o más. Si no hay partida disponible, Fischer.',
+      },
+      {
+        block: 'calculation',
+        minutes: 15,
+        label: 'Cálculo en papel',
+        detail: '3 blunder drills de la cola. Candidatos en papel primero, después al cuadro de la app.',
       },
       {
         block: 'analysis',
@@ -204,9 +218,9 @@ export const trainingProgram: ProgramDay[] = [
       {
         block: 'repertoire',
         minutes: 20,
-        label: 'Repertorio',
+        label: 'Repertorio o tarea de Toto',
         detail:
-          'Las jugadas primero, en el tablero, y sólo después los planes de las líneas con menor confianza.',
+          'Semanas alternas. Una semana la cola: las jugadas primero, en el tablero, y sólo después los planes de las líneas con menor confianza. La otra, la tarea de Toto con la Benoni (A61) y la cola se saltea.',
       },
       {
         block: 'analysis',

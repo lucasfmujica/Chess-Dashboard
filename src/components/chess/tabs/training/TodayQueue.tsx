@@ -70,7 +70,15 @@ const TodayQueue = () => {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  /** Every answer of the session, for the totals written at the end. */
   const attemptsRef = useRef<PendingAttempt[]>([]);
+  /**
+   * Answers whose insert failed, retried on "Terminar". Each attempt is written
+   * as soon as it is answered: batching them until the end meant closing the
+   * tab kept the SRS update and lost the row, and with it the missed-vs-
+   * discarded split that is the point of the Monday block.
+   */
+  const unsavedRef = useRef<PendingAttempt[]>([]);
   const sessionIdRef = useRef<string | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const itemStartedAtRef = useRef<number>(Date.now());
@@ -146,7 +154,7 @@ const TodayQueue = () => {
     async (correct: boolean, candidateMiss?: boolean) => {
       if (!current) return;
       const sessionId = await ensureSession();
-      attemptsRef.current.push({
+      const attempt: PendingAttempt = {
         sessionId: sessionId ?? undefined,
         itemKind: current.kind,
         itemId: current.id,
@@ -155,14 +163,17 @@ const TodayQueue = () => {
         candidatesWritten: candidates.trim() || undefined,
         seconds: Math.round((Date.now() - itemStartedAtRef.current) / 1000),
         thinkSeconds: thinkSecondsRef.current ?? undefined,
-      });
+      };
+      attemptsRef.current.push(attempt);
       setDone(d => d + 1);
       if (correct) setCorrectCount(c => c + 1);
-      try {
-        await resolve(current, correct);
-      } catch {
-        // SRS write failed; the attempt row still captures what happened.
-      }
+      // Independent writes: a failed SRS update must not drop the attempt row,
+      // and a failed insert is kept for the retry in finish().
+      const [saved] = await Promise.allSettled([
+        postTrainingAttempts([attempt]),
+        resolve(current, correct),
+      ]);
+      if (saved.status === 'rejected') unsavedRef.current.push(attempt);
       advance();
     },
     [current, candidates, ensureSession, resolve, advance]
@@ -194,8 +205,9 @@ const TodayQueue = () => {
     const drilled = sessionIdRef.current !== null;
     try {
       const attempts = attemptsRef.current;
-      if (attempts.length > 0) {
-        await postTrainingAttempts(attempts);
+      if (unsavedRef.current.length > 0) {
+        await postTrainingAttempts(unsavedRef.current);
+        unsavedRef.current = [];
       }
       // Not `if (sessionIdRef.current)`. On a day with no queue nothing has
       // created the row yet, and that guard is exactly what made "Marcar el

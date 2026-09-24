@@ -54,6 +54,16 @@ describe('the weekly program', () => {
     ).toBe(true);
   });
 
+  it('puts paper calculation every other day, with a block to log it against', () => {
+    // Juan Cruz asks for written calculation día por medio. A blunder quota on
+    // a day with no calculation block logs a session no tick can match.
+    const calcDays = trainingProgram.filter(d => d.quota.blunder > 0).map(d => d.weekday);
+    expect(calcDays).toEqual([0, 4, 5]);
+    for (const w of calcDays) {
+      expect(programForWeekday(w).blocks.some(b => b.block === 'calculation')).toBe(true);
+    }
+  });
+
   it('wraps out-of-range weekdays instead of returning undefined', () => {
     expect(programForWeekday(7)).toBe(trainingProgram[0]);
     expect(programForWeekday(-1)).toBe(trainingProgram[6]);

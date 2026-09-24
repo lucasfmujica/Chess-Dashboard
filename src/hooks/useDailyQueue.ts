@@ -8,10 +8,11 @@ import { isDue, nudgeConfidence } from '../utils/srs';
 import { pickDueFirst } from '../utils/queueSelection';
 import { localDateKey, weekdayIndex } from '../utils/localDate';
 import { programForWeekday, type QueueQuota } from '../constants/trainingProgram';
+import { isEngineOnly } from '../constants/maia';
 import type { BlunderDrill } from '../types/blunders';
 import type { EndgameDrill } from '../types/endgames';
 import type { RepertoireLine, RepertoireMove } from '../types/chess';
-import type { Concept } from '../types/training';
+import type { Concept, ConceptStatus } from '../types/training';
 
 /**
  * The unified "what do I do today" queue.
@@ -61,6 +62,13 @@ const conceptAccessors = {
   getLastReviewed: (c: Concept) => c.lastReviewed,
 };
 
+/**
+ * Concepts the queue may ask back. 'to-study' was never read, so there is
+ * nothing to recall, and 'archivado' is out of the vocabulary on purpose.
+ * Serving either filled Friday with reviews of material that was never learned.
+ */
+const REVIEWABLE_CONCEPT: ReadonlySet<ConceptStatus> = new Set(['studying', 'applied', 'mastered']);
+
 export interface UseDailyQueue {
   items: QueueItem[];
   loading: boolean;
@@ -80,7 +88,7 @@ export interface UseDailyQueue {
   /**
    * Persist one item's outcome: nudges confidence and stamps lastReviewed via
    * the same SRS the drill tabs use. Does NOT write training_attempts — the
-   * caller batches those so a session is one bulk insert.
+   * caller writes those, one per answer.
    */
   resolve: (item: QueueItem, correct: boolean) => Promise<void>;
   refetchRepertoire: () => Promise<void>;
@@ -114,9 +122,20 @@ export const useDailyQueue = (): UseDailyQueue => {
       .finally(() => setLinesLoading(false));
   }, [refetchRepertoire]);
 
+  // Same cut as the drill tab's "human" filter: a solution no 1900 finds is
+  // worth looking at, not worth a Monday slot.
+  const trainableBlunders = useMemo(
+    () => blunders.drills.filter(d => !isEngineOnly(d)),
+    [blunders.drills]
+  );
+  const reviewableConcepts = useMemo(
+    () => concepts.concepts.filter(c => REVIEWABLE_CONCEPT.has(c.status)),
+    [concepts.concepts]
+  );
+
   const items = useMemo<QueueItem[]>(() => {
     const chosenBlunders = pickDueFirst(
-      blunders.drills,
+      trainableBlunders,
       quota.blunder,
       now,
       dayKey,
@@ -157,7 +176,7 @@ export const useDailyQueue = (): UseDailyQueue => {
     }));
 
     const chosenConcepts = pickDueFirst(
-      concepts.concepts,
+      reviewableConcepts,
       quota.concept,
       now,
       dayKey,
@@ -172,26 +191,24 @@ export const useDailyQueue = (): UseDailyQueue => {
       ...chosenConcepts,
     ];
   }, [
-    blunders.drills,
+    trainableBlunders,
     endgames.drills,
     lines,
     repertoireMoves.moves,
-    concepts.concepts,
+    reviewableConcepts,
     quota,
     now,
     dayKey,
   ]);
 
   const dueTotals = useMemo(() => {
-    const blunder = blunders.drills.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
+    const blunder = trainableBlunders.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
     const endgame = endgames.drills.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
     const repertoire = lines.filter(l => isDue(l.lastReviewed, l.confidence, now)).length;
     const repertoireMove = repertoireMoves.moves.filter(
       m => m.role === 'main' && isDue(m.lastReviewed, m.confidence, now)
     ).length;
-    const concept = concepts.concepts.filter(c =>
-      isDue(c.lastReviewed, c.confidence, now)
-    ).length;
+    const concept = reviewableConcepts.filter(c => isDue(c.lastReviewed, c.confidence, now)).length;
     return {
       blunder,
       endgame,
@@ -200,7 +217,7 @@ export const useDailyQueue = (): UseDailyQueue => {
       concept,
       total: blunder + endgame + repertoire + repertoireMove + concept,
     };
-  }, [blunders.drills, endgames.drills, lines, repertoireMoves.moves, concepts.concepts, now]);
+  }, [trainableBlunders, endgames.drills, lines, repertoireMoves.moves, reviewableConcepts, now]);
 
   const resolve = useCallback(
     async (item: QueueItem, correct: boolean) => {
