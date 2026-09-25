@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, navButton } from './fixtures';
 
 test.describe('Chess Dashboard - Core Functionality', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,81 +6,58 @@ test.describe('Chess Dashboard - Core Functionality', () => {
   });
 
   test('should load the dashboard homepage', async ({ page }) => {
-    // Check page title
     await expect(page).toHaveTitle(/Chess Dashboard/i);
-
-    // Check main header is visible
-    await expect(page.locator('h1')).toContainText("Lucas's Chess Performance");
-
-    // Check sidebar is present
-    const sidebar = page.locator('aside');
-    await expect(sidebar).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: "Lucas's Chess Performance" })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
   });
 
   test('should display overview tab by default', async ({ page }) => {
-    // Overview should be the default active tab
-    const overviewButton = page.locator('button', { hasText: 'Overview' });
-    await expect(overviewButton).toHaveClass(/from-emerald-500/);
+    await expect(navButton(page, 'Overview')).toHaveAttribute('aria-current', 'page');
   });
 
   test('should navigate between tabs', async ({ page }) => {
-    // Click on Rating tab
-    await page.click('text=ELO Progress');
-    await expect(page.locator('button', { hasText: 'ELO Progress' })).toHaveClass(/from-emerald-500/);
-
-    // Click on Tournaments tab
-    await page.click('text=Tournaments');
-    await expect(page.locator('button', { hasText: 'Tournaments' })).toHaveClass(/from-emerald-500/);
-
-    // Click on Analytics tab
-    await page.click('text=Analytics');
-    await expect(page.locator('button', { hasText: 'Analytics' })).toHaveClass(/from-emerald-500/);
+    for (const tab of ['ELO Progress', 'Tournaments', 'Repertoire', 'Training Plan']) {
+      await navButton(page, tab).click();
+      await expect(navButton(page, tab)).toHaveAttribute('aria-current', 'page');
+      await expect(navButton(page, 'Overview')).not.toHaveAttribute('aria-current', 'page');
+    }
   });
 
   test('should filter games (OTB, Online, All)', async ({ page }) => {
-    // Test is only visible on desktop
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    // Click OTB filter
-    const otbButton = page.locator('button[aria-label*="over-the-board"]');
-    await otbButton.click();
-    await expect(otbButton).toHaveAttribute('aria-pressed', 'true');
+    const otb = page.getByRole('button', { name: 'Filter to show only over-the-board games' });
+    const online = page.getByRole('button', { name: 'Filter to show only online games' });
+    const all = page.getByRole('button', { name: 'Filter to show all games' });
 
-    // Click Online filter
-    const onlineButton = page.locator('button[aria-label*="online games"]');
-    await onlineButton.click();
-    await expect(onlineButton).toHaveAttribute('aria-pressed', 'true');
-
-    // Click All filter
-    const allButton = page.locator('button[aria-label*="all games"]');
-    await allButton.click();
-    await expect(allButton).toHaveAttribute('aria-pressed', 'true');
+    for (const selected of [online, all, otb]) {
+      await selected.click();
+      await expect(selected).toHaveAttribute('aria-pressed', 'true');
+      for (const other of [otb, online, all].filter(b => b !== selected)) {
+        await expect(other).toHaveAttribute('aria-pressed', 'false');
+      }
+    }
   });
 
   test('should toggle sidebar collapse', async ({ page }) => {
-    // Desktop only
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    // Find collapse button
-    const collapseButton = page.locator('button[aria-label*="Collapse sidebar"]');
-    await collapseButton.click();
+    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+    const expand = page.getByRole('button', { name: 'Expand sidebar' });
+    await expect(expand).toBeVisible();
 
-    // Check if sidebar is collapsed by looking for aria-label change
-    await expect(page.locator('button[aria-label*="Expand sidebar"]')).toBeVisible();
+    await expand.click();
+    await expect(page.getByRole('button', { name: 'Collapse sidebar' })).toBeVisible();
   });
 
-  test('should open mobile menu', async ({ page }) => {
-    // Mobile viewport
+  test('should open and close the mobile menu', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
+    const overview = navButton(page, 'Overview');
 
-    // Click hamburger menu
-    await page.click('button[aria-label="Open mobile menu"]');
+    await page.getByRole('button', { name: 'Open mobile menu' }).click();
+    await expect(overview).toBeInViewport();
 
-    // Check if sidebar is visible
-    const sidebar = page.locator('aside');
-    await expect(sidebar).toBeVisible();
-
-    // Close mobile menu
-    await page.click('button[aria-label="Close mobile menu"]');
+    await page.getByRole('button', { name: 'Close mobile menu' }).click();
+    await expect(overview).not.toBeInViewport();
   });
 });

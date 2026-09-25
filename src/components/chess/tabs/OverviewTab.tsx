@@ -83,11 +83,15 @@ interface OverviewTabProps {
   lichessGamesCount: number;
 }
 
-/** A small "View all →" link rendered in a card header, jumping to a full tab. */
+/**
+ * A small "View all →" link rendered in a card header, jumping to a full tab.
+ * Emerald-700 in light mode: the accent itself is 2.5:1 on white, too faint
+ * for 12px text.
+ */
 const TabLink = ({ label, onClick }: { label: string; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:opacity-80 transition-opacity"
+    className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-accent hover:opacity-80 transition-opacity"
   >
     {label}
     <ArrowRightIcon className="w-3 h-3" />

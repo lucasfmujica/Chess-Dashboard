@@ -1,38 +1,33 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
-test.describe('Modal System', () => {
+/**
+ * Adding games moved from the old Analytics tab to a collapsible panel on
+ * Overview, which holds the manual form, the PGN import and the Lichess sync.
+ */
+test.describe('Add / Import Games', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Navigate to Analytics tab where we have modals
-    await page.click('text=Analytics');
+    await page.getByRole('button', { name: /Add \/ Import Games/ }).click();
   });
 
-  test('should open and close PGN import modal', async ({ page }) => {
-    // Click "Import Games" button
-    await page.click('text=Import Games');
+  test('should open and close PGN import', async ({ page }) => {
+    const paste = page.getByText('Paste PGN text below:');
 
-    // Check if modal/section is visible
-    await expect(page.locator('text=Paste PGN text below')).toBeVisible();
+    await page.getByRole('button', { name: /Import Games$/ }).click();
+    await expect(paste).toBeVisible();
 
-    // Close by clicking the close button
-    await page.click('text=Close Import');
-
-    // Modal should be hidden
-    await expect(page.locator('text=Paste PGN text below')).not.toBeVisible();
+    await page.getByRole('button', { name: /Close Import/ }).click();
+    await expect(paste).toBeHidden();
   });
 
-  test('should open manual game entry form', async ({ page }) => {
-    // Click "Add Game" button
-    await page.click('text=Add Game');
+  test('should open and close the manual game entry form', async ({ page }) => {
+    const tournamentName = page.getByText('Tournament Name *');
 
-    // Check if form is visible
-    await expect(page.locator('text=Tournament Name *')).toBeVisible();
-    await expect(page.locator('text=Your ELO *')).toBeVisible();
+    await page.getByRole('button', { name: /Add Game$/ }).click();
+    await expect(tournamentName).toBeVisible();
+    await expect(page.getByText('Your ELO *')).toBeVisible();
 
-    // Close form
-    await page.click('text=Cancel');
-
-    // Form should be hidden
-    await expect(page.locator('text=Tournament Name *')).not.toBeVisible();
+    await page.getByRole('button', { name: /Close Form/ }).click();
+    await expect(tournamentName).toBeHidden();
   });
 });
