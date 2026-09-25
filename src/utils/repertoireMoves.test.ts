@@ -6,6 +6,8 @@ import {
   extractRepertoireMoves,
   schedulableMoves,
   buildLines,
+  citesGame,
+  preparedLength,
 } from './repertoireMoves';
 import { parseStudyPgn, type StudyChapter, type StudyMoveNode } from './studyPgn';
 
@@ -223,6 +225,48 @@ describe('extractRepertoireMoves', () => {
     ]);
 
     expect(rows.map(r => r.expectedSan)).toEqual(['e4']);
+  });
+});
+
+describe('model games pasted into the study', () => {
+  const CITE = 'Anand, V. - Carlsen, M., 1/2-1/2, 6th Sinquefield Cup 2018, https://lichess.org/jOmQFGhW';
+
+  it('recognises the citation Lichess writes for a pasted game', () => {
+    expect(citesGame(CITE)).toBe(true);
+    expect(citesGame('REGLA DE ORO: recapturo con ...dxc6')).toBe(false);
+    expect(citesGame('ver https://lichess.org/study/abc')).toBe(false);
+    expect(citesGame(undefined)).toBe(false);
+  });
+
+  it('keeps a line without a citation whole', () => {
+    expect(preparedLength([node('e4'), node('e5'), node('Nf3')])).toBe(3);
+  });
+
+  it('cuts a cited line one ply past the last own comment or branch', () => {
+    const line = [
+      node('e4'),
+      node('c5', { comment: 'mi plan' }),
+      node('Nf3'),
+      node('Nc6'),
+      node('d4', { comment: CITE }),
+    ];
+    expect(preparedLength(line)).toBe(3);
+  });
+
+  it('emits no cards from the game past the study analysis', () => {
+    // BLANCAS: e4 is prepared, the rest is Anand-Carlsen.
+    const rows = extractChapterMoves(
+      chapter('01 BLANCAS - test', [
+        node('e4', { comment: 'siempre' }),
+        node('e5'),
+        node('Nf3'),
+        node('Nc6'),
+        node('Bb5', { comment: CITE }),
+      ])
+    );
+    expect(rows.map(r => r.expectedSan)).toEqual(['e4']);
+    // The reply that would lead into the cut game is not advertised either.
+    expect(rows[0].replySan).toBe('e5');
   });
 });
 

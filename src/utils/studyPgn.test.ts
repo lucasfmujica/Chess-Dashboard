@@ -65,11 +65,15 @@ describe('parseStudyPgn (real repertoire fixture)', () => {
   });
 
   it('preserves nested sibling variations with their own comments (chapter 2)', () => {
-    const branchNode = findNode(chapters[1].mainline, n => n.variations.length === 2);
+    // Located by content, not by "the first node with two variations": the
+    // study grows, and that position is not a stable address.
+    const branchNode = findNode(chapters[1].mainline, n =>
+      n.variations.some(v => v.some(m => m.comment?.includes('golpeando e5')))
+    );
     expect(branchNode).toBeDefined();
-    const [firstVariation] = branchNode!.variations;
-    const withComment = firstVariation.find(n => n.comment?.includes('golpeando e5'));
-    expect(withComment).toBeDefined();
+    expect(branchNode!.variations.length).toBeGreaterThan(1);
+    const variation = branchNode!.variations.find(v => v.some(m => m.comment?.includes('golpeando e5')))!;
+    expect(variation.find(n => n.comment?.includes('y d4 gana tiempo'))).toBeDefined();
   });
 
   it('replays every mainline and variation path through chess.js without error, for every chapter', () => {

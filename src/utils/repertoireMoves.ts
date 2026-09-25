@@ -79,6 +79,34 @@ export const chapterNumber = (chapterName: string): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+/**
+ * A comment that cites a whole game: `Apellido - Apellido, 1-0, Evento, año,
+ * https://lichess.org/xxxxxxxx`. It is what Lichess writes when a game is
+ * pasted into a study, and the moves before it are that game, not preparation.
+ */
+const GAME_CITATION = /\b(?:1-0|0-1|1\/2-1\/2)\b.*https?:\/\/lichess\.org\/[A-Za-z0-9]{8}\b/s;
+
+export const citesGame = (comment: string | undefined): boolean =>
+  !!comment && GAME_CITATION.test(comment);
+
+/**
+ * How many nodes of a line are the study's own preparation.
+ *
+ * A model game pasted into a line keeps going for 30-50 moves past the point
+ * the study has anything to say, and every one of the player's moves in it
+ * would become a card. The study's analysis ends at its last branch or its last
+ * own comment; one ply past that keeps the move that answers that position.
+ * A line that cites no game is kept whole.
+ */
+export const preparedLength = (nodes: StudyMoveNode[]): number => {
+  if (!nodes.some(n => citesGame(n.comment))) return nodes.length;
+  let last = 0;
+  nodes.forEach((n, i) => {
+    if (n.variations.length > 0 || (n.comment && !citesGame(n.comment))) last = i + 1;
+  });
+  return Math.min(nodes.length, last + 1);
+};
+
 interface WalkContext {
   chapterNo: number;
   chapterName: string;
@@ -112,8 +140,9 @@ const walkLine = (
     return;
   }
   const path = [...startPath];
+  const limit = preparedLength(nodes);
 
-  for (let i = 0; i < nodes.length; i += 1) {
+  for (let i = 0; i < limit; i += 1) {
     const node = nodes[i];
     const fenBefore = chess.fen();
     const pathBefore = [...path];
@@ -153,7 +182,8 @@ const walkLine = (
         pathSan,
         fenBefore,
         expectedSan: played.san,
-        replySan: nodes[i + 1]?.san,
+        // Not past `limit`: the reply would chain into a card that was cut.
+        replySan: i + 1 < limit ? nodes[i + 1]?.san : undefined,
         // A trap's own text is usually empty because the study writes the
         // refutation on the punishing reply instead — `(7... Qb6?! 8. Nf5
         // { El castigo del libro… })`. Falling back to it is what makes the
