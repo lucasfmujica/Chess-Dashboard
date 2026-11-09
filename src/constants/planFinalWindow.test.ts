@@ -49,6 +49,13 @@ describe('programForDate inside the window', () => {
     expect(day.focus).toContain('Rutina de torneo');
   });
 
+  it('shows the 4 Dec deadline notice in the focus', () => {
+    const focus = programForDate('2026-12-04').focus;
+    expect(focus).toContain('ÚLTIMO DÍA');
+    expect(focus).toContain('inscripción');
+    expect(focus).toContain('byes');
+  });
+
   it('maps finals and chapter days to endgame / repertoire quotas', () => {
     const day = programForDate('2026-11-11');
     expect(day.quota.endgame).toBe(1);
@@ -56,9 +63,14 @@ describe('programForDate inside the window', () => {
     expect(day.quota.blunder).toBe(0);
   });
 
-  it('keeps the queue light on rest and liviana days', () => {
+  it('keeps the queue light on the rest day, but honours the stated 10 drills', () => {
+    // 21/11: payload says "Solo 20 min de drills" without a count. 5 is Atlas's
+    // choice for a light rest day (about half a normal drills block), not a
+    // payload value — change it only if Lucas asks.
     expect(programForDate('2026-11-21').quota.blunder).toBe(5);
-    expect(programForDate('2026-11-30').quota.blunder).toBe(5);
+    // 30/11 and 2/12 are "liviana" but the plan says "10 drills".
+    expect(programForDate('2026-11-30').quota.blunder).toBe(10);
+    expect(programForDate('2026-12-02').quota.blunder).toBe(10);
   });
 
   it('covers every date in the window with a plan day', () => {
@@ -70,6 +82,36 @@ describe('programForDate inside the window', () => {
     for (let d = 1; d <= 4; d += 1) {
       expect(programForDate(`2026-12-0${d}`)).not.toBe(programForWeekday(weekdayIndex(`2026-12-0${d}`)));
     }
+  });
+});
+
+describe('plan focus keeps the text that matters', () => {
+  const visible = (key: string) => {
+    const d = programForDate(key);
+    return [d.focus, ...d.blocks.flatMap(b => [b.label, b.detail])].join(' | ');
+  };
+
+  it('does not cut at the "Cap." abbreviation (27/11)', () => {
+    const focus = programForDate('2026-11-27').focus;
+    expect(focus).toContain('01 y 03');
+    expect(focus).not.toMatch(/Cap$/);
+  });
+
+  it('does not cut at "caps." and keeps "Nada nuevo" (1/12)', () => {
+    const focus = programForDate('2026-12-01').focus;
+    expect(focus).not.toMatch(/caps?$/i);
+    expect(focus).toContain('caps. más frecuentes');
+    expect(focus).toContain('Nada nuevo');
+  });
+
+  it('shows the weekly summary time on 15/11', () => {
+    expect(visible('2026-11-15')).toContain('Resumen semanal a las 21:00 ART');
+  });
+
+  it('shows the R4 bye and the tournament meal/rest on 22/11', () => {
+    const focus = programForDate('2026-11-22').focus;
+    expect(focus).toMatch(/bye de R4/);
+    expect(focus).toContain('Comida y descanso como en el torneo');
   });
 });
 
