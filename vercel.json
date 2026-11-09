@@ -48,5 +48,11 @@
     "api/cron.ts": {
       "maxDuration": 300
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/auth",
+      "destination": "/api/prep?resource=auth"
+    }
+  ]
 }

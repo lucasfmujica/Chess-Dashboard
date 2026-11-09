@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
 import { requireSession } from './_auth.js';
+import sessionAuth from './_sessionAuth.js';
 import { CHAT_DAILY_LIMIT, chatTurnsTooBig, isMissingTable } from './_chatLimits.js';
 import { expandConceptQuery, TERM_WEIGHT } from './_conceptSearch.js';
 import { rowToBlunderDrill, type BlunderDrillRow } from './_blunderDrillMapper.js';
@@ -1348,8 +1349,11 @@ const diagnosticAggregates = async (req: VercelRequest, res: VercelResponse) => 
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (!requireSession(req, res)) return;
   const { resource, id } = req.query;
+  // Login/logout stay on /api/auth via rewrite → here, without a session gate
+  // (and without a 13th Hobby serverless function).
+  if (resource === 'auth') return sessionAuth(req, res);
+  if (!requireSession(req, res)) return;
   const itemId = typeof id === 'string' ? id : undefined;
 
   if (resource === 'blunder-drills') return blunderDrills(req, res, itemId);

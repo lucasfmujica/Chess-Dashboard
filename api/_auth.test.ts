@@ -11,7 +11,7 @@ import {
   timingSafeEqualStr,
   verifySessionToken,
 } from './_auth';
-import authHandler from './auth';
+import authHandler from './_sessionAuth';
 
 const SECRET = 'test-secret-value';
 
