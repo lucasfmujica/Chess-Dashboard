@@ -13,11 +13,9 @@ import {
   deleteTrainingSession,
 } from '../../../../api/client';
 import {
-  trainingProgram,
-  trainingDays,
+  programForDate,
   plannedMinutes,
   blocksForDay,
-  WEEKLY_BLOCK_TARGET,
   WEEKLY_ANNOTATION_TARGET,
 } from '../../../../constants/trainingProgram';
 import { localDateKey, daysAgoKey, dateFromKey } from '../../../../utils/localDate';
@@ -160,6 +158,14 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
 
   const weekEnd = weekDays[6];
 
+  /**
+   * One program per concrete date, so a week straddling the plan-final window
+   * edge shows the plan only on the dates inside it.
+   */
+  const weekPrograms = useMemo(() => weekDays.map(programForDate), [weekDays]);
+  const weekTrainingDays = useMemo(() => weekPrograms.filter(d => d.isTrainingDay), [weekPrograms]);
+  const weeklyBlockTarget = weekTrainingDays.length;
+
   /** Only this week's sessions — `since` returns everything after it. */
   const weekSessions = useMemo(
     () => sessions.filter(s => s.sessionDate >= weekStart && s.sessionDate <= weekEnd),
@@ -178,7 +184,7 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
   );
 
   const doneMinutes = weekSessions.reduce((sum, s) => sum + s.minutes, 0);
-  const plannedTotal = trainingDays.reduce((sum, d) => sum + plannedMinutes(d), 0);
+  const plannedTotal = weekTrainingDays.reduce((sum, d) => sum + plannedMinutes(d), 0);
 
   /**
    * The headline metric: blocks completed out of 6.
@@ -190,8 +196,8 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
    */
   const blocksDone = useMemo(() => {
     const daysWithSessions = new Set(weekSessions.map(s => s.sessionDate));
-    return trainingDays.filter(d => daysWithSessions.has(weekDays[d.weekday])).length;
-  }, [weekSessions, weekDays]);
+    return weekPrograms.filter((d, i) => d.isTrainingDay && daysWithSessions.has(weekDays[i])).length;
+  }, [weekSessions, weekDays, weekPrograms]);
 
   /** Games post-mortemed this week, against the plan's target of 2. */
   const annotationsThisWeek = useMemo(
@@ -246,7 +252,7 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
                 }`}
               >
                 {blocksDone}
-                <span className="text-fg-subtle text-base"> / {WEEKLY_BLOCK_TARGET}</span>
+                <span className="text-fg-subtle text-base"> / {weeklyBlockTarget}</span>
               </div>
               <div className="text-xs text-fg-muted">bloques · objetivo 5</div>
             </div>
@@ -305,8 +311,8 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {trainingProgram.map(day => {
-          const dateKey = weekDays[day.weekday];
+        {weekPrograms.map((day, dayIndex) => {
+          const dateKey = weekDays[dayIndex];
           const isToday = dateKey === todayKey;
           const isPast = dateKey < todayKey;
           const daySessions = weekSessions.filter(s => s.sessionDate === dateKey);
@@ -329,7 +335,7 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
           const dayMinutes = daySessions.reduce((sum, s) => sum + s.minutes, 0);
 
           return (
-            <Card key={day.weekday}>
+            <Card key={dateKey}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">

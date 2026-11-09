@@ -1,7 +1,7 @@
 import { isDue, nextReviewAt } from './srs';
 import { hasEco } from './eco';
-import { localDateKey, dateFromKey, weekdayIndex } from './localDate';
-import { programForWeekday } from '../constants/trainingProgram';
+import { localDateKey, dateFromKey } from './localDate';
+import { programForDate } from '../constants/trainingProgram';
 import type { Game, RepertoireLine, Tournament } from '../types/chess';
 
 /**
@@ -174,7 +174,7 @@ export const buildPrepPlan = (
     const frozen = daysAvailable - offset <= NEW_LINE_FREEZE_DAYS;
     // The program already says how much time each weekday has; a prep plan
     // that ignores it would just be a wish list.
-    const budget = programForWeekday(weekdayIndex(date))
+    const budget = programForDate(date)
       .blocks.filter(b => b.block === 'repertoire' || b.block === 'analysis')
       .reduce((sum, b) => sum + b.minutes, 0);
     const slots = Math.max(1, Math.floor(budget / MINUTES_PER_LINE));

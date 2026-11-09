@@ -1,4 +1,6 @@
 import type { TrainingBlock } from '../types/training';
+import { weekdayIndex } from '../utils/localDate';
+import planFinalPayload from './planFinalPayload.json';
 
 /**
  * The weekly training program: which block runs on which weekday, and how
@@ -244,6 +246,98 @@ export const WEEKLY_ANNOTATION_TARGET = 2;
 
 export const programForWeekday = (weekday: number): ProgramDay =>
   trainingProgram[((weekday % 7) + 7) % 7];
+
+/**
+ * Segundo's final sub-2000 plan. Inside this window (inclusive) Hoy and Semana
+ * show the plan's day instead of the recurring weekly program.
+ *
+ * Every date key here is a calendar day in America/Buenos_Aires, compared as a
+ * plain 'YYYY-MM-DD' string — never converted through UTC, so there is no
+ * shift at the edges. Callers get their key from `localDateKey`, which is the
+ * viewer's local day (ART for this app).
+ */
+export const PLAN_FINAL_FROM = '2026-11-10';
+export const PLAN_FINAL_TO = '2026-12-04';
+
+interface PlanFinalActivity {
+  id: string;
+  minutes: number;
+  label: string;
+  details: string;
+}
+
+interface PlanFinalDay {
+  tipo: string;
+  note: string;
+  activities: PlanFinalActivity[];
+}
+
+const planFinalDays = planFinalPayload.days as Record<string, PlanFinalDay>;
+
+/**
+ * Plan activity id → the block it ticks. `drills` is `calculation` rather than
+ * `tactics`: that is what the base program already uses for the blunder
+ * drills, and nothing else in the app logs or serves a `tactics` block.
+ */
+const planBlock = (id: string): TrainingBlock | null => {
+  if (id === 'drills' || id === 'calculo-papel') return 'calculation';
+  if (id === 'clase-jc') return 'lesson';
+  if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
+  if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
+  if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim') return 'analysis';
+  if (id === 'partida-larga' || /^sim-r\d$/.test(id)) return 'play';
+  // rutina-torneo: no training to tick.
+  return null;
+};
+
+const WEEKDAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+/** The note's headline ("T · Táctica y cálculo"), short enough for an h3. */
+const planFocus = (note: string): string => note.split('. ')[0].replace(/\.$/, '');
+
+const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
+  const blocks: ProgramBlock[] = [];
+  for (const a of day.activities) {
+    const block = planBlock(a.id);
+    if (block) blocks.push({ block, minutes: a.minutes, label: a.label, detail: a.details });
+  }
+  const ids = day.activities.map(a => a.id);
+  const hasDrills = ids.includes('drills');
+  // ~10 drills on a normal day; 5 on rest days (drills only) and "liviana"
+  // days so the queue stays light.
+  const light = ids.every(id => id === 'drills') || day.tipo.includes('liviana');
+  const quota: QueueQuota = {
+    ...NO_QUEUE,
+    blunder: hasDrills ? (light ? 5 : 10) : 0,
+    endgame: blocks.some(b => b.block === 'endgame') ? 1 : 0,
+    repertoire: blocks.some(b => b.block === 'repertoire') ? 1 : 0,
+  };
+  const weekday = weekdayIndex(dateKey);
+  return {
+    weekday,
+    dayName: WEEKDAY_NAMES[weekday],
+    focus: planFocus(day.note),
+    blocks,
+    quota,
+    isTrainingDay: blocks.length > 0,
+  };
+};
+
+const planFinalProgram: Record<string, ProgramDay> = Object.fromEntries(
+  Object.entries(planFinalDays).map(([dateKey, day]) => [dateKey, buildPlanDay(dateKey, day)])
+);
+
+/** Whether a 'YYYY-MM-DD' (ART) key falls inside the plan-final window, inclusive. */
+export const isPlanFinalDate = (dateKey: string): boolean =>
+  dateKey >= PLAN_FINAL_FROM && dateKey <= PLAN_FINAL_TO;
+
+/**
+ * The program for one concrete day: Segundo's plan inside the window, the
+ * recurring weekday program everywhere else.
+ */
+export const programForDate = (dateKey: string): ProgramDay =>
+  (isPlanFinalDate(dateKey) && planFinalProgram[dateKey]) ||
+  programForWeekday(weekdayIndex(dateKey));
 
 /** Total planned minutes for a weekday. */
 export const plannedMinutes = (day: ProgramDay): number =>

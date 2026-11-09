@@ -13,8 +13,7 @@ import {
 import { useDailyQueue, type QueueItem } from '../../../../hooks/useDailyQueue';
 import { useHomework } from '../../../../hooks/useHomework';
 import { postTrainingSession, putTrainingSession, postTrainingAttempts } from '../../../../api/client';
-import { programForWeekday, plannedMinutes } from '../../../../constants/trainingProgram';
-import { weekdayIndex } from '../../../../utils/localDate';
+import { programForDate, plannedMinutes } from '../../../../constants/trainingProgram';
 import { formatMaterialDelta } from '../../../../engine/mineEndgames';
 import { Card, Button, Badge } from '../../../ui';
 import PuzzleBoard from '../../PuzzleBoard';
@@ -57,7 +56,7 @@ const KIND_BLOCK: Record<QueueItem['kind'], TrainingBlock> = {
 const TodayQueue = () => {
   const { items, loading, error, dayKey, dueTotals, resolve } = useDailyQueue();
   const homework = useHomework();
-  const program = useMemo(() => programForWeekday(weekdayIndex(dayKey)), [dayKey]);
+  const program = useMemo(() => programForDate(dayKey), [dayKey]);
 
   const [index, setIndex] = useState(0);
   const [candidates, setCandidates] = useState('');
