@@ -89,7 +89,13 @@ export const useGameForm = (games: Game[], addManualGame: (game: Game) => Promis
       ...(gameForm.clock40.trim() ? { clock40: gameForm.clock40.trim() } : {}),
     };
 
-    await addManualGame(newGame);
+    try {
+      await addManualGame(newGame);
+    } catch (err) {
+      const message = err instanceof Error && err.message ? err.message : 'Unknown error';
+      await modal.alert(`Could not save the game: ${message}`, 'Save Error');
+      return false;
+    }
 
     // Reset form (keep tournament and elo for convenience)
     setGameForm({
