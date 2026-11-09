@@ -3,9 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   SESSION_COOKIE,
+  MIN_SECRET_LENGTH,
   SESSION_TTL_SECONDS,
   clearSessionCookie,
   createSessionToken,
+  getApiSecret,
+  isUsableSecret,
   requireSession,
   setSessionCookie,
   timingSafeEqualStr,
@@ -13,7 +16,7 @@ import {
 } from './_auth';
 import authHandler from './_sessionAuth';
 
-const SECRET = 'test-secret-value';
+const SECRET = 'test-secret-value-0123456789-abcdef';
 
 const mockRes = () => {
   const res = {
@@ -41,10 +44,16 @@ const mockRes = () => {
 type MockRes = ReturnType<typeof mockRes>;
 
 const asRes = (r: MockRes) => r as unknown as VercelResponse;
-const mockReq = (init: { method?: string; cookie?: string; body?: unknown } = {}) =>
+let nextIp = 0;
+// Each request gets its own IP unless one is given, so the login throttle
+// (module state) never leaks between tests.
+const mockReq = (init: { method?: string; cookie?: string; body?: unknown; ip?: string } = {}) =>
   ({
     method: init.method ?? 'GET',
-    headers: init.cookie ? { cookie: init.cookie } : {},
+    headers: {
+      'x-forwarded-for': init.ip ?? `10.0.0.${++nextIp}`,
+      ...(init.cookie ? { cookie: init.cookie } : {}),
+    },
     body: init.body,
     query: {},
   }) as unknown as VercelRequest;
@@ -86,7 +95,7 @@ describe('session tokens', () => {
 
   it('rejects a token signed with a different secret', () => {
     const token = createSessionToken()!;
-    vi.stubEnv('API_SECRET', 'another-secret');
+    vi.stubEnv('API_SECRET', 'another-secret-value-0123456789-xyz');
     expect(verifySessionToken(token)).toBe(false);
   });
 
@@ -95,6 +104,35 @@ describe('session tokens', () => {
     vi.stubEnv('API_SECRET', '');
     expect(createSessionToken()).toBeNull();
     expect(verifySessionToken(token)).toBe(false);
+  });
+
+  it('fails closed with a secret shorter than 32 chars', () => {
+    const token = createSessionToken()!;
+    vi.stubEnv('API_SECRET', 'x'.repeat(MIN_SECRET_LENGTH - 1));
+    expect(getApiSecret()).toBeNull();
+    expect(createSessionToken()).toBeNull();
+    expect(verifySessionToken(token)).toBe(false);
+  });
+
+  it('works with a secret of exactly 32 chars', () => {
+    vi.stubEnv('API_SECRET', 'x'.repeat(MIN_SECRET_LENGTH));
+    expect(getApiSecret()).toHaveLength(MIN_SECRET_LENGTH);
+    expect(verifySessionToken(createSessionToken())).toBe(true);
+  });
+});
+
+describe('isUsableSecret', () => {
+  it('requires at least 32 raw characters', () => {
+    expect(isUsableSecret(undefined)).toBe(false);
+    expect(isUsableSecret(null)).toBe(false);
+    expect(isUsableSecret('')).toBe(false);
+    expect(isUsableSecret('x'.repeat(31))).toBe(false);
+    expect(isUsableSecret('x'.repeat(32))).toBe(true);
+    expect(isUsableSecret('x'.repeat(64))).toBe(true);
+  });
+
+  it('counts raw length without trimming', () => {
+    expect(isUsableSecret(`${' '.repeat(31)}x`)).toBe(true);
   });
 });
 
@@ -173,6 +211,44 @@ describe('/api/auth', () => {
     await authHandler(mockReq({ method: 'POST', body: { password: '' } }), asRes(res));
     expect(res.statusCode).toBe(500);
     expect(res.headers['Set-Cookie']).toBeUndefined();
+  });
+
+  it('POST answers 429 with Retry-After after 5 failures from one IP', async () => {
+    const ip = '203.0.113.50';
+    for (let i = 0; i < 5; i++) {
+      const res = mockRes();
+      await authHandler(mockReq({ method: 'POST', ip, body: { password: 'wrong' } }), asRes(res));
+      expect(res.statusCode).toBe(401);
+    }
+    // Even the right password is refused while limited.
+    const res = mockRes();
+    await authHandler(mockReq({ method: 'POST', ip, body: { password: SECRET } }), asRes(res));
+    expect(res.statusCode).toBe(429);
+    expect(res.body).toEqual({ error: 'Too many login attempts' });
+    expect(Number(res.headers['Retry-After'])).toBeGreaterThan(0);
+    expect(res.headers['Set-Cookie']).toBeUndefined();
+  });
+
+  it('GET and DELETE never count toward the limit', async () => {
+    const ip = '203.0.113.51';
+    for (let i = 0; i < 10; i++) {
+      await authHandler(mockReq({ ip }), asRes(mockRes()));
+      await authHandler(mockReq({ method: 'DELETE', ip }), asRes(mockRes()));
+    }
+    const res = mockRes();
+    await authHandler(mockReq({ method: 'POST', ip, body: { password: SECRET } }), asRes(res));
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('a successful login clears the IP failures', async () => {
+    const ip = '203.0.113.52';
+    for (let i = 0; i < 4; i++) {
+      await authHandler(mockReq({ method: 'POST', ip, body: { password: 'wrong' } }), asRes(mockRes()));
+    }
+    await authHandler(mockReq({ method: 'POST', ip, body: { password: SECRET } }), asRes(mockRes()));
+    const res = mockRes();
+    await authHandler(mockReq({ method: 'POST', ip, body: { password: 'wrong' } }), asRes(res));
+    expect(res.statusCode).toBe(401);
   });
 
   it('DELETE clears the cookie', async () => {

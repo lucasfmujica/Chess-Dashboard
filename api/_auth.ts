@@ -13,7 +13,16 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 export const SESSION_COOKIE = 'chess_session';
 export const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
-export const getApiSecret = (): string | null => process.env.API_SECRET || null;
+export const MIN_SECRET_LENGTH = 32;
+
+/** Usable = present and at least MIN_SECRET_LENGTH long (raw length, no trim). */
+export const isUsableSecret = (value: string | undefined | null): value is string =>
+  typeof value === 'string' && value.length >= MIN_SECRET_LENGTH;
+
+export const getApiSecret = (): string | null => {
+  const secret = process.env.API_SECRET;
+  return isUsableSecret(secret) ? secret : null;
+};
 
 /** Constant-time string comparison; unequal lengths are simply false. */
 export const timingSafeEqualStr = (a: string, b: string): boolean => {

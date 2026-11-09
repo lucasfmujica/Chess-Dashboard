@@ -7,6 +7,7 @@ import {
   setSessionCookie,
   timingSafeEqualStr,
 } from './_auth.js';
+import { clearIp, getClientIp, isLimited, registerFailure } from './_loginRateLimit.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'no-store');
@@ -17,14 +18,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (req.method === 'POST') {
+    const ip = getClientIp(req);
+    const retryAfter = isLimited(ip);
+    if (retryAfter > 0) {
+      res.setHeader('Retry-After', String(retryAfter));
+      return res.status(429).json({ error: 'Too many login attempts' });
+    }
     const secret = getApiSecret();
     if (!secret) return res.status(500).json({ error: 'API_SECRET is not configured' });
     const password = (req.body as { password?: unknown } | undefined)?.password;
     if (typeof password !== 'string' || !timingSafeEqualStr(password, secret)) {
+      registerFailure(ip);
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const token = createSessionToken();
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
+    clearIp(ip);
     setSessionCookie(res, token);
     return res.status(200).json({ ok: true });
   }
