@@ -1152,7 +1152,7 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
     if (isMissingTable(err)) {
       return res.status(503).json({
         error:
-          'Falta la tabla chat_usage_daily: aplicá migrations/012_chat_usage_daily.sql antes de usar el chat.',
+          'Falta la tabla chat_usage_daily: aplicá migrations/013_chat_usage_daily.sql antes de usar el chat.',
       });
     }
     throw err;

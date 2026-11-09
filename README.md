@@ -105,7 +105,7 @@ Then set at least `DATABASE_URL`. Server-only variables (no `VITE_` prefix) neve
 
 > **`VITE_API_SECRET` was removed.** It shipped in the client bundle, so it protected nothing. Delete it from `.env*` and from the Vercel project's environment variables, and check the build with `npm run build && npm run assert:no-client-secret`.
 
-> **Migration `012_chat_usage_daily.sql` is pending.** The diagnostic chat caps usage at 40 requests per day using the `chat_usage_daily` table. Until you apply the migration the chat endpoint answers `503`. It is not applied automatically.
+> **Migration `013_chat_usage_daily.sql` is pending.** The diagnostic chat caps usage at 40 requests per day using the `chat_usage_daily` table. Until you apply the migration the chat endpoint answers `503`. It is not applied automatically.
 
 ### Create the schema
 
