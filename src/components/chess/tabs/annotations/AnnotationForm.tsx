@@ -6,7 +6,16 @@ import ConceptLinkPicker from '../../ConceptLinkPicker';
 import CaptureMomentPanel from './CaptureMomentPanel';
 import DiagnosticsPanel, { type BoardMarks } from './DiagnosticsPanel';
 import KeyMomentsList from './KeyMomentsList';
-import { addMoment, removeMoment, setCriticalMoment, updateMoment } from './moments';
+import {
+  addMoment,
+  fatesStillNeeded,
+  isOtbGame,
+  removeMoment,
+  setCriticalMoment,
+  updateMoment,
+  CANDIDATE_FATE_QUESTION,
+  REQUIRED_OTB_MOMENTS,
+} from './moments';
 import { ERROR_TYPE_OPTIONS, TAGS } from './annotationMeta';
 import { gameLabel } from '../../../../utils/gameMapping';
 import type { AnnotatedGame, AnnotationErrorType, Game, KeyMoment } from '../../../../types/chess';
@@ -41,6 +50,10 @@ const AnnotationForm = ({
   const set = (patch: Partial<AnnotatedGame>) => onChange({ ...draft, ...patch });
 
   const keyMoments = draft.keyMoments ?? [];
+  // OTB post-mortems must answer the candidate question on three moments;
+  // online games are never blocked.
+  const otb = isOtbGame(linkedGame);
+  const fatesNeeded = otb ? fatesStillNeeded(keyMoments) : 0;
   const recordedPlies = keyMoments
     .map(m => m.ply)
     .filter((p): p is number => p !== undefined);
@@ -126,7 +139,15 @@ const AnnotationForm = ({
               set(addMoment(keyMoments, { move: '', symbol: '', comment: '' }))
             }
             onGoTo={goToPly}
+            askCandidateFate={otb}
           />
+          {otb && (
+            <p className="mt-2 text-xs text-fg-muted">
+              Partida OTB: marcá al menos {REQUIRED_OTB_MOMENTS} momentos y respondé en cada uno «
+              {CANDIDATE_FATE_QUESTION}»
+              {fatesNeeded > 0 && ` — faltan ${fatesNeeded}.`}
+            </p>
+          )}
         </div>
 
         {/*
@@ -320,7 +341,7 @@ const AnnotationForm = ({
 
 
         <div className="flex gap-4 pt-4">
-          <Button variant="primary" onClick={onSave} className="flex-1">
+          <Button variant="primary" onClick={onSave} disabled={fatesNeeded > 0} className="flex-1">
             {isEditing ? 'Guardar cambios' : 'Guardar análisis'}
           </Button>
           <Button onClick={onCancel}>Cancelar</Button>

@@ -1,0 +1,21 @@
+-- Puntero, no migración: no cambia el esquema y NO se aplica automáticamente.
+--
+-- La fila del Final Argentina Amateur Sub-2000 la escribe el script, que tiene
+-- dry-run por defecto y es idempotente:
+--   npx tsx --env-file=.env.local scripts/seed-final-sub2000.mts          (solo muestra)
+--   npx tsx --env-file=.env.local scripts/seed-final-sub2000.mts --apply  (escribe)
+--
+-- El SQL equivalente, por si se prefiere correrlo a mano con psql:
+--
+-- INSERT INTO tournaments (name, start_date, end_date, kind, time_control, affects_elo, notes)
+-- VALUES (
+--   'Final Argentina Amateur Sub-2000 2026', '2026-12-05', '2026-12-08', 'individual',
+--   '60+30', true, 'La Plata · 7 rondas · FADA'
+-- )
+-- ON CONFLICT (name) DO UPDATE SET
+--   start_date = EXCLUDED.start_date,
+--   end_date = EXCLUDED.end_date,
+--   kind = EXCLUDED.kind,
+--   time_control = EXCLUDED.time_control,
+--   affects_elo = EXCLUDED.affects_elo,
+--   notes = EXCLUDED.notes;

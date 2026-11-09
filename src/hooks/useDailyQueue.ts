@@ -5,7 +5,14 @@ import { useEndgameDrills } from './useEndgameDrills';
 import { useRepertoireMoves } from './useRepertoireMoves';
 import { useConcepts } from './useConcepts';
 import { isDue, nudgeConfidence } from '../utils/srs';
-import { pickDueFirst } from '../utils/queueSelection';
+import {
+  pickDueFirst,
+  gamePhaseFromPlyFen,
+  phaseRank,
+  sourceSpeedRank,
+  isBulletGame,
+  type NeverSeenKey,
+} from '../utils/queueSelection';
 import { localDateKey, weekdayIndex } from '../utils/localDate';
 import { programForWeekday, type QueueQuota } from '../constants/trainingProgram';
 import { isEngineOnly } from '../constants/maia';
@@ -42,6 +49,34 @@ const drillAccessors = {
   getId: (d: BlunderDrill | EndgameDrill) => d.id,
   getConfidence: (d: BlunderDrill | EndgameDrill) => d.confidence,
   getLastReviewed: (d: BlunderDrill | EndgameDrill) => d.lastReviewed,
+};
+
+/** Epoch ms of the game the drill came from, falling back to when it was mined. */
+const gameRecency = (d: BlunderDrill | EndgameDrill): number => {
+  const played = d.game.playedDate ? Date.parse(d.game.playedDate) : NaN;
+  return Number.isNaN(played) ? d.createdAt : played;
+};
+
+const blunderAccessors = {
+  ...drillAccessors,
+  getNeverSeenKey: (d: BlunderDrill): NeverSeenKey => ({
+    sourceRank: sourceSpeedRank(d.game.source, d.game.speed),
+    phaseRank: phaseRank(gamePhaseFromPlyFen(d.ply, d.fenBefore)),
+    rookRank: 1,
+    cpLoss: d.cpLoss,
+    recency: gameRecency(d),
+  }),
+};
+
+const endgameAccessors = {
+  ...drillAccessors,
+  getNeverSeenKey: (d: EndgameDrill): NeverSeenKey => ({
+    sourceRank: sourceSpeedRank(d.game.source, d.game.speed),
+    phaseRank: phaseRank('endgame'),
+    rookRank: d.endgameType === 'rook' ? 0 : 1,
+    cpLoss: Math.abs(d.materialDelta ?? 0),
+    recency: gameRecency(d),
+  }),
 };
 
 const lineAccessors = {
@@ -123,9 +158,12 @@ export const useDailyQueue = (): UseDailyQueue => {
   }, [refetchRepertoire]);
 
   // Same cut as the drill tab's "human" filter: a solution no 1900 finds is
-  // worth looking at, not worth a Monday slot.
+  // worth looking at, not worth a Monday slot. Bullet games are not trained.
   const trainableBlunders = useMemo(
-    () => blunders.drills.filter(d => !isEngineOnly(d)),
+    () =>
+      blunders.drills.filter(
+        d => !isEngineOnly(d) && !isBulletGame(d.game.source, d.game.speed)
+      ),
     [blunders.drills]
   );
   const reviewableConcepts = useMemo(
@@ -139,7 +177,7 @@ export const useDailyQueue = (): UseDailyQueue => {
       quota.blunder,
       now,
       dayKey,
-      drillAccessors
+      blunderAccessors
     ).map<QueueItem>(drill => ({ kind: 'blunder', id: drill.id, drill }));
 
     const chosenEndgames = pickDueFirst(
@@ -147,7 +185,7 @@ export const useDailyQueue = (): UseDailyQueue => {
       quota.endgame,
       now,
       dayKey,
-      drillAccessors
+      endgameAccessors
     ).map<QueueItem>(drill => ({ kind: 'endgame', id: drill.id, drill }));
 
     const chosenLines = pickDueFirst(

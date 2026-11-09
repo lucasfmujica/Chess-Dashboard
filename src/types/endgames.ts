@@ -8,6 +8,10 @@ export interface EndgameDrillGame {
   openingName?: string;
   color: 'W' | 'B';
   result: 'W' | 'D' | 'L';
+  /** 'otb' | 'lichess'; absent means OTB. */
+  source?: string;
+  /** Lichess time class; unset for OTB. */
+  speed?: string;
 }
 
 /** A mined endgame snapshot as stored server-side, with SRS review state. */

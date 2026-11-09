@@ -10,6 +10,7 @@ import { WEEKLY_QUEUE_TARGET } from '../../../constants/trainingProgram';
 import { useModal } from '../../modals/ModalContext';
 import StatCard, { Sparkline } from '../StatCard';
 import TodayStrip from './TodayStrip';
+import MomentSplitSummary from './training/MomentSplitSummary';
 import { Card, CardHeader } from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
@@ -18,6 +19,7 @@ import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import { getChartHeight } from '../../../utils/chartUtils';
 import { dateFromKey } from '../../../utils/localDate';
+import { hidePrepDistractions } from '../../../utils/featureWindow';
 import type { Game, GameStats, PlayerInfo, TournamentStat, StreaksSummary, Tournament } from '../../../types/chess';
 
 /** Per-opening aggregate row attached to colored game stats. */
@@ -144,6 +146,8 @@ const OverviewTab = ({
 }: OverviewTabProps) => {
   const animatedElo = useCountUp(playerInfo.current_elo);
   const pulse = useTrainingPulse();
+  // Streaks is out of the nav until the Final, so its cards must not link there.
+  const streaksLink = hidePrepDistractions() ? undefined : () => onNavigate('streaks');
   const modal = useModal();
   const [showAddGames, setShowAddGames] = useState(false);
   const {
@@ -283,6 +287,11 @@ const OverviewTab = ({
               {pulse.split.missed} de {pulse.split.asked} fallos · {SPLIT_WINDOW_DAYS}d
             </p>
           )}
+          {!pulse.loading && (
+            <div className="mt-2">
+              <MomentSplitSummary split={pulse.momentSplit} />
+            </div>
+          )}
         </Card>
       </div>
 
@@ -293,7 +302,7 @@ const OverviewTab = ({
       {/* At-a-glance signals: what happened recently & what's next */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Recent form (last 5) */}
-        <SignalCard label="Recent Form" onClick={() => onNavigate('streaks')}>
+        <SignalCard label="Recent Form" onClick={streaksLink}>
           {form.games > 0 ? (
             <>
               <div className="flex items-center gap-1.5">
@@ -316,7 +325,7 @@ const OverviewTab = ({
         </SignalCard>
 
         {/* Current streak */}
-        <SignalCard label="Current Streak" onClick={() => onNavigate('streaks')}>
+        <SignalCard label="Current Streak" onClick={streaksLink}>
           {streak.type && streak.count > 0 ? (
             <>
               <div className="flex items-baseline gap-2">

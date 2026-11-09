@@ -22,6 +22,8 @@ export interface BlunderDrillRow {
   opening_name: string | null;
   color: string;
   result: string;
+  source: string | null;
+  speed: string | null;
 }
 
 export const rowToBlunderDrill = (row: BlunderDrillRow) => ({
@@ -55,5 +57,7 @@ export const rowToBlunderDrill = (row: BlunderDrillRow) => ({
     openingName: row.opening_name ?? undefined,
     color: row.color as 'W' | 'B',
     result: row.result as 'W' | 'D' | 'L',
+    source: row.source ?? undefined,
+    speed: row.speed ?? undefined,
   },
 });

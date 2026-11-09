@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { candidateSplit } from './candidateSplit';
+import { candidateSplit, momentCandidateSplit, isWeakSignal } from './candidateSplit';
 import type { TrainingAttempt } from '../types/training';
+import type { AnnotatedGame, KeyMoment } from '../types/chess';
 
 const attempt = (over: Partial<TrainingAttempt>): TrainingAttempt =>
   ({ id: 'a', itemKind: 'blunder', correct: false, createdAt: 0, ...over }) as TrainingAttempt;
@@ -38,5 +39,36 @@ describe('candidateSplit', () => {
       attempt({ candidateMiss: false }),
     ]);
     expect(split).toEqual({ asked: 1, missed: 0, rejected: 1, missedPct: 0 });
+  });
+});
+
+const moment = (candidateFate?: KeyMoment['candidateFate']): KeyMoment => ({
+  move: '',
+  symbol: '',
+  comment: '',
+  candidateFate,
+});
+const annotation = (...moments: KeyMoment[]): AnnotatedGame =>
+  ({ id: 'x', createdAt: 0, keyMoments: moments }) as AnnotatedGame;
+
+describe('momentCandidateSplit', () => {
+  it('is all zeros with nothing annotated, not NaN', () => {
+    expect(momentCandidateSplit([])).toEqual({ asked: 0, missed: 0, rejected: 0, missedPct: 0 });
+    expect(momentCandidateSplit([{ id: 'x', createdAt: 0 } as AnnotatedGame]).asked).toBe(0);
+  });
+
+  it('counts only moments where the question was answered', () => {
+    const split = momentCandidateSplit([
+      annotation(moment('missed'), moment('rejected'), moment(undefined)),
+      annotation(moment('missed')),
+    ]);
+    expect(split).toEqual({ asked: 3, missed: 2, rejected: 1, missedPct: 67 });
+  });
+});
+
+describe('isWeakSignal', () => {
+  it('flags fewer than 15 answers', () => {
+    expect(isWeakSignal(14)).toBe(true);
+    expect(isWeakSignal(15)).toBe(false);
   });
 });

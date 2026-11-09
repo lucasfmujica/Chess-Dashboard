@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, useEffect } from 'react';
 import { useModal } from './components/modals/ModalContext';
 import LazyTab from './components/LazyTab';
 import { useGames, useComputedStats } from './context/GamesContext';
@@ -50,6 +50,7 @@ import {
 import { ByColorPieces } from './components/icons/ChessIcons';
 import { ecoNames } from './constants/ecoNames';
 import { parsePGN, convertPGNGamesToInternal } from './utils/pgnUtils';
+import { hidePrepDistractions, PREP_DISTRACTION_TABS } from './utils/featureWindow';
 import type { Game } from './types/chess';
 
 /**
@@ -218,7 +219,9 @@ const ChessDashboard = () => {
   // lugar donde se ve sin ir a buscarlo.
   const pendingDiagnostics = useDiagnosticsQueue();
 
-  const navigationSections = [
+  const hidePrep = hidePrepDistractions();
+
+  const allNavigationSections = [
     {
       section: 'Play & Review',
       items: [
@@ -258,6 +261,23 @@ const ChessDashboard = () => {
       ],
     },
   ];
+
+  // Until the Final, the sections that don't feed preparation leave the nav
+  // (not the codebase). A section left with no items drops out too.
+  const navigationSections = hidePrep
+    ? allNavigationSections
+        .map(group => ({
+          ...group,
+          items: group.items.filter(item => !PREP_DISTRACTION_TABS.has(item.id)),
+        }))
+        .filter(group => group.items.length > 0)
+    : allNavigationSections;
+
+  // A saved or deep-linked tab that is now hidden falls back to the overview.
+  const tabIsHidden = hidePrep && PREP_DISTRACTION_TABS.has(activeTab);
+  useEffect(() => {
+    if (tabIsHidden) setActiveTab('overview');
+  }, [tabIsHidden, setActiveTab]);
 
   return (
     <div className="min-h-screen bg-app text-fg">
@@ -365,9 +385,9 @@ const ChessDashboard = () => {
 
           {activeTab === 'analysis-board' && <LazyTab><AnalysisBoardTab /></LazyTab>}
 
-          {activeTab === 'geography' && <LazyTab><GeographyTab /></LazyTab>}
+          {activeTab === 'geography' && !tabIsHidden && <LazyTab><GeographyTab /></LazyTab>}
 
-          {activeTab === 'records' && (
+          {activeTab === 'records' && !tabIsHidden && (
             <RecordsTab games={ratedGames} eloHistory={eloHistory} />
           )}
 
@@ -435,7 +455,7 @@ const ChessDashboard = () => {
 
           {activeTab === 'opponent-prep' && <LazyTab><OpponentPrepTab /></LazyTab>}
 
-          {activeTab === 'norm-tracker' && <LazyTab><NormTrackerTab /></LazyTab>}
+          {activeTab === 'norm-tracker' && !tabIsHidden && <LazyTab><NormTrackerTab /></LazyTab>}
           {activeTab === 'diagnostics' && <LazyTab><DiagnosticsTab /></LazyTab>}
           {activeTab === 'concepts' && <LazyTab><ConceptsTab /></LazyTab>}
 
@@ -460,7 +480,7 @@ const ChessDashboard = () => {
               included — the tab reads the unfiltered list itself. */}
           {activeTab === 'annotations' && <GameAnnotationTab />}
 
-          {activeTab === 'streaks' && (
+          {activeTab === 'streaks' && !tabIsHidden && (
             <StreaksTab
               games={filteredGames}
               formStats={formStats}
