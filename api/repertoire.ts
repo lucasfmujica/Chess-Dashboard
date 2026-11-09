@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 
 interface RepertoireRow {
   white_ecos: string[];
@@ -13,6 +13,7 @@ const rowToRepertoire = (row: RepertoireRow) => ({
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method === 'GET') {
     const rows = (await sql`SELECT * FROM repertoire WHERE id = 1`) as RepertoireRow[];
     if (rows.length === 0) {
@@ -21,9 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(rowToRepertoire(rows[0]));
   }
 
-  if (req.method === 'PUT') {
-    if (!requireApiKey(req, res)) return;
-    const { white, black } = req.body as { white: string[]; black: string[] };
+  if (req.method === 'PUT') {    const { white, black } = req.body as { white: string[]; black: string[] };
     const rows = (await sql`
       INSERT INTO repertoire (id, white_ecos, black_ecos)
       VALUES (1, ${white}, ${black})

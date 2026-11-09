@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 import { rowToAnnotation, type AnnotationRow } from './_annotationMapper.js';
 
 interface AnnotationInput {
@@ -25,12 +25,11 @@ interface AnnotationInput {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   const { id } = req.query;
 
   if (typeof id === 'string') {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const a = req.body as AnnotationInput;
+    if (req.method === 'PUT') {      const a = req.body as AnnotationInput;
       const rows = (await sql`
         UPDATE annotated_games SET
           game_name = ${a.gameName ?? null}, opponent = ${a.opponent ?? null},
@@ -52,9 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(rowToAnnotation(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM annotated_games WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM annotated_games WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Annotation not found' });
       }
@@ -70,9 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(rows.map(rowToAnnotation));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const a = req.body as AnnotationInput;
+  if (req.method === 'POST') {    const a = req.body as AnnotationInput;
     const rows = (await sql`
       INSERT INTO annotated_games (
         game_name, opponent, played_date, opening, eco, result, rating, tags, notes, key_moments, pgn,

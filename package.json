@@ -30,6 +30,7 @@
     "prebuild": "node scripts/copy-engine.mjs",
     "build": "vite build",
     "preview": "vite preview",
+    "assert:no-client-secret": "node scripts/assert-no-client-secret.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p api/tsconfig.json",
     "typecheck:api": "tsc --noEmit -p api/tsconfig.json",
     "test": "vitest run && npm run test:py",

@@ -4,6 +4,7 @@ import './index.css';
 import './styles/animations.css';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoginGate from './components/LoginGate';
 import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './components/modals/ModalContext';
 import { GamesProvider } from './context/GamesContext';
@@ -30,15 +31,17 @@ root.render(
   <React.StrictMode>
     <ThemeProvider>
       <ErrorBoundary>
-        <ModalProvider>
-          <GamesProvider>
-            <UIProvider>
-              <GameViewerProvider>
-                <App />
-              </GameViewerProvider>
-            </UIProvider>
-          </GamesProvider>
-        </ModalProvider>
+        <LoginGate>
+          <ModalProvider>
+            <GamesProvider>
+              <UIProvider>
+                <GameViewerProvider>
+                  <App />
+                </GameViewerProvider>
+              </UIProvider>
+            </GamesProvider>
+          </ModalProvider>
+        </LoginGate>
       </ErrorBoundary>
     </ThemeProvider>
   </React.StrictMode>

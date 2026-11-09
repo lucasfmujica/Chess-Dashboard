@@ -28,15 +28,16 @@ import type {
   Homework,
 } from '../types/training';
 
-const API_KEY = import.meta.env.VITE_API_SECRET as string | undefined;
-
+/**
+ * Every request carries the HttpOnly session cookie set by `login`. There is
+ * no key in the client: the credential lives in the cookie and on the server.
+ */
 const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
-  const isMutating = options.method && options.method !== 'GET';
   const res = await fetch(`/api${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(isMutating && API_KEY ? { 'x-api-key': API_KEY } : {}),
       ...options.headers,
     },
   });
@@ -46,6 +47,35 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
+};
+
+// Auth
+
+/** True when the browser holds a valid session cookie. Network errors count as no. */
+export const checkAuth = async (): Promise<boolean> => {
+  try {
+    const res = await fetch('/api/auth', { credentials: 'include' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+};
+
+/** Exchanges the password for a session cookie. Returns false on a wrong password. */
+export const login = async (password: string): Promise<boolean> => {
+  const res = await fetch('/api/auth', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  if (res.status === 401) return false;
+  if (!res.ok) throw new Error(`POST /auth failed: ${res.status}`);
+  return true;
+};
+
+export const logout = async (): Promise<void> => {
+  await fetch('/api/auth', { method: 'DELETE', credentials: 'include' });
 };
 
 // Games
@@ -91,7 +121,7 @@ export const deleteGamesBySource = (source: string) =>
 
 // Profile
 export const fetchProfile = async (): Promise<PlayerInfo | null> => {
-  const res = await fetch('/api/profile');
+  const res = await fetch('/api/profile', { credentials: 'include' });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GET /profile failed: ${res.status}`);
   return res.json() as Promise<PlayerInfo>;
@@ -416,7 +446,8 @@ export const fetchExplorerTopGames = async (
   count = 15
 ): Promise<ExplorerTopGame[]> => {
   const res = await fetch(
-    `/api/explorer?fen=${encodeURIComponent(fen)}&moves=0&topGames=${count}`
+    `/api/explorer?fen=${encodeURIComponent(fen)}&moves=0&topGames=${count}`,
+    { credentials: 'include' }
   );
   if (!res.ok) {
     const body = await res.text().catch(() => '');
@@ -432,7 +463,9 @@ export const fetchExplorerTopGames = async (
 
 /** One master game's PGN. Same host and token, so it also goes through the proxy. */
 export const fetchMasterGamePgn = async (gameId: string): Promise<string> => {
-  const res = await fetch(`/api/explorer?gameId=${encodeURIComponent(gameId)}`);
+  const res = await fetch(`/api/explorer?gameId=${encodeURIComponent(gameId)}`, {
+    credentials: 'include',
+  });
   if (!res.ok) {
     throw new Error(`No se pudo traer el PGN de ${gameId}: ${res.status}`);
   }

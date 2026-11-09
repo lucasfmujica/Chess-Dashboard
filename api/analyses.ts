@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 
 interface AnalysisRow {
   pgn_hash: string;
@@ -29,14 +29,13 @@ const rowToEntry = (row: AnalysisRow) => ({
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method === 'GET') {
     const rows = (await sql`SELECT * FROM game_analyses`) as AnalysisRow[];
     return res.status(200).json(rows.map(rowToEntry));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const { pgnHash, analysis } = req.body as {
+  if (req.method === 'POST') {    const { pgnHash, analysis } = req.body as {
       pgnHash: string;
       analysis: {
         depth: number;

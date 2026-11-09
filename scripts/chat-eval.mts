@@ -219,12 +219,27 @@ const openEngine = () => {
  */
 const MODEL_TIMEOUT_MS = Number(process.env.CHAT_EVAL_TIMEOUT_MS ?? 180_000);
 
+/** The API now wants a session cookie: log in once with API_SECRET and reuse it. */
+let sessionCookie: Promise<string> | undefined;
+const getSessionCookie = (): Promise<string> => {
+  sessionCookie ??= (async () => {
+    const res = await fetch(`${API}/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: process.env.API_SECRET ?? '' }),
+    });
+    if (!res.ok) throw new Error(`login ${res.status}: check API_SECRET`);
+    return (res.headers.get('set-cookie') ?? '').split(';')[0];
+  })();
+  return sessionCookie;
+};
+
 const askChat = async (turns: WireTurn[], final: boolean) => {
   const res = await fetch(`${API}/prep?resource=diagnostic-chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(process.env.API_SECRET ? { 'x-api-key': process.env.API_SECRET } : {}),
+      Cookie: await getSessionCookie(),
     },
     body: JSON.stringify({ turns, final }),
     signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),

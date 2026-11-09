@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { requireSession } from './_auth.js';
 
 /**
  * Proxies the Lichess masters opening explorer. Lichess now requires an
@@ -17,6 +18,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const GAME_ID = /^[a-zA-Z0-9]{8}$/;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
     return res.status(405).json({ error: 'Method not allowed' });

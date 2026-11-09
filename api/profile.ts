@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 import { fetchFideRatings } from './_fide.js';
 import { pickLastTournament, type TournamentEloRow } from './_lastTournament.js';
 
@@ -97,6 +97,7 @@ export const refreshProfile = async () => {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method === 'GET') {
     const rows = (await sql`SELECT * FROM profile WHERE id = 1`) as ProfileRow[];
     if (rows.length === 0) {
@@ -107,9 +108,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Derive the profile from FIDE and the tournaments table instead of being
   // told what it is.
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    try {
+  if (req.method === 'POST') {    try {
       const result = await refreshProfile();
       return res.status(200).json(result);
     } catch (err) {
@@ -119,9 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  if (req.method === 'PUT') {
-    if (!requireApiKey(req, res)) return;
-    const { current_elo, elo_change_last_tournament, last_tournament } = req.body as {
+  if (req.method === 'PUT') {    const { current_elo, elo_change_last_tournament, last_tournament } = req.body as {
       current_elo: number;
       elo_change_last_tournament?: number;
       last_tournament?: string;

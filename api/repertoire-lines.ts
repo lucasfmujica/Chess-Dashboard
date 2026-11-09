@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 import { rowToRepertoireLine, type RepertoireLineRow } from './_repertoireLineMapper.js';
 
 interface RepertoireLineInput {
@@ -27,12 +27,11 @@ interface RepertoireLineInput {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   const { id } = req.query;
 
   if (typeof id === 'string') {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const l = req.body as RepertoireLineInput;
+    if (req.method === 'PUT') {      const l = req.body as RepertoireLineInput;
       const rows = (await sql`
         UPDATE repertoire_lines SET
           color = ${l.color}, vs_move = ${l.vsMove ?? null}, eco = ${l.eco ?? null},
@@ -52,9 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(rowToRepertoireLine(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM repertoire_lines WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM repertoire_lines WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Repertoire line not found' });
       }
@@ -72,9 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(rows.map(rowToRepertoireLine));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const l = req.body as RepertoireLineInput;
+  if (req.method === 'POST') {    const l = req.body as RepertoireLineInput;
     const rows = (await sql`
       INSERT INTO repertoire_lines (
         color, vs_move, eco, line_name, moves_san, key_fen, plan, golden_rule,

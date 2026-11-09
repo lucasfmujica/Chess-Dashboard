@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
 import { sql } from './_db.js';
+import { timingSafeEqualStr } from './_auth.js';
 import { refreshProfile } from './profile.js';
 import { rowToHomework, type HomeworkRow } from './_trainingMapper.js';
 import {
@@ -115,7 +116,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Vercel sends `Authorization: Bearer $CRON_SECRET` on scheduled invocations.
   // Without this the route is a public endpoint that spends Anthropic tokens.
   const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.authorization !== `Bearer ${secret}`) {
+  const provided = req.headers.authorization ?? '';
+  if (!secret || !timingSafeEqualStr(provided, `Bearer ${secret}`)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 

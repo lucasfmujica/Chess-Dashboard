@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
 // jsdom does not implement matchMedia (used by ThemeProvider). Provide a stub.
-if (!window.matchMedia) {
+if (typeof window !== 'undefined' && !window.matchMedia) {
   window.matchMedia = vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
