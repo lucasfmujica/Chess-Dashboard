@@ -15,7 +15,6 @@ interface ImportMetaEnv {
   readonly VITE_STORAGE_PREFIX?: string;
   readonly VITE_MAX_STORAGE_SIZE?: string;
   readonly VITE_SHOW_COMPONENT_NAMES?: string;
-  readonly VITE_API_SECRET?: string;
 }
 
 interface ImportMeta {

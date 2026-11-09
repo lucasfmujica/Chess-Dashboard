@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 import type { GameInput } from './_gameMapper.js';
 import { parsePgnDate, openingNameForEco } from './_pgnMeta.js';
 
@@ -37,11 +37,11 @@ interface MigratePayload {
  * whatever inserted so far, and retrying is safe because of the guard below.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!requireApiKey(req, res)) return;
 
   const existing = await sql`SELECT id FROM games LIMIT 1`;
   if (existing.length > 0) {

@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
 import {
   rowToTournament,
   rowToModelGame,
@@ -37,9 +36,7 @@ export const tournaments = async (
   id: string | undefined
 ) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const t = req.body as Partial<TournamentInput>;
+    if (req.method === 'PUT') {      const t = req.body as Partial<TournamentInput>;
       const rows = (await sql`
         UPDATE tournaments SET
           name = COALESCE(${t.name ?? null}, name),
@@ -66,9 +63,7 @@ export const tournaments = async (
       return res.status(200).json(rowToTournament(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM tournaments WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM tournaments WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) return res.status(404).json({ error: 'Tournament not found' });
       return res.status(200).json({ ok: true });
     }
@@ -86,9 +81,7 @@ export const tournaments = async (
     return res.status(200).json(rows.map(rowToTournament));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const t = req.body as TournamentInput;
+  if (req.method === 'POST') {    const t = req.body as TournamentInput;
     if (!t?.name?.trim()) return res.status(400).json({ error: 'name is required' });
     // Upsert on name: re-importing an edition should correct it, not fail.
     const rows = (await sql`
@@ -145,9 +138,7 @@ export const modelGames = async (
   res: VercelResponse,
   id: string | undefined
 ) => {
-  if (id && req.method === 'DELETE') {
-    if (!requireApiKey(req, res)) return;
-    const rows = await sql`DELETE FROM model_games WHERE id = ${id} RETURNING id`;
+  if (id && req.method === 'DELETE') {    const rows = await sql`DELETE FROM model_games WHERE id = ${id} RETURNING id`;
     if (rows.length === 0) return res.status(404).json({ error: 'Model game not found' });
     return res.status(200).json({ ok: true });
   }
@@ -159,9 +150,7 @@ export const modelGames = async (
     return res.status(200).json(rows.map(rowToModelGame));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const g = req.body as ModelGameInput;
+  if (req.method === 'POST') {    const g = req.body as ModelGameInput;
     if (!g?.eco?.trim() || !g?.hero?.trim() || !g?.pgn?.trim()) {
       return res.status(400).json({ error: 'eco, hero and pgn are required' });
     }

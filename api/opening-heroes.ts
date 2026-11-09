@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 
 interface OpeningHeroesRow {
   eco: string;
@@ -8,6 +8,7 @@ interface OpeningHeroesRow {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   if (req.method === 'GET') {
     const rows = (await sql`SELECT * FROM opening_heroes`) as OpeningHeroesRow[];
     const map: Record<string, string[]> = {};
@@ -15,9 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(map);
   }
 
-  if (req.method === 'PUT') {
-    if (!requireApiKey(req, res)) return;
-    const map = req.body as Record<string, string[]>;
+  if (req.method === 'PUT') {    const map = req.body as Record<string, string[]>;
     // Whole-object replace: clear and re-insert, matching localStorage semantics.
     await sql`DELETE FROM opening_heroes`;
     for (const [eco, heroes] of Object.entries(map)) {

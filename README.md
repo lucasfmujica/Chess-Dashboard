@@ -95,13 +95,17 @@ Then set at least `DATABASE_URL`. Server-only variables (no `VITE_` prefix) neve
 | Variable | Scope | What it does |
 | --- | --- | --- |
 | `DATABASE_URL` | server | Neon connection string. Required. |
-| `API_SECRET` / `VITE_API_SECRET` | server / client | Shared key sent on write requests. A bot deterrent, **not** access control — the client half ships in the bundle. |
+| `API_SECRET` | server | The app password **and** the key that signs the session cookie. You type it once in the login screen (`POST /api/auth`); the server sets an `HttpOnly; Secure; SameSite=Strict` cookie (`chess_session`, 7 days, HMAC-SHA256) that every `/api` route requires. If it is unset the API fails closed: every request is 401. Rotating it logs everyone out. |
 | `LICHESS_TOKEN` | server | Lichess OAuth token for the masters opening explorer (any scope; anonymous access is no longer allowed). |
-| `CRON_SECRET` | server | Verifies Vercel's scheduled invocation of `/api/cron`. Without it the route is public and spends Anthropic tokens on every hit. |
+| `CRON_SECRET` | server | Verifies Vercel's scheduled invocation of `/api/cron` (`Authorization: Bearer`, compared in constant time). `/api/cron` does not use the session cookie. If unset the route answers 401 to everyone. |
 | `FATHOM_API_KEY` | server | Fathom REST key for reading lesson transcripts. |
 | `ANTHROPIC_API_KEY` | server | Used by the homework-extraction call. |
 | `VITE_ENABLE_LICHESS_SYNC` | client | Toggles the Lichess import panel. |
 | `VITE_STORAGE_PREFIX` | client | Namespace for `localStorage` keys. |
+
+> **`VITE_API_SECRET` was removed.** It shipped in the client bundle, so it protected nothing. Delete it from `.env*` and from the Vercel project's environment variables, and check the build with `npm run build && npm run assert:no-client-secret`.
+
+> **Migration `013_chat_usage_daily.sql` is pending.** The diagnostic chat caps usage at 40 requests per day using the `chat_usage_daily` table. Until you apply the migration the chat endpoint answers `503`. It is not applied automatically.
 
 ### Create the schema
 

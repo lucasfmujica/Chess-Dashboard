@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
 import {
   rowToTrainingSession,
   rowToTrainingAttempt,
@@ -36,9 +35,7 @@ export const trainingSessions = async (
   id: string | undefined
 ) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const s = req.body as Partial<TrainingSessionInput>;
+    if (req.method === 'PUT') {      const s = req.body as Partial<TrainingSessionInput>;
       // Partial patch (COALESCE), matching the drill endpoints rather than
       // the full-replace style of repertoire-lines/annotations: a session is
       // created empty when the queue starts and topped up as it progresses.
@@ -59,9 +56,7 @@ export const trainingSessions = async (
       return res.status(200).json(rowToTrainingSession(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM training_sessions WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM training_sessions WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Training session not found' });
       }
@@ -84,9 +79,7 @@ export const trainingSessions = async (
     return res.status(200).json(rows.map(rowToTrainingSession));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const s = req.body as TrainingSessionInput;
+  if (req.method === 'POST') {    const s = req.body as TrainingSessionInput;
     if (!s?.block) {
       return res.status(400).json({ error: 'block is required' });
     }
@@ -122,9 +115,7 @@ export const trainingAttempts = async (
   res: VercelResponse,
   id: string | undefined
 ) => {
-  if (id && req.method === 'DELETE') {
-    if (!requireApiKey(req, res)) return;
-    const rows = await sql`DELETE FROM training_attempts WHERE id = ${id} RETURNING id`;
+  if (id && req.method === 'DELETE') {    const rows = await sql`DELETE FROM training_attempts WHERE id = ${id} RETURNING id`;
     if (rows.length === 0) {
       return res.status(404).json({ error: 'Training attempt not found' });
     }
@@ -148,9 +139,7 @@ export const trainingAttempts = async (
     return res.status(200).json(rows.map(rowToTrainingAttempt));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    // Always a bulk insert: the daily queue flushes a whole session's
+  if (req.method === 'POST') {    // Always a bulk insert: the daily queue flushes a whole session's
     // attempts at once rather than one round-trip per exercise.
     const attempts = req.body as TrainingAttemptInput[];
     if (!Array.isArray(attempts)) {
@@ -196,9 +185,7 @@ interface BookInput {
 
 export const books = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const b = req.body as Partial<BookInput>;
+    if (req.method === 'PUT') {      const b = req.body as Partial<BookInput>;
       const rows = (await sql`
         UPDATE books SET
           title = COALESCE(${b.title ?? null}, title),
@@ -222,9 +209,7 @@ export const books = async (req: VercelRequest, res: VercelResponse, id: string 
       return res.status(200).json(rowToBook(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM books WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM books WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Book not found' });
       }
@@ -246,9 +231,7 @@ export const books = async (req: VercelRequest, res: VercelResponse, id: string 
     return res.status(200).json(rows.map(rowToBook));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    // Accepts either one book or an array, so the library can be seeded by
+  if (req.method === 'POST') {    // Accepts either one book or an array, so the library can be seeded by
     // pasting a whole list instead of adding titles one at a time.
     const body = req.body as BookInput | BookInput[];
     const list = Array.isArray(body) ? body : [body];
@@ -302,9 +285,7 @@ export const homework = async (
   id: string | undefined
 ) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const h = req.body as Partial<HomeworkInput>;
+    if (req.method === 'PUT') {      const h = req.body as Partial<HomeworkInput>;
       // dueDate is explicitly clearable: an assignment can lose its deadline,
       // and COALESCE alone would make null mean "leave alone".
       const clearDue = Object.prototype.hasOwnProperty.call(h, 'dueDate') && h.dueDate === null;
@@ -328,9 +309,7 @@ export const homework = async (
       return res.status(200).json(rowToHomework(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM homework WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM homework WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Homework not found' });
       }
@@ -352,9 +331,7 @@ export const homework = async (
     return res.status(200).json(rows.map(rowToHomework));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    // Accepts one or many, so an importer can push a whole session at once.
+  if (req.method === 'POST') {    // Accepts one or many, so an importer can push a whole session at once.
     const body = req.body as HomeworkInput | HomeworkInput[];
     const list = Array.isArray(body) ? body : [body];
     const valid = list.filter(h => h?.task?.trim() && h?.coach?.trim());
@@ -405,9 +382,7 @@ interface ConceptInput {
 
 export const concepts = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const c = req.body as Partial<ConceptInput>;
+    if (req.method === 'PUT') {      const c = req.body as Partial<ConceptInput>;
       /**
        * Present in the body = write it, even as null or []. Absent = leave it.
        *
@@ -454,9 +429,7 @@ export const concepts = async (req: VercelRequest, res: VercelResponse, id: stri
       return res.status(200).json(rowToConcept(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM concepts WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM concepts WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Concept not found' });
       }
@@ -474,9 +447,7 @@ export const concepts = async (req: VercelRequest, res: VercelResponse, id: stri
     return res.status(200).json(rows.map(rowToConcept));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const c = req.body as ConceptInput;
+  if (req.method === 'POST') {    const c = req.body as ConceptInput;
     if (!c?.name?.trim() || !c?.category) {
       return res.status(400).json({ error: 'name and category are required' });
     }
@@ -522,9 +493,7 @@ export const repertoireMoves = async (
   id: string | undefined
 ) => {
   if (id) {
-    if (req.method === 'PATCH') {
-      if (!requireApiKey(req, res)) return;
-      const m = req.body as RepertoireMovePatch;
+    if (req.method === 'PATCH') {      const m = req.body as RepertoireMovePatch;
       const rows = (await sql`
         UPDATE repertoire_moves SET
           confidence = COALESCE(${m.confidence ?? null}, confidence),

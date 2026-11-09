@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
+import sessionAuth from './_sessionAuth.js';
+import { CHAT_DAILY_LIMIT, chatTurnsTooBig, isMissingTable } from './_chatLimits.js';
 import { expandConceptQuery, TERM_WEIGHT } from './_conceptSearch.js';
 import { rowToBlunderDrill, type BlunderDrillRow } from './_blunderDrillMapper.js';
 import { rowToScoutingTarget, type ScoutingTargetRow } from './_scoutingTargetMapper.js';
@@ -72,9 +74,7 @@ interface BlunderDrillPatch {
 
 const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const d = req.body as BlunderDrillPatch;
+    if (req.method === 'PUT') {      const d = req.body as BlunderDrillPatch;
       await sql`
         UPDATE blunder_drills SET
           confidence = COALESCE(${d.confidence ?? null}, confidence),
@@ -94,9 +94,7 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
       return res.status(200).json(rowToBlunderDrill(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM blunder_drills WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM blunder_drills WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Blunder drill not found' });
       }
@@ -118,9 +116,7 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
     return res.status(200).json(rows.map(rowToBlunderDrill));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const drills = req.body as MinedBlunderInput[];
+  if (req.method === 'POST') {    const drills = req.body as MinedBlunderInput[];
     if (!Array.isArray(drills)) {
       return res.status(400).json({ error: 'Expected an array of mined blunders' });
     }
@@ -154,9 +150,7 @@ interface ScoutingTargetInput {
 
 const scoutingTargets = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const t = req.body as ScoutingTargetInput;
+    if (req.method === 'PUT') {      const t = req.body as ScoutingTargetInput;
       const rows = (await sql`
         UPDATE scouting_targets SET
           name = ${t.name}, lichess_username = ${t.lichessUsername ?? null},
@@ -171,9 +165,7 @@ const scoutingTargets = async (req: VercelRequest, res: VercelResponse, id: stri
       return res.status(200).json(rowToScoutingTarget(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM scouting_targets WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM scouting_targets WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Scouting target not found' });
       }
@@ -189,9 +181,7 @@ const scoutingTargets = async (req: VercelRequest, res: VercelResponse, id: stri
     return res.status(200).json(rows.map(rowToScoutingTarget));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const t = req.body as ScoutingTargetInput;
+  if (req.method === 'POST') {    const t = req.body as ScoutingTargetInput;
     const rows = (await sql`
       INSERT INTO scouting_targets (name, lichess_username, tournament, notes, last_scouted_at)
       VALUES (
@@ -227,9 +217,7 @@ interface EndgameDrillPatch {
 
 const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const d = req.body as EndgameDrillPatch;
+    if (req.method === 'PUT') {      const d = req.body as EndgameDrillPatch;
       await sql`
         UPDATE endgame_drills SET
           confidence = COALESCE(${d.confidence ?? null}, confidence),
@@ -249,9 +237,7 @@ const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string
       return res.status(200).json(rowToEndgameDrill(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM endgame_drills WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM endgame_drills WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Endgame drill not found' });
       }
@@ -273,9 +259,7 @@ const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string
     return res.status(200).json(rows.map(rowToEndgameDrill));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const drills = req.body as MinedEndgameInput[];
+  if (req.method === 'POST') {    const drills = req.body as MinedEndgameInput[];
     if (!Array.isArray(drills)) {
       return res.status(400).json({ error: 'Expected an array of mined endgames' });
     }
@@ -330,9 +314,7 @@ const rowToNormAttempt = (row: NormAttemptRow) => ({
 
 const normAttempts = async (req: VercelRequest, res: VercelResponse, id: string | undefined) => {
   if (id) {
-    if (req.method === 'PUT') {
-      if (!requireApiKey(req, res)) return;
-      const a = req.body as NormAttemptInput;
+    if (req.method === 'PUT') {      const a = req.body as NormAttemptInput;
       const rows = (await sql`
         UPDATE norm_attempts SET
           tournament = ${a.tournament}, title_target = ${a.titleTarget},
@@ -348,9 +330,7 @@ const normAttempts = async (req: VercelRequest, res: VercelResponse, id: string 
       return res.status(200).json(rowToNormAttempt(rows[0]));
     }
 
-    if (req.method === 'DELETE') {
-      if (!requireApiKey(req, res)) return;
-      const rows = await sql`DELETE FROM norm_attempts WHERE id = ${id} RETURNING id`;
+    if (req.method === 'DELETE') {      const rows = await sql`DELETE FROM norm_attempts WHERE id = ${id} RETURNING id`;
       if (rows.length === 0) {
         return res.status(404).json({ error: 'Norm attempt not found' });
       }
@@ -366,9 +346,7 @@ const normAttempts = async (req: VercelRequest, res: VercelResponse, id: string 
     return res.status(200).json(rows.map(rowToNormAttempt));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const a = req.body as NormAttemptInput;
+  if (req.method === 'POST') {    const a = req.body as NormAttemptInput;
     const rows = (await sql`
       INSERT INTO norm_attempts (
         tournament, title_target, games_count, performance_rating, titled_opponents, foreign_opponents, notes
@@ -408,9 +386,7 @@ const normThresholds = async (req: VercelRequest, res: VercelResponse) => {
     return res.status(200).json(rowToNormThresholds(rows[0]));
   }
 
-  if (req.method === 'PUT') {
-    if (!requireApiKey(req, res)) return;
-    const t = req.body as { IM: number; GM: number; WIM: number; WGM: number };
+  if (req.method === 'PUT') {    const t = req.body as { IM: number; GM: number; WIM: number; WGM: number };
     const rows = (await sql`
       INSERT INTO norm_thresholds (id, im_performance, gm_performance, wim_performance, wgm_performance)
       VALUES (1, ${t.IM}, ${t.GM}, ${t.WIM}, ${t.WGM})
@@ -644,9 +620,7 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
     return res.status(200).json(rows.map(rowToPositionDiagnostic));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const body = (req.body ?? {}) as { gameId?: string; force?: boolean };
+  if (req.method === 'POST') {    const body = (req.body ?? {}) as { gameId?: string; force?: boolean };
     if (!body.gameId) return res.status(400).json({ error: 'gameId is required' });
 
     const exists = (await sql`SELECT 1 FROM games WHERE id = ${body.gameId}`) as unknown[];
@@ -668,9 +642,7 @@ const positionDiagnostics = async (req: VercelRequest, res: VercelResponse) => {
     });
   }
 
-  if (req.method === 'DELETE') {
-    if (!requireApiKey(req, res)) return;
-    if (!gameId) return res.status(400).json({ error: 'gameId is required' });
+  if (req.method === 'DELETE') {    if (!gameId) return res.status(400).json({ error: 'gameId is required' });
     await sql`DELETE FROM position_diagnostics_requests WHERE game_id = ${gameId}`;
     return res.status(200).json({ ok: true });
   }
@@ -1121,12 +1093,27 @@ const chatViaXai = async (turns: ChatTurn[], concepts = '', final = false) => {
   };
 };
 
+/** Counts this request against today's quota and returns the new total. */
+const bumpChatUsage = async (): Promise<number> => {
+  // Check first so a refused request does not burn a slot, then increment.
+  const existing = (await sql`
+    SELECT call_count FROM chat_usage_daily WHERE day = CURRENT_DATE
+  `) as { call_count: number }[];
+  const current = existing.length > 0 ? Number(existing[0].call_count) : 0;
+  if (current >= CHAT_DAILY_LIMIT) return current + 1; // signal over-limit without writing
+  const rows = (await sql`
+    INSERT INTO chat_usage_daily (day, call_count) VALUES (CURRENT_DATE, 1)
+    ON CONFLICT (day) DO UPDATE SET call_count = chat_usage_daily.call_count + 1
+    RETURNING call_count
+  `) as { call_count: number }[];
+  return Number(rows[0].call_count);
+};
+
 const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!requireApiKey(req, res)) return;
 
   // La forma del pedido se valida antes que la config del servidor: un cliente
   // que manda cualquier cosa tiene que enterarse de eso, no de que falta una
@@ -1135,6 +1122,8 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
   if (!Array.isArray(body.turns) || body.turns.length === 0) {
     return res.status(400).json({ error: 'turns is required' });
   }
+  const tooBig = chatTurnsTooBig(body.turns);
+  if (tooBig) return res.status(413).json({ error: tooBig });
 
   // Se usa la clave que haya. Anthropic primero solo porque es la que soporta
   // más del pipeline; con cualquiera de las dos el chat funciona igual.
@@ -1149,6 +1138,24 @@ const diagnosticChat = async (req: VercelRequest, res: VercelResponse) => {
         'No hay clave de narrador configurada. Agregá ANTHROPIC_API_KEY o ' +
         'XAI_API_KEY a las variables de entorno del proyecto.',
     });
+  }
+
+  // Después de la validación y de la config, para que un pedido que igual iba
+  // a fallar no gaste cupo.
+  try {
+    if ((await bumpChatUsage()) > CHAT_DAILY_LIMIT) {
+      return res.status(429).json({
+        error: `Límite diario del chat alcanzado (${CHAT_DAILY_LIMIT} pedidos). Probá de nuevo mañana.`,
+      });
+    }
+  } catch (err) {
+    if (isMissingTable(err)) {
+      return res.status(503).json({
+        error:
+          'Falta la tabla chat_usage_daily: aplicá migrations/013_chat_usage_daily.sql antes de usar el chat.',
+      });
+    }
+    throw err;
   }
 
   // Los conceptos que Lucas sacó de sus libros, si cargó alguno.
@@ -1343,6 +1350,10 @@ const diagnosticAggregates = async (req: VercelRequest, res: VercelResponse) => 
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { resource, id } = req.query;
+  // Login/logout stay on /api/auth via rewrite → here, without a session gate
+  // (and without a 13th Hobby serverless function).
+  if (resource === 'auth') return sessionAuth(req, res);
+  if (!requireSession(req, res)) return;
   const itemId = typeof id === 'string' ? id : undefined;
 
   if (resource === 'blunder-drills') return blunderDrills(req, res, itemId);

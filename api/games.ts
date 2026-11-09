@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
-import { requireApiKey } from './_auth.js';
+import { requireSession } from './_auth.js';
 import { rowToGame, type GameRow, type GameInput } from './_gameMapper.js';
 import { parsePgnDate, openingNameForEco } from './_pgnMeta.js';
 
@@ -18,12 +18,11 @@ interface GameRepertoireMatch {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (!requireSession(req, res)) return;
   const { id } = req.query;
 
   if (typeof id === 'string') {
-    if (req.method === 'PATCH') {
-      if (!requireApiKey(req, res)) return;
-      const body = (req.body ?? {}) as GamePatch;
+    if (req.method === 'PATCH') {      const body = (req.body ?? {}) as GamePatch;
       // Genuinely partial: only columns whose key is present in the body are
       // touched. Sending `{pgn}` must not clear the repertoire link, and
       // sending `{repertoireLineId}` must not wipe the PGN.
@@ -57,9 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(rows.map(rowToGame));
   }
 
-  if (req.method === 'POST') {
-    if (!requireApiKey(req, res)) return;
-    const games = req.body as GameInput[];
+  if (req.method === 'POST') {    const games = req.body as GameInput[];
     if (!Array.isArray(games)) {
       return res.status(400).json({ error: 'Expected an array of games' });
     }
@@ -105,9 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(201).json({ inserted: games.length });
   }
 
-  if (req.method === 'PATCH') {
-    if (!requireApiKey(req, res)) return;
-    // Bulk repertoire-match write. Matching runs client-side over every game,
+  if (req.method === 'PATCH') {    // Bulk repertoire-match write. Matching runs client-side over every game,
     // so this exists to avoid ~460 separate round-trips per run.
     const matches = req.body as GameRepertoireMatch[];
     if (!Array.isArray(matches)) {
@@ -128,9 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ updated: matches.length });
   }
 
-  if (req.method === 'DELETE') {
-    if (!requireApiKey(req, res)) return;
-    const { source } = req.query;
+  if (req.method === 'DELETE') {    const { source } = req.query;
     if (!source || typeof source !== 'string') {
       return res.status(400).json({ error: 'Missing ?source= query param' });
     }
