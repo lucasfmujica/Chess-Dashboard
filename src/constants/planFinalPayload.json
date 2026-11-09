@@ -1,0 +1,846 @@
+{
+  "meta": {
+    "source": "/workspace/brain/segundo/plan-final.md",
+    "ok_lucas": "9/11/2026 13:50 ART vía Chief: solo este plan en Semana y Hoy",
+    "prepared_at_art": "2026-11-09 13:52 ART",
+    "range": {
+      "from": "2026-11-10",
+      "to": "2026-12-04"
+    },
+    "app": "https://chess-dashboard-alpha.vercel.app",
+    "repo_types": "src/types/training.ts (TrainingActivity, DayPlan, WeekPlan, WeeklyPlans)",
+    "reality_check": "Semana y Hoy NO leen WeeklyPlans ni ningún endpoint de plan. El programa que muestran es config estática en src/constants/trainingProgram.ts (indexado por día de la semana, no por fecha). Lo único editable por fecha en Semana son dailyNotes (localStorage 'chess-dashboard-daily-notes'). weeklyPlans ('chess-dashboard-weekly-plans') sigue en GamesContext pero ya no lo consume la UI (el Planificador libre se plegó a Semana)."
+  },
+  "dailyNotes": {
+    "2026-11-10": "T · Táctica y cálculo. 10 drills de la cola (~10 min) + 25 a 35 min de cálculo con papel (1 o 2 posiciones). Método Juan Cruz: material y amenazas del rival por escrito, candidatas, bote salvavidas, descarte y comparación. Sesión grupal de Juan Cruz si hay. Foto del cuaderno.",
+    "2026-11-11": "F · Finales, aperturas y estrategia. Torre y 4 contra 3: 1 con blancas a ganar. Cap. 04 (simétrica): primeras 8 a 10 jugadas de memoria y el plan. 10 min de dominación de columnas (Capablanca y Panno).",
+    "2026-11-12": "J · Juego y análisis. 4 posiciones OTB de error decisivo (data/tipo_error.txt). Tapá la jugada y escribí jaques, capturas y amenazas del rival antes de elegir. Unos 10 min cada una.",
+    "2026-11-13": "T · Drills + cálculo con papel. 10 drills de la cola + 25 a 35 min de cálculo con papel (1 o 2 posiciones). Método Juan Cruz completo.",
+    "2026-11-14": "J · Partida larga con reloj anotado a mano en las jugadas 20 y 30. Ritmo 30+20, 45+15 o más. Sin motor y sin consultar nada durante la partida.",
+    "2026-11-15": "F · Análisis de la partida del sábado (30 min, sin motor primero) + 1 final 4 contra 3 con negras a empatar. Resumen semanal a las 21:00 ART.",
+    "2026-11-16": "T · Drills + cálculo con papel. 10 drills + 25 a 35 min con papel.",
+    "2026-11-17": "F · Torre y 4 contra 3: 1 con blancas. Cap. 28 con 1...c5 (si Toto y Juan Cruz dijeron que sí) o cap. 05. 10 min dominación de columnas.",
+    "2026-11-18": "J · 4 posiciones OTB de error decisivo. Amenazas del rival por escrito antes de elegir.",
+    "2026-11-19": "T · Drills + cálculo con papel.",
+    "2026-11-20": "F · 1 final 4 contra 3 con negras. Cap. 15 (Siciliana Cerrada) o cap. 16 (Gran Prix). Con esto cerrás la tarea de Toto de 4 finales.",
+    "2026-11-21": "Descanso. Solo 20 min de drills. Mañana simulación de domingo de 3 rondas.",
+    "2026-11-22": "SIMULACIÓN · Domingo de 3 rondas: 3 partidas largas a las 11:00, 15:00 y 19:00 ART, con reloj anotado en 20 y 30. En la tercera, chequeo de seguridad explícito en cada jugada. Comida y descanso como en el torneo. Mide la opción de bye de R4 (torneo/byes.md).",
+    "2026-11-23": "J · Análisis de las 3 partidas del domingo: un momento clave por partida y el reloj en las jugadas 20 y 30 de cada una.",
+    "2026-11-24": "T · Drills + cálculo con papel.",
+    "2026-11-25": "F · Drills de Finales de la app (torres primero). Cap. 09 y 32 (Dragón Acelerado).",
+    "2026-11-26": "T · Drills + cálculo con papel.",
+    "2026-11-27": "F · Cap. 01 y 03 (tus blancas más frecuentes). 10 min de dominación de columnas.",
+    "2026-11-28": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1, con reloj anotado. Plan sólido de primera ronda.",
+    "2026-11-29": "Descanso. Análisis corto (20 min) de la partida del sábado.",
+    "2026-11-30": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel. Menos volumen (semana previa al torneo).",
+    "2026-12-01": "F liviana · 30 min: repaso de las primeras 8 a 10 jugadas de tus caps. más frecuentes con cada color. Nada nuevo.",
+    "2026-12-02": "T liviana · 30 min. Drills + cálculo corto.",
+    "2026-12-03": "F liviana · 30 min: finales de torres que ya conocés, sin nada nuevo.",
+    "2026-12-04": "Descanso · Rutina de torneo: bolso, planilla, horarios, viaje a La Plata. ÚLTIMO DÍA para inscripción y formulario de byes (vencen hoy).",
+    "2026-11-09-summary": "Semana 1 (arranque, desde mar 10): meta 40 drills · 2 cálculo con papel · 2 finales 4v3 · 1 partida larga con reloj · 4 posiciones OTB · 1 foto del cuaderno a Juan Cruz.",
+    "2026-11-16-summary": "Semana 2 (carga + 1ª simulación): meta 40 drills · 2 cálculo · 2 finales 4v3 (cierra Toto 4/4) · 3 partidas largas (domingo 11/15/19) · 4 posiciones OTB · 2 caps · 1 foto.",
+    "2026-11-23-summary": "Semana 3 (afinar + 2ª simulación): meta 40 drills · 2 cálculo · 1 partida larga sáb 11:00 · 4 caps repasados.",
+    "2026-11-30-summary": "Semana 4 (menos volumen, hasta vie 4/12): meta 25 drills · 2 cálculo · 0 partidas largas · 0 líneas nuevas. Vie 4: inscripción y byes vencen."
+  },
+  "weeklyPlans": {
+    "2026-11-09": {
+      "2026-11-10": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills de la cola de la app."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 35,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Amenazas del rival por escrito, candidatas, bote salvavidas, descarte y comparación. Foto del cuaderno."
+        },
+        {
+          "id": "clase-jc",
+          "minutes": 10,
+          "label": "Sesión grupal Juan Cruz (si hay)",
+          "details": "Si no hay clase, sumá esos minutos al cálculo con papel."
+        }
+      ],
+      "2026-11-11": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (blancas a ganar)",
+          "details": "Contra el bot, nivel 4+. Tarea de Toto."
+        },
+        {
+          "id": "cap-04",
+          "minutes": 20,
+          "label": "Cap. 04 simétrica",
+          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "Capablanca y Panno. Tarea de Toto."
+        }
+      ],
+      "2026-11-12": [
+        {
+          "id": "posiciones-otb",
+          "minutes": 50,
+          "label": "4 posiciones OTB de error decisivo",
+          "details": "Amenazas por escrito antes de elegir. ~10 min cada una. Fuente: data/tipo_error.txt."
+        }
+      ],
+      "2026-11-13": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Amenazas, candidatas, bote salvavidas, descarte y comparación."
+        }
+      ],
+      "2026-11-14": [
+        {
+          "id": "partida-larga",
+          "minutes": 60,
+          "label": "Partida larga (reloj en 20 y 30)",
+          "details": "Rápida larga o clásica online. Anotá el reloj a mano en las jugadas 20 y 30."
+        }
+      ],
+      "2026-11-15": [
+        {
+          "id": "analisis",
+          "minutes": 30,
+          "label": "Análisis partida del sábado",
+          "details": "Sin motor primero; con motor al final."
+        },
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (negras a empatar)",
+          "details": "Tarea de Toto."
+        }
+      ]
+    },
+    "2026-11-16": {
+      "2026-11-16": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Método Juan Cruz."
+        }
+      ],
+      "2026-11-17": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (blancas)",
+          "details": "Contra el bot."
+        },
+        {
+          "id": "cap-28-o-05",
+          "minutes": 20,
+          "label": "Cap. 28 (1...c5) o cap. 05",
+          "details": "Solo cap. 28 si los profes dijeron que sí a 1...c5; si no, cap. 05."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "Capablanca y Panno."
+        }
+      ],
+      "2026-11-18": [
+        {
+          "id": "posiciones-otb",
+          "minutes": 50,
+          "label": "4 posiciones OTB de error decisivo",
+          "details": "~10 min cada una."
+        }
+      ],
+      "2026-11-19": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ],
+      "2026-11-20": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (negras a empatar)",
+          "details": "Cierra la tarea de Toto: 4 de 4."
+        },
+        {
+          "id": "cap-15-o-16",
+          "minutes": 20,
+          "label": "Cap. 15 o 16",
+          "details": "Siciliana Cerrada o Gran Prix."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        }
+      ],
+      "2026-11-21": [
+        {
+          "id": "drills",
+          "minutes": 20,
+          "label": "Solo drills livianos",
+          "details": "20 min de la cola. Nada más."
+        }
+      ],
+      "2026-11-22": [
+        {
+          "id": "sim-r1",
+          "minutes": 60,
+          "label": "Partida 1 · 11:00 ART",
+          "details": "Reloj anotado en 20 y 30."
+        },
+        {
+          "id": "sim-r2",
+          "minutes": 60,
+          "label": "Partida 2 · 15:00 ART",
+          "details": "Reloj anotado en 20 y 30."
+        },
+        {
+          "id": "sim-r3",
+          "minutes": 60,
+          "label": "Partida 3 · 19:00 ART",
+          "details": "Chequeo de seguridad explícito en cada jugada. Reloj anotado."
+        }
+      ]
+    },
+    "2026-11-23": {
+      "2026-11-23": [
+        {
+          "id": "analisis-sim",
+          "minutes": 55,
+          "label": "Análisis de las 3 partidas",
+          "details": "Un momento clave por partida + reloj en 20 y 30."
+        }
+      ],
+      "2026-11-24": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ],
+      "2026-11-25": [
+        {
+          "id": "finales-app",
+          "minutes": 20,
+          "label": "Drills de Finales (torres)",
+          "details": "Cola de finales de la app."
+        },
+        {
+          "id": "cap-09-32",
+          "minutes": 20,
+          "label": "Cap. 09 y 32 · Dragón Acelerado",
+          "details": "Primeras 8 a 10 jugadas y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        }
+      ],
+      "2026-11-26": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ],
+      "2026-11-27": [
+        {
+          "id": "cap-01-03",
+          "minutes": 30,
+          "label": "Cap. 01 y 03 (blancas)",
+          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        },
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills",
+          "details": "Si entra en los 50 min."
+        }
+      ],
+      "2026-11-28": [
+        {
+          "id": "sim-r1",
+          "minutes": 60,
+          "label": "Partida larga · 11:00 ART",
+          "details": "Como R1. Reloj en 20 y 30. Plan sólido."
+        }
+      ],
+      "2026-11-29": [
+        {
+          "id": "analisis",
+          "minutes": 20,
+          "label": "Análisis corto de la simulación",
+          "details": "20 min. Sin nada nuevo."
+        }
+      ]
+    },
+    "2026-11-30": {
+      "2026-11-30": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills",
+          "details": "Cola de errores."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 20,
+          "label": "1 posición de cálculo con papel",
+          "details": "Método Juan Cruz, una sola."
+        }
+      ],
+      "2026-12-01": [
+        {
+          "id": "repaso-caps",
+          "minutes": 30,
+          "label": "Repaso primeras 8 a 10 jugadas",
+          "details": "Caps. más frecuentes con cada color. Tarea de Toto: la previa."
+        }
+      ],
+      "2026-12-02": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills",
+          "details": "Cola."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 20,
+          "label": "Cálculo con papel",
+          "details": "1 posición."
+        }
+      ],
+      "2026-12-03": [
+        {
+          "id": "finales-torres",
+          "minutes": 30,
+          "label": "Finales de torres conocidos",
+          "details": "Sin líneas nuevas."
+        }
+      ],
+      "2026-12-04": [
+        {
+          "id": "rutina-torneo",
+          "minutes": 0,
+          "label": "Rutina de torneo (sin entrenamiento)",
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están."
+        }
+      ]
+    }
+  },
+  "days": {
+    "2026-11-10": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Táctica y cálculo. 10 drills de la cola (~10 min) + 25 a 35 min de cálculo con papel (1 o 2 posiciones). Método Juan Cruz: material y amenazas del rival por escrito, candidatas, bote salvavidas, descarte y comparación. Sesión grupal de Juan Cruz si hay. Foto del cuaderno.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills de la cola de la app."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 35,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Amenazas del rival por escrito, candidatas, bote salvavidas, descarte y comparación. Foto del cuaderno."
+        },
+        {
+          "id": "clase-jc",
+          "minutes": 10,
+          "label": "Sesión grupal Juan Cruz (si hay)",
+          "details": "Si no hay clase, sumá esos minutos al cálculo con papel."
+        }
+      ]
+    },
+    "2026-11-11": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · Finales, aperturas y estrategia. Torre y 4 contra 3: 1 con blancas a ganar. Cap. 04 (simétrica): primeras 8 a 10 jugadas de memoria y el plan. 10 min de dominación de columnas (Capablanca y Panno).",
+      "activities": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (blancas a ganar)",
+          "details": "Contra el bot, nivel 4+. Tarea de Toto."
+        },
+        {
+          "id": "cap-04",
+          "minutes": 20,
+          "label": "Cap. 04 simétrica",
+          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "Capablanca y Panno. Tarea de Toto."
+        }
+      ]
+    },
+    "2026-11-12": {
+      "tipo": "J",
+      "minutes": 50,
+      "note": "J · Juego y análisis. 4 posiciones OTB de error decisivo (data/tipo_error.txt). Tapá la jugada y escribí jaques, capturas y amenazas del rival antes de elegir. Unos 10 min cada una.",
+      "activities": [
+        {
+          "id": "posiciones-otb",
+          "minutes": 50,
+          "label": "4 posiciones OTB de error decisivo",
+          "details": "Amenazas por escrito antes de elegir. ~10 min cada una. Fuente: data/tipo_error.txt."
+        }
+      ]
+    },
+    "2026-11-13": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Drills + cálculo con papel. 10 drills de la cola + 25 a 35 min de cálculo con papel (1 o 2 posiciones). Método Juan Cruz completo.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Amenazas, candidatas, bote salvavidas, descarte y comparación."
+        }
+      ]
+    },
+    "2026-11-14": {
+      "tipo": "J",
+      "minutes": 60,
+      "note": "J · Partida larga con reloj anotado a mano en las jugadas 20 y 30. Ritmo 30+20, 45+15 o más. Sin motor y sin consultar nada durante la partida.",
+      "activities": [
+        {
+          "id": "partida-larga",
+          "minutes": 60,
+          "label": "Partida larga (reloj en 20 y 30)",
+          "details": "Rápida larga o clásica online. Anotá el reloj a mano en las jugadas 20 y 30."
+        }
+      ]
+    },
+    "2026-11-15": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · Análisis de la partida del sábado (30 min, sin motor primero) + 1 final 4 contra 3 con negras a empatar. Resumen semanal a las 21:00 ART.",
+      "activities": [
+        {
+          "id": "analisis",
+          "minutes": 30,
+          "label": "Análisis partida del sábado",
+          "details": "Sin motor primero; con motor al final."
+        },
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (negras a empatar)",
+          "details": "Tarea de Toto."
+        }
+      ]
+    },
+    "2026-11-16": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Drills + cálculo con papel. 10 drills + 25 a 35 min con papel.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "1 o 2 posiciones. Método Juan Cruz."
+        }
+      ]
+    },
+    "2026-11-17": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · Torre y 4 contra 3: 1 con blancas. Cap. 28 con 1...c5 (si Toto y Juan Cruz dijeron que sí) o cap. 05. 10 min dominación de columnas.",
+      "activities": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (blancas)",
+          "details": "Contra el bot."
+        },
+        {
+          "id": "cap-28-o-05",
+          "minutes": 20,
+          "label": "Cap. 28 (1...c5) o cap. 05",
+          "details": "Solo cap. 28 si los profes dijeron que sí a 1...c5; si no, cap. 05."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "Capablanca y Panno."
+        }
+      ]
+    },
+    "2026-11-18": {
+      "tipo": "J",
+      "minutes": 50,
+      "note": "J · 4 posiciones OTB de error decisivo. Amenazas del rival por escrito antes de elegir.",
+      "activities": [
+        {
+          "id": "posiciones-otb",
+          "minutes": 50,
+          "label": "4 posiciones OTB de error decisivo",
+          "details": "~10 min cada una."
+        }
+      ]
+    },
+    "2026-11-19": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Drills + cálculo con papel.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ]
+    },
+    "2026-11-20": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · 1 final 4 contra 3 con negras. Cap. 15 (Siciliana Cerrada) o cap. 16 (Gran Prix). Con esto cerrás la tarea de Toto de 4 finales.",
+      "activities": [
+        {
+          "id": "final-4v3",
+          "minutes": 20,
+          "label": "Torre y 4 contra 3 (negras a empatar)",
+          "details": "Cierra la tarea de Toto: 4 de 4."
+        },
+        {
+          "id": "cap-15-o-16",
+          "minutes": 20,
+          "label": "Cap. 15 o 16",
+          "details": "Siciliana Cerrada o Gran Prix."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        }
+      ]
+    },
+    "2026-11-21": {
+      "tipo": "descanso",
+      "minutes": 20,
+      "note": "Descanso. Solo 20 min de drills. Mañana simulación de domingo de 3 rondas.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 20,
+          "label": "Solo drills livianos",
+          "details": "20 min de la cola. Nada más."
+        }
+      ]
+    },
+    "2026-11-22": {
+      "tipo": "Simulación",
+      "minutes": 180,
+      "note": "SIMULACIÓN · Domingo de 3 rondas: 3 partidas largas a las 11:00, 15:00 y 19:00 ART, con reloj anotado en 20 y 30. En la tercera, chequeo de seguridad explícito en cada jugada. Comida y descanso como en el torneo. Mide la opción de bye de R4 (torneo/byes.md).",
+      "activities": [
+        {
+          "id": "sim-r1",
+          "minutes": 60,
+          "label": "Partida 1 · 11:00 ART",
+          "details": "Reloj anotado en 20 y 30."
+        },
+        {
+          "id": "sim-r2",
+          "minutes": 60,
+          "label": "Partida 2 · 15:00 ART",
+          "details": "Reloj anotado en 20 y 30."
+        },
+        {
+          "id": "sim-r3",
+          "minutes": 60,
+          "label": "Partida 3 · 19:00 ART",
+          "details": "Chequeo de seguridad explícito en cada jugada. Reloj anotado."
+        }
+      ]
+    },
+    "2026-11-23": {
+      "tipo": "J",
+      "minutes": 55,
+      "note": "J · Análisis de las 3 partidas del domingo: un momento clave por partida y el reloj en las jugadas 20 y 30 de cada una.",
+      "activities": [
+        {
+          "id": "analisis-sim",
+          "minutes": 55,
+          "label": "Análisis de las 3 partidas",
+          "details": "Un momento clave por partida + reloj en 20 y 30."
+        }
+      ]
+    },
+    "2026-11-24": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Drills + cálculo con papel.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ]
+    },
+    "2026-11-25": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · Drills de Finales de la app (torres primero). Cap. 09 y 32 (Dragón Acelerado).",
+      "activities": [
+        {
+          "id": "finales-app",
+          "minutes": 20,
+          "label": "Drills de Finales (torres)",
+          "details": "Cola de finales de la app."
+        },
+        {
+          "id": "cap-09-32",
+          "minutes": 20,
+          "label": "Cap. 09 y 32 · Dragón Acelerado",
+          "details": "Primeras 8 a 10 jugadas y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        }
+      ]
+    },
+    "2026-11-26": {
+      "tipo": "T",
+      "minutes": 55,
+      "note": "T · Drills + cálculo con papel.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills (errores)",
+          "details": "10 drills."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 45,
+          "label": "Cálculo con papel",
+          "details": "Método Juan Cruz."
+        }
+      ]
+    },
+    "2026-11-27": {
+      "tipo": "F",
+      "minutes": 50,
+      "note": "F · Cap. 01 y 03 (tus blancas más frecuentes). 10 min de dominación de columnas.",
+      "activities": [
+        {
+          "id": "cap-01-03",
+          "minutes": 30,
+          "label": "Cap. 01 y 03 (blancas)",
+          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+        },
+        {
+          "id": "dominacion",
+          "minutes": 10,
+          "label": "Dominación de columnas",
+          "details": "10 min."
+        },
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "Cola de drills",
+          "details": "Si entra en los 50 min."
+        }
+      ]
+    },
+    "2026-11-28": {
+      "tipo": "Simulación",
+      "minutes": 60,
+      "note": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1, con reloj anotado. Plan sólido de primera ronda.",
+      "activities": [
+        {
+          "id": "sim-r1",
+          "minutes": 60,
+          "label": "Partida larga · 11:00 ART",
+          "details": "Como R1. Reloj en 20 y 30. Plan sólido."
+        }
+      ]
+    },
+    "2026-11-29": {
+      "tipo": "descanso",
+      "minutes": 20,
+      "note": "Descanso. Análisis corto (20 min) de la partida del sábado.",
+      "activities": [
+        {
+          "id": "analisis",
+          "minutes": 20,
+          "label": "Análisis corto de la simulación",
+          "details": "20 min. Sin nada nuevo."
+        }
+      ]
+    },
+    "2026-11-30": {
+      "tipo": "T liviana",
+      "minutes": 30,
+      "note": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel. Menos volumen (semana previa al torneo).",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills",
+          "details": "Cola de errores."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 20,
+          "label": "1 posición de cálculo con papel",
+          "details": "Método Juan Cruz, una sola."
+        }
+      ]
+    },
+    "2026-12-01": {
+      "tipo": "F liviana",
+      "minutes": 30,
+      "note": "F liviana · 30 min: repaso de las primeras 8 a 10 jugadas de tus caps. más frecuentes con cada color. Nada nuevo.",
+      "activities": [
+        {
+          "id": "repaso-caps",
+          "minutes": 30,
+          "label": "Repaso primeras 8 a 10 jugadas",
+          "details": "Caps. más frecuentes con cada color. Tarea de Toto: la previa."
+        }
+      ]
+    },
+    "2026-12-02": {
+      "tipo": "T liviana",
+      "minutes": 30,
+      "note": "T liviana · 30 min. Drills + cálculo corto.",
+      "activities": [
+        {
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills",
+          "details": "Cola."
+        },
+        {
+          "id": "calculo-papel",
+          "minutes": 20,
+          "label": "Cálculo con papel",
+          "details": "1 posición."
+        }
+      ]
+    },
+    "2026-12-03": {
+      "tipo": "F liviana",
+      "minutes": 30,
+      "note": "F liviana · 30 min: finales de torres que ya conocés, sin nada nuevo.",
+      "activities": [
+        {
+          "id": "finales-torres",
+          "minutes": 30,
+          "label": "Finales de torres conocidos",
+          "details": "Sin líneas nuevas."
+        }
+      ]
+    },
+    "2026-12-04": {
+      "tipo": "descanso",
+      "minutes": 0,
+      "note": "Descanso · Rutina de torneo: bolso, planilla, horarios, viaje a La Plata. ÚLTIMO DÍA para inscripción y formulario de byes (vencen hoy).",
+      "activities": [
+        {
+          "id": "rutina-torneo",
+          "minutes": 0,
+          "label": "Rutina de torneo (sin entrenamiento)",
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están."
+        }
+      ]
+    }
+  }
+}
