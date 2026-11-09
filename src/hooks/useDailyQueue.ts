@@ -10,7 +10,7 @@ import {
   gamePhaseFromPlyFen,
   phaseRank,
   sourceSpeedRank,
-  isBulletGame,
+  withoutBullet,
   type NeverSeenKey,
 } from '../utils/queueSelection';
 import { localDateKey, weekdayIndex } from '../utils/localDate';
@@ -161,11 +161,10 @@ export const useDailyQueue = (): UseDailyQueue => {
   // worth looking at, not worth a Monday slot. Bullet games are not trained.
   const trainableBlunders = useMemo(
     () =>
-      blunders.drills.filter(
-        d => !isEngineOnly(d) && !isBulletGame(d.game.source, d.game.speed)
-      ),
+      withoutBullet(blunders.drills).filter(d => !isEngineOnly(d)),
     [blunders.drills]
   );
+  const trainableEndgames = useMemo(() => withoutBullet(endgames.drills), [endgames.drills]);
   const reviewableConcepts = useMemo(
     () => concepts.concepts.filter(c => REVIEWABLE_CONCEPT.has(c.status)),
     [concepts.concepts]
@@ -181,7 +180,7 @@ export const useDailyQueue = (): UseDailyQueue => {
     ).map<QueueItem>(drill => ({ kind: 'blunder', id: drill.id, drill }));
 
     const chosenEndgames = pickDueFirst(
-      endgames.drills,
+      trainableEndgames,
       quota.endgame,
       now,
       dayKey,
@@ -230,7 +229,7 @@ export const useDailyQueue = (): UseDailyQueue => {
     ];
   }, [
     trainableBlunders,
-    endgames.drills,
+    trainableEndgames,
     lines,
     repertoireMoves.moves,
     reviewableConcepts,
@@ -241,7 +240,7 @@ export const useDailyQueue = (): UseDailyQueue => {
 
   const dueTotals = useMemo(() => {
     const blunder = trainableBlunders.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
-    const endgame = endgames.drills.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
+    const endgame = trainableEndgames.filter(d => isDue(d.lastReviewed, d.confidence, now)).length;
     const repertoire = lines.filter(l => isDue(l.lastReviewed, l.confidence, now)).length;
     const repertoireMove = repertoireMoves.moves.filter(
       m => m.role === 'main' && isDue(m.lastReviewed, m.confidence, now)
@@ -255,7 +254,7 @@ export const useDailyQueue = (): UseDailyQueue => {
       concept,
       total: blunder + endgame + repertoire + repertoireMove + concept,
     };
-  }, [trainableBlunders, endgames.drills, lines, repertoireMoves.moves, reviewableConcepts, now]);
+  }, [trainableBlunders, trainableEndgames, lines, repertoireMoves.moves, reviewableConcepts, now]);
 
   const resolve = useCallback(
     async (item: QueueItem, correct: boolean) => {

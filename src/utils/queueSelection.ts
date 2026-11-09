@@ -66,6 +66,11 @@ export const sourceSpeedRank = (source?: string, speed?: string): number => {
 export const isBulletGame = (source?: string, speed?: string): boolean =>
   !!source && source !== 'otb' && speed === 'bullet';
 
+/** Drops bullet games from any drill list; drills carry their game's source and speed. */
+export const withoutBullet = <T extends { game: { source?: string; speed?: string } }>(
+  drills: T[]
+): T[] => drills.filter(d => !isBulletGame(d.game.source, d.game.speed));
+
 const PHASE_RANK: Record<GamePhase, number> = { middlegame: 0, endgame: 1, opening: 2 };
 
 export const phaseRank = (phase: GamePhase): number => PHASE_RANK[phase];

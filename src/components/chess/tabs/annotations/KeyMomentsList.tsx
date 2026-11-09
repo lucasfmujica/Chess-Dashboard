@@ -144,9 +144,9 @@ const KeyMomentsList = ({
                   {FATE_OPTIONS.map(opt => (
                     <label
                       key={opt.value}
-                      className={`px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors ${
+                      className={`px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
                         moment.candidateFate === opt.value
-                          ? 'bg-surface-2 text-fg'
+                          ? 'bg-accent text-accent-fg'
                           : 'text-fg-muted hover:bg-surface-2'
                       }`}
                     >

@@ -5,6 +5,7 @@ import {
   gamePhaseFromPlyFen,
   sourceSpeedRank,
   isBulletGame,
+  withoutBullet,
   phaseRank,
   type QueueAccessors,
   type NeverSeenKey,
@@ -162,6 +163,22 @@ describe('sourceSpeedRank', () => {
     expect(isBulletGame('lichess', 'bullet')).toBe(true);
     expect(isBulletGame('otb', undefined)).toBe(false);
     expect(isBulletGame('lichess', 'blitz')).toBe(false);
+  });
+
+  it('withoutBullet keeps bullet endgames out of the selection input', () => {
+    const drills = [
+      { id: 'bullet', game: { source: 'lichess', speed: 'bullet' } },
+      { id: 'blitz', game: { source: 'chesscom', speed: 'blitz' } },
+      { id: 'otb', game: { source: 'otb' } },
+    ];
+    const input = withoutBullet(drills);
+    expect(input.map(d => d.id)).toEqual(['blitz', 'otb']);
+    const picked = pickDueFirst(input, 3, Date.now(), '2026-11-09', {
+      getId: d => d.id,
+      getConfidence: () => undefined,
+      getLastReviewed: () => undefined,
+    });
+    expect(picked.map(d => d.id)).not.toContain('bullet');
   });
 });
 
