@@ -6,8 +6,8 @@ import { useRepertoireMoves } from './useRepertoireMoves';
 import { useConcepts } from './useConcepts';
 import { isDue, nudgeConfidence } from '../utils/srs';
 import { pickDueFirst } from '../utils/queueSelection';
-import { localDateKey, weekdayIndex } from '../utils/localDate';
-import { programForWeekday, type QueueQuota } from '../constants/trainingProgram';
+import { localDateKey } from '../utils/localDate';
+import { programForDate, type QueueQuota } from '../constants/trainingProgram';
 import { isEngineOnly } from '../constants/maia';
 import type { BlunderDrill } from '../types/blunders';
 import type { EndgameDrill } from '../types/endgames';
@@ -107,7 +107,7 @@ export const useDailyQueue = (): UseDailyQueue => {
   // out of "due" mid-session and reorder the list under the user.
   const [now] = useState(() => Date.now());
   const dayKey = useMemo(() => localDateKey(), []);
-  const quota = useMemo(() => programForWeekday(weekdayIndex(dayKey)).quota, [dayKey]);
+  const quota = useMemo(() => programForDate(dayKey).quota, [dayKey]);
 
   const refetchRepertoire = useCallback(async () => {
     setLines(await fetchRepertoireLines());

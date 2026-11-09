@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useHomework } from '../../../hooks/useHomework';
-import { programForWeekday, quotaTotal, plannedMinutes } from '../../../constants/trainingProgram';
-import { localDateKey, weekdayIndex } from '../../../utils/localDate';
+import { programForDate, quotaTotal, plannedMinutes } from '../../../constants/trainingProgram';
+import { localDateKey } from '../../../utils/localDate';
 import { Card } from '../../ui';
 
 /**
@@ -20,7 +20,7 @@ import { Card } from '../../ui';
  */
 const TodayStrip = ({ onNavigate }: { onNavigate: (tab: string) => void }) => {
   const homework = useHomework();
-  const program = useMemo(() => programForWeekday(weekdayIndex(localDateKey())), []);
+  const program = useMemo(() => programForDate(localDateKey()), []);
   const planned = quotaTotal(program.quota);
 
   return (
