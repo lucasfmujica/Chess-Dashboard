@@ -44,13 +44,27 @@ const bump = (bucket: Bucket | undefined, now: number, windowMs: number): Bucket
 export const isLimited = (
   ip: string,
   store: LimiterStore = defaultStore,
-  { now = Date.now(), maxPerIp = MAX_FAILURES_PER_IP, maxGlobal = MAX_FAILURES_GLOBAL }: LimitOptions = {}
+  options: LimitOptions = {}
+): number => Math.max(isIpLimited(ip, store, options), isGlobalLimited(store, options));
+
+/** Seconds until this IP's cap lifts, or 0. Checked before the password. */
+export const isIpLimited = (
+  ip: string,
+  store: LimiterStore = defaultStore,
+  { now = Date.now(), maxPerIp = MAX_FAILURES_PER_IP }: LimitOptions = {}
 ): number => {
-  const waits: number[] = [];
-  if (liveCount(store.ips.get(ip), now) >= maxPerIp) waits.push(store.ips.get(ip)!.resetAt - now);
-  if (liveCount(store.global, now) >= maxGlobal) waits.push(store.global.resetAt - now);
-  return waits.length === 0 ? 0 : Math.max(1, Math.ceil(Math.max(...waits) / 1000));
+  const bucket = store.ips.get(ip);
+  return bucket && liveCount(bucket, now) >= maxPerIp ? waitSeconds(bucket.resetAt - now) : 0;
 };
+
+/** Seconds until the global cap lifts, or 0. Only applied to failed attempts. */
+export const isGlobalLimited = (
+  store: LimiterStore = defaultStore,
+  { now = Date.now(), maxGlobal = MAX_FAILURES_GLOBAL }: LimitOptions = {}
+): number =>
+  liveCount(store.global, now) >= maxGlobal ? waitSeconds(store.global.resetAt - now) : 0;
+
+const waitSeconds = (ms: number): number => Math.max(1, Math.ceil(ms / 1000));
 
 export const registerFailure = (
   ip: string,
@@ -68,14 +82,15 @@ export const clearIp = (ip: string, store: LimiterStore = defaultStore): void =>
 };
 
 /**
- * Client IP as Vercel reports it: first hop of x-forwarded-for (Vercel
- * overwrites that header, so the client cannot prepend its own), then
- * x-real-ip, then the socket address.
+ * Client IP as Vercel reports it: x-vercel-forwarded-for (set by Vercel, not
+ * client-controlled), then the first hop of x-forwarded-for, then x-real-ip,
+ * then the socket address.
  */
 export const getClientIp = (req: VercelRequest): string => {
   const first = (v: string | string[] | undefined): string | undefined =>
     (Array.isArray(v) ? v[0] : v)?.split(',')[0]?.trim() || undefined;
   return (
+    first(req.headers['x-vercel-forwarded-for']) ??
     first(req.headers['x-forwarded-for']) ??
     first(req.headers['x-real-ip']) ??
     req.socket?.remoteAddress ??

@@ -95,6 +95,12 @@ describe('getClientIp', () => {
     );
   });
 
+  it('prefers x-vercel-forwarded-for over x-forwarded-for', () => {
+    expect(
+      getClientIp(req({ 'x-vercel-forwarded-for': '8.8.8.8', 'x-forwarded-for': '1.2.3.4' }))
+    ).toBe('8.8.8.8');
+  });
+
   it('falls back to x-real-ip, then the socket, then "unknown"', () => {
     expect(getClientIp(req({ 'x-real-ip': '9.9.9.9' }, '7.7.7.7'))).toBe('9.9.9.9');
     expect(getClientIp(req({}, '7.7.7.7'))).toBe('7.7.7.7');

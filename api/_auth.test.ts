@@ -258,3 +258,46 @@ describe('/api/auth', () => {
     expect(res.headers['Set-Cookie']).toContain('Max-Age=0');
   });
 });
+
+describe('/api/auth with the global failure cap full', () => {
+  // Fresh module per test so the full global bucket does not leak elsewhere.
+  const fillGlobal = async () => {
+    vi.resetModules();
+    const { default: handler } = await import('./_sessionAuth');
+    for (let i = 0; i < 60; i++) {
+      await handler(
+        mockReq({ method: 'POST', ip: `198.51.100.${i}`, body: { password: 'wrong' } }),
+        asRes(mockRes())
+      );
+    }
+    return handler;
+  };
+
+  it('still lets a correct password in', async () => {
+    const handler = await fillGlobal();
+    const res = mockRes();
+    await handler(mockReq({ method: 'POST', body: { password: SECRET } }), asRes(res));
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['Set-Cookie']).toBeDefined();
+  });
+
+  it('answers 429 to a wrong password', async () => {
+    const handler = await fillGlobal();
+    const res = mockRes();
+    await handler(mockReq({ method: 'POST', body: { password: 'wrong' } }), asRes(res));
+    expect(res.statusCode).toBe(429);
+    expect(Number(res.headers['Retry-After'])).toBeGreaterThan(0);
+  });
+
+  it('answers 429 before the password check once the IP is capped', async () => {
+    vi.resetModules();
+    const { default: handler } = await import('./_sessionAuth');
+    const ip = '203.0.113.99';
+    for (let i = 0; i < 5; i++) {
+      await handler(mockReq({ method: 'POST', ip, body: { password: 'wrong' } }), asRes(mockRes()));
+    }
+    const res = mockRes();
+    await handler(mockReq({ method: 'POST', ip, body: { password: SECRET } }), asRes(res));
+    expect(res.statusCode).toBe(429);
+  });
+});

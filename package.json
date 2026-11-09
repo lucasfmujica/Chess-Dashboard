@@ -28,7 +28,7 @@
     "dev:api": "tsx --env-file=.env.local scripts/dev-api-server.mts",
     "start": "vite",
     "prebuild": "node scripts/copy-engine.mjs",
-    "build": "vite build",
+    "build": "vite build && node scripts/assert-no-client-secret.mjs",
     "preview": "vite preview",
     "assert:no-client-secret": "node scripts/assert-no-client-secret.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p api/tsconfig.json",
