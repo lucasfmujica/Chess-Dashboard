@@ -12,7 +12,7 @@ export default {
 
 const mockGames = Array.from({ length: 42 }, (_, i) => ({
   id: i,
-  source: i % 3 === 0 ? 'otb' : 'lichess',
+  source: i % 3 === 0 ? 'otb' : i % 3 === 1 ? 'lichess' : 'chesscom',
 }));
 
 const InteractiveGameFilter = () => {
@@ -21,7 +21,7 @@ const InteractiveGameFilter = () => {
   const filteredGames = mockGames.filter(g => {
     if (gameFilter === 'all') return true;
     if (gameFilter === 'otb') return g.source === 'otb' || !g.source;
-    if (gameFilter === 'online') return g.source === 'lichess';
+    if (gameFilter === 'online') return g.source === 'lichess' || g.source === 'chesscom';
     return true;
   });
 

@@ -77,7 +77,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           INSERT INTO games (
             lichess_game_id, source, color, result, elo, opponent, opponent_elo,
             eco, opening_name, tournament, rated, played_date, played_time,
-            speed, time_control, elo_change, k_factor, pgn, city, country, affects_elo
+            speed, time_control, elo_change, k_factor, pgn, city, country, affects_elo,
+            round, clock_20, clock_30, clock_40
           ) VALUES (
             ${game.gameId ?? null}, ${game.source ?? 'otb'}, ${game.color}, ${game.result},
             ${game.elo}, ${game.opp}, ${game.opp_elo ?? null}, ${game.eco ?? null},
@@ -85,7 +86,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ${playedDate}, ${game.time ?? null}, ${game.speed ?? null},
             ${game.timeControl ?? null}, ${game.eloChange ?? null}, ${game.kFactor ?? null},
             ${game.pgn ?? null}, ${game.city ?? null}, ${game.country ?? null},
-            ${game.affectsElo ?? true}
+            ${game.affectsElo ?? true}, ${game.round ?? null}, ${game.clock20 ?? null},
+            ${game.clock30 ?? null}, ${game.clock40 ?? null}
           )
           ON CONFLICT (lichess_game_id) DO UPDATE SET
             source = EXCLUDED.source, color = EXCLUDED.color, result = EXCLUDED.result,
@@ -94,7 +96,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             rated = EXCLUDED.rated, played_date = EXCLUDED.played_date, played_time = EXCLUDED.played_time,
             speed = EXCLUDED.speed, time_control = EXCLUDED.time_control, elo_change = EXCLUDED.elo_change,
             k_factor = EXCLUDED.k_factor, pgn = EXCLUDED.pgn, city = EXCLUDED.city, country = EXCLUDED.country,
-            affects_elo = EXCLUDED.affects_elo
+            affects_elo = EXCLUDED.affects_elo, round = EXCLUDED.round,
+            clock_20 = EXCLUDED.clock_20, clock_30 = EXCLUDED.clock_30, clock_40 = EXCLUDED.clock_40
         `;
       });
       if (queries.length > 0) {

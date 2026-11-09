@@ -73,6 +73,8 @@ interface GamesContextValue {
 
   /** Merge newly-synced Lichess games in (upserts by Lichess game id). */
   syncLichessGames: (newGames: Game[]) => Promise<void>;
+  /** Same path for Chess.com games (upserts by Chess.com game uuid). */
+  syncChessComGames: (newGames: Game[]) => Promise<void>;
   removeLichessGames: () => Promise<void>;
   importPgnGames: (newGames: Game[]) => Promise<void>;
   addManualGame: (game: Game) => Promise<void>;
@@ -338,6 +340,8 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     await refetchAndLinkGames();
   };
 
+  const syncChessComGames = syncLichessGames;
+
   const removeLichessGames = async () => {
     await deleteGamesBySource('lichess');
     await refetchGames();
@@ -410,6 +414,7 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
     playerInfo,
     syncFideRating,
     syncLichessGames,
+    syncChessComGames,
     removeLichessGames,
     importPgnGames,
     addManualGame,
@@ -465,7 +470,9 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
  */
 export const filterGamesBySource = (games: Game[], gameFilter: GameFilter): Game[] => {
   if (gameFilter === 'otb') return games.filter(g => (g.source ?? 'otb') === 'otb');
-  if (gameFilter === 'online') return games.filter(g => g.source === 'lichess');
+  if (gameFilter === 'online') {
+    return games.filter(g => g.source === 'lichess' || g.source === 'chesscom');
+  }
   return games;
 };
 

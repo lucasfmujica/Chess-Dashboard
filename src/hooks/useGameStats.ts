@@ -78,8 +78,8 @@ export const useGameStats = (ratedGames: Game[]) => {
       let elo: number;
       let eloBefore: number;
 
-      if (game.source === 'lichess' && game.elo) {
-        // Lichess reports the real post-game rating and the real rating change for
+      if ((game.source === 'lichess' || game.source === 'chesscom') && game.elo) {
+        // Online sites report the real post-game rating and the real rating change for
         // every game — each entry is self-contained ground truth, so derive eloBefore
         // from it directly instead of chaining off the running estimate (which would
         // drift, and doesn't apply across the OTB/online rating-pool boundary anyway).

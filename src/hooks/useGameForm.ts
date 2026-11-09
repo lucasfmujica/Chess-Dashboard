@@ -12,6 +12,10 @@ interface GameFormState {
   result: GameResult;
   eco: string;
   rated: boolean;
+  round: string;
+  clock20: string;
+  clock30: string;
+  clock40: string;
 }
 
 const EMPTY_FORM: GameFormState = {
@@ -23,6 +27,10 @@ const EMPTY_FORM: GameFormState = {
   result: 'W',
   eco: '',
   rated: true,
+  round: '',
+  clock20: '',
+  clock30: '',
+  clock40: '',
 };
 
 /**
@@ -75,6 +83,10 @@ export const useGameForm = (games: Game[], addManualGame: (game: Game) => Promis
       rated: gameForm.rated,
       source: 'otb',
       time: '00:00',
+      ...(gameForm.round.trim() ? { round: gameForm.round.trim() } : {}),
+      ...(gameForm.clock20.trim() ? { clock20: gameForm.clock20.trim() } : {}),
+      ...(gameForm.clock30.trim() ? { clock30: gameForm.clock30.trim() } : {}),
+      ...(gameForm.clock40.trim() ? { clock40: gameForm.clock40.trim() } : {}),
     };
 
     await addManualGame(newGame);
