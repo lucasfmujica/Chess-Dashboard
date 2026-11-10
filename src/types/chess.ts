@@ -211,6 +211,12 @@ export interface KeyMoment {
    * columns — the countable ones.
    */
   critical?: boolean;
+  /**
+   * Answer to "¿la viste y la descartaste o no se te ocurrió?", asked after an
+   * OTB game. `rejected` = it was on the list and I discarded it; `missed` =
+   * it never occurred to me. Absent on online games and older rows.
+   */
+  candidateFate?: 'missed' | 'rejected';
 }
 
 /** A user-saved annotated game. */

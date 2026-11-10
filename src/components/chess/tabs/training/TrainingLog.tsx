@@ -11,8 +11,12 @@ import {
 } from 'recharts';
 import { fetchTrainingSessions, fetchTrainingAttempts, fetchAnnotations } from '../../../../api/client';
 import { daysAgoKey, localDateKey, dateFromKey } from '../../../../utils/localDate';
-import { candidateSplit as computeCandidateSplit } from '../../../../utils/candidateSplit';
+import {
+  candidateSplit as computeCandidateSplit,
+  momentCandidateSplit,
+} from '../../../../utils/candidateSplit';
 import { WEEKLY_ANNOTATION_TARGET } from '../../../../constants/trainingProgram';
+import MomentSplitSummary from './MomentSplitSummary';
 import { Card, SegmentedControl, type Segment } from '../../../ui';
 import type { TrainingSession, TrainingAttempt } from '../../../../types/training';
 import type { AnnotatedGame, AnnotationErrorType } from '../../../../types/chess';
@@ -98,6 +102,12 @@ const TrainingLog = () => {
    */
   // Shared with the Overview hero so the two surfaces can't drift apart.
   const candidateSplit = useMemo(() => computeCandidateSplit(attempts), [attempts]);
+
+  // Same question asked after OTB games, read from the annotated moments.
+  const momentSplit = useMemo(
+    () => momentCandidateSplit(annotations.filter(a => a.date && a.date >= from)),
+    [annotations, from]
+  );
 
   /** Candidate split per ISO week, to see whether the balance is shifting. */
   const candidateTrend = useMemo(() => {
@@ -280,6 +290,9 @@ const TrainingLog = () => {
             </div>
           </>
         )}
+        <div className="mt-4 border-t border-hairline pt-3">
+          <MomentSplitSummary split={momentSplit} />
+        </div>
       </Card>
 
       <Card>

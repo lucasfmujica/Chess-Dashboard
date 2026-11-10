@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   addMoment,
   criticalFields,
+  fatesStillNeeded,
+  isOtbGame,
   plyLabel,
   removeMoment,
   setCriticalMoment,
@@ -125,5 +127,21 @@ describe('criticalFields', () => {
       playedMove: undefined,
       bestMove: undefined,
     });
+  });
+});
+
+describe('OTB moment gate', () => {
+  it('treats a missing source as OTB, and lichess as online', () => {
+    expect(isOtbGame({ source: undefined })).toBe(true);
+    expect(isOtbGame({ source: 'otb' })).toBe(true);
+    expect(isOtbGame({ source: 'lichess' })).toBe(false);
+    expect(isOtbGame(undefined)).toBe(false);
+  });
+
+  it('asks for three answered moments, counting only those with a fate', () => {
+    const answered = (candidateFate: 'missed' | 'rejected') => moment({ candidateFate });
+    expect(fatesStillNeeded([])).toBe(3);
+    expect(fatesStillNeeded([answered('missed'), moment({})])).toBe(2);
+    expect(fatesStillNeeded([answered('missed'), answered('rejected'), answered('missed')])).toBe(0);
   });
 });

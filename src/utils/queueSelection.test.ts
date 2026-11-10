@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { pickDueFirst, dayHash, type QueueAccessors } from './queueSelection';
+import {
+  pickDueFirst,
+  dayHash,
+  gamePhaseFromPlyFen,
+  sourceSpeedRank,
+  isBulletGame,
+  withoutBullet,
+  phaseRank,
+  type QueueAccessors,
+  type NeverSeenKey,
+} from './queueSelection';
 import { CONFIDENCE_DAYS } from './srs';
 
 interface Item {
@@ -117,5 +127,157 @@ describe('dayHash', () => {
   it('differs across days and across ids', () => {
     expect(dayHash('x', '2026-07-28')).not.toBe(dayHash('x', '2026-07-29'));
     expect(dayHash('x', KEY)).not.toBe(dayHash('y', KEY));
+  });
+});
+
+describe('gamePhaseFromPlyFen', () => {
+  const MIDDLE = 'r1bq1rk1/pp2bppp/2n1pn2/2pp4/3P4/2PBPN2/PP1N1PPP/R1BQ1RK1 w - - 0 9';
+  const ROOK_ENDING = '8/5pk1/6p1/8/8/2R3P1/5PK1/3r4 w - - 0 40';
+
+  it('calls the first twelve moves the opening', () => {
+    expect(gamePhaseFromPlyFen(24, MIDDLE)).toBe('opening');
+    expect(gamePhaseFromPlyFen(25, MIDDLE)).toBe('middlegame');
+  });
+
+  it('calls six or fewer pieces, not counting kings and pawns, an endgame', () => {
+    expect(gamePhaseFromPlyFen(80, ROOK_ENDING)).toBe('endgame');
+    // Seven pieces (r, R, Q, 2B, 2N) is still a middlegame.
+    expect(gamePhaseFromPlyFen(60, '2r1k3/8/8/8/8/8/8/1NBQKBNR w - - 0 1')).toBe('middlegame');
+  });
+
+  it('trusts an endgame kind regardless of the board', () => {
+    expect(gamePhaseFromPlyFen(10, MIDDLE, 'endgame')).toBe('endgame');
+  });
+});
+
+describe('sourceSpeedRank', () => {
+  it('orders OTB, then classical/rapid, then blitz', () => {
+    expect(sourceSpeedRank('otb')).toBe(0);
+    expect(sourceSpeedRank(undefined)).toBe(0);
+    expect(sourceSpeedRank('lichess', 'classical')).toBe(1);
+    expect(sourceSpeedRank('lichess', 'rapid')).toBe(1);
+    expect(sourceSpeedRank('lichess', 'blitz')).toBe(2);
+  });
+
+  it('only flags online bullet as bullet', () => {
+    expect(isBulletGame('lichess', 'bullet')).toBe(true);
+    expect(isBulletGame('otb', undefined)).toBe(false);
+    expect(isBulletGame('lichess', 'blitz')).toBe(false);
+  });
+
+  it('withoutBullet keeps bullet endgames out of the selection input', () => {
+    const drills = [
+      { id: 'bullet', game: { source: 'lichess', speed: 'bullet' } },
+      { id: 'blitz', game: { source: 'chesscom', speed: 'blitz' } },
+      { id: 'otb', game: { source: 'otb' } },
+    ];
+    const input = withoutBullet(drills);
+    expect(input.map(d => d.id)).toEqual(['blitz', 'otb']);
+    const picked = pickDueFirst(input, 3, Date.now(), '2026-11-09', {
+      getId: d => d.id,
+      getConfidence: () => undefined,
+      getLastReviewed: () => undefined,
+    });
+    expect(picked.map(d => d.id)).not.toContain('bullet');
+  });
+});
+
+describe('pickDueFirst — never-seen tournament priority', () => {
+  interface Drill extends Item {
+    key: NeverSeenKey;
+  }
+  const key = (over: Partial<NeverSeenKey> = {}): NeverSeenKey => ({
+    sourceRank: 0,
+    phaseRank: phaseRank('middlegame'),
+    rookRank: 1,
+    cpLoss: 100,
+    recency: 1,
+    ...over,
+  });
+  const drill = (id: string, k: Partial<NeverSeenKey> = {}, seen?: Item): Drill => ({
+    id,
+    ...seen,
+    key: key(k),
+  });
+  const acc: QueueAccessors<Drill> = { ...accessors, getNeverSeenKey: d => d.key };
+  const ids = (items: Drill[]) => items.map(i => i.id);
+
+  it('serves OTB before online rapid before blitz', () => {
+    const picked = pickDueFirst(
+      [
+        drill('blitz', { sourceRank: sourceSpeedRank('lichess', 'blitz') }),
+        drill('otb', { sourceRank: sourceSpeedRank('otb') }),
+        drill('rapid', { sourceRank: sourceSpeedRank('lichess', 'rapid') }),
+      ],
+      3,
+      NOW,
+      KEY,
+      acc
+    );
+    expect(ids(picked)).toEqual(['otb', 'rapid', 'blitz']);
+  });
+
+  it('serves middlegame, then endgame, then opening', () => {
+    const picked = pickDueFirst(
+      [
+        drill('opening', { phaseRank: phaseRank('opening') }),
+        drill('endgame', { phaseRank: phaseRank('endgame') }),
+        drill('middle', { phaseRank: phaseRank('middlegame') }),
+      ],
+      3,
+      NOW,
+      KEY,
+      acc
+    );
+    expect(ids(picked)).toEqual(['middle', 'endgame', 'opening']);
+  });
+
+  it('then prefers the bigger cpLoss, then the more recent game', () => {
+    const picked = pickDueFirst(
+      [
+        drill('small', { cpLoss: 150 }),
+        drill('big-old', { cpLoss: 600, recency: 1 }),
+        drill('big-new', { cpLoss: 600, recency: 2 }),
+      ],
+      3,
+      NOW,
+      KEY,
+      acc
+    );
+    expect(ids(picked)).toEqual(['big-new', 'big-old', 'small']);
+  });
+
+  it('puts rook endgames ahead of the other types', () => {
+    const picked = pickDueFirst(
+      [
+        drill('minor', { phaseRank: phaseRank('endgame'), rookRank: 1, cpLoss: 300 }),
+        drill('rook', { phaseRank: phaseRank('endgame'), rookRank: 0, cpLoss: 0 }),
+      ],
+      2,
+      NOW,
+      KEY,
+      acc
+    );
+    expect(ids(picked)).toEqual(['rook', 'minor']);
+  });
+
+  it('keeps SRS order between never-seen and due-reviewed items', () => {
+    // A never-seen item is the most overdue (next review = 0), so it keeps
+    // sorting ahead of a reviewed due item whatever its tournament key says.
+    const due = drill('due', { sourceRank: 0 }, item('due', 1, 3));
+    const fresh = drill('fresh', { sourceRank: 3 });
+    expect(ids(pickDueFirst([due, fresh], 2, NOW, KEY, acc))).toEqual(['fresh', 'due']);
+  });
+
+  it('keeps due items ahead of not-due filler that has a better key', () => {
+    const due = drill('due', { sourceRank: 3 }, item('due', 1, 3));
+    const filler = drill('filler', { sourceRank: 0 }, item('filler', 5, 1));
+    expect(ids(pickDueFirst([filler, due], 2, NOW, KEY, acc))).toEqual(['due', 'filler']);
+  });
+
+  it('does not let the key reorder items that were already reviewed', () => {
+    const a = drill('a', { sourceRank: 3 }, item('a', 1, 10));
+    const b = drill('b', { sourceRank: 0 }, item('b', 1, 5));
+    expect(ids(pickDueFirst([b, a], 2, NOW, KEY, acc))).toEqual(['a', 'b']);
   });
 });

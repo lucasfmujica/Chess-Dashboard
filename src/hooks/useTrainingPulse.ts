@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchTrainingAttempts, fetchTrainingSessions } from '../api/client';
-import { candidateSplit, type CandidateSplit } from '../utils/candidateSplit';
+import { fetchAnnotations, fetchTrainingAttempts, fetchTrainingSessions } from '../api/client';
+import { candidateSplit, momentCandidateSplit, type CandidateSplit } from '../utils/candidateSplit';
 import { daysAgoKey, localDateKey, dateFromKey, weekdayIndex } from '../utils/localDate';
 
 /**
@@ -13,7 +13,7 @@ import { daysAgoKey, localDateKey, dateFromKey, weekdayIndex } from '../utils/lo
  * Training -> Registro. The subtitles say which is which; a hero that mixed
  * them silently would be worse than no hero.
  *
- * Deliberately light: two plain fetches, no chess.js and no engine. TodayStrip
+ * Deliberately light: a few plain fetches, no chess.js and no engine. TodayStrip
  * documents why the landing page must not pull the drill queue, and the same
  * constraint applies here.
  */
@@ -26,6 +26,8 @@ export interface TrainingPulse {
   attemptsThisWeek: number;
   /** Candidate split over the last SPLIT_WINDOW_DAYS. */
   split: CandidateSplit;
+  /** The same split from post-OTB annotated moments, over the same window. */
+  momentSplit: CandidateSplit;
   /** Local date key of the most recent session, or null if there is none. */
   lastSessionDate: string | null;
   /** Whole days since that session. Null when nothing was ever recorded. */
@@ -47,6 +49,7 @@ export const useTrainingPulse = (): TrainingPulse => {
   const [pulse, setPulse] = useState<Omit<TrainingPulse, 'loading' | 'error'>>({
     attemptsThisWeek: 0,
     split: EMPTY_SPLIT,
+    momentSplit: EMPTY_SPLIT,
     lastSessionDate: null,
     daysSinceLastSession: null,
   });
@@ -60,10 +63,11 @@ export const useTrainingPulse = (): TrainingPulse => {
         // The server filters on COALESCE(session_date, created_at::date), so a
         // session logged for an earlier day lands in the right week without
         // the client having to re-derive it.
-        const [weekAttempts, windowAttempts, sessions] = await Promise.all([
+        const [weekAttempts, windowAttempts, sessions, annotations] = await Promise.all([
           fetchTrainingAttempts(startOfWeekKey()),
           fetchTrainingAttempts(daysAgoKey(SPLIT_WINDOW_DAYS)),
           fetchTrainingSessions(daysAgoKey(SPLIT_WINDOW_DAYS)),
+          fetchAnnotations(),
         ]);
         if (cancelled) return;
 
@@ -85,6 +89,9 @@ export const useTrainingPulse = (): TrainingPulse => {
         setPulse({
           attemptsThisWeek: weekAttempts.length,
           split: candidateSplit(windowAttempts),
+          momentSplit: momentCandidateSplit(
+            annotations.filter(a => a.date && a.date >= daysAgoKey(SPLIT_WINDOW_DAYS))
+          ),
           lastSessionDate,
           daysSinceLastSession,
         });

@@ -123,12 +123,18 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
     setDateTo,
     resultFilter,
     setResultFilter,
+    sourceFilter,
+    setSourceFilter,
+    speedFilter,
+    setSpeedFilter,
     hasActiveFilters,
     clearFilters,
     filteredItems: searchedRows,
   } = useGameFilters(rows, {
     date: r => r.g.date,
     result: r => r.g.result,
+    source: r => r.g.source,
+    speed: r => r.g.speed,
     searchText: r => `${r.g.opp} ${r.opening} ${r.g.tournament} ${RESULT_META[r.g.result].label}`,
   });
 
@@ -307,6 +313,10 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
           onDateToChange={setDateTo}
           resultFilter={resultFilter}
           onResultFilterChange={setResultFilter}
+          sourceFilter={sourceFilter}
+          onSourceFilterChange={setSourceFilter}
+          speedFilter={speedFilter}
+          onSpeedFilterChange={setSpeedFilter}
           hasActiveFilters={hasActiveFilters}
           onClear={clearFilters}
           searchPlaceholder="Search opponent, opening, tournament…"

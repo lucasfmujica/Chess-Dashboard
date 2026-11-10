@@ -1,4 +1,5 @@
 import type { TrainingAttempt } from '../types/training';
+import type { AnnotatedGame } from '../types/chess';
 
 /**
  * The diagnostic split: of the exercises failed, how many were failed because
@@ -34,5 +35,30 @@ export const candidateSplit = (attempts: TrainingAttempt[]): CandidateSplit => {
     missed,
     rejected: asked.length - missed,
     missedPct: asked.length ? Math.round((missed / asked.length) * 100) : 0,
+  };
+};
+
+/** Below this many answered questions the percentage is noise, not a trend. */
+export const WEAK_SIGNAL_THRESHOLD = 15;
+
+export const isWeakSignal = (asked: number): boolean => asked < WEAK_SIGNAL_THRESHOLD;
+
+/**
+ * The same split, read from the post-OTB question instead of drill attempts:
+ * every annotated moment that carries a `candidateFate`. The question is only
+ * put for OTB games, so no further game filtering is needed — a moment
+ * without a fate was simply not asked and stays out of the denominator.
+ */
+export const momentCandidateSplit = (annotations: AnnotatedGame[]): CandidateSplit => {
+  const fates = annotations
+    .flatMap(a => a.keyMoments ?? [])
+    .map(m => m.candidateFate)
+    .filter(f => f === 'missed' || f === 'rejected');
+  const missed = fates.filter(f => f === 'missed').length;
+  return {
+    asked: fates.length,
+    missed,
+    rejected: fates.length - missed,
+    missedPct: fates.length ? Math.round((missed / fates.length) * 100) : 0,
   };
 };

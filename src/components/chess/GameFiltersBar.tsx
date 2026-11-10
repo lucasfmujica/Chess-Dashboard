@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import type { ResultFilter } from '../../hooks/useGameFilters';
+import type { ResultFilter, SourceFilter, SpeedFilter } from '../../hooks/useGameFilters';
 
 interface GameFiltersBarProps {
   query: string;
@@ -10,6 +10,11 @@ interface GameFiltersBarProps {
   onDateToChange: (value: string) => void;
   resultFilter: ResultFilter;
   onResultFilterChange: (value: ResultFilter) => void;
+  /** Source / speed selects render only when both the value and setter are given. */
+  sourceFilter?: SourceFilter;
+  onSourceFilterChange?: (value: SourceFilter) => void;
+  speedFilter?: SpeedFilter;
+  onSpeedFilterChange?: (value: SpeedFilter) => void;
   hasActiveFilters: boolean;
   onClear: () => void;
   searchPlaceholder?: string;
@@ -22,6 +27,25 @@ const RESULT_OPTIONS: { value: ResultFilter; label: string }[] = [
   { value: 'L', label: 'Loss' },
 ];
 
+const SOURCE_OPTIONS: { value: SourceFilter; label: string }[] = [
+  { value: 'all', label: 'Toda fuente' },
+  { value: 'otb', label: 'OTB' },
+  { value: 'lichess', label: 'Lichess' },
+  { value: 'online', label: 'Online' },
+];
+
+const SPEED_OPTIONS: { value: SpeedFilter; label: string }[] = [
+  { value: 'all', label: 'Todo ritmo' },
+  { value: 'classical', label: 'Clásico' },
+  { value: 'rapid', label: 'Rápido' },
+  { value: 'blitz', label: 'Blitz' },
+  { value: 'bullet', label: 'Bullet' },
+  { value: 'otb-unset', label: 'OTB (sin ritmo)' },
+];
+
+const SELECT =
+  'rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent';
+
 /** Shared search + date-range + result filter bar for games-list views. */
 const GameFiltersBar = ({
   query,
@@ -32,6 +56,10 @@ const GameFiltersBar = ({
   onDateToChange,
   resultFilter,
   onResultFilterChange,
+  sourceFilter,
+  onSourceFilterChange,
+  speedFilter,
+  onSpeedFilterChange,
   hasActiveFilters,
   onClear,
   searchPlaceholder = 'Search opponent, opening, tournament…',
@@ -61,6 +89,32 @@ const GameFiltersBar = ({
         </button>
       ))}
     </div>
+
+    {sourceFilter !== undefined && onSourceFilterChange && (
+      <select
+        value={sourceFilter}
+        onChange={e => onSourceFilterChange(e.target.value as SourceFilter)}
+        className={SELECT}
+        aria-label="Filter by source"
+      >
+        {SOURCE_OPTIONS.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    )}
+
+    {speedFilter !== undefined && onSpeedFilterChange && (
+      <select
+        value={speedFilter}
+        onChange={e => onSpeedFilterChange(e.target.value as SpeedFilter)}
+        className={SELECT}
+        aria-label="Filter by time control"
+      >
+        {SPEED_OPTIONS.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    )}
 
     <div className="flex items-center gap-1.5">
       <input

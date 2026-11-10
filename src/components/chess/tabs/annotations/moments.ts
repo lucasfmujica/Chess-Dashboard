@@ -1,4 +1,4 @@
-import type { AnnotatedGame, KeyMoment } from '../../../../types/chess';
+import type { AnnotatedGame, Game, KeyMoment } from '../../../../types/chess';
 
 /**
  * Numbered SAN for a move played from position `ply`, e.g. `12...Nxe5`.
@@ -72,3 +72,17 @@ export const updateMoment = (
   const next = moments.map((m, i) => (i === index ? { ...m, ...patch } : m));
   return { keyMoments: next, ...criticalFields(next) };
 };
+
+/** The literal question asked per moment after an OTB game. */
+export const CANDIDATE_FATE_QUESTION = '¿la viste y la descartaste o no se te ocurrió?';
+
+/** Moments an OTB post-mortem must answer the question on before it can be saved. */
+export const REQUIRED_OTB_MOMENTS = 3;
+
+/** A game with no `source` is OTB, same default as the `games` column. */
+export const isOtbGame = (game?: Pick<Game, 'source'>): boolean =>
+  !!game && (game.source ?? 'otb') === 'otb';
+
+/** How many more moments need a `candidateFate` before an OTB game can be saved. */
+export const fatesStillNeeded = (moments: KeyMoment[]): number =>
+  Math.max(0, REQUIRED_OTB_MOMENTS - moments.filter(m => m.candidateFate).length);
