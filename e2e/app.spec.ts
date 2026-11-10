@@ -6,7 +6,7 @@ test.describe('Chess Dashboard - Core Functionality', () => {
   });
 
   test('should load the dashboard homepage', async ({ page }) => {
-    await expect(page).toHaveTitle(/Chess Dashboard/i);
+    await expect(page).toHaveTitle(/Jaque\+/);
     await expect(page.getByRole('heading', { level: 1, name: 'Resumen' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
   });

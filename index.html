@@ -1,14 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
     <head>
         <meta charset="utf-8" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="description" content="Lucas's Chess Performance Dashboard" />
-        <link rel="apple-touch-icon" href="/logo192.png" />
+        <meta name="theme-color" content="#f1f2ec" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)" />
+        <meta name="description" content="Jaque+: partidas, repertorio y progreso de Lucas." />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Jaque+" />
+        <meta property="og:title" content="Jaque+" />
+        <meta property="og:description" content="El cuaderno de torneo de Lucas: partidas, repertorio y progreso." />
+        <meta property="og:image" content="/og.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="/og.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <title>Chess Dashboard</title>
+        <title>Jaque+</title>
         <script>
             // Apply theme before paint to avoid a flash of the wrong theme.
             (function () {
@@ -21,7 +32,7 @@
         </script>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>Jaque+ necesita JavaScript para funcionar.</noscript>
         <div id="root"></div>
         <script type="module" src="/src/main.tsx"></script>
     </body>
