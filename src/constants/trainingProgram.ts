@@ -284,8 +284,8 @@ const planBlock = (id: string): TrainingBlock | null => {
   if (id === 'clase-jc') return 'lesson';
   if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
   if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
-  if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim') return 'analysis';
-  if (id === 'partida-larga' || /^sim-r\d$/.test(id)) return 'play';
+  if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim' || id === 'analisis-torneo') return 'analysis';
+  if (id === 'partida-larga' || /^sim-r\d$/.test(id) || /^torneo-r\d$/.test(id)) return 'play';
   // rutina-torneo: no training to tick.
   return null;
 };
@@ -297,7 +297,7 @@ const WEEKDAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S�
  * Hoy and Semana show the focus and block labels but not every block detail
  * (Semana shows no detail at all), so these would otherwise vanish.
  */
-const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo/i;
+const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo|inscripción|sin análisis con motor|romano|chequeo de seguridad/i;
 
 /**
  * The note's headline ("T · Táctica y cálculo"): its first sentence plus any
@@ -323,10 +323,6 @@ const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
   // days so the queue stays light — unless the plan states the count: a
   // 10-minute drills block or a label/note saying "10 drills" (30/11, 2/12)
   // wins over the lightness heuristic.
-  //
-  // 21/11 (descanso, "Solo 20 min de drills") stays at 5 on purpose. The payload
-  // fixes no count there; 5 is Atlas's pick for a light rest day, about half a
-  // normal drills block. It is not a payload error.
   const drills = day.activities.find(a => a.id === 'drills');
   const statesTen = !!drills && (drills.minutes === 10 || /\b10 drills\b/i.test(`${drills.label} ${day.note}`));
   const light = !statesTen && (ids.every(id => id === 'drills') || day.tipo.includes('liviana'));
