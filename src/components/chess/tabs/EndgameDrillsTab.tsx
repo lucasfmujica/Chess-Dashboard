@@ -58,7 +58,7 @@ const EndgameDrillsTab = () => {
   const [finishedIds, setFinishedIds] = useState<Set<string>>(new Set());
   /**
    * `jugar` plays the ending out against Stockfish — what an endgame drill
-   * really needs, and what Toto's 4v3 homework asks for. It leads because a
+   * really needs, and what the coach's 4v3 homework asks for. It leads because a
    * drill you can only watch isn't a drill; `repaso` replays how the game
    * actually went, for when you want the answer rather than the practice.
    */

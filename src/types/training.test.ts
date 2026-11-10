@@ -86,7 +86,7 @@ describe('bookProgressPct', () => {
 
 describe('isHomeworkOverdue', () => {
   const hw = (over: Partial<Homework>): Homework =>
-    ({ id: 'h', assignedDate: '2026-07-28', coach: 'Toto', task: 't', status: 'pendiente', createdAt: 0, ...over }) as Homework;
+    ({ id: 'h', assignedDate: '2026-07-28', coach: 'Profe', task: 't', status: 'pendiente', createdAt: 0, ...over }) as Homework;
 
   it('is overdue once the due date has passed', () => {
     expect(isHomeworkOverdue(hw({ dueDate: '2026-08-04' }), '2026-08-05')).toBe(true);
