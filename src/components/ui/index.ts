@@ -6,4 +6,5 @@ export type { Segment } from './SegmentedControl';
 export { Table, THead, TBody, TR, TH, TD } from './Table';
 export { PageHeader, SectionHeading } from './PageHeader';
 export { PieceGlyph, PieceLabel, ResultDot } from './PieceGlyph';
-export { default as StatCard, Sparkline } from './StatCard';
+export { default as StatCard, Sparkline, ClockBar } from './StatCard';
+export { default as ResultMark } from './ResultMark';

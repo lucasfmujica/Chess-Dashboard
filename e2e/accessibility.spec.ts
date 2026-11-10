@@ -6,7 +6,7 @@ test.describe('Accessibility Tests', () => {
     await page.goto('/');
     // Scan the loaded dashboard, not the loading screen before it, and not
     // mid fade-in: axe reads the blended color and reports near-black text as gray.
-    await expect(navButton(page, 'Overview')).toBeVisible();
+    await expect(navButton(page, 'Resumen')).toBeVisible();
     await page.waitForFunction(() =>
       document.getAnimations().every(a => a.playState !== 'running')
     );
@@ -21,14 +21,14 @@ test.describe('Accessibility Tests', () => {
   test('should have proper ARIA labels on navigation', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
-    await expect(navButton(page, 'Overview')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
+    await expect(navButton(page, 'Resumen')).toBeVisible();
   });
 
   test('should have proper keyboard navigation', async ({ page }) => {
     await page.goto('/');
 
-    await expect(navButton(page, 'Overview')).toBeVisible();
+    await expect(navButton(page, 'Resumen')).toBeVisible();
 
     // Focus lands on something the user can see, not on the hidden mobile controls.
     await page.keyboard.press('Tab');
@@ -39,12 +39,12 @@ test.describe('Accessibility Tests', () => {
   test('should have proper heading hierarchy', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1, name: "Lucas's Chess Performance" })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Resumen' })).toBeVisible();
   });
 
   test('should have alt text or aria-hidden on icons', async ({ page }) => {
     await page.goto('/');
-    await expect(navButton(page, 'Overview')).toBeVisible();
+    await expect(navButton(page, 'Resumen')).toBeVisible();
 
     // Get all SVG elements
     const svgs = page.locator('svg');

@@ -5,6 +5,7 @@ import { useGames, useComputedStats } from './context/GamesContext';
 import { useUI } from './context/UIContext';
 import { useDiagnosticsQueue } from './hooks/useDiagnosticsQueue';
 import Sidebar from './components/Sidebar';
+import { APP_NAME } from './config/brand';
 import MobileHeader from './components/MobileHeader';
 import GameFilter from './components/GameFilter';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
@@ -230,41 +231,41 @@ const ChessDashboard = () => {
 
   const allNavigationSections = [
     {
-      section: 'Play & Review',
+      section: 'Jugar y revisar',
       items: [
-        { id: 'overview', label: 'Overview', icon: Squares2X2Icon },
-        { id: 'analysis-board', label: 'Analysis Board', icon: CpuChipIcon },
-        { id: 'annotations', label: 'Game Library', icon: DocumentTextIcon },
+        { id: 'overview', label: 'Resumen', icon: Squares2X2Icon },
+        { id: 'analysis-board', label: 'Tablero de análisis', icon: CpuChipIcon },
+        { id: 'annotations', label: 'Biblioteca', icon: DocumentTextIcon },
       ],
     },
     {
-      section: 'Analytics',
+      section: 'Análisis',
       items: [
-        { id: 'rating', label: 'ELO Progress', icon: ArrowTrendingUpIcon },
-        { id: 'opponent-analysis', label: 'Performance', icon: BeakerIcon },
-        { id: 'by-color', label: 'By Color', icon: ByColorPieces },
-        { id: 'records', label: 'Records', icon: ChartBarSquareIcon },
-        { id: 'streaks', label: 'Streaks', icon: FireIcon },
+        { id: 'rating', label: 'Progreso de ELO', icon: ArrowTrendingUpIcon },
+        { id: 'opponent-analysis', label: 'Rendimiento', icon: BeakerIcon },
+        { id: 'by-color', label: 'Por color', icon: ByColorPieces },
+        { id: 'records', label: 'Récords', icon: ChartBarSquareIcon },
+        { id: 'streaks', label: 'Rachas', icon: FireIcon },
       ],
     },
     {
-      section: 'Study & Prep',
+      section: 'Estudio y prep',
       items: [
-        { id: 'repertoire', label: 'Repertoire', icon: BookOpenIcon },
-        { id: 'drills', label: 'Drills', icon: ExclamationTriangleIcon },
+        { id: 'repertoire', label: 'Repertorio', icon: BookOpenIcon },
+        { id: 'drills', label: 'Ejercicios', icon: ExclamationTriangleIcon },
         { id: 'diagnostics', label: 'Diagnóstico', icon: BeakerIcon, badge: pendingDiagnostics },
-        { id: 'concepts', label: 'Concepts & Books', icon: PuzzlePieceIcon },
-        { id: 'opponent-prep', label: 'Opponent Prep', icon: UserGroupIcon },
-        { id: 'tournaments', label: 'Tournaments', icon: TrophyIcon },
-        { id: 'geography', label: 'Geography', icon: GlobeAmericasIcon },
+        { id: 'concepts', label: 'Conceptos y libros', icon: PuzzlePieceIcon },
+        { id: 'opponent-prep', label: 'Prep del rival', icon: UserGroupIcon },
+        { id: 'tournaments', label: 'Torneos', icon: TrophyIcon },
+        { id: 'geography', label: 'Geografía', icon: GlobeAmericasIcon },
       ],
     },
     {
-      section: 'Progress',
+      section: 'Progreso',
       items: [
-        { id: 'goals', label: 'Goals', icon: FlagIcon },
-        { id: 'norm-tracker', label: 'Norm Tracker', icon: RocketLaunchIcon },
-        { id: 'training', label: 'Training Plan', icon: LightBulbIcon },
+        { id: 'goals', label: 'Objetivos', icon: FlagIcon },
+        { id: 'norm-tracker', label: 'Normas', icon: RocketLaunchIcon },
+        { id: 'training', label: 'Plan de entrenamiento', icon: LightBulbIcon },
       ],
     },
   ];
@@ -285,6 +286,14 @@ const ChessDashboard = () => {
   useEffect(() => {
     if (tabIsHidden) setActiveTab('overview');
   }, [tabIsHidden, setActiveTab]);
+
+  const activeSection = allNavigationSections.find(g =>
+    g.items.some(i => activeTab === i.id || activeTab.startsWith(`${i.id}-`)),
+  );
+  const activeItem = activeSection?.items.find(i => activeTab === i.id || activeTab.startsWith(`${i.id}-`));
+  useEffect(() => {
+    document.title = activeItem ? `${activeItem.label} · ${APP_NAME}` : APP_NAME;
+  }, [activeItem]);
 
   return (
     <div className="min-h-screen bg-app text-fg">
@@ -315,31 +324,21 @@ const ChessDashboard = () => {
         {/* Mobile Header with Hamburger */}
         <MobileHeader setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
-          {/* Desktop Header */}
-          <div className="hidden lg:block mb-8 animate-fadeIn">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-fg">
-                  Lucas's Chess Performance
-                </h1>
-                <p className="mt-1 text-sm text-fg-muted flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
-                  </svg>
-                  Classical OTB Performance Analysis
-                </p>
-              </div>
-
-              {/* Game Source Filter */}
-              <GameFilter
-                gameFilter={gameFilter}
-                setGameFilter={setGameFilter}
-                filteredGames={filteredGames}
-              />
+        <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-10 py-8 lg:py-12">
+          {/* View header: section label, serif title, source filter — closed by
+              the scoresheet's thick ink rule. One for every view, so the tabs
+              don't each draw their own. */}
+          <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b-2 border-hairline-strong pb-4">
+            <div className="min-w-0">
+              <p className="text-label mb-1">{activeSection?.section ?? APP_NAME}</p>
+              <h1 className="text-h1 text-fg">{activeItem?.label ?? APP_NAME}</h1>
             </div>
-          </div>
+            <GameFilter
+              gameFilter={gameFilter}
+              setGameFilter={setGameFilter}
+              filteredGames={filteredGames}
+            />
+          </header>
 
           {/* Tab Content */}
           <div key={activeTab} className="animate-fadeIn">
