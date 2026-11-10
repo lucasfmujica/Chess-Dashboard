@@ -281,7 +281,7 @@ const planFinalDays = planFinalPayload.days as Record<string, PlanFinalDay>;
  */
 const planBlock = (id: string): TrainingBlock | null => {
   if (id === 'drills' || id === 'calculo-papel') return 'calculation';
-  if (id === 'clase-jc') return 'lesson';
+  if (id === 'clase-jc' || id === 'clase-toto') return 'lesson';
   if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
   if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
   if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim' || id === 'analisis-torneo') return 'analysis';
@@ -297,7 +297,7 @@ const WEEKDAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S�
  * Hoy and Semana show the focus and block labels but not every block detail
  * (Semana shows no detail at all), so these would otherwise vanish.
  */
-const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo|inscripción|sin análisis con motor|romano|chequeo de seguridad/i;
+const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo|inscripción|sin análisis con motor|romano|chequeo de seguridad|martes fijos/i;
 
 /**
  * The note's headline ("T · Táctica y cálculo"): its first sentence plus any

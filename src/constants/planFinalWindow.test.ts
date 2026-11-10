@@ -34,10 +34,10 @@ describe('plan-final window', () => {
 describe('programForDate inside the window', () => {
   it('serves the plan T day on 2026-11-10, not the generic Monday', () => {
     const day = programForDate('2026-11-10');
-    expect(day.focus).toBe('T · Táctica y cálculo');
+    expect(day.focus).toBe('T · Táctica y cálculo. Martes fijos: drills 10 min antes de las 19, clase con Toto 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART');
     expect(day.weekday).toBe(weekdayIndex('2026-11-10'));
-    expect(day.blocks.map(b => b.block)).toEqual(['calculation', 'calculation', 'lesson']);
-    expect(day.blocks.map(b => b.minutes)).toEqual([10, 35, 10]);
+    expect(day.blocks.map(b => b.block)).toEqual(['calculation', 'lesson', 'lesson']);
+    expect(day.blocks.map(b => b.minutes)).toEqual([10, 60, 60]);
     expect(day.quota.blunder).toBe(10);
     expect(day).not.toEqual(programForWeekday(weekdayIndex('2026-11-10')));
   });
@@ -132,10 +132,10 @@ describe('tournament weekend (20–26/11)', () => {
     const sum = (keys: string[]) => keys.reduce((s, k) => s + plannedMinutes(programForDate(k)), 0);
     const w2 = ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'];
     const w3 = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'];
-    // 55 + 50 + 50 + 55 + 30 + 480 + 480
-    expect(sum(w2)).toBe(1200);
-    // 480 + 55 + 55 + 50 + 50 + 60 + 20
-    expect(sum(w3)).toBe(770);
+    // 55 + 180 + 50 + 55 + 30 + 480 + 480
+    expect(sum(w2)).toBe(1330);
+    // 480 + 185 + 55 + 50 + 50 + 60 + 20
+    expect(sum(w3)).toBe(900);
   });
 
   it.each(['2026-11-21', '2026-11-22', '2026-11-23'])('%s has two play blocks and no queue', key => {
@@ -173,8 +173,8 @@ describe('tournament weekend (20–26/11)', () => {
 
   it('24/11 analyses the 6 games', () => {
     const day = programForDate('2026-11-24');
-    expect(day.blocks.map(b => b.block)).toEqual(['analysis']);
-    expect(day.blocks[0].label).toContain('6 partidas');
+    expect(day.blocks.map(b => b.block)).toEqual(['calculation', 'analysis', 'lesson', 'lesson']);
+    expect(day.blocks[1].label).toContain('6 partidas');
     expect(day.focus).toContain('Romano');
   });
 
@@ -240,6 +240,49 @@ describe('a week straddling the window edge', () => {
   it('starts mid-week at the opening edge', () => {
     const week = ['2026-11-09', '2026-11-10'];
     expect(programForDate(week[0])).toBe(programForWeekday(0));
-    expect(programForDate(week[1]).focus).toBe('T · Táctica y cálculo');
+    expect(programForDate(week[1]).focus).toContain('T · Táctica y cálculo');
+  });
+});
+
+describe('martes fijos', () => {
+  const LESSONS = [
+    { block: 'lesson', minutes: 60, label: 'Clase con Toto (19:00 a 20:00 ART)' },
+    { block: 'lesson', minutes: 60, label: 'Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)' },
+  ];
+  const DRILLS = { block: 'calculation', minutes: 10, label: 'Cola de drills (antes de las 19)' };
+  const EXPECTED: Record<string, { block: string; minutes: number; label: string }[]> = {
+    '2026-11-10': [DRILLS, ...LESSONS],
+    '2026-11-17': [
+      DRILLS,
+      { block: 'endgame', minutes: 20, label: 'Torre y 4 contra 3 (blancas)' },
+      { block: 'repertoire', minutes: 20, label: 'Cap. 28 (1...c5) o cap. 05' },
+      { block: 'repertoire', minutes: 10, label: 'Dominación de columnas' },
+      ...LESSONS,
+    ],
+    '2026-11-24': [DRILLS, { block: 'analysis', minutes: 55, label: 'Análisis de las 6 partidas del torneo' }, ...LESSONS],
+    '2026-12-01': [DRILLS, { block: 'repertoire', minutes: 30, label: 'Repaso primeras 8 a 10 jugadas' }, ...LESSONS],
+  };
+
+  it.each(Object.keys(EXPECTED))('%s: blocks in order', key => {
+    const day = programForDate(key);
+    expect(day.blocks.map(b => ({ block: b.block, minutes: b.minutes, label: b.label }))).toEqual(EXPECTED[key]);
+    expect(day.isTrainingDay).toBe(true);
+    expect(day.quota.blunder).toBe(10);
+    expect(day.focus).toContain('Martes fijos');
+    expect(day.blocks.some(b => /Cálculo con papel|Sesión grupal/.test(b.label))).toBe(false);
+  });
+
+  it('leaves every other day of the payload untouched', () => {
+    const before = {"2026-11-11":[["final-4v3",20],["cap-04",20],["dominacion",10]],"2026-11-12":[["posiciones-otb",50]],"2026-11-13":[["drills",10],["calculo-papel",45]],"2026-11-14":[["partida-larga",60]],"2026-11-15":[["analisis",30],["final-4v3",20]],"2026-11-16":[["drills",10],["calculo-papel",45]],"2026-11-18":[["posiciones-otb",50]],"2026-11-19":[["drills",10],["calculo-papel",45]],"2026-11-20":[["final-4v3",15],["repaso-caps",15]],"2026-11-21":[["torneo-r1",240],["torneo-r2",240]],"2026-11-22":[["torneo-r3",240],["torneo-r4",240]],"2026-11-23":[["torneo-r5",240],["torneo-r6",240]],"2026-11-25":[["drills",10],["calculo-papel",45]],"2026-11-26":[["finales-app",20],["cap-09-32",20],["dominacion",10]],"2026-11-27":[["cap-01-03",30],["dominacion",10],["drills",10]],"2026-11-28":[["sim-r1",60]],"2026-11-29":[["analisis",20]],"2026-11-30":[["drills",10],["calculo-papel",20]],"2026-12-02":[["drills",10],["calculo-papel",20]],"2026-12-03":[["finales-torres",30]],"2026-12-04":[["rutina-torneo",0]]} as Record<string, [string, number][]>;
+    const days = payload.days as Record<string, { activities: { id: string; minutes: number }[] }>;
+    const others = Object.keys(days).filter(k => !(k in EXPECTED));
+    expect(others.sort()).toEqual(Object.keys(before).sort());
+    for (const k of others) expect(days[k].activities.map(a => [a.id, a.minutes])).toEqual(before[k]);
+  });
+
+  it('does not leak the martes fijos sentence into other days focus', () => {
+    for (const k of Object.keys(payload.days)) {
+      if (!(k in EXPECTED)) expect(programForDate(k).focus).not.toContain('Martes fijos');
+    }
   });
 });
