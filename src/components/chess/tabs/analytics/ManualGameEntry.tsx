@@ -11,6 +11,10 @@ interface GameForm {
   result: GameResult | string;
   eco?: string;
   rated: boolean;
+  round?: string;
+  clock20?: string;
+  clock30?: string;
+  clock40?: string;
 }
 
 interface ManualGameEntryProps {
@@ -168,6 +172,63 @@ const ManualGameEntry = ({
                   value={gameForm.eco}
                   onChange={handleInputChange}
                   placeholder="e.g., B23"
+                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                />
+              </div>
+
+              {/* Round + clock after move 20 / 30 / 40 */}
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-fg">
+                  Round (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="round"
+                  value={gameForm.round ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 3"
+                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-fg">
+                  Clock @ 20 (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="clock20"
+                  value={gameForm.clock20 ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1:12:05"
+                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-fg">
+                  Clock @ 30 (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="clock30"
+                  value={gameForm.clock30 ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 0:48:30"
+                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-semibold text-fg">
+                  Clock @ 40 (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="clock40"
+                  value={gameForm.clock40 ?? ''}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 0:20:10"
                   className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
                 />
               </div>

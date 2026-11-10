@@ -7,6 +7,10 @@ import type { Game, GameResult, LichessSpeed } from '../types/chess';
 
 const LICHESS_API_BASE = 'https://lichess.org/api';
 
+/** Browsers ignore this header; it identifies us when the sync ever runs server-side. */
+const USER_AGENT =
+  'Chess-Dashboard/1.0 (github.com/lucasfmujica/Chess-Dashboard; contact via GitHub issues)';
+
 export interface FetchLichessOptions {
   /** Max games to fetch. Pass null/undefined for no limit (streams everything matching the filters). */
   max?: number | null;
@@ -37,6 +41,8 @@ export interface LichessRawGame {
   clock?: { initial: number; increment: number };
   /** SAN movetext (present when requested with moves=true). */
   moves?: string;
+  /** Full PGN with headers and `{[%clk ...]}` comments (present with pgnInJson + clocks). */
+  pgn?: string;
 }
 
 export interface LichessUserRating {
@@ -58,7 +64,7 @@ export const fetchLichessGames = async (
   const {
     max = 50,
     rated = true,
-    perfType = 'classical,rapid,blitz', // classical, rapid, blitz, bullet
+    perfType = 'rapid,classical', // rapid + classical by default; blitz/bullet opt-in
     since = null, // timestamp in milliseconds
     until = null,
   } = options;
@@ -68,8 +74,8 @@ export const fetchLichessGames = async (
       rated: rated.toString(),
       perfType,
       moves: 'true', // include SAN movetext so games are replayable/analysable
-      pgnInJson: 'false',
-      clocks: 'false',
+      pgnInJson: 'true', // the PGN carries the [%clk] comments; `moves` alone cannot
+      clocks: 'true',
       evals: 'false',
       opening: 'true',
       ratingDiff: 'true', // needed to derive the real post-game rating (Lichess's `rating` field is pre-game)
@@ -84,6 +90,7 @@ export const fetchLichessGames = async (
       {
         headers: {
           Accept: 'application/x-ndjson',
+          'User-Agent': USER_AGENT,
         },
       }
     );
@@ -155,7 +162,8 @@ export const transformLichessGames = (lichessGames: LichessRawGame[], username: 
       timeControl: game.clock ? `${game.clock.initial / 60}+${game.clock.increment}` : 'unlimited',
       opening: game.opening?.name || 'Unknown Opening',
       source: 'lichess', // Mark as Lichess game
-      ...(game.moves ? { pgn: game.moves } : {}),
+      // The full PGN keeps the clocks; plain SAN movetext is the fallback.
+      ...((game.pgn ?? game.moves) ? { pgn: game.pgn ?? game.moves } : {}),
     };
   });
 };

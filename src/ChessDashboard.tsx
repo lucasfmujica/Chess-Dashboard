@@ -8,6 +8,7 @@ import Sidebar from './components/Sidebar';
 import MobileHeader from './components/MobileHeader';
 import GameFilter from './components/GameFilter';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
+import ChessComSyncPanel from './components/chess/ChessComSyncPanel';
 import ColorGamesTab from './components/chess/tabs/ColorGamesTab';
 import GoalsTab from './components/chess/tabs/GoalsTab';
 import OpponentStrengthTab from './components/chess/tabs/OpponentStrengthTab';
@@ -68,6 +69,7 @@ const ChessDashboard = () => {
   const {
     games,
     syncLichessGames,
+    syncChessComGames,
     removeLichessGames,
     importPgnGames,
     addManualGame,
@@ -133,6 +135,11 @@ const ChessDashboard = () => {
   // Handler for Lichess game sync (server upserts by Lichess game id)
   const handleLichessSync = async (transformedGames: Game[]) => {
     await syncLichessGames(transformedGames);
+  };
+
+  // Handler for Chess.com game sync (server upserts by Chess.com game uuid)
+  const handleChessComSync = async (transformedGames: Game[]) => {
+    await syncChessComGames(transformedGames);
   };
 
   // Handler to remove all Lichess games
@@ -340,6 +347,8 @@ const ChessDashboard = () => {
               handlePgnImport={handlePgnImport}
               LichessSyncPanel={LichessSyncPanel}
               onLichessSync={handleLichessSync}
+              ChessComSyncPanel={ChessComSyncPanel}
+              onChessComSync={handleChessComSync}
               onRemoveLichessGames={handleRemoveLichessGames}
               lichessGamesCount={games.filter(g => g.source === 'lichess').length}
             />

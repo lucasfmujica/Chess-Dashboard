@@ -498,3 +498,15 @@ ALTER TABLE concepts ADD COLUMN IF NOT EXISTS review_count INTEGER NOT NULL DEFA
 -- at all. An array column rather than a join table, matching the style already
 -- used by concepts.game_ids and opening_heroes.heroes.
 ALTER TABLE annotated_games ADD COLUMN IF NOT EXISTS concept_ids UUID[] NOT NULL DEFAULT '{}';
+
+-- Chess.com games sync into `games` (deduped on lichess_game_id, which holds the
+-- external id for both sites), and OTB games gain a round and the player's
+-- remaining clock at moves 20/30/40. Same statements as
+-- migrations/010_sync_chesscom_otb_clocks.sql.
+ALTER TABLE games DROP CONSTRAINT IF EXISTS games_source_check;
+ALTER TABLE games ADD CONSTRAINT games_source_check
+  CHECK (source IN ('otb', 'lichess', 'chesscom'));
+ALTER TABLE games ADD COLUMN IF NOT EXISTS round TEXT;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_20 TEXT;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_30 TEXT;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_40 TEXT;

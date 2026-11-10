@@ -93,6 +93,7 @@ export const COLORS = {
 export const GAME_SOURCES = {
   OTB: 'otb',
   LICHESS: 'lichess',
+  CHESSCOM: 'chesscom',
 };
 
 // Date Configuration

@@ -16,6 +16,7 @@ import Button from '../../ui/Button';
 import { PieceGlyph } from '../../ui/PieceGlyph';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
+import OtbScoreSummary from './analytics/OtbScoreSummary';
 import { getChartHeight } from '../../../utils/chartUtils';
 import { dateFromKey } from '../../../utils/localDate';
 import type { Game, GameStats, PlayerInfo, TournamentStat, StreaksSummary, Tournament } from '../../../types/chess';
@@ -79,6 +80,8 @@ interface OverviewTabProps {
   handlePgnImport: () => void;
   LichessSyncPanel: ComponentType<Record<string, unknown>>;
   onLichessSync: (games: Game[]) => void;
+  ChessComSyncPanel: ComponentType<Record<string, unknown>>;
+  onChessComSync: (games: Game[]) => void;
   onRemoveLichessGames: () => void;
   lichessGamesCount: number;
 }
@@ -139,6 +142,8 @@ const OverviewTab = ({
   handlePgnImport,
   LichessSyncPanel,
   onLichessSync,
+  ChessComSyncPanel,
+  onChessComSync,
   onRemoveLichessGames,
   lichessGamesCount
 }: OverviewTabProps) => {
@@ -510,6 +515,8 @@ const OverviewTab = ({
               resetForm={resetForm}
             />
 
+            <OtbScoreSummary games={games} />
+
             <PgnImport
               showPgnImport={showPgnImport}
               setShowPgnImport={setShowPgnImport}
@@ -517,6 +524,8 @@ const OverviewTab = ({
               setPgnText={setPgnText}
               handlePgnImport={handlePgnImport}
             />
+
+            {ChessComSyncPanel && <ChessComSyncPanel onSyncComplete={onChessComSync} />}
 
             {LichessSyncPanel && (
               <div className="space-y-4">
