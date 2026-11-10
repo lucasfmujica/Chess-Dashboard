@@ -113,17 +113,17 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
   return (
     <div className="rounded-lg border border-hairline bg-surface">
       <div className="px-4 py-2.5 border-b border-hairline flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-fg">Masters</h3>
+        <h3 className="text-label !text-fg-muted">Maestros</h3>
         {data?.opening && <span className="text-xs text-fg-muted truncate ml-2">{data.opening.name}</span>}
       </div>
 
       {loading && <p className="px-4 py-3 text-xs text-fg-muted">Cargando partidas de maestros…</p>}
       {error && <p className="px-4 py-3 text-xs text-loss">{error}</p>}
-      {!loading && !error && data && data.moves.length === 0 && (
-        <p className="px-4 py-3 text-xs text-fg-muted">No master games from this position.</p>
+      {!loading && !error && data && (data.moves?.length ?? 0) === 0 && (
+        <p className="px-4 py-3 text-xs text-fg-muted">No hay partidas de maestros desde esta posición.</p>
       )}
 
-      {!loading && !error && data && data.moves.length > 0 && (
+      {!loading && !error && data && (data.moves?.length ?? 0) > 0 && (
         <div className="max-h-[260px] overflow-auto">
           <table className="w-full text-sm min-w-[420px]">
             <thead className="bg-surface-2 sticky top-0">
