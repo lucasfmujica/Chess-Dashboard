@@ -276,7 +276,7 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
           <CardHeader title="Lectura" subtitle="franjas con 5 partidas o más" className="mb-4" />
           {readings.length === 0 ? (
             <p className="font-serif text-base leading-6 text-fg-muted">
-              En ninguna franja te alejás más de 5 puntos de lo que marca el ELO: rendís lo esperado.
+              En ninguna franja te alejás más de 5 puntos porcentuales de lo que marca el ELO: rendís lo esperado.
             </p>
           ) : (
             <div className="space-y-4 font-serif text-base leading-6 text-fg">
@@ -284,13 +284,13 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
                 bracket.performance > 0 ? (
                   <p key={bracket.label}>
                     {readingLabel(bracket.label)}: hacés {Math.round(bracket.scorePercentage)}% cuando el ELO espera{' '}
-                    {Math.round(bracket.expectedPercentage)}%. Rendís {bracket.performance.toFixed(1)} puntos por encima, en{' '}
+                    {Math.round(bracket.expectedPercentage)}%: {Math.round(bracket.scorePercentage) - Math.round(bracket.expectedPercentage)} puntos porcentuales por encima, en{' '}
                     {bracket.games} partidas.
                   </p>
                 ) : (
                   <p key={bracket.label}>
                     {readingLabel(bracket.label)}: hacés {Math.round(bracket.scorePercentage)}% contra un esperado de{' '}
-                    {Math.round(bracket.expectedPercentage)}%. Quedás {Math.abs(bracket.performance).toFixed(1)} puntos abajo: ahí
+                    {Math.round(bracket.expectedPercentage)}%. Quedás {Math.round(bracket.expectedPercentage) - Math.round(bracket.scorePercentage)} puntos porcentuales abajo: ahí
                     está el trabajo.
                   </p>
                 )
