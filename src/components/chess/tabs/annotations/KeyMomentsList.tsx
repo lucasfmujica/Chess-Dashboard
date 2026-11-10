@@ -39,12 +39,13 @@ const KeyMomentsList = ({
   onGoTo,
   askCandidateFate = false,
 }: KeyMomentsListProps) => (
-  <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-3">
-    <div>
-      <h4 className="text-sm font-bold text-fg">
-        Momentos{moments.length > 0 && ` (${moments.length})`}
+  <section className="space-y-3 rounded border border-hairline bg-surface p-4 sm:p-5" aria-labelledby="key-moments-title">
+    <div className="border-b border-hairline pb-3">
+      <h4 id="key-moments-title" className="font-serif text-xl font-semibold leading-tight text-fg">
+        Momentos
+        {moments.length > 0 && <span className="ml-2 font-mono text-sm font-normal text-fg-subtle">{moments.length}</span>}
       </h4>
-      <p className="text-xs text-fg-muted mt-0.5">
+      <p className="mt-1 text-xs text-fg-muted">
         Agregá uno por cada punto donde la partida giró, con «Agregar momento» desde el tablero.
         Marcá con ★ el que la decidió: ese es el que después se puede contar.
       </p>
@@ -55,13 +56,11 @@ const KeyMomentsList = ({
         Todavía no anotaste ningún momento.
       </p>
     ) : (
-      <ul className="space-y-2">
+      <ul className="divide-y divide-hairline border-y border-hairline">
         {moments.map((moment, idx) => (
           <li
             key={idx}
-            className={`rounded-lg border p-3 space-y-2 ${
-              moment.critical ? 'border-accent/40 bg-accent/5' : 'border-hairline bg-surface'
-            }`}
+            className={`space-y-2 px-2 py-3 ${moment.critical ? 'bg-carbon' : ''}`}
           >
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -71,8 +70,8 @@ const KeyMomentsList = ({
                 }
                 title="El momento que decidió la partida"
                 aria-pressed={!!moment.critical}
-                className={`p-1 rounded transition-colors ${
-                  moment.critical ? 'text-draw' : 'text-fg-subtle hover:text-fg'
+                className={`rounded p-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+                  moment.critical ? 'text-fg' : 'text-fg-subtle hover:text-fg'
                 }`}
               >
                 {moment.critical ? (
@@ -83,7 +82,7 @@ const KeyMomentsList = ({
               </button>
 
               {moment.ply !== undefined ? (
-                <span className="font-mono text-sm font-semibold text-fg">{moment.move}</span>
+                <span className="font-serif text-base text-fg">{moment.move}</span>
               ) : (
                 <input
                   type="text"
@@ -91,7 +90,7 @@ const KeyMomentsList = ({
                   placeholder="Ej: 15.Nxe5"
                   value={moment.move}
                   onChange={e => onUpdate(idx, { move: e.target.value })}
-                  className="w-32 px-3 py-1.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm font-mono focus:border-accent focus:ring-1 focus:ring-accent"
+                  className="h-8 w-32 rounded border border-hairline bg-surface px-2.5 font-serif text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               )}
 
@@ -99,7 +98,7 @@ const KeyMomentsList = ({
                 aria-label="Símbolo"
                 value={moment.symbol || ''}
                 onChange={e => onUpdate(idx, { symbol: e.target.value })}
-                className="px-2 py-1.5 bg-surface border border-hairline text-fg rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
+                className="h-8 rounded border border-hairline bg-surface px-2 text-sm text-fg focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               >
                 <option value="">—</option>
                 {NOTATION_SYMBOLS.map(s => (
@@ -111,7 +110,7 @@ const KeyMomentsList = ({
 
               {moment.bestMove && (
                 <span className="text-xs text-fg-muted">
-                  motor: <span className="font-mono text-fg">{moment.bestMove}</span>
+                  motor: <span className="font-serif text-sm text-fg">{moment.bestMove}</span>
                 </span>
               )}
 
@@ -119,7 +118,7 @@ const KeyMomentsList = ({
                 {onGoTo && moment.ply !== undefined && (
                   <button
                     onClick={() => onGoTo(moment.ply as number)}
-                    className="px-2 py-1 rounded-md text-xs font-medium text-accent hover:bg-accent/10 transition-colors"
+                    className="rounded px-2 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     Ver en el tablero
                   </button>
@@ -127,7 +126,7 @@ const KeyMomentsList = ({
                 <button
                   onClick={() => onRemove(idx)}
                   aria-label="Borrar momento"
-                  className="p-1.5 text-loss hover:bg-loss/10 rounded-lg transition-colors"
+                  className="rounded p-1.5 text-loss transition-colors hover:bg-carbon-pink/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
                   <TrashIcon className="w-4 h-4" />
                 </button>
@@ -140,11 +139,11 @@ const KeyMomentsList = ({
                 <span className="text-xs text-fg-muted" aria-hidden="true">
                   {CANDIDATE_FATE_QUESTION}
                 </span>
-                <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface p-1">
+                <div className="inline-flex gap-1 rounded border border-hairline bg-surface p-1">
                   {FATE_OPTIONS.map(opt => (
                     <label
                       key={opt.value}
-                      className={`px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
+                      className={`px-2.5 py-1 rounded-sm text-xs font-medium cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
                         moment.candidateFate === opt.value
                           ? 'bg-accent text-accent-fg'
                           : 'text-fg-muted hover:bg-surface-2'
@@ -171,7 +170,7 @@ const KeyMomentsList = ({
               placeholder="¿Qué pasó acá? ¿Qué no viste?"
               value={moment.comment || ''}
               onChange={e => onUpdate(idx, { comment: e.target.value })}
-              className="w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg text-sm focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full rounded border border-hairline bg-surface px-3 py-2 font-serif text-[15px] italic text-accent placeholder:not-italic placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </li>
         ))}
@@ -181,7 +180,7 @@ const KeyMomentsList = ({
     <Button icon={PlusIcon} size="sm" onClick={onAddBlank}>
       Momento a mano
     </Button>
-  </div>
+  </section>
 );
 
 export default KeyMomentsList;

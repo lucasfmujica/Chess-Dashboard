@@ -17,7 +17,7 @@ import {
 } from '../../../../utils/candidateSplit';
 import { WEEKLY_ANNOTATION_TARGET } from '../../../../constants/trainingProgram';
 import MomentSplitSummary from './MomentSplitSummary';
-import { Card, SegmentedControl, type Segment } from '../../../ui';
+import { Badge, Card, ClockBar, SegmentedControl, StatCard, type Segment } from '../../../ui';
 import type { TrainingSession, TrainingAttempt } from '../../../../types/training';
 import type { AnnotatedGame, AnnotationErrorType } from '../../../../types/chess';
 
@@ -200,44 +200,25 @@ const TrainingLog = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-h2 text-fg">Registro</h2>
-        <SegmentedControl options={RANGES} value={range} onChange={setRange} size="sm" />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-sm text-fg-muted">Lo que hiciste de verdad, contra lo que decía el plan.</p>
+        <SegmentedControl options={RANGES} value={range} onChange={setRange} size="sm" aria-label="Período" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <div className="text-label">Minutos</div>
-          <div className="text-h2 text-fg nums mt-1">{totalMinutes}</div>
-        </Card>
-        <Card>
-          <div className="text-label">Ejercicios</div>
-          <div className="text-h2 text-fg nums mt-1">
-            {totalSolved}
-            <span className="text-fg-subtle text-base"> / {totalAttempted}</span>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-label">Racha</div>
-          <div className="text-h2 text-fg nums mt-1">
-            {streak}
-            <span className="text-fg-subtle text-base"> días</span>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-label">Partidas analizadas</div>
-          <div className="text-h2 text-fg nums mt-1">
-            {annotationsInRange}
-            <span className="text-fg-subtle text-base"> / {expectedAnnotations}</span>
-          </div>
-          <div className="text-xs text-fg-muted mt-0.5">
-            objetivo {WEEKLY_ANNOTATION_TARGET} por semana
-          </div>
-        </Card>
-      </div>
+      <ClockBar>
+        <StatCard title="Minutos" value={totalMinutes} subtitle="en el período" />
+        <StatCard title="Ejercicios" value={`${totalSolved} / ${totalAttempted}`} subtitle="resueltos sobre intentados" />
+        <StatCard title="Días seguidos" value={streak} subtitle="con algo registrado" />
+        <StatCard
+          title="Partidas analizadas"
+          value={`${annotationsInRange} / ${expectedAnnotations}`}
+          subtitle={`objetivo ${WEEKLY_ANNOTATION_TARGET} por semana`}
+          trend={annotationsInRange >= expectedAnnotations ? 'up' : 'down'}
+        />
+      </ClockBar>
 
       <Card>
-        <h3 className="text-h3 text-fg">¿Por qué fallás?</h3>
+        <h3 className="font-serif text-xl font-semibold text-fg">¿Por qué fallás?</h3>
         {candidateSplit.asked === 0 ? (
           <p className="text-sm text-fg-muted mt-2">
             Todavía no hay fallos registrados con la pregunta de candidatos. Aparece acá
@@ -248,7 +229,7 @@ const TrainingLog = () => {
             <p className="text-sm text-fg-muted mt-1">
               Sobre {candidateSplit.asked} fallo{candidateSplit.asked > 1 ? 's' : ''} de cálculo.
             </p>
-            <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-surface-2">
+            <div className="mt-4 flex h-3 overflow-hidden rounded-sm bg-surface-2">
               <div
                 className="h-full"
                 style={{
@@ -267,24 +248,24 @@ const TrainingLog = () => {
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-h3 nums" style={{ color: 'rgb(var(--loss))' }}>
+                  <span className="font-mono text-2xl tabular-nums text-loss">
                     {candidateSplit.missedPct}%
                   </span>
                   <span className="text-sm text-fg">nunca se me ocurrió</span>
                 </div>
                 <p className="text-xs text-fg-muted mt-0.5">
-                  Falla de barrido — entrená generar candidatos, no calcular más hondo.
+                  Falla de barrido: entrená generar candidatos, no calcular más hondo.
                 </p>
               </div>
               <div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-h3 nums" style={{ color: 'rgb(var(--draw))' }}>
+                  <span className="font-mono text-2xl tabular-nums text-fg-muted">
                     {100 - candidateSplit.missedPct}%
                   </span>
                   <span className="text-sm text-fg">la descarté</span>
                 </div>
                 <p className="text-xs text-fg-muted mt-0.5">
-                  Falla de cálculo o evaluación — la jugada aparecía y la juzgaste mal.
+                  Falla de cálculo o evaluación: la jugada aparecía y la juzgaste mal.
                 </p>
               </div>
             </div>
@@ -296,11 +277,11 @@ const TrainingLog = () => {
       </Card>
 
       <Card>
-        <h3 className="text-h3 text-fg">Tu cuaderno de cálculo</h3>
+        <h3 className="font-serif text-xl font-semibold text-fg">Tu cuaderno de cálculo</h3>
         {notebook.length === 0 ? (
           <p className="text-sm text-fg-muted mt-2">
             Acá vuelven los candidatos que escribiste, para releerlos. Se llenan desde la cola
-            de Hoy o desde Drills en modo Cálculo.
+            de Hoy o desde Ejercicios en modo Cálculo.
           </p>
         ) : (
           <>
@@ -308,36 +289,28 @@ const TrainingLog = () => {
               {notebook.length} posicion{notebook.length > 1 ? 'es' : ''} con candidatos escritos.
               Lo que buscás es el candidato que nunca generás.
             </p>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
               {notebook.slice(0, 40).map(entry => (
                 <li
                   key={entry.id}
-                  className="rounded-lg border border-hairline bg-surface-2 p-3"
+                  className="py-3"
                 >
                   <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="nums text-fg-subtle">{entry.dateKey}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${
-                        entry.correct
-                          ? 'bg-win/12 text-win'
-                          : 'bg-loss/12 text-loss'
-                      }`}
-                    >
+                    <span className="font-mono tabular-nums text-fg-subtle">{entry.dateKey}</span>
+                    <Badge tone={entry.correct ? 'win' : 'loss'}>
                       {entry.correct ? 'La tenía' : 'Falló'}
-                    </span>
+                    </Badge>
                     {entry.candidateMiss !== undefined && (
-                      <span className="rounded-full bg-surface px-2 py-0.5 text-fg-muted">
-                        {entry.candidateMiss ? 'nunca se me ocurrió' : 'la descarté'}
-                      </span>
+                      <Badge>{entry.candidateMiss ? 'nunca se me ocurrió' : 'la descarté'}</Badge>
                     )}
                     {entry.thinkSeconds !== undefined && (
-                      <span className="nums text-fg-subtle">
+                      <span className="font-mono tabular-nums text-fg-subtle">
                         {Math.floor(entry.thinkSeconds / 60)}:
                         {String(entry.thinkSeconds % 60).padStart(2, '0')} de cálculo
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 whitespace-pre-wrap font-mono text-xs text-fg">
+                  <p className="mt-2 whitespace-pre-wrap font-serif text-[15px] italic leading-6 text-fg">
                     {entry.candidatesWritten}
                   </p>
                 </li>
@@ -354,14 +327,22 @@ const TrainingLog = () => {
 
       {candidateTrend.length > 1 && (
         <Card>
-          <h3 className="text-h3 text-fg mb-4">Evolución por semana</h3>
+          <h3 className="mb-4 font-serif text-xl font-semibold text-fg">Evolución por semana</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={candidateTrend}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <CartesianGrid stroke="rgb(var(--border))" vertical={false} />
                 <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    background: 'rgb(var(--surface))',
+                    border: '1px solid rgb(var(--border))',
+                    borderRadius: 4,
+                    color: 'rgb(var(--fg))',
+                    fontSize: 12,
+                  }}
+                />
                 <Legend />
                 <Bar
                   dataKey="missed"
@@ -383,17 +364,25 @@ const TrainingLog = () => {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <h3 className="text-h3 text-fg mb-4">Minutos por bloque</h3>
+          <h3 className="mb-4 font-serif text-xl font-semibold text-fg">Minutos por bloque</h3>
           {minutesByBlock.length === 0 ? (
             <p className="text-sm text-fg-muted">Sin sesiones registradas en este período.</p>
           ) : (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={minutesByBlock} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <CartesianGrid stroke="rgb(var(--border))" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 11 }} />
                   <YAxis type="category" dataKey="block" width={90} tick={{ fontSize: 11 }} />
-                  <Tooltip />
+                  <Tooltip
+                  contentStyle={{
+                    background: 'rgb(var(--surface))',
+                    border: '1px solid rgb(var(--border))',
+                    borderRadius: 4,
+                    color: 'rgb(var(--fg))',
+                    fontSize: 12,
+                  }}
+                />
                   <Bar dataKey="minutes" name="Minutos" fill="rgb(var(--cat-1))" />
                 </BarChart>
               </ResponsiveContainer>
@@ -402,20 +391,28 @@ const TrainingLog = () => {
         </Card>
 
         <Card>
-          <h3 className="text-h3 text-fg mb-4">Por qué perdés partidas</h3>
+          <h3 className="mb-4 font-serif text-xl font-semibold text-fg">Por qué perdés partidas</h3>
           {errorDistribution.length === 0 ? (
             <p className="text-sm text-fg-muted">
               Ninguna partida analizada tiene todavía un tipo de error cargado. Se completa
-              desde Game Library.
+              desde la biblioteca de partidas.
             </p>
           ) : (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={errorDistribution} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <CartesianGrid stroke="rgb(var(--border))" horizontal={false} />
                   <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
                   <YAxis type="category" dataKey="type" width={130} tick={{ fontSize: 11 }} />
-                  <Tooltip />
+                  <Tooltip
+                  contentStyle={{
+                    background: 'rgb(var(--surface))',
+                    border: '1px solid rgb(var(--border))',
+                    borderRadius: 4,
+                    color: 'rgb(var(--fg))',
+                    fontSize: 12,
+                  }}
+                />
                   <Bar dataKey="count" name="Partidas" fill="rgb(var(--cat-2))" />
                 </BarChart>
               </ResponsiveContainer>

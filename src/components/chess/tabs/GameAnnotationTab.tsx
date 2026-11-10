@@ -1,15 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  DocumentTextIcon,
-  ExclamationTriangleIcon,
-  FunnelIcon,
-  PlusIcon,
-  StarIcon,
-} from '@heroicons/react/24/outline';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import { useGames } from '../../../context/GamesContext';
 import { useUI } from '../../../context/UIContext';
-import { Button } from '../../ui';
+import { Button, Card, ClockBar, StatCard } from '../../ui';
 import AnnotationCard from './annotations/AnnotationCard';
 import AnnotationForm from './annotations/AnnotationForm';
 import UnanalyzedQueue from './annotations/UnanalyzedQueue';
@@ -199,62 +193,28 @@ const GameAnnotationTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-        <div className="relative px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-surface-2 rounded-lg">
-                <DocumentTextIcon className="w-8 h-8 text-accent" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-fg">Game Library</h2>
-                <p className="text-fg-muted">Tus partidas analizadas, con el tablero al lado</p>
-              </div>
-            </div>
-
-            <Button variant="primary" icon={PlusIcon} onClick={openBlankAnnotation} className="shrink-0">
-              Análisis en blanco
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center gap-2 mb-2">
-                <DocumentTextIcon className="w-5 h-5 text-accent" />
-                <p className="text-sm font-medium text-fg-muted">Partidas analizadas</p>
-              </div>
-              <p className="text-2xl font-bold text-fg tabular-nums">{annotatedGames.length}</p>
-            </div>
-
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center gap-2 mb-2">
-                <ExclamationTriangleIcon
-                  className={`w-5 h-5 ${pending.length > 0 ? 'text-loss' : 'text-win'}`}
-                />
-                <p className="text-sm font-medium text-fg-muted">Sin analizar</p>
-              </div>
-              <p
-                className={`text-2xl font-bold tabular-nums ${pending.length > 0 ? 'text-loss' : 'text-win'}`}
-              >
-                {pending.length}
-              </p>
-            </div>
-
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <div className="flex items-center gap-2 mb-2">
-                <StarIcon className="w-5 h-5 text-accent" />
-                <p className="text-sm font-medium text-fg-muted">Valoración media</p>
-              </div>
-              <p className="text-2xl font-bold text-fg tabular-nums">{avgRating} ★</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-fg-muted">Tus partidas analizadas, con el tablero al lado.</p>
+        <Button variant="primary" icon={PlusIcon} onClick={openBlankAnnotation} className="shrink-0">
+          Análisis en blanco
+        </Button>
       </div>
 
-      <UnanalyzedQueue games={pending} onAnalyze={startAnnotation} />
+      <ClockBar>
+        <StatCard title="Partidas analizadas" value={annotatedGames.length} subtitle="con su post-mortem escrito" />
+        <StatCard
+          title="Sin analizar"
+          value={pending.length}
+          subtitle={`últimos ${BACKLOG_DAYS} días`}
+        />
+        <StatCard
+          title="Valoración media"
+          value={annotatedGames.length > 0 ? `${avgRating} / 5` : '—'}
+          subtitle="tu nota a cada partida"
+        />
+      </ClockBar>
 
-      <div ref={formRef}>
+      <div ref={formRef} className="scroll-mt-4">
         {selectedGame !== null && (
           <AnnotationForm
             draft={selectedGame}
@@ -269,75 +229,68 @@ const GameAnnotationTab = () => {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-surface rounded-lg border border-hairline p-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex-1 min-w-[300px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
+        <div className="min-w-0 space-y-6 lg:order-1">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
             <input
-              type="text"
+              type="search"
               aria-label="Buscar análisis"
-              placeholder="Buscar en los análisis..."
+              placeholder="Buscar en los análisis"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+              className="h-9 min-w-[200px] flex-1 rounded border border-hairline bg-surface px-3 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <FunnelIcon className="w-5 h-5 text-fg-muted" />
             <select
               aria-label="Filtrar por etiqueta"
               value={filterTag}
               onChange={e => setFilterTag(e.target.value)}
-              className="px-4 py-2.5 bg-surface border border-hairline rounded-lg font-semibold text-fg focus:border-accent focus:ring-1 focus:ring-accent"
+              className="h-9 rounded border border-hairline bg-surface px-3 text-sm text-fg focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             >
               <option value="all">Todas las etiquetas</option>
               {TAGS.map(tag => (
                 <option key={tag.id} value={tag.id}>
-                  {tag.icon} {tag.label} ({tagCounts.get(tag.id) ?? 0})
+                  {tag.label} ({tagCounts.get(tag.id) ?? 0})
                 </option>
               ))}
             </select>
           </div>
-        </div>
-      </div>
 
-      {/* Saved annotations */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {filteredAnnotations.length > 0 ? (
-          filteredAnnotations.map(annotation => (
-            <AnnotationCard
-              key={annotation.id}
-              annotation={annotation}
-              onEdit={editAnnotation}
-              onDelete={deleteAnnotation}
-            />
-          ))
-        ) : (
-          <div className="col-span-full bg-surface rounded-lg border border-hairline p-12 text-center">
-            <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
-              <DocumentTextIcon className="w-12 h-12 text-fg-subtle" />
-            </div>
-            <h3 className="text-base font-semibold text-fg mb-2">Todavía no hay análisis</h3>
-            <p className="text-fg-muted max-w-xl mx-auto">
-              Jueves: jugás la 15+10. Después venís acá, la partida aparece arriba en «sin
-              analizar», tocás <strong className="text-fg">Analizar</strong> y el tablero se abre
-              con la partida cargada. Recorrés la partida y en cada punto donde giró tocás{' '}
-              <strong className="text-fg">«Agregar momento»</strong>: se van apilando en una lista,
-              cada uno con su comentario. Al final marcás con ★ el que la decidió y escribís la
-              lección.
-            </p>
-            {pending.length > 0 && (
-              <Button
-                variant="primary"
-                onClick={() => startAnnotation(pending[0])}
-                className="mt-4"
-              >
-                Empezar con {gameLabel(pending[0])}
-              </Button>
+          {/* Saved annotations */}
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {filteredAnnotations.length > 0 ? (
+              filteredAnnotations.map(annotation => (
+                <AnnotationCard
+                  key={annotation.id}
+                  annotation={annotation}
+                  onEdit={editAnnotation}
+                  onDelete={deleteAnnotation}
+                />
+              ))
+            ) : (
+              <Card className="col-span-full">
+                <h3 className="font-serif text-xl font-semibold text-fg">Todavía no hay análisis</h3>
+                <p className="mt-2 max-w-xl font-serif text-[15px] leading-relaxed text-fg-muted">
+                  Jueves: jugás la 15+10. Después venís acá, la partida aparece en «Para analizar»,
+                  tocás <strong className="font-semibold text-fg">Analizar</strong> y el tablero se abre
+                  con la partida cargada. Recorrés la partida y en cada punto donde giró tocás{' '}
+                  <strong className="font-semibold text-fg">«Agregar momento»</strong>: se van apilando en
+                  una lista, cada uno con su comentario. Al final marcás con ★ el que la decidió y
+                  escribís la lección.
+                </p>
+                {pending.length > 0 && (
+                  <Button variant="primary" onClick={() => startAnnotation(pending[0])} className="mt-4">
+                    Empezar con {gameLabel(pending[0])}
+                  </Button>
+                )}
+              </Card>
             )}
           </div>
-        )}
+        </div>
+
+        <aside className="order-first min-w-0 lg:order-2">
+          <UnanalyzedQueue games={pending} onAnalyze={startAnnotation} />
+        </aside>
       </div>
     </div>
   );

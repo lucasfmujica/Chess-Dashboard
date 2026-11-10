@@ -1,4 +1,3 @@
-import { FunnelIcon, MapPinIcon, WifiIcon, ListBulletIcon } from '@heroicons/react/24/outline';
 import type { Game } from '../types/chess';
 
 type GameFilterValue = 'otb' | 'online' | 'all';
@@ -9,77 +8,36 @@ interface GameFilterProps {
   filteredGames: Game[];
 }
 
-const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProps) => {
-  return (
-    <div className="bg-surface rounded-lg border border-hairline p-2">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 px-3 py-2">
-          <FunnelIcon className="w-4 h-4 text-fg-muted" aria-hidden="true" />
-          <span className="text-sm font-semibold text-fg">Filter:</span>
-        </div>
+const OPTIONS: { value: GameFilterValue; label: string; aria: string }[] = [
+  { value: 'otb', label: 'Torneo', aria: 'Mostrar solo partidas de torneo' },
+  { value: 'online', label: 'Online', aria: 'Mostrar solo partidas online' },
+  { value: 'all', label: 'Todas', aria: 'Mostrar todas las partidas' },
+];
+
+/**
+ * Which games feed every view. A ruled column header (Planilla "Segmented"):
+ * the chosen source underlined in pen, with its game count in mono.
+ */
+const GameFilter = ({ gameFilter, setGameFilter, filteredGames }: GameFilterProps) => (
+  <div className="inline-flex border-b border-hairline" role="group" aria-label="Origen de las partidas">
+    {OPTIONS.map(opt => {
+      const active = gameFilter === opt.value;
+      return (
         <button
-          onClick={() => setGameFilter('otb')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-            gameFilter === 'otb'
-              ? 'bg-surface-2 text-fg'
-              : 'text-fg-muted hover:bg-surface-2'
+          key={opt.value}
+          onClick={() => setGameFilter(opt.value)}
+          className={`-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            active ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:text-fg'
           }`}
-          aria-label="Filter to show only over-the-board games"
-          aria-pressed={gameFilter === 'otb'}
+          aria-label={opt.aria}
+          aria-pressed={active}
         >
-          <span className="flex items-center gap-2">
-            <MapPinIcon className="w-4 h-4" aria-hidden="true" />
-            OTB
-            {gameFilter === 'otb' && (
-              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
-                {filteredGames.length}
-              </span>
-            )}
-          </span>
+          {opt.label}
+          {active && <span className="font-mono text-xs tabular-nums text-fg-subtle">{filteredGames.length}</span>}
         </button>
-        <button
-          onClick={() => setGameFilter('online')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-            gameFilter === 'online'
-              ? 'bg-surface-2 text-fg'
-              : 'text-fg-muted hover:bg-surface-2'
-          }`}
-          aria-label="Filter to show only online games"
-          aria-pressed={gameFilter === 'online'}
-        >
-          <span className="flex items-center gap-2">
-            <WifiIcon className="w-4 h-4" aria-hidden="true" />
-            Online
-            {gameFilter === 'online' && (
-              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
-                {filteredGames.length}
-              </span>
-            )}
-          </span>
-        </button>
-        <button
-          onClick={() => setGameFilter('all')}
-          className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-            gameFilter === 'all'
-              ? 'bg-surface-2 text-fg'
-              : 'text-fg-muted hover:bg-surface-2'
-          }`}
-          aria-label="Filter to show all games"
-          aria-pressed={gameFilter === 'all'}
-        >
-          <span className="flex items-center gap-2">
-            <ListBulletIcon className="w-4 h-4" aria-hidden="true" />
-            All
-            {gameFilter === 'all' && (
-              <span className="ml-1 px-2 py-0.5 bg-accent text-accent-fg rounded-full text-xs font-bold tabular-nums">
-                {filteredGames.length}
-              </span>
-            )}
-          </span>
-        </button>
-      </div>
-    </div>
-  );
-};
+      );
+    })}
+  </div>
+);
 
 export default GameFilter;

@@ -71,7 +71,7 @@ const bestMoveSan = (fen: string, uci: string | undefined): string | undefined =
 
 const VERDICT_CLASS: Record<Verdict, string> = {
   correcta: 'text-win',
-  imprecisa: 'text-draw',
+  imprecisa: 'text-fg-muted',
   mala: 'text-loss',
 };
 
@@ -321,7 +321,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
       </BoardFrame>
 
       {pendingPromotion && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
           <p className="text-label mb-2">¿Con qué pieza coronás?</p>
           <div className="flex gap-2">
             {PROMOTION_PIECES.map(code => (
@@ -332,7 +332,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
                   setPendingPromotion(null);
                   void play(from, to, code);
                 }}
-                className="flex h-12 w-12 items-center justify-center rounded-lg border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent"
+                className="flex h-12 w-12 items-center justify-center rounded border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 aria-label={code}
               >
                 {GLYPHS[code][sideToMove]}
@@ -343,24 +343,24 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-        <span className="text-fg-muted nums">
+        <span className="font-mono tabular-nums text-fg-muted">
           {summary.moves} jugada{summary.moves === 1 ? '' : 's'}
         </span>
         {summary.inaccuracies > 0 && (
-          <span className="text-draw nums">{summary.inaccuracies} imprecisas</span>
+          <span className="font-mono tabular-nums text-fg-muted">{summary.inaccuracies} imprecisas</span>
         )}
         {summary.mistakes > 0 && (
-          <span className="text-loss nums">{summary.mistakes} malas</span>
+          <span className="font-mono tabular-nums text-loss">{summary.mistakes} malas</span>
         )}
         {lastLoss !== null && lastLoss > 0 && !finished && (
-          <span className="text-fg-subtle nums">última {formatCpLoss(lastLoss)}</span>
+          <span className="font-mono tabular-nums text-fg-subtle">última {formatCpLoss(lastLoss)}</span>
         )}
         {thinking && <span className="text-fg-muted">El motor está pensando…</span>}
       </div>
 
       {finished ? (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
-          <p className="text-fg font-medium">{outcome ?? 'Final interrumpido'}</p>
+        <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
+          <p className="font-serif text-lg font-semibold text-fg">{outcome ?? 'Final interrumpido'}</p>
           <p className="text-sm text-fg-muted mt-1">
             {summary.mistakes === 0
               ? 'Lo jugaste sin errores graves.'
@@ -369,13 +369,13 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
 
           {history.length > 0 && (
             <div className="mt-3">
-              <p className="text-label mb-2">Tus jugadas — tocá una para volver a esa posición</p>
+              <p className="text-label mb-2">Tus jugadas: tocá una para volver a esa posición</p>
               <div className="flex flex-wrap gap-1.5">
                 {history.map((played, i) => (
                   <button
                     key={i}
                     onClick={() => setReviewIndex(reviewIndex === i ? null : i)}
-                    className={`px-2 py-1 rounded-md border text-sm tabular-nums transition-colors ${
+                    className={`px-2 py-1 rounded-sm border font-serif text-[15px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
                       reviewIndex === i
                         ? 'border-accent bg-accent/10 text-fg'
                         : 'border-hairline text-fg-muted hover:bg-surface'
@@ -386,7 +386,7 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
                         : 'sin evaluar'
                     }
                   >
-                    <span className="text-fg-subtle">{i + 1}.</span>{' '}
+                    <span className="font-mono text-xs text-fg-subtle tabular-nums">{i + 1}.</span>{' '}
                     <span className={played.verdict ? VERDICT_CLASS[played.verdict] : 'text-fg-muted'}>
                       {played.san}
                     </span>
@@ -395,11 +395,11 @@ const PlayoutBoard = ({ fen, orientation, onFinish, resetKey }: PlayoutBoardProp
               </div>
 
               {reviewIndex !== null && (
-                <div className="mt-3 rounded-lg border border-hairline bg-surface p-3">
+                <div className="mt-3 rounded border border-hairline bg-surface p-3">
                   <p className="text-sm text-fg">
                     Jugaste{' '}
                     <span
-                      className={`font-bold ${
+                      className={`font-serif font-semibold ${
                         history[reviewIndex].verdict
                           ? VERDICT_CLASS[history[reviewIndex].verdict as Verdict]
                           : ''

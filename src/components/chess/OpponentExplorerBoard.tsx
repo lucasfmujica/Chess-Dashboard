@@ -9,7 +9,7 @@ import PersonalMoves from './PersonalMoves';
 import MovesExplorer from './MovesExplorer';
 import Button from '../ui/Button';
 import SegmentedControl from '../ui/SegmentedControl';
-import { PieceLabel } from '../ui/PieceGlyph';
+import { PieceGlyph } from '../ui/PieceGlyph';
 import type { Game, PlayerColor } from '../../types/chess';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -95,24 +95,24 @@ const OpponentExplorerBoard = ({ rivalGames, rivalName }: OpponentExplorerBoardP
               }}
             />
           </BoardFrame>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="secondary" icon={ArrowUturnLeftIcon} onClick={goBack} disabled={history.length === 0}>
-              Back
+              Atrás
             </Button>
             <Button variant="secondary" onClick={reset} disabled={fen === STARTING_FEN}>
-              Reset
+              Al inicio
             </Button>
           </div>
         </div>
 
         <div className="min-w-0 space-y-3">
           <SegmentedControl
-            aria-label="Rival color"
+            aria-label="Color del rival"
             value={color}
             onChange={setColor}
             options={[
-              { value: 'W', label: <PieceLabel color="W" /> },
-              { value: 'B', label: <PieceLabel color="B" /> },
+              { value: 'W', label: <><PieceGlyph color="W" />Con blancas</> },
+              { value: 'B', label: <><PieceGlyph color="B" />Con negras</> },
             ]}
           />
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

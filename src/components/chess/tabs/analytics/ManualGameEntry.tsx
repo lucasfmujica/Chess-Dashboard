@@ -1,4 +1,4 @@
-import { LightBulbIcon } from '@heroicons/react/24/outline';
+import Button from '../../../ui/Button';
 import type { PlayerColor, GameResult } from '../../../../types/chess';
 
 /** Local form state shape for manual game entry (numeric fields kept as string|number while editing). */
@@ -27,6 +27,9 @@ interface ManualGameEntryProps {
   resetForm: () => void;
 }
 
+const INPUT =
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus-visible:ring-1 focus-visible:ring-accent';
+
 const ManualGameEntry = ({
   showManualEntry,
   setShowManualEntry,
@@ -36,240 +39,112 @@ const ManualGameEntry = ({
   handleAddGame,
   resetForm,
 }: ManualGameEntryProps) => {
+  const field = (
+    label: string,
+    name: keyof GameForm,
+    placeholder: string,
+    type: 'text' | 'number' = 'text'
+  ) => (
+    <div>
+      <label htmlFor={`mge-${name}`} className="mb-1.5 block text-label">
+        {label}
+      </label>
+      <input
+        id={`mge-${name}`}
+        type={type}
+        name={name}
+        list={name === 'tournament' ? 'tournament-suggestions' : undefined}
+        value={(gameForm[name] as string | number | undefined) ?? ''}
+        onChange={handleInputChange}
+        placeholder={placeholder}
+        className={`${INPUT} ${type === 'number' || name.startsWith('clock') || name === 'round' ? 'font-mono tabular-nums' : ''}`}
+      />
+    </div>
+  );
+
   return (
-    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-surface-2 rounded-lg">
-              <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-fg">Add Game Manually</h3>
-              <p className="text-sm text-fg-muted">Record individual tournament games</p>
-            </div>
+    <div className="rounded border border-hairline bg-surface">
+      <div className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-serif text-lg font-semibold text-fg">Cargar una partida a mano</h3>
+            <p className="mt-0.5 text-sm text-fg-muted">Una partida de torneo por vez</p>
           </div>
-          <button
+          <Button
+            variant={showManualEntry ? 'secondary' : 'primary'}
+            size="sm"
             onClick={() => setShowManualEntry(!showManualEntry)}
-            className="px-4 py-2 text-sm font-medium text-app bg-fg rounded-lg hover:opacity-90 transition-opacity"
           >
-            {showManualEntry ? '✕ Close Form' : '➕ Add Game'}
-          </button>
+            {showManualEntry ? 'Cerrar formulario' : 'Cargar partida'}
+          </Button>
         </div>
 
         {showManualEntry && (
-          <div className="space-y-4 animate-slideUp">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Tournament Name */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Tournament Name *
-                </label>
-                <input
-                  type="text"
-                  name="tournament"
-                  list="tournament-suggestions"
-                  value={gameForm.tournament}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Lago Puelo Open 2025"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-                <datalist id="tournament-suggestions">
-                  {uniqueTournaments.map((t, idx) => (
-                    <option key={idx} value={t} />
-                  ))}
-                </datalist>
-              </div>
+          <div className="mt-5 space-y-4 animate-slideUp">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {field('Torneo *', 'tournament', 'Ej.: Abierto Lago Puelo 2025')}
+              <datalist id="tournament-suggestions">
+                {uniqueTournaments.map((t, idx) => (
+                  <option key={idx} value={t} />
+                ))}
+              </datalist>
+              {field('Tu ELO *', 'elo', 'Ej.: 1650', 'number')}
+              {field('Rival *', 'opp', 'Apellido, Nombre')}
+              {field('ELO del rival *', 'opp_elo', 'Ej.: 1700', 'number')}
 
-              {/* Your ELO */}
               <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Your ELO *
+                <label htmlFor="mge-color" className="mb-1.5 block text-label">
+                  Tu color
                 </label>
-                <input
-                  type="number"
-                  name="elo"
-                  value={gameForm.elo}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 1650"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              {/* Opponent Name */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Opponent Name *
-                </label>
-                <input
-                  type="text"
-                  name="opp"
-                  value={gameForm.opp}
-                  onChange={handleInputChange}
-                  placeholder="e.g., John Smith"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              {/* Opponent ELO */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Opponent ELO *
-                </label>
-                <input
-                  type="number"
-                  name="opp_elo"
-                  value={gameForm.opp_elo}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 1700"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              {/* Color */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Your Color
-                </label>
-                <select
-                  name="color"
-                  value={gameForm.color}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                >
-                  <option value="W">⚪ White</option>
-                  <option value="B">⚫ Black</option>
+                <select id="mge-color" name="color" value={gameForm.color} onChange={handleInputChange} className={INPUT}>
+                  <option value="W">Blancas</option>
+                  <option value="B">Negras</option>
                 </select>
               </div>
 
-              {/* Result */}
               <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Result
+                <label htmlFor="mge-result" className="mb-1.5 block text-label">
+                  Resultado
                 </label>
-                <select
-                  name="result"
-                  value={gameForm.result}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                >
-                  <option value="W">✅ Win</option>
-                  <option value="D">➖ Draw</option>
-                  <option value="L">❌ Loss</option>
+                <select id="mge-result" name="result" value={gameForm.result} onChange={handleInputChange} className={INPUT}>
+                  <option value="W">1 · Victoria</option>
+                  <option value="D">½ · Tablas</option>
+                  <option value="L">0 · Derrota</option>
                 </select>
               </div>
 
-              {/* ECO Code */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  ECO Code (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="eco"
-                  value={gameForm.eco}
-                  onChange={handleInputChange}
-                  placeholder="e.g., B23"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
+              {field('ECO (opcional)', 'eco', 'Ej.: B23')}
+              {field('Ronda (opcional)', 'round', 'Ej.: 3')}
+              {field('Reloj en la 20 (opcional)', 'clock20', '1:12:05')}
+              {field('Reloj en la 30 (opcional)', 'clock30', '0:48:30')}
+              {field('Reloj en la 40 (opcional)', 'clock40', '0:20:10')}
 
-              {/* Round + clock after move 20 / 30 / 40 */}
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Round (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="round"
-                  value={gameForm.round ?? ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 3"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Clock @ 20 (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="clock20"
-                  value={gameForm.clock20 ?? ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 1:12:05"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Clock @ 30 (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="clock30"
-                  value={gameForm.clock30 ?? ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 0:48:30"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-semibold text-fg">
-                  Clock @ 40 (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="clock40"
-                  value={gameForm.clock40 ?? ''}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 0:20:10"
-                  className="w-full px-4 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent transition-all"
-                />
-              </div>
-
-              {/* Rated */}
-              <div className="flex items-center pt-8">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex items-center md:pt-6">
+                <label className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
                     name="rated"
                     checked={gameForm.rated}
                     onChange={handleInputChange}
-                    className="w-5 h-5 text-accent border border-hairline rounded focus:ring-1 focus:ring-accent"
+                    className="h-4 w-4 rounded-sm border border-hairline accent-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   />
-                  <span className="text-sm font-semibold text-fg">Rated Game</span>
+                  <span className="text-sm font-medium text-fg">Válida para ELO</span>
                 </label>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={handleAddGame}
-                className="px-6 py-2.5 text-sm font-medium text-app bg-fg rounded-lg hover:opacity-90 transition-opacity"
-              >
-                ✓ Add Game
-              </button>
-              <button
-                onClick={resetForm}
-                className="px-6 py-2.5 text-sm font-medium text-fg transition-colors border border-hairline bg-surface rounded-lg hover:bg-surface-2"
-              >
-                Cancel
-              </button>
+            <div className="flex flex-wrap gap-3 pt-1">
+              <Button variant="primary" onClick={handleAddGame}>
+                Guardar partida
+              </Button>
+              <Button variant="secondary" onClick={resetForm}>
+                Cancelar
+              </Button>
             </div>
 
-            <div className="flex items-start gap-2 p-3 bg-surface-2 border border-hairline rounded-lg">
-              <LightBulbIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-fg-muted">
-                <strong>Tip:</strong> Tournament and ELO are preserved when adding multiple games from the same event. Games are saved automatically to your browser&apos;s localStorage.
-              </p>
-            </div>
+            <p className="border-t border-hairline pt-3 text-xs text-fg-muted">
+              El torneo y tu ELO quedan cargados para la partida siguiente del mismo evento.
+            </p>
           </div>
         )}
       </div>

@@ -6,15 +6,15 @@ interface ChartSkeletonProps {
 
 export const ChartSkeleton = ({ height = 300 }: ChartSkeletonProps) => (
   <div className="animate-pulse" style={{ height }}>
-    <div className="h-full bg-surface-2 rounded-lg"></div>
+    <div className="h-full bg-surface-2 rounded-sm"></div>
   </div>
 );
 
 export const StatCardSkeleton = () => (
-  <div className="animate-pulse bg-surface rounded-lg p-6 border border-hairline">
+  <div className="animate-pulse bg-surface rounded p-6 border border-hairline">
     <div className="flex items-center justify-between mb-4">
       <div className="h-4 w-24 bg-surface-2 rounded"></div>
-      <div className="h-8 w-8 bg-surface-2 rounded-lg"></div>
+      <div className="h-8 w-8 bg-surface-2 rounded-sm"></div>
     </div>
     <div className="space-y-3">
       <div className="h-8 w-20 bg-surface-2 rounded"></div>
@@ -29,7 +29,7 @@ interface TableSkeletonProps {
 
 export const TableSkeleton = ({ rows = 5 }: TableSkeletonProps) => (
   <div className="animate-pulse">
-    <div className="bg-surface rounded-lg border border-hairline overflow-hidden">
+    <div className="bg-surface rounded border border-hairline overflow-hidden">
       <div className="h-12 bg-surface-2"></div>
       {Array.from({ length: rows }).map((_, idx) => (
         <div key={idx} className="h-16 border-t border-hairline bg-surface-2/50"></div>

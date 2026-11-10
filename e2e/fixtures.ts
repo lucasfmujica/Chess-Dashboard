@@ -39,4 +39,4 @@ export { expect };
 
 /** The sidebar entry for a tab, by the label screen readers get. */
 export const navButton = (page: Page, tab: string) =>
-  page.getByRole('navigation', { name: 'Main navigation' }).getByRole('button', { name: `Navigate to ${tab}` });
+  page.getByRole('navigation', { name: 'Navegación principal' }).getByRole('button', { name: tab, exact: true });

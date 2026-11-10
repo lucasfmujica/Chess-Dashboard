@@ -5,6 +5,7 @@ import StreakStatsCards from './streaks/StreakStatsCards';
 import ActivityCalendar from './streaks/ActivityCalendar';
 import WeeklyActivityChart from './streaks/WeeklyActivityChart';
 import ConsistencyInsights from './streaks/ConsistencyInsights';
+import ResultsSheet from './streaks/ResultsSheet';
 import type { Game, GameResult, MonthlyStat } from '../../../types/chess';
 
 interface FormStat {
@@ -31,25 +32,22 @@ const StreaksTab = ({ games, formStats, monthlyStats }: StreaksTabProps) => {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <StreaksHeroSection streaksData={streaksData} />
+      <StreaksHeroSection streaksData={streaksData} last10={formStats.last10} />
 
-      {/* Recent Form Section */}
+      <ResultsSheet games={games} />
+
       <RecentFormSection formStats={formStats} monthlyStats={monthlyStats} />
 
-      {/* Streak Stats Cards */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ActivityCalendar calendar={streaksData.calendar} />
+        <WeeklyActivityChart
+          weeklyActivity={streaksData.weeklyActivity}
+          avgGamesPerWeek={streaksData.avgGamesPerWeek}
+        />
+      </div>
+
       <StreakStatsCards streaksData={streaksData} />
 
-      {/* Activity Calendar */}
-      <ActivityCalendar calendar={streaksData.calendar} />
-
-      {/* Weekly Activity Chart */}
-      <WeeklyActivityChart
-        weeklyActivity={streaksData.weeklyActivity}
-        avgGamesPerWeek={streaksData.avgGamesPerWeek}
-      />
-
-      {/* Consistency Insights */}
       <ConsistencyInsights streaksData={streaksData} />
     </div>
   );

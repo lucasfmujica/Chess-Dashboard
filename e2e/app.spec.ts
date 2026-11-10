@@ -6,29 +6,29 @@ test.describe('Chess Dashboard - Core Functionality', () => {
   });
 
   test('should load the dashboard homepage', async ({ page }) => {
-    await expect(page).toHaveTitle(/Chess Dashboard/i);
-    await expect(page.getByRole('heading', { level: 1, name: "Lucas's Chess Performance" })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
+    await expect(page).toHaveTitle(/Jaque\+/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Resumen' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible();
   });
 
   test('should display overview tab by default', async ({ page }) => {
-    await expect(navButton(page, 'Overview')).toHaveAttribute('aria-current', 'page');
+    await expect(navButton(page, 'Resumen')).toHaveAttribute('aria-current', 'page');
   });
 
   test('should navigate between tabs', async ({ page }) => {
-    for (const tab of ['ELO Progress', 'Tournaments', 'Repertoire', 'Training Plan']) {
+    for (const tab of ['Progreso de ELO', 'Torneos', 'Repertorio', 'Plan de entrenamiento']) {
       await navButton(page, tab).click();
       await expect(navButton(page, tab)).toHaveAttribute('aria-current', 'page');
-      await expect(navButton(page, 'Overview')).not.toHaveAttribute('aria-current', 'page');
+      await expect(navButton(page, 'Resumen')).not.toHaveAttribute('aria-current', 'page');
     }
   });
 
   test('should filter games (OTB, Online, All)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    const otb = page.getByRole('button', { name: 'Filter to show only over-the-board games' });
-    const online = page.getByRole('button', { name: 'Filter to show only online games' });
-    const all = page.getByRole('button', { name: 'Filter to show all games' });
+    const otb = page.getByRole('button', { name: 'Mostrar solo partidas de torneo' });
+    const online = page.getByRole('button', { name: 'Mostrar solo partidas online' });
+    const all = page.getByRole('button', { name: 'Mostrar todas las partidas' });
 
     for (const selected of [online, all, otb]) {
       await selected.click();
@@ -42,22 +42,22 @@ test.describe('Chess Dashboard - Core Functionality', () => {
   test('should toggle sidebar collapse', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-    const expand = page.getByRole('button', { name: 'Expand sidebar' });
+    await page.getByRole('button', { name: 'Colapsar barra lateral' }).click();
+    const expand = page.getByRole('button', { name: 'Expandir barra lateral' });
     await expect(expand).toBeVisible();
 
     await expand.click();
-    await expect(page.getByRole('button', { name: 'Collapse sidebar' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Colapsar barra lateral' })).toBeVisible();
   });
 
   test('should open and close the mobile menu', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    const overview = navButton(page, 'Overview');
+    const overview = navButton(page, 'Resumen');
 
-    await page.getByRole('button', { name: 'Open mobile menu' }).click();
+    await page.getByRole('button', { name: 'Abrir menú' }).click();
     await expect(overview).toBeInViewport();
 
-    await page.getByRole('button', { name: 'Close mobile menu' }).click();
+    await page.getByRole('button', { name: 'Cerrar menú' }).click();
     await expect(overview).not.toBeInViewport();
   });
 });

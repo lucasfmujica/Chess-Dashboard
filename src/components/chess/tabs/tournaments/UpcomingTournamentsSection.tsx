@@ -1,4 +1,5 @@
-import { CalendarIcon, ClockIcon, PlusIcon, PencilIcon, TrashIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { Button, Card, CardHeader } from '../../../ui';
 import { dateFromKey } from '../../../../utils/localDate';
 import type { Tournament } from '../../../../types/chess';
 import type { TournamentFormState } from '../../../../hooks/useTournamentForm';
@@ -32,6 +33,12 @@ const formatDate = (dateStr?: string): string => {
   });
 };
 
+const MONTH = (dateStr: string) =>
+  dateFromKey(dateStr).toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
+const DAY = (dateStr: string) => dateFromKey(dateStr).getDate();
+
+const FIELD = 'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+
 const UpcomingTournamentsSection = ({
   upcomingTournaments,
   isAddingTournament,
@@ -47,231 +54,179 @@ const UpcomingTournamentsSection = ({
   resetForm
 }: UpcomingTournamentsSectionProps) => {
   return (
-    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-      <div className="p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 sm:p-3 bg-surface-2 rounded-lg">
-              <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+    <Card>
+      <CardHeader
+        title="Próximos"
+        subtitle="los torneos que tenés anotados"
+        actions={
+          <Button variant="primary" size="sm" icon={PlusIcon} onClick={() => setIsAddingTournament(true)}>
+            Agregar torneo
+          </Button>
+        }
+        className="mb-4"
+      />
+
+      {isAddingTournament && (
+        <div className="mb-6 rounded border border-hairline bg-surface-2 p-4 sm:p-5">
+          <h3 className="mb-4 font-serif text-lg font-semibold text-fg">
+            {editingTournamentId ? 'Editar torneo' : 'Nuevo torneo'}
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label htmlFor="upcoming-name" className="text-label mb-1.5 block">Nombre del torneo *</label>
+              <input
+                id="upcoming-name"
+                type="text"
+                name="name"
+                value={tournamentForm.name}
+                onChange={handleInputChange}
+                className={FIELD}
+                placeholder="por ejemplo, Abierto de Mar del Plata"
+              />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-fg">Upcoming Tournaments</h2>
-              <p className="text-sm sm:text-base text-fg-muted">Keep track of your scheduled competitions</p>
+              <label htmlFor="upcoming-club" className="text-label mb-1.5 block">Club</label>
+              <input
+                id="upcoming-club"
+                type="text"
+                name="club"
+                value={tournamentForm.club}
+                onChange={handleInputChange}
+                className={FIELD}
+                placeholder="por ejemplo, Club Argentino de Ajedrez"
+              />
+            </div>
+            <div>
+              <label htmlFor="upcoming-province" className="text-label mb-1.5 block">Provincia</label>
+              <input
+                id="upcoming-province"
+                type="text"
+                name="province"
+                value={tournamentForm.province}
+                onChange={handleInputChange}
+                className={FIELD}
+                placeholder="por ejemplo, Buenos Aires"
+              />
+            </div>
+            <div>
+              <label htmlFor="upcoming-timeControl" className="text-label mb-1.5 block">Ritmo de juego</label>
+              <input
+                id="upcoming-timeControl"
+                type="text"
+                name="timeControl"
+                value={tournamentForm.timeControl}
+                onChange={handleInputChange}
+                className={FIELD}
+                placeholder="por ejemplo, 90+30 o 12+3"
+              />
+            </div>
+            <div>
+              <label htmlFor="upcoming-chessResultsUrl" className="text-label mb-1.5 block">Link de Chess-Results</label>
+              <input
+                id="upcoming-chessResultsUrl"
+                type="url"
+                name="chessResultsUrl"
+                value={tournamentForm.chessResultsUrl}
+                onChange={handleInputChange}
+                className={FIELD}
+                placeholder="https://chess-results.com/…"
+              />
+            </div>
+            <div>
+              <label htmlFor="upcoming-startDate" className="text-label mb-1.5 block">Empieza *</label>
+              <input
+                id="upcoming-startDate"
+                type="date"
+                name="startDate"
+                value={tournamentForm.startDate}
+                onChange={handleInputChange}
+                className={FIELD}
+              />
+            </div>
+            <div>
+              <label htmlFor="upcoming-endDate" className="text-label mb-1.5 block">Termina</label>
+              <input
+                id="upcoming-endDate"
+                type="date"
+                name="endDate"
+                value={tournamentForm.endDate}
+                onChange={handleInputChange}
+                className={FIELD}
+              />
             </div>
           </div>
-          <button
-            onClick={() => setIsAddingTournament(true)}
-            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-fg text-app font-semibold rounded-lg hover:opacity-90 transition-opacity duration-200 w-full sm:w-auto"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Add Tournament
-          </button>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button
+              variant="primary"
+              onClick={editingTournamentId ? handleUpdateTournament : handleAddTournament}
+              disabled={saving}
+            >
+              {saving ? 'Guardando…' : editingTournamentId ? 'Guardar cambios' : 'Agregar torneo'}
+            </Button>
+            <Button variant="secondary" onClick={resetForm}>Cancelar</Button>
+          </div>
         </div>
+      )}
 
-        {/* Add/Edit Tournament Form */}
-        {isAddingTournament && (
-          <div className="mb-6 p-6 bg-surface-2 rounded-lg border border-hairline">
-            <h3 className="text-base font-semibold text-fg mb-4">
-              {editingTournamentId ? 'Edit Tournament' : 'Add New Tournament'}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Tournament Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={tournamentForm.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="e.g., Provincial Championship 2024"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Club
-                </label>
-                <input
-                  type="text"
-                  name="club"
-                  value={tournamentForm.club}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="e.g., Capital Chess Club"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Province
-                </label>
-                <input
-                  type="text"
-                  name="province"
-                  value={tournamentForm.province}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="e.g., Buenos Aires"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Ritmo de juego
-                </label>
-                <input
-                  type="text"
-                  name="timeControl"
-                  value={tournamentForm.timeControl}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="ej. 90+30 o 12+3"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Chess-Results Link
-                </label>
-                <input
-                  type="url"
-                  name="chessResultsUrl"
-                  value={tournamentForm.chessResultsUrl}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                  placeholder="https://chess-results.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  Start Date *
-                </label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={tournamentForm.startDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-fg mb-2">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={tournamentForm.endDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-hairline bg-surface text-fg focus:ring-2 focus:ring-accent focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={editingTournamentId ? handleUpdateTournament : handleAddTournament}
-                disabled={saving}
-                className="px-6 py-2.5 bg-fg text-app font-semibold rounded-lg hover:opacity-90 transition-opacity duration-200 disabled:opacity-50"
-              >
-                {saving ? 'Guardando…' : editingTournamentId ? 'Update Tournament' : 'Add Tournament'}
-              </button>
-              <button
-                onClick={resetForm}
-                className="px-6 py-2.5 border border-hairline bg-surface text-fg font-semibold rounded-lg hover:bg-surface-2 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Upcoming Tournaments List */}
-        {upcomingTournaments.length === 0 ? (
-          <div className="text-center py-12">
-            <CalendarIcon className="w-16 h-16 text-fg-subtle mx-auto mb-4" />
-            <p className="text-fg-muted text-lg">No upcoming tournaments scheduled</p>
-            <p className="text-fg-subtle text-sm mt-2">Click "Add Tournament" to schedule your next competition</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {upcomingTournaments.map(tournament => (
-              <div
-                key={tournament.id}
-                className="p-5 bg-surface-2 rounded-lg border border-hairline transition-colors duration-200"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="text-xl font-bold text-fg mb-2">{tournament.name}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      {tournament.club && (
-                        <div className="flex items-center gap-2 text-fg-muted">
-                          <TrophyIcon className="w-4 h-4 text-accent" />
-                          <span className="font-medium">Club:</span>
-                          <span>{tournament.club}</span>
-                        </div>
-                      )}
-                      {tournament.province && (
-                        <div className="flex items-center gap-2 text-fg-muted">
-                          <svg className="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
-                          </svg>
-                          <span className="font-medium">Province:</span>
-                          <span>{tournament.province}</span>
-                        </div>
-                      )}
-                      {tournament.timeControl && (
-                        <div className="flex items-center gap-2 text-fg-muted">
-                          <ClockIcon className="w-4 h-4 text-accent" />
-                          <span className="font-medium">Ritmo:</span>
-                          <span>{tournament.timeControl}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-fg-muted">
-                        <CalendarIcon className="w-4 h-4 text-accent" />
-                        <span className="font-medium">Dates:</span>
-                        <span>
-                          {formatDate(tournament.startDate)}
-                          {tournament.endDate && tournament.endDate !== tournament.startDate && ` - ${formatDate(tournament.endDate)}`}
-                        </span>
-                      </div>
-                      {tournament.chessResultsUrl && (
-                        <div className="flex items-center gap-2 text-fg-muted">
-                          <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                          </svg>
-                          <a
-                            href={tournament.chessResultsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-medium text-accent hover:underline"
-                          >
-                            View on Chess-Results
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEditTournament(tournament)}
-                      className="p-2 border border-hairline bg-surface text-fg-muted rounded-lg hover:bg-surface-2 transition-colors"
-                      title="Edit tournament"
+      {upcomingTournaments.length === 0 ? (
+        <div className="py-8 text-center">
+          <p className="font-serif text-base text-fg-muted">No tenés torneos anotados.</p>
+          <p className="mt-1 text-sm text-fg-subtle">Con “Agregar torneo” anotás el próximo.</p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-hairline">
+          {upcomingTournaments.map(tournament => {
+            const meta = [tournament.club, tournament.province, tournament.timeControl].filter(Boolean).join(' · ');
+            return (
+              <li key={tournament.id} className="flex items-start gap-4 py-4">
+                {tournament.startDate && (
+                  <span className="flex w-12 shrink-0 flex-col items-center border-r border-hairline pr-4 text-center">
+                    <span className="text-label">{MONTH(tournament.startDate)}</span>
+                    <span className="font-mono text-[22px] font-medium leading-tight tabular-nums text-fg">{DAY(tournament.startDate)}</span>
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-serif text-base font-semibold leading-snug text-fg">{tournament.name}</h4>
+                  {meta && <p className="text-[13px] text-fg-subtle">{meta}</p>}
+                  <p className="font-mono text-xs tabular-nums text-fg-muted">
+                    {formatDate(tournament.startDate)}
+                    {tournament.endDate && tournament.endDate !== tournament.startDate && ` – ${formatDate(tournament.endDate)}`}
+                  </p>
+                  {tournament.chessResultsUrl && (
+                    <a
+                      href={tournament.chessResultsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-block text-sm text-accent hover:underline"
                     >
-                      <PencilIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTournament(tournament.id)}
-                      className="p-2 border border-hairline bg-surface text-loss rounded-lg hover:bg-surface-2 transition-colors"
-                      title="Delete tournament"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
+                      Ver en Chess-Results
+                    </a>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    onClick={() => handleEditTournament(tournament)}
+                    className="rounded p-2 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                    title="Editar torneo"
+                    aria-label={`Editar ${tournament.name}`}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTournament(tournament.id)}
+                    className="rounded p-2 text-loss transition-colors hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                    title="Borrar torneo"
+                    aria-label={`Borrar ${tournament.name}`}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
   );
 };
 

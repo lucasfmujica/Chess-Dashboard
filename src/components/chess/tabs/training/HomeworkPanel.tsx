@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CheckCircleIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useHomework } from '../../../../hooks/useHomework';
 import { localDateKey } from '../../../../utils/localDate';
-import { Card, Button, Badge } from '../../../ui';
+import { Card, Button, Badge, ClockBar, StatCard } from '../../../ui';
 import {
   isHomeworkOverdue,
   type Homework,
@@ -41,7 +41,7 @@ const KIND_CATEGORY: Partial<Record<HomeworkKind, ConceptCategory>> = {
 };
 
 const INPUT_CLASS =
-  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
+  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
 const emptyDraft = (): Partial<Homework> => ({
   coach: 'Toto',
@@ -71,28 +71,26 @@ const HomeworkPanel = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="text-h2 text-fg">Tarea de las clases</h2>
-            <p className="text-sm text-fg-muted mt-1">
-              Toto y Juan Cruz asignan hablando, sin fecha ni compromiso explícito. Si no queda
-              acá, se pierde.
-            </p>
-          </div>
-          <div className="text-right">
-            <div className={`text-h2 nums ${overdue.length > 0 ? 'text-loss' : 'text-fg'}`}>
-              {overdue.length}
-            </div>
-            <div className="text-xs text-fg-muted">vencida{overdue.length === 1 ? '' : 's'}</div>
-          </div>
-        </div>
-        <div className="mt-4">
-          <Button icon={PlusIcon} onClick={() => setDraft(emptyDraft())}>
-            Cargar tarea
-          </Button>
-        </div>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="max-w-prose text-sm text-fg-muted">
+          Toto y Juan Cruz asignan hablando, sin fecha ni compromiso explícito. Si no queda acá, se
+          pierde.
+        </p>
+        <Button variant="primary" icon={PlusIcon} onClick={() => setDraft(emptyDraft())}>
+          Cargar tarea
+        </Button>
+      </div>
+
+      <ClockBar>
+        <StatCard title="Pendientes" value={open.length} subtitle="tareas abiertas" />
+        <StatCard
+          title="Vencidas"
+          value={overdue.length}
+          subtitle={overdue.length === 1 ? 'pasó la fecha' : 'pasaron la fecha'}
+          trend={overdue.length > 0 ? 'down' : undefined}
+        />
+        <StatCard title="Hechas" value={done.length} subtitle="en total" />
+      </ClockBar>
 
       {error && (
         <Card>
@@ -102,7 +100,7 @@ const HomeworkPanel = () => {
 
       {draft && (
         <Card>
-          <h3 className="text-h3 text-fg mb-4">Nueva tarea</h3>
+          <h3 className="mb-4 font-serif text-xl font-semibold text-fg">Nueva tarea</h3>
           <div className="space-y-4">
             <div>
               <label className="text-label block mb-1">Consigna</label>
@@ -203,14 +201,14 @@ const HomeworkPanel = () => {
 
       {done.length > 0 && (
         <Card>
-          <h3 className="text-h3 text-fg mb-3">Hechas</h3>
+          <h3 className="mb-3 font-serif text-xl font-semibold text-fg">Hechas</h3>
           <ul className="space-y-2">
             {done.map(hw => (
               <li key={hw.id} className="flex items-start justify-between gap-3 text-sm">
-                <span className="text-fg-muted line-through">{hw.task}</span>
+                <span className="font-serif text-[15px] text-fg-muted line-through decoration-accent decoration-2">{hw.task}</span>
                 <button
                   onClick={() => void setStatus(hw.id, 'pendiente')}
-                  className="text-xs text-accent shrink-0 hover:underline"
+                  className="shrink-0 rounded-sm text-xs text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 >
                   reabrir
                 </button>
@@ -237,15 +235,15 @@ const HomeworkRow = ({ hw, todayKey, onDone, onRemove }: HomeworkRowProps) => {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={late ? 'loss' : 'accent'}>{hw.coach}</Badge>
+            <Badge tone="accent">{hw.coach}</Badge>
             {hw.kind && <Badge>{KINDS.find(k => k.value === hw.kind)?.label ?? hw.kind}</Badge>}
             {hw.dueDate && (
-              <span className={`text-xs nums ${late ? 'text-loss' : 'text-fg-muted'}`}>
-                {late ? 'venció' : 'vence'} {hw.dueDate}
-              </span>
+              <Badge tone={late ? 'alert' : 'today'}>
+                {late ? 'venció' : 'vence'} <span className="font-mono tabular-nums">{hw.dueDate}</span>
+              </Badge>
             )}
           </div>
-          <p className="text-sm text-fg mt-2">{hw.task}</p>
+          <p className="mt-2 font-serif text-base leading-6 text-fg">{hw.task}</p>
           {hw.notes && <p className="text-xs text-fg-muted mt-1">{hw.notes}</p>}
           {/* The other place concepts are actually born: something the coach
               said in class. Prefilled with the task and who set it. */}
@@ -264,14 +262,14 @@ const HomeworkRow = ({ hw, todayKey, onDone, onRemove }: HomeworkRowProps) => {
         <div className="flex gap-1 shrink-0">
           <button
             onClick={onDone}
-            className="p-1.5 text-win hover:bg-win/10 rounded-lg"
+            className="rounded p-1.5 text-win hover:bg-win/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             aria-label="Marcar como hecha"
           >
             <CheckCircleIcon className="w-5 h-5" />
           </button>
           <button
             onClick={onRemove}
-            className="p-1.5 text-loss hover:bg-loss/10 rounded-lg"
+            className="rounded p-1.5 text-loss hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             aria-label="Borrar tarea"
           >
             <TrashIcon className="w-4 h-4" />

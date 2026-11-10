@@ -15,15 +15,15 @@ const RepertoireStudyTab = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" color="indigo" />
-        <p className="mt-4 text-fg-muted">Loading repertoire study…</p>
+        <p className="mt-4 text-fg-muted">Cargando el estudio de repertorio…</p>
       </div>
     );
   }
 
   if (error || !chapters || chapters.length === 0) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface p-5 text-sm text-fg-muted">
-        {error || 'No repertoire study chapters found.'}
+      <div className="rounded border border-hairline bg-surface p-5 text-sm text-fg-muted">
+        {error || 'No hay capítulos en el estudio de repertorio.'}
       </div>
     );
   }
@@ -42,15 +42,17 @@ const RepertoireStudyTab = () => {
       <div className="xl:hidden">
         <button
           onClick={() => setMobileListOpen(o => !o)}
-          className="w-full flex items-center justify-between rounded-lg border border-hairline bg-surface px-3 py-2.5 text-left"
+          aria-expanded={mobileListOpen}
+          className="w-full flex items-center justify-between rounded border border-hairline bg-surface px-3 py-2.5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
         >
-          <span className="text-sm font-medium text-fg">
-            {index + 1} / {chapters.length} · {chapter.header.chapterName}
+          <span className="min-w-0 truncate font-serif text-[15px] text-fg">
+            <span className="font-mono text-xs tabular-nums text-fg-subtle">{index + 1}/{chapters.length}</span>{' '}
+            {chapter.header.chapterName}
           </span>
           {mobileListOpen ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
         </button>
         {mobileListOpen && (
-          <div className="mt-2 max-h-80 overflow-y-auto rounded-lg border border-hairline bg-surface p-2">
+          <div className="mt-2 max-h-80 overflow-y-auto rounded border border-hairline bg-surface px-2 py-3">
             <StudyChapterList
               chapters={chapters}
               selectedIndex={index}
@@ -63,7 +65,7 @@ const RepertoireStudyTab = () => {
         )}
       </div>
 
-      <div className="hidden xl:block xl:h-full overflow-y-auto">
+      <div className="hidden xl:block xl:h-full overflow-y-auto rounded border border-hairline bg-surface px-2 py-4 shadow-[0_1px_0_rgb(var(--fg)/0.06)]">
         <StudyChapterList chapters={chapters} selectedIndex={index} onSelect={setSelectedIndex} />
       </div>
 

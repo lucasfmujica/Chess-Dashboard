@@ -75,7 +75,7 @@ const ConceptLinkPicker = ({ value, onChange, gameId }: ConceptLinkPickerProps) 
   if (concepts.length === 0) {
     return (
       <p className="text-sm text-fg-muted">
-        Todavía no hay conceptos cargados. Se crean en Concepts &amp; Books, o se importan del
+        Todavía no hay conceptos cargados. Se crean en Conceptos y libros, o se importan del
         estudio.
       </p>
     );
@@ -88,7 +88,7 @@ const ConceptLinkPicker = ({ value, onChange, gameId }: ConceptLinkPickerProps) 
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="Buscar un concepto…"
-        className="w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm"
+        className="w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm"
       />
       <ul className="max-h-48 space-y-1 overflow-y-auto">
         {matches.map(concept => {
@@ -99,20 +99,20 @@ const ConceptLinkPicker = ({ value, onChange, gameId }: ConceptLinkPickerProps) 
                 type="button"
                 onClick={() => void toggle(concept.id)}
                 aria-pressed={linked}
-                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                className={`flex w-full items-center gap-2 rounded border px-3 py-2 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
                   linked
-                    ? 'border-accent bg-accent/10 text-fg'
-                    : 'border-hairline bg-surface text-fg-muted hover:border-accent/50'
+                    ? 'border-transparent bg-accent/10 text-accent'
+                    : 'border-hairline bg-surface text-fg-muted hover:border-fg-subtle'
                 }`}
               >
                 <span
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                    linked ? 'border-accent bg-accent text-app' : 'border-hairline'
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border ${
+                    linked ? 'border-accent bg-accent text-accent-fg' : 'border-fg-subtle'
                   }`}
                 >
                   {linked && <CheckIcon className="h-3 w-3" />}
                 </span>
-                <span className="min-w-0 flex-1 truncate">{concept.name}</span>
+                <span className="min-w-0 flex-1 truncate font-serif text-[15px]">{concept.name}</span>
                 <span className="shrink-0 text-xs text-fg-subtle">{concept.category}</span>
               </button>
             </li>
@@ -120,7 +120,7 @@ const ConceptLinkPicker = ({ value, onChange, gameId }: ConceptLinkPickerProps) 
         })}
       </ul>
       {!gameId && value.length > 0 && (
-        <p className="text-xs text-draw">
+        <p className="text-xs text-fg-muted">
           Vinculá la partida arriba para que estos conceptos cuenten como aplicados.
         </p>
       )}

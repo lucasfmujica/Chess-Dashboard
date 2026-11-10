@@ -45,7 +45,7 @@ const getEnvNumber = (key: string, defaultValue: number = 0): number => {
 
 export const env: EnvironmentConfig = {
   app: {
-    name: getEnvVar('VITE_APP_NAME', 'Chess Dashboard'),
+    name: getEnvVar('VITE_APP_NAME', 'Jaque+'),
     version: getEnvVar('VITE_APP_VERSION', '1.0.0'),
     env: getEnvVar('VITE_APP_ENV', import.meta.env.MODE) as EnvironmentConfig['app']['env'],
   },

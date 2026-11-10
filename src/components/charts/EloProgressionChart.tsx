@@ -1,4 +1,5 @@
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Card, CardHeader } from '../ui';
 
 interface EloHistoryEntry {
   game: number;
@@ -21,42 +22,60 @@ interface EloProgressionChartProps {
 
 const EloProgressionChart = ({ eloHistory }: EloProgressionChartProps) => {
   return (
-    <div className="p-6 bg-surface rounded-lg border border-hairline">
-      <h3 className="mb-4 text-lg font-semibold text-fg">ELO Progression</h3>
+    <Card>
+      <CardHeader title="Progreso de ELO" subtitle={`${eloHistory.length} partidas válidas`} className="mb-4" />
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={eloHistory}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="game" label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }} />
+        <LineChart data={eloHistory} margin={{ top: 8, right: 16, left: -4, bottom: 0 }}>
+          <CartesianGrid stroke="rgb(var(--border))" vertical={false} />
+          <XAxis
+            dataKey="game"
+            stroke="rgb(var(--fg-muted))"
+            tick={{ fontSize: 12, fill: 'rgb(var(--fg-muted))' }}
+            axisLine={{ stroke: 'rgb(var(--border))' }}
+            tickLine={false}
+          />
           <YAxis
             domain={[
               (min: number) => Math.floor((min - 30) / 50) * 50,
               (max: number) => Math.ceil((max + 30) / 50) * 50,
             ]}
             allowDataOverflow={false}
-            label={{ value: 'ELO', angle: -90, position: 'insideLeft' }}
+            stroke="rgb(var(--fg-muted))"
+            tick={{ fontSize: 12, fill: 'rgb(var(--fg-muted))' }}
+            axisLine={false}
+            tickLine={false}
+            width={52}
           />
           <Tooltip
+            cursor={{ stroke: 'rgb(var(--border-strong))', strokeWidth: 1 }}
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const data = payload[0].payload;
                 return (
-                  <div className="p-3 bg-surface border border-hairline rounded shadow">
-                    <p className="font-semibold text-fg">Game {data.game}</p>
-                    <p className="text-sm text-fg-muted">{data.tournament}</p>
-                    <p className="text-sm text-fg">vs {data.opponent}</p>
-                    <p className="text-sm text-fg-subtle">{data.opening}</p>
-                    <p className="font-medium text-fg">ELO: {data.elo}</p>
+                  <div className="rounded border border-hairline bg-surface p-3 text-sm">
+                    <p className="font-medium text-fg">Partida {data.game}</p>
+                    <p className="text-fg-muted">{data.tournament}</p>
+                    <p className="text-fg">contra {data.opponent}</p>
+                    {data.opening && <p className="font-serif text-fg-subtle">{data.opening}</p>}
+                    <p className="mt-1 font-mono tabular-nums text-fg">ELO {data.elo}</p>
                   </div>
                 );
               }
               return null;
             }}
           />
-          <Legend />
-          <Line type="monotone" dataKey="elo" stroke="rgb(var(--accent))" strokeWidth={2} name="ELO" dot={{ r: 3 }} />
+          <Line
+            type="monotone"
+            dataKey="elo"
+            stroke="rgb(var(--cat-1))"
+            strokeWidth={2}
+            name="ELO"
+            dot={{ r: 2.5, strokeWidth: 0, fill: 'rgb(var(--cat-1))' }}
+            activeDot={{ r: 5, fill: 'rgb(var(--cat-1))', stroke: 'rgb(var(--surface))', strokeWidth: 2 }}
+          />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </Card>
   );
 };
 

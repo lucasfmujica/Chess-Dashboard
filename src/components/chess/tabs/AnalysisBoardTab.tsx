@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { BeakerIcon, PlusCircleIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { Button, Card, SegmentedControl } from '../../ui';
 import { useGames, useSourceFilteredGames } from '../../../context/GamesContext';
 import { gameToViewerData } from '../../../utils/gameMapping';
 import type { GameViewerData } from '../../../context/GameViewerContext';
@@ -7,6 +8,10 @@ import GameViewer from '../GameViewer';
 import DiagnosticsPanel, { type BoardMarks } from './annotations/DiagnosticsPanel';
 import GamesAnalysisList from '../GamesAnalysisList';
 import AccuracyTrendCard from '../../charts/AccuracyTrendCard';
+
+/** Paper form field: ruled, square, focus in pen. */
+const FIELD =
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
 
 const headerValue = (text: string, key: string): string | undefined =>
   text.match(new RegExp(`\\[${key}\\s+"([^"]+)"\\]`))?.[1];
@@ -103,160 +108,150 @@ const AnalysisBoardTab = () => {
   return (
     <div className="space-y-6">
       {/* Load / attach — collapsed by default so the board is the first thing seen */}
-      <div className="rounded-lg border border-hairline bg-surface">
+      <Card flush>
         <button
           onClick={() => setToolsOpen(o => !o)}
-          className="w-full flex items-center justify-between gap-2 px-5 py-4 text-left"
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:px-6"
           aria-expanded={toolsOpen}
         >
-          <span className="flex items-center gap-2">
-            <BeakerIcon className="w-5 h-5 text-accent" />
-            <span>
-              <span className="text-lg font-semibold text-fg">Load a game</span>
-              <span className="block text-sm text-fg-muted">Paste a PGN, pick an imported game, or add moves to an OTB game</span>
+          <span className="min-w-0">
+            <span className="block font-serif text-xl font-semibold leading-tight text-fg">Cargar una partida</span>
+            <span className="mt-1 block text-sm text-fg-muted">
+              Pegá un PGN, elegí una partida importada o agregale las jugadas a una partida de torneo
             </span>
           </span>
-          <ChevronDownIcon className={`w-5 h-5 text-fg-subtle shrink-0 transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
+          <ChevronDownIcon className={`h-5 w-5 shrink-0 text-fg-subtle transition-transform duration-200 ${toolsOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {toolsOpen && (
-          <div className="px-5 pb-5">
-            <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface-2 p-1 mb-4">
-              <button
-                onClick={() => setToolsTab('load')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${toolsTab === 'load' ? 'bg-surface text-fg' : 'text-fg-muted hover:text-fg'}`}
-              >
-                Load game
-              </button>
-              <button
-                onClick={() => setToolsTab('attach')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${toolsTab === 'attach' ? 'bg-surface text-fg' : 'text-fg-muted hover:text-fg'}`}
-              >
-                Attach moves
-              </button>
-            </div>
+          <div className="border-t border-hairline px-5 pb-5 pt-4 sm:px-6">
+            <SegmentedControl
+              aria-label="Cómo cargar la partida"
+              size="sm"
+              value={toolsTab}
+              onChange={setToolsTab}
+              options={[
+                { value: 'load', label: 'Cargar partida' },
+                { value: 'attach', label: 'Agregar jugadas' },
+              ]}
+              className="mb-4"
+            />
 
             {toolsTab === 'load' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
-                  <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Paste a PGN</label>
+                  <label htmlFor="ab-paste" className="text-label mb-1.5 block">Pegar un PGN</label>
                   <textarea
+                    id="ab-paste"
                     value={pasteText}
                     onChange={e => setPasteText(e.target.value)}
                     rows={3}
                     placeholder={'[Event "..."]\n\n1. e4 e5 2. Nf3 Nc6 ...'}
-                    className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y"
+                    className={`${FIELD} resize-y font-mono`}
                   />
-                  <button
-                    onClick={loadPaste}
-                    disabled={!pasteText.trim()}
-                    className="mt-2 px-4 py-2 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-                  >
-                    Load PGN
-                  </button>
+                  <Button variant="primary" size="sm" onClick={loadPaste} disabled={!pasteText.trim()} className="mt-2">
+                    Cargar PGN
+                  </Button>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">
-                    Or pick an imported game
-                  </label>
+                  <label htmlFor="ab-stored" className="text-label mb-1.5 block">O elegí una partida importada</label>
                   {playableGames.length > 0 ? (
                     <select
+                      id="ab-stored"
                       onChange={e => loadStored(e.target.value)}
                       defaultValue=""
-                      className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+                      className={FIELD}
                     >
-                      <option value="" disabled>Select a game…</option>
+                      <option value="" disabled>Elegir partida…</option>
                       {playableGames.map(({ g, i }) => (
                         <option key={i} value={i}>
-                          {g.tournament} — vs {g.opp}
+                          {g.tournament} · vs {g.opp}
                         </option>
                       ))}
                     </select>
                   ) : (
                     <p className="text-sm text-fg-muted">
-                      No games with moves yet. Import a PGN (with moves) from Overview, then they appear here.
+                      Todavía no hay partidas con jugadas. Importá un PGN con jugadas desde Resumen y aparecen acá.
                     </p>
                   )}
                 </div>
               </div>
             ) : (
               <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <PlusCircleIcon className="w-4 h-4 text-accent" />
-                  <p className="text-sm text-fg-muted">
-                    Your over-the-board games are saved without moves. Pick one and paste its PGN to make it
-                    replayable and analysable.
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <p className="mb-3 text-sm text-fg-muted">
+                  Las partidas de torneo se guardan sin jugadas. Elegí una y pegá su PGN para poder
+                  reproducirla y analizarla.
+                </p>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                   <div>
-                    <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">Game</label>
+                    <label htmlFor="ab-attach-game" className="text-label mb-1.5 block">Partida</label>
                     <select
+                      id="ab-attach-game"
                       value={attachGameId}
                       onChange={e => selectAttach(e.target.value)}
-                      className="w-full rounded-md border border-hairline bg-surface text-fg text-sm px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+                      className={FIELD}
                     >
-                      <option value="" disabled>Select a game…</option>
+                      <option value="" disabled>Elegir partida…</option>
                       {games.filter(g => g.id).map(g => (
                         <option key={g.id} value={g.id}>
-                          {g.pgn ? '✓ ' : ''}{g.tournament} — vs {g.opp}
+                          {g.tournament} · vs {g.opp}{g.pgn ? ' (con jugadas)' : ''}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div className="lg:col-span-2">
-                    <label className="block text-xs font-medium uppercase tracking-wide text-fg-subtle mb-1.5">PGN moves</label>
+                    <label htmlFor="ab-attach-pgn" className="text-label mb-1.5 block">Jugadas (PGN)</label>
                     <textarea
+                      id="ab-attach-pgn"
                       value={attachText}
                       onChange={e => setAttachText(e.target.value)}
                       rows={3}
                       placeholder={'1. e4 e5 2. Nf3 Nc6 ...'}
                       disabled={!attachGameId}
-                      className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm font-mono px-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent resize-y disabled:opacity-50"
+                      className={`${FIELD} resize-y font-mono disabled:opacity-50`}
                     />
-                    <button
-                      onClick={saveMoves}
-                      disabled={!attachGameId}
-                      className="mt-2 px-4 py-2 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Save moves
-                    </button>
+                    <Button size="sm" onClick={saveMoves} disabled={!attachGameId} className="mt-2">
+                      Guardar jugadas
+                    </Button>
                   </div>
                 </div>
               </div>
             )}
           </div>
         )}
-      </div>
-
-      {/* Accuracy over analysed games */}
-      <AccuracyTrendCard refreshKey={analysisRefreshKey} />
+      </Card>
 
       {/* Board + explorer + analysis — the visual hero of this tab */}
-      <div className="rounded-xl border border-hairline bg-surface p-6 shadow-sm">
+      <Card>
         {/* Step between all your games with moves, without using the dropdown. */}
         {playableGames.length > 0 && (
-          <div className="mb-4 flex items-center justify-between gap-3 rounded-md border border-hairline bg-surface-2 px-3 py-2">
-            <button
+          <div className="mb-5 flex items-center justify-between gap-3 border-b border-hairline pb-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={ChevronLeftIcon}
               onClick={() => gotoPlayable(playablePos < 0 ? 0 : playablePos - 1)}
               disabled={playablePos <= 0}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm text-fg-muted hover:bg-surface hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ChevronLeftIcon className="w-4 h-4" /> Prev game
-            </button>
-            <span className="text-xs text-fg-muted tabular-nums text-center min-w-0 truncate">
+              <span className="hidden sm:inline">Partida anterior</span>
+              <span className="sm:hidden">Anterior</span>
+            </Button>
+            <span className="min-w-0 truncate text-center font-mono text-xs tabular-nums text-fg-muted">
               {playablePos >= 0
-                ? `Game ${playablePos + 1} of ${playableGames.length}`
-                : `${playableGames.length} game${playableGames.length === 1 ? '' : 's'} with moves`}
+                ? `partida ${playablePos + 1} de ${playableGames.length}`
+                : `${playableGames.length} ${playableGames.length === 1 ? 'partida' : 'partidas'} con jugadas`}
             </span>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => gotoPlayable(playablePos < 0 ? 0 : playablePos + 1)}
               disabled={playablePos >= playableGames.length - 1}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm text-fg-muted hover:bg-surface hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Next game <ChevronRightIcon className="w-4 h-4" />
-            </button>
+              <span className="hidden sm:inline">Partida siguiente</span>
+              <span className="sm:hidden">Siguiente</span>
+              <ChevronRightIcon className="h-3.5 w-3.5" />
+            </Button>
           </div>
         )}
         <GameViewer
@@ -273,7 +268,7 @@ const AnalysisBoardTab = () => {
             <DiagnosticsPanel position={position} gameId={loaded?.gameId} onMarks={setMarks} />
           )}
         />
-      </div>
+      </Card>
 
       {/* All your games: results, opening, accuracy — click to load on the board */}
       <GamesAnalysisList
@@ -281,6 +276,9 @@ const AnalysisBoardTab = () => {
         loadedIndex={loadedIndex}
         onAnalyzed={() => setAnalysisRefreshKey(k => k + 1)}
       />
+
+      {/* Accuracy over analysed games */}
+      <AccuracyTrendCard refreshKey={analysisRefreshKey} />
     </div>
   );
 };

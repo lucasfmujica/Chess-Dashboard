@@ -1,4 +1,4 @@
-import { LightBulbIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import Button from '../../../ui/Button';
 
 interface PgnImportProps {
   showPgnImport: boolean;
@@ -16,62 +16,53 @@ const PgnImport = ({
   handlePgnImport,
 }: PgnImportProps) => {
   return (
-    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-surface-2 rounded-lg">
-              <DocumentTextIcon className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-fg">PGN Import</h3>
-              <p className="text-sm text-fg-muted">Import games from PGN notation</p>
-            </div>
+    <div className="rounded border border-hairline bg-surface">
+      <div className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-serif text-lg font-semibold text-fg">Importar PGN</h3>
+            <p className="mt-0.5 text-sm text-fg-muted">Una o varias partidas en notación PGN</p>
           </div>
-          <button
+          <Button
+            variant={showPgnImport ? 'secondary' : 'primary'}
+            size="sm"
             onClick={() => setShowPgnImport(!showPgnImport)}
-            className="px-4 py-2 text-sm font-medium text-app bg-fg rounded-lg hover:opacity-90 transition-opacity"
           >
-            {showPgnImport ? '✕ Close Import' : '📥 Import Games'}
-          </button>
+            {showPgnImport ? 'Cerrar importación' : 'Importar partidas'}
+          </Button>
         </div>
 
         {showPgnImport && (
-          <div className="space-y-4 animate-slideUp">
+          <div className="mt-5 space-y-4 animate-slideUp">
             <div>
-              <label className="block mb-2 text-sm font-medium text-fg">
-                Paste PGN text below:
+              <label htmlFor="pgn-import-text" className="mb-1.5 block text-label">
+                Pegá el PGN acá:
               </label>
               <textarea
+                id="pgn-import-text"
                 value={pgnText}
                 onChange={(e) => setPgnText(e.target.value)}
-                placeholder={`[Event "Tournament Name"]\n[White "Player1"]\n[Black "Player2"]\n[Result "1-0"]\n[WhiteElo "1800"]\n[BlackElo "1750"]\n[ECO "B23"]\n\n1. e4 c5 2. Nc3 ...`}
-                className="w-full h-64 px-4 py-3 font-mono text-sm bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                placeholder={`[Event "Torneo"]\n[White "Jugador 1"]\n[Black "Jugador 2"]\n[Result "1-0"]\n[WhiteElo "1800"]\n[BlackElo "1750"]\n[ECO "B23"]\n\n1. e4 c5 2. Nc3 ...`}
+                className="h-64 w-full resize-none rounded border border-hairline bg-surface px-3 py-2.5 font-mono text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus-visible:ring-1 focus-visible:ring-accent"
               />
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handlePgnImport}
-                className="px-5 py-2.5 text-sm font-medium text-app bg-fg rounded-lg hover:opacity-90 transition-opacity"
-              >
-                ✓ Parse PGN
-              </button>
-              <button
+            <div className="flex flex-wrap gap-3">
+              <Button variant="primary" onClick={handlePgnImport}>
+                Leer PGN
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setPgnText('');
                   setShowPgnImport(false);
                 }}
-                className="px-5 py-2.5 text-sm font-medium text-fg transition-colors border border-hairline bg-surface rounded-lg hover:bg-surface-2"
               >
-                Cancel
-              </button>
+                Cancelar
+              </Button>
             </div>
-            <div className="flex items-start gap-2 p-3 bg-surface-2 border border-hairline rounded-lg">
-              <LightBulbIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-fg-muted">
-                <strong>How to use:</strong> Paste your PGN text, then enter your name as it appears in the games and your ELO rating. Games will be automatically added to your database.
-              </p>
-            </div>
+            <p className="border-t border-hairline pt-3 text-xs text-fg-muted">
+              Pegá el PGN y después indicá tu nombre tal como aparece en las partidas y tu ELO. Las partidas se suman a tu base.
+            </p>
           </div>
         )}
       </div>

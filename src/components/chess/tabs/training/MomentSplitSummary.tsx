@@ -16,11 +16,11 @@ const MomentSplitSummary = ({ split }: MomentSplitSummaryProps) => (
       'sin momentos respondidos todavía'
     ) : (
       <>
-        {split.missedPct}% no se me ocurrió · {split.rejected} la descarté · n = {split.asked}
+        {split.missedPct}% no se me ocurrió · {split.rejected} la descarté · <span className="font-mono">n = {split.asked}</span>
       </>
     )}
     {isWeakSignal(split.asked) && split.asked > 0 && (
-      <span className="ml-1.5 rounded-full bg-draw/12 px-1.5 py-0.5 text-draw">señal débil</span>
+      <span className="ml-1.5 rounded-sm border border-hairline bg-surface-2 px-1.5 py-0.5 text-fg-muted">señal débil</span>
     )}
   </div>
 );

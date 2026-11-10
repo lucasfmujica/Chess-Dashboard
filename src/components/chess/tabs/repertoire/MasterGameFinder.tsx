@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { MagnifyingGlassIcon, StarIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import {
   fetchExplorerTopGames,
   fetchMasterGamePgn,
@@ -23,7 +23,7 @@ import type { RepertoireLine } from '../../../../types/chess';
  */
 
 const INPUT_CLASS =
-  'w-full px-3 py-2 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
+  'w-full px-3 py-2 bg-surface border border-hairline text-fg rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
 type OpeningHeroes = Record<string, string[]>;
 
@@ -135,7 +135,7 @@ const MasterGameFinder = ({ openingHeroes, setOpeningHeroes, onSaved }: MasterGa
   }, [line, games, selected, addHero, onSaved]);
 
   return (
-    <div className="mt-4 rounded-lg border border-hairline bg-surface-2 p-3">
+    <div className="mt-4 rounded border border-hairline bg-surface-2 p-3">
       <div className="flex flex-wrap items-end gap-3">
         <label className="block min-w-[260px] flex-1">
           <span className="text-label">Capítulo</span>
@@ -174,7 +174,7 @@ const MasterGameFinder = ({ openingHeroes, setOpeningHeroes, onSaved }: MasterGa
       {games && games.length === 0 && (
         <p className="mt-3 text-sm text-fg-muted">
           El explorador no tiene partidas de maestros en esa posición. Suele pasar en las líneas
-          más profundas — probá con un capítulo cuya posición clave sea más temprana.
+          más profundas: probá con un capítulo cuya posición clave sea más temprana.
         </p>
       )}
 
@@ -191,7 +191,7 @@ const MasterGameFinder = ({ openingHeroes, setOpeningHeroes, onSaved }: MasterGa
               return (
                 <li
                   key={game.id}
-                  className="flex items-center gap-2 rounded-lg border border-hairline bg-surface px-3 py-2 text-xs"
+                  className="flex items-center gap-2 rounded border border-hairline bg-surface px-3 py-2 text-xs"
                 >
                   <input
                     type="checkbox"
@@ -210,16 +210,15 @@ const MasterGameFinder = ({ openingHeroes, setOpeningHeroes, onSaved }: MasterGa
                     </span>
                     <span className="text-fg-subtle"> ({game.black.rating})</span>
                   </span>
-                  <span className="shrink-0 tabular-nums text-fg-muted">{game.year ?? ''}</span>
+                  <span className="shrink-0 font-mono tabular-nums text-fg-muted">{game.year ?? ''}</span>
                   <Badge tone="neutral">{resultOf(game)}</Badge>
                   <button
                     onClick={() => void addHero(line.eco ?? '', hero.name)}
                     disabled={alreadyHero || !line.eco}
-                    title={alreadyHero ? 'Ya es héroe de esta apertura' : 'Sumar como héroe'}
-                    className="shrink-0 inline-flex items-center gap-1 rounded border border-hairline px-2 py-1 text-fg hover:border-accent disabled:opacity-40"
+                    title={alreadyHero ? 'Ya es referente de esta apertura' : 'Sumar como referente'}
+                    className="shrink-0 inline-flex items-center gap-1 rounded border border-hairline px-2 py-1 text-fg hover:border-accent disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                   >
-                    <StarIcon className="h-3.5 w-3.5" />
-                    {alreadyHero ? 'Héroe' : 'Héroe'}
+                    {alreadyHero ? 'Referente' : '+ Referente'}
                   </button>
                 </li>
               );

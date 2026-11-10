@@ -1,4 +1,4 @@
-import { ChartBarIcon } from '@heroicons/react/24/outline';
+import { Card, CardHeader } from '../../../ui';
 
 interface WeekActivity {
   week: string;
@@ -13,47 +13,35 @@ interface WeeklyActivityChartProps {
 
 const WeeklyActivityChart = ({ weeklyActivity, avgGamesPerWeek }: WeeklyActivityChartProps) => {
   return (
-    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-      <div className="p-8">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-fg mb-2">Weekly Game Frequency</h3>
-          <p className="text-fg-muted">Track your playing consistency over the last 12 weeks</p>
-        </div>
+    <Card>
+      <CardHeader
+        title="Partidas por semana"
+        subtitle="Últimas 12 semanas"
+        actions={
+          <span className="text-sm text-fg-muted">
+            Promedio <span className="font-mono tabular-nums text-fg">{avgGamesPerWeek}</span> por semana
+          </span>
+        }
+        className="mb-5"
+      />
 
-        {/* Bar Chart */}
-        <div className="space-y-3">
-          {weeklyActivity.map((week, idx) => (
-            <div key={idx} className="flex items-center gap-3">
-              <div className="w-24 text-sm font-medium text-fg">{week.week}</div>
-              <div className="flex-1 h-10 bg-surface-2 rounded-lg overflow-hidden">
-                <div
-                  className="h-full bg-accent flex items-center justify-end px-3 transition-all duration-500"
-                  style={{ width: `${Math.min((week.games / 10) * 100, 100)}%` }}
-                >
-                  {week.games > 0 && (
-                    <span className="text-accent-fg text-sm font-bold tabular-nums">{week.games}</span>
-                  )}
-                </div>
-              </div>
-              <div className="w-16 text-sm text-fg-muted text-right tabular-nums">
-                {week.games} {week.games === 1 ? 'game' : 'games'}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Average Line */}
-        <div className="mt-6 p-4 bg-surface-2 rounded-lg border border-hairline">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ChartBarIcon className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-fg">Average per Week</span>
-            </div>
-            <span className="text-2xl font-bold text-fg tabular-nums">{avgGamesPerWeek} games</span>
-          </div>
-        </div>
-      </div>
-    </div>
+      <ul className="space-y-2">
+        {weeklyActivity.map((week, idx) => (
+          <li key={idx} className="grid grid-cols-[80px_1fr_72px] items-center gap-3">
+            <span className="truncate font-mono text-xs tabular-nums text-fg-muted">{week.week}</span>
+            <span className="h-5 overflow-hidden rounded-sm bg-surface-2">
+              <span
+                className="block h-full bg-accent"
+                style={{ width: `${Math.min((week.games / 10) * 100, 100)}%` }}
+              />
+            </span>
+            <span className="text-right text-sm text-fg-muted">
+              <span className="font-mono tabular-nums text-fg">{week.games}</span> {week.games === 1 ? 'partida' : 'partidas'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 };
 

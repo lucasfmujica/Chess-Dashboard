@@ -17,9 +17,9 @@ export const PieceGlyph = ({ color, size = 12, className = '' }: PieceGlyphProps
   return (
     <span
       role="img"
-      aria-label={white ? 'White' : 'Black'}
-      className={`inline-block rounded-full align-middle ${
-        white ? 'bg-surface border border-fg-subtle' : 'bg-fg border border-fg'
+      aria-label={white ? 'Blancas' : 'Negras'}
+      className={`inline-block rounded-sm align-middle ${
+        white ? 'bg-surface border border-fg' : 'bg-fg border border-fg'
       } ${className}`}
       style={{ width: size, height: size }}
     />
@@ -35,7 +35,7 @@ interface PieceLabelProps {
 export const PieceLabel = ({ color, className = '' }: PieceLabelProps) => (
   <span className={`inline-flex items-center gap-1.5 ${className}`}>
     <PieceGlyph color={color} />
-    {isWhite(color) ? 'White' : 'Black'}
+    {isWhite(color) ? 'Blancas' : 'Negras'}
   </span>
 );
 

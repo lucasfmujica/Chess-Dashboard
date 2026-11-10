@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useGames } from '../../context/GamesContext';
 import type { Game } from '../../types/chess';
+import { Button, Card, CardHeader } from '../ui';
+
+const FIELD =
+  'h-9 w-full rounded border border-hairline bg-surface px-3 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-60';
 
 /** Where the username is kept between visits, so the field isn't retyped every sync. */
 const USERNAME_KEY = 'lichess-username';
@@ -64,13 +68,13 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
 
   const handleSync = useCallback(async (overrideSince?: string) => {
     if (!lichessUsername.trim()) {
-      onError?.('Please enter a Lichess username');
+      onError?.('Falta tu usuario de Lichess');
       return;
     }
 
     localStorage.setItem(USERNAME_KEY, lichessUsername.trim());
     setIsSyncing(true);
-    setSyncStatus({ type: 'loading', message: 'Fetching games from Lichess...' });
+    setSyncStatus({ type: 'loading', message: 'Trayendo partidas de Lichess…' });
 
     try {
       const { fetchLichessGames, transformLichessGames } = await import('../../utils/lichessApi');
@@ -93,8 +97,8 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
         setSyncStatus({
           type: 'warning',
           message: overrideSince
-            ? 'Ya estás al día — no hay partidas nuevas desde la última guardada.'
-            : 'No games found for this user',
+            ? 'Ya estás al día: no hay partidas nuevas desde la última guardada.'
+            : 'No se encontraron partidas para este usuario.',
         });
         setIsSyncing(false);
         return;
@@ -104,7 +108,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
 
       setSyncStatus({
         type: 'success',
-        message: `Successfully fetched ${transformedGames.length} games!`
+        message: `Se trajeron ${transformedGames.length} ${transformedGames.length === 1 ? 'partida' : 'partidas'}.`
       });
 
       // Call parent callback with the new games
@@ -114,10 +118,10 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
 
     } catch (error) {
       console.error('Lichess sync error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to fetch games from Lichess';
+      const message = error instanceof Error ? error.message : 'No se pudieron traer las partidas de Lichess.';
       setSyncStatus({
         type: 'error',
-        message: message || 'Failed to fetch games from Lichess'
+        message: message || 'No se pudieron traer las partidas de Lichess.'
       });
       onError?.(message);
     } finally {
@@ -125,124 +129,127 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
     }
   }, [lichessUsername, sinceDate, untilDate, maxGames, perfType, onSyncComplete, onError]);
 
-  return (
-    <div className="p-6 rounded-lg border border-hairline bg-surface">
-      <h3 className="flex items-center mb-4 text-lg font-semibold text-fg">
-        <svg className="w-5 h-5 mr-2 text-accent" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-        </svg>
-        Lichess.org Integration
-      </h3>
+  const STATUS_CLS: Record<SyncStatusType, string> = {
+    loading: 'bg-surface-2 text-fg-muted',
+    success: 'bg-surface-2 text-win',
+    warning: 'bg-carbon text-fg',
+    error: 'bg-carbon-pink text-fg',
+  };
 
-      <p className="mb-4 text-sm text-fg-muted">
-        Automatically import your recent games from Lichess.org
-      </p>
+  return (
+    <Card>
+      <CardHeader
+        title="Sincronizar Lichess"
+        subtitle="Trae tus partidas recientes de Lichess. Entran como online y no se mezclan con las de torneo."
+      />
 
       {/* The incremental sync, first: "everything since the last one" is what
           this panel is actually asked for, and making it the default path
           means the date never has to be looked up by hand. */}
       {lastSyncedDate && (
-        <div className="mb-4 rounded-md border border-accent/30 bg-accent/5 p-4">
-          <p className="text-sm font-medium text-fg">Ponerse al día</p>
-          <p className="mt-0.5 text-xs text-fg-muted">
+        <div className="mt-4 border-t-[3px] border-hairline-strong bg-surface-2 p-4">
+          <p className="text-label">Ponerse al día</p>
+          <p className="mt-1 text-sm text-fg-muted">
             Tu última partida guardada es del{' '}
-            <span className="nums font-medium text-fg">{lastSyncedDate}</span>. Trae todo lo
+            <span className="font-mono tabular-nums text-fg">{lastSyncedDate}</span>. Trae todo lo
             jugado desde entonces.
           </p>
-          <button
+          <Button
+            variant="primary"
             onClick={() => void handleSync(lastSyncedDate)}
             disabled={isSyncing || !lichessUsername.trim()}
-            className={`mt-3 w-full px-6 py-2.5 text-sm font-medium rounded-md transition-colors ${
-              isSyncing || !lichessUsername.trim()
-                ? 'bg-surface-2 text-fg-subtle cursor-not-allowed'
-                : 'bg-accent text-accent-fg hover:opacity-90'
-            }`}
+            className="mt-3 w-full"
           >
             {isSyncing ? 'Sincronizando…' : `Traer partidas nuevas desde ${lastSyncedDate}`}
-          </button>
+          </Button>
           {!lichessUsername.trim() && (
             <p className="mt-2 text-xs text-fg-subtle">Falta tu usuario de Lichess, abajo.</p>
           )}
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="mt-5 space-y-4">
         <div>
-          <label className="block mb-2 text-sm font-medium text-fg-muted">
-            Lichess Username
+          <label htmlFor="lichess-user" className="text-label mb-1.5 block">
+            Usuario de Lichess
           </label>
           <input
+            id="lichess-user"
             type="text"
             value={lichessUsername}
             onChange={(e) => setLichessUsername(e.target.value)}
-            placeholder="Enter your Lichess username"
-            className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+            placeholder="Tu usuario de Lichess"
+            className={FIELD}
             disabled={isSyncing}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="block mb-2 text-sm font-medium text-fg-muted">
-              Max Games to Import
+            <label htmlFor="lichess-max" className="text-label mb-1.5 block">
+              Cuántas partidas
             </label>
             <select
+              id="lichess-max"
               value={maxGames}
               onChange={(e) => setMaxGames(parseInt(e.target.value))}
-              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              className={FIELD}
               disabled={isSyncing || Boolean(sinceDate || untilDate)}
             >
-              <option value="20">20 games</option>
-              <option value="50">50 games</option>
-              <option value="100">100 games</option>
-              <option value="200">200 games</option>
-              <option value="0">No limit</option>
+              <option value="20">20 partidas</option>
+              <option value="50">50 partidas</option>
+              <option value="100">100 partidas</option>
+              <option value="200">200 partidas</option>
+              <option value="0">Sin límite</option>
             </select>
           </div>
 
           <div>
-            <label className="block mb-2 text-sm font-medium text-fg-muted">
-              Game Types
+            <label htmlFor="lichess-perf" className="text-label mb-1.5 block">
+              Ritmos
             </label>
             <select
+              id="lichess-perf"
               value={perfType}
               onChange={(e) => setPerfType(e.target.value)}
-              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              className={FIELD}
               disabled={isSyncing}
             >
-              <option value="rapid,classical">Rapid + Classical</option>
-              <option value="classical,rapid,blitz">All (Classical, Rapid, Blitz)</option>
-              <option value="classical">Classical only</option>
-              <option value="rapid">Rapid only</option>
-              <option value="blitz">Blitz only</option>
-              <option value="bullet">Bullet only</option>
+              <option value="rapid,classical">Rápido y clásico</option>
+              <option value="classical,rapid,blitz">Todos (clásico, rápido, blitz)</option>
+              <option value="classical">Solo clásico</option>
+              <option value="rapid">Solo rápido</option>
+              <option value="blitz">Solo blitz</option>
+              <option value="bullet">Solo bullet</option>
             </select>
           </div>
 
           <div>
-            <label className="block mb-2 text-sm font-medium text-fg-muted">
-              From date (optional)
+            <label htmlFor="lichess-since" className="text-label mb-1.5 block">
+              Desde (opcional)
             </label>
             <input
+              id="lichess-since"
               type="date"
               value={sinceDate}
               onChange={(e) => setSinceDate(e.target.value)}
               max={untilDate || undefined}
-              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              className={`${FIELD} font-mono`}
               disabled={isSyncing}
             />
           </div>
 
           <div>
-            <label className="block mb-2 text-sm font-medium text-fg-muted">
-              To date (optional)
+            <label htmlFor="lichess-until" className="text-label mb-1.5 block">
+              Hasta (opcional)
             </label>
             <input
+              id="lichess-until"
               type="date"
               value={untilDate}
               onChange={(e) => setUntilDate(e.target.value)}
               min={sinceDate || undefined}
-              className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+              className={`${FIELD} font-mono`}
               disabled={isSyncing}
             />
           </div>
@@ -250,64 +257,40 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
 
         {(sinceDate || untilDate) && (
           <p className="text-xs text-fg-subtle">
-            A date range ignores the "Max Games" cap — every matching game in the range is imported.
+            Con un rango de fechas no hay tope de cantidad: se importa cada partida de ese período.
           </p>
         )}
 
-        <button
+        <Button
           onClick={() => void handleSync()}
           disabled={isSyncing || !lichessUsername.trim()}
-          className={`w-full px-6 py-3 font-medium rounded-md transition-colors ${isSyncing || !lichessUsername.trim()
-            ? 'bg-surface-2 text-fg-subtle cursor-not-allowed'
-            : 'bg-fg text-app hover:opacity-90'
-            }`}
+          className="w-full"
         >
-          {isSyncing ? (
-            <span className="flex items-center justify-center">
-              <svg className="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Syncing...
-            </span>
-          ) : (
-            'Import Games from Lichess'
-          )}
-        </button>
+          {isSyncing ? 'Sincronizando…' : 'Importar partidas de Lichess'}
+        </Button>
 
         {syncStatus && (
-          <div className={`p-4 rounded-md border ${syncStatus.type === 'success' ? 'bg-win/10 border-win/30 text-win' :
-            syncStatus.type === 'error' ? 'bg-loss/10 border-loss/30 text-loss' :
-              syncStatus.type === 'warning' ? 'bg-draw/10 border-draw/30 text-draw' :
-                'bg-accent/10 border-accent/30 text-accent'
-            }`}>
-            <div className="flex items-start">
-              <span className="mr-2 text-lg">
-                {syncStatus.type === 'success' ? '✓' :
-                  syncStatus.type === 'error' ? '✗' :
-                    syncStatus.type === 'warning' ? '⚠' : 'ℹ'}
-              </span>
-              <p className="text-sm font-medium">{syncStatus.message}</p>
-            </div>
-          </div>
+          <p role="status" className={`rounded border border-hairline px-3 py-2 text-sm font-medium ${STATUS_CLS[syncStatus.type]}`}>
+            {syncStatus.message}
+          </p>
         )}
       </div>
 
-      <div className="p-4 mt-4 rounded-md border border-hairline bg-surface-2">
-        <h4 className="mb-2 text-sm font-semibold text-fg">How it works:</h4>
-        <ul className="space-y-1 text-xs text-fg-muted list-disc list-inside">
-          <li>Enter your Lichess username (case-insensitive)</li>
-          <li>Select how many recent games to import, or set a date range to grab everything in that window</li>
-          <li>Games will be automatically added to your dashboard as "Online" — they won't mix with OTB games</li>
-          <li>Only rated games are imported</li>
+      <div className="mt-5 border-t border-hairline pt-4">
+        <h4 className="text-label mb-2">Cómo funciona</h4>
+        <ul className="list-inside list-disc space-y-1 text-xs text-fg-muted">
+          <li>El usuario de Lichess no distingue mayúsculas.</li>
+          <li>Elegí cuántas partidas recientes traer, o poné un rango de fechas para traer todo ese período.</li>
+          <li>Las partidas entran como online: no se mezclan con las de torneo.</li>
+          <li>Solo se importan partidas con rating.</li>
           <li>
-            Duplicate games are automatically detected and merged — re-syncing an overlapping
-            day is safe, which is why "ponerse al día" starts from the last saved date rather
-            than the day after
+            Los duplicados se detectan y se fusionan solos: volver a sincronizar un día ya traído no
+            rompe nada, por eso «ponerse al día» arranca desde la última fecha guardada y no desde el
+            día siguiente.
           </li>
         </ul>
       </div>
-    </div>
+    </Card>
   );
 };
 

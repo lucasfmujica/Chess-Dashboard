@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LinkIcon } from '@heroicons/react/24/outline';
 import { useGames } from '../../../../context/GamesContext';
 import { fetchRepertoireLines, patchGameRepertoireMatches } from '../../../../api/client';
 import { buildRepertoireMatches } from '../../../../utils/repertoireMatchRun';
@@ -33,7 +32,7 @@ const RepertoireMatchPanel = () => {
   useEffect(() => {
     fetchRepertoireLines()
       .then(setLines)
-      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load lines'));
+      .catch(err => setError(err instanceof Error ? err.message : 'No se pudieron cargar las líneas'));
   }, []);
 
   const run = useCallback(async () => {
@@ -48,7 +47,7 @@ const RepertoireMatchPanel = () => {
       await refetchGames();
       setResult(`${matched} de ${considered} partidas vinculadas a una línea.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Matching failed');
+      setError(err instanceof Error ? err.message : 'No se pudo vincular');
     } finally {
       setRunning(false);
     }
@@ -85,12 +84,9 @@ const RepertoireMatchPanel = () => {
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h3 className="text-h3 text-fg flex items-center gap-2">
-            <LinkIcon className="w-5 h-5 text-accent" />
-            Partidas contra repertorio
-          </h3>
+          <h3 className="font-serif text-xl font-semibold leading-tight text-fg">Partidas contra repertorio</h3>
           <p className="text-sm text-fg-muted mt-1">
-            Vincula cada partida con la línea preparada que siguió y hasta qué jugada aguantó.
+            Vinculá cada partida con la línea preparada que siguió y hasta qué jugada aguantó.
             Así sabés qué capítulo te costó puntos de verdad, no por sensación.
           </p>
         </div>
@@ -99,7 +95,7 @@ const RepertoireMatchPanel = () => {
         </Button>
       </div>
 
-      {result && <p className="text-sm text-win mt-3">{result}</p>}
+      {result && <p className="mt-3 text-sm text-fg">{result}</p>}
       {error && <p className="text-sm text-loss mt-3">{error}</p>}
 
       {stats.length > 0 && (
@@ -117,13 +113,13 @@ const RepertoireMatchPanel = () => {
               {stats.map(s => (
                 <TR key={s.line.id}>
                   <TD>
-                    <span className="text-fg">{s.line.lineName ?? s.line.eco ?? 'Sin nombre'}</span>
+                    <span className="font-serif text-[15px] text-fg">{s.line.lineName ?? s.line.eco ?? 'Sin nombre'}</span>
                   </TD>
-                  <TD align="right">{s.games}</TD>
-                  <TD align="right">
+                  <TD align="right" className="font-mono">{s.games}</TD>
+                  <TD align="right" className="font-mono">
                     {s.score}/{s.games}
                   </TD>
-                  <TD align="right" muted>
+                  <TD align="right" muted className="whitespace-nowrap font-mono">
                     jugada {s.avgExitPly}
                   </TD>
                 </TR>

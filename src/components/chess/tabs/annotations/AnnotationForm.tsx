@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { StarIcon } from '@heroicons/react/24/outline';
-import { Badge, Button } from '../../../ui';
+import { Badge, Button, Card } from '../../../ui';
 import GameViewer from '../../GameViewer';
 import ConceptLinkPicker from '../../ConceptLinkPicker';
 import CaptureMomentPanel from './CaptureMomentPanel';
@@ -21,8 +21,8 @@ import { gameLabel } from '../../../../utils/gameMapping';
 import type { AnnotatedGame, AnnotationErrorType, Game, KeyMoment } from '../../../../types/chess';
 
 const FIELD =
-  'w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent';
-const LABEL = 'block text-sm font-bold text-fg mb-2';
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+const LABEL = 'text-label mb-1.5 block';
 
 interface AnnotationFormProps {
   draft: Partial<AnnotatedGame>;
@@ -84,14 +84,15 @@ const AnnotationForm = ({
   };
 
   return (
-    <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
-      <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
-        <h3 className="text-base font-semibold text-fg">
+    <Card flush className="animate-slideUp overflow-hidden">
+      <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-hairline-strong px-5 py-4 sm:px-6">
+        <h3 className="font-serif text-xl font-semibold leading-tight text-fg">
           {isEditing ? 'Editar análisis' : 'Análisis de partida'}
         </h3>
+        {draft.gameName && <span className="truncate text-xs text-fg-subtle">{draft.gameName}</span>}
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 p-5 sm:p-6">
         {/* The board first: the post-mortem is written while looking at it, and
             the moments below it are collected from it, one per turning point. */}
         {draft.pgn ? (
@@ -123,9 +124,9 @@ const AnnotationForm = ({
             )}
           />
         ) : (
-          <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
+          <div className="rounded border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
             Esta partida no tiene jugadas guardadas, así que no hay tablero. Pegalas en «Jugadas
-            (PGN)» más abajo, o adjuntalas a la partida desde Analysis Board.
+            (PGN)» más abajo, o agregáselas a la partida desde el Tablero de análisis.
           </div>
         )}
 
@@ -156,10 +157,10 @@ const AnnotationForm = ({
           be answered from memory. These few constrained fields are what the
           Training Log charts.
         */}
-        <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-4">
-          <div>
-            <h4 className="text-sm font-bold text-fg">Post-mortem</h4>
-            <p className="text-xs text-fg-muted mt-0.5">
+        <section className="space-y-4 rounded border border-hairline bg-surface p-4 sm:p-5" aria-labelledby="ann-takeaway">
+          <div className="border-b border-hairline pb-3">
+            <h4 id="ann-takeaway" className="font-serif text-xl font-semibold leading-tight text-fg">Qué me llevo</h4>
+            <p className="mt-1 text-xs text-fg-muted">
               Un tipo de error y una lección por partida. Esto es lo que después se puede contar;
               las notas libres no.
             </p>
@@ -200,22 +201,20 @@ const AnnotationForm = ({
           </div>
 
           <div>
-            <label className={LABEL} htmlFor="ann-lesson">Lección, en una línea</label>
+            <label className={LABEL} htmlFor="ann-lesson">Lección de la partida, en una línea</label>
             <input
               id="ann-lesson"
               type="text"
               placeholder="Ej: antes de cambiar en el centro, mirá qué torre queda mal"
               value={draft.lesson || ''}
               onChange={e => set({ lesson: e.target.value })}
-              className={FIELD}
+              className={`${FIELD} bg-app font-serif text-[15px] italic placeholder:not-italic`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-fg mb-1">
-              Conceptos que decidieron la partida
-            </label>
-            <p className="text-xs text-fg-muted mb-2">
+            <p className={LABEL}>Conceptos que decidieron la partida</p>
+            <p className="mb-2 text-xs text-fg-muted">
               Marcarlos acá también le suma esta partida al concepto — que es lo que lo saca de
               «leído, no aprendido».
             </p>
@@ -225,7 +224,7 @@ const AnnotationForm = ({
               gameId={draft.gameId}
             />
           </div>
-        </div>
+        </section>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="sm:col-span-2">
@@ -246,7 +245,7 @@ const AnnotationForm = ({
               type="date"
               value={draft.date || ''}
               onChange={e => set({ date: e.target.value })}
-              className={FIELD}
+              className={`${FIELD} font-mono`}
             />
           </div>
         </div>
@@ -267,21 +266,22 @@ const AnnotationForm = ({
         </div>
 
         <div>
-          <label className={LABEL}>Valoración personal (1-5)</label>
-          <div className="flex gap-2">
+          <p className={LABEL}>Valoración personal (1 a 5)</p>
+          <div className="flex gap-1.5" role="group" aria-label="Valoración personal">
             {[1, 2, 3, 4, 5].map(rating => (
               <button
                 key={rating}
                 onClick={() => set({ rating })}
                 aria-label={`${rating} estrella${rating > 1 ? 's' : ''}`}
-                className={`p-3 rounded-lg transition-all ${
+                aria-pressed={(draft.rating || 0) >= rating}
+                className={`rounded border p-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
                   (draft.rating || 0) >= rating
-                    ? 'bg-draw/12 text-draw'
-                    : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
+                    ? 'border-transparent bg-carbon text-fg'
+                    : 'border-hairline bg-surface text-fg-subtle hover:text-fg'
                 }`}
               >
                 <StarIcon
-                  className="w-6 h-6"
+                  className="h-5 w-5"
                   fill={(draft.rating || 0) >= rating ? 'currentColor' : 'none'}
                 />
               </button>
@@ -290,7 +290,7 @@ const AnnotationForm = ({
         </div>
 
         <div>
-          <label className={LABEL}>Etiquetas</label>
+          <p className={LABEL}>Etiquetas</p>
           <div className="flex flex-wrap gap-2">
             {TAGS.map(tag => {
               const isSelected = draft.tags?.includes(tag.id);
@@ -306,11 +306,9 @@ const AnnotationForm = ({
                     });
                   }}
                   aria-pressed={isSelected}
-                  className={`rounded-full transition-opacity ${isSelected ? '' : 'opacity-50 hover:opacity-100'}`}
+                  className={`rounded-sm transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${isSelected ? '' : 'opacity-60 hover:opacity-100'}`}
                 >
-                  <Badge tone={isSelected ? tag.tone : 'neutral'}>
-                    {tag.icon} {tag.label}
-                  </Badge>
+                  <Badge tone={isSelected ? tag.tone : 'neutral'}>{tag.label}</Badge>
                 </button>
               );
             })}
@@ -324,7 +322,7 @@ const AnnotationForm = ({
             placeholder="¿Qué tuvo de particular? ¿Qué patrón notaste?"
             value={draft.notes || ''}
             onChange={e => set({ notes: e.target.value })}
-            className={`${FIELD} resize-none h-32`}
+            className={`${FIELD} h-32 resize-none`}
           />
         </div>
 
@@ -335,19 +333,19 @@ const AnnotationForm = ({
             placeholder={'Pegá las jugadas para que la partida sea reproducible\n1. e4 e5 2. Nf3 ...'}
             value={draft.pgn || ''}
             onChange={e => set({ pgn: e.target.value })}
-            className={`${FIELD} resize-none h-24 font-mono text-sm`}
+            className={`${FIELD} h-24 resize-none font-mono`}
           />
         </div>
 
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex flex-wrap gap-3 border-t border-hairline pt-5">
           <Button variant="primary" onClick={onSave} disabled={fatesNeeded > 0} className="flex-1">
             {isEditing ? 'Guardar cambios' : 'Guardar análisis'}
           </Button>
           <Button onClick={onCancel}>Cancelar</Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

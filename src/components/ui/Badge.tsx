@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-type Tone = 'neutral' | 'accent' | 'win' | 'draw' | 'loss';
+type Tone = 'neutral' | 'accent' | 'win' | 'draw' | 'loss' | 'today' | 'alert';
 
 interface BadgeProps {
   tone?: Tone;
@@ -9,29 +9,32 @@ interface BadgeProps {
 }
 
 /**
- * Light mode takes the 700 shade for the text: the tone colors themselves are
- * tuned for fills and sit at 2.5-4.3:1 on their own tint, under WCAG AA for
- * 12px text. Dark mode keeps the tone, which already reads on dark surfaces.
+ * Planilla "Tag": a short label on paper, near-square. `accent` = belongs to
+ * the player (pen), `today` = carbon yellow, `alert` = carbon pink. Result
+ * tones keep their text in the semantic colour, which reads ≥4.5:1 on its own
+ * tint in both themes.
  */
 const TONES: Record<Tone, string> = {
   neutral: 'bg-surface text-fg-muted border-hairline',
-  accent: 'bg-accent-soft/12 text-emerald-700 dark:text-accent border-accent-soft/20',
-  win: 'bg-win/12 text-emerald-700 dark:text-win border-win/20',
-  draw: 'bg-draw/12 text-amber-700 dark:text-draw border-draw/20',
-  loss: 'bg-loss/12 text-rose-700 dark:text-loss border-loss/20',
+  accent: 'bg-accent/10 text-accent border-transparent',
+  win: 'bg-win/10 text-win border-transparent',
+  draw: 'bg-draw/10 text-fg-muted border-transparent',
+  loss: 'bg-loss/10 text-loss border-transparent',
+  today: 'bg-carbon text-fg border-transparent',
+  alert: 'bg-carbon-pink text-fg border-transparent',
 };
 
-/** Small status pill. Result tones (win/draw/loss) share the app's color language. */
+/** Small status label. Result tones (win/draw/loss) share the app's color language. */
 const Badge = ({ tone = 'neutral', children, className = '' }: BadgeProps) => (
   <span
-    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${TONES[tone]} ${className}`}
+    className={`inline-flex items-center gap-1 whitespace-nowrap rounded-sm border px-2 py-0.5 text-xs font-medium ${TONES[tone]} ${className}`}
   >
     {children}
   </span>
 );
 
 /** Maps a game result ('1-0','0-1','½-½' / 'W','D','L') to a badge tone. */
-export const resultTone = (result: string): Tone => {
+export const resultTone = (result: string): Exclude<Tone, 'neutral' | 'accent' | 'today' | 'alert'> => {
   const r = result.toLowerCase();
   if (r === 'w' || r === '1' || r === '1-0' || r === 'win') return 'win';
   if (r === 'l' || r === '0' || r === '0-1' || r === 'loss') return 'loss';

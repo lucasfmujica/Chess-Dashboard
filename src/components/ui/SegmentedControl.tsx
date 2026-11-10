@@ -14,7 +14,10 @@ interface SegmentedControlProps<T extends string> {
   className?: string;
 }
 
-/** Replaces the inline toggle groups scattered across tabs/charts. */
+/**
+ * Planilla "Segmented": the tabs of a ruled column header. The chosen option
+ * is underlined in pen; no pill, no fill.
+ */
 function SegmentedControl<T extends string>({
   options,
   value,
@@ -23,12 +26,12 @@ function SegmentedControl<T extends string>({
   className = '',
   ...rest
 }: SegmentedControlProps<T>) {
-  const pad = size === 'sm' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm';
+  const pad = size === 'sm' ? 'px-2.5 py-1.5 text-[13px]' : 'px-3 py-2 text-sm';
   return (
     <div
       role="tablist"
       aria-label={rest['aria-label']}
-      className={`inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1 ${className}`}
+      className={`inline-flex max-w-full flex-wrap border-b border-hairline ${className}`}
     >
       {options.map(opt => {
         const active = opt.value === value;
@@ -38,8 +41,8 @@ function SegmentedControl<T extends string>({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(opt.value)}
-            className={`inline-flex items-center gap-1.5 rounded-md font-medium transition-colors ${pad} ${
-              active ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2 hover:text-fg'
+            className={`-mb-px inline-flex items-center gap-1.5 border-b-2 font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${pad} ${
+              active ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:text-fg'
             }`}
           >
             {opt.label}

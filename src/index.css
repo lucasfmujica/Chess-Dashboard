@@ -3,58 +3,76 @@
 @tailwind utilities;
 
 /* ============================================================
-   Typography — Geist (self-hosted variable fonts, no CDN).
-   Geist Sans for UI/body, Geist Mono for notation / data / ELO.
+   Typography — Planilla (self-hosted, no CDN; the CSP and COEP
+   headers only allow same-origin fonts).
+   Source Serif 4: titles, openings, moves and notes (the book).
+   IBM Plex Sans: interface. IBM Plex Mono: clock readouts, data.
    ============================================================ */
 @font-face {
-  font-family: 'Geist';
-  src: url('./assets/fonts/Geist-Variable.woff2') format('woff2');
-  font-weight: 100 900;
+  font-family: 'Source Serif 4';
+  src: url('./assets/fonts/SourceSerif4-Variable.woff2') format('woff2');
+  font-weight: 200 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('./assets/fonts/GeistMono-Variable.woff2') format('woff2');
-  font-weight: 100 900;
-  font-style: normal;
+  font-family: 'Source Serif 4';
+  src: url('./assets/fonts/SourceSerif4-Variable-Italic.woff2') format('woff2');
+  font-weight: 200 900;
+  font-style: italic;
   font-display: swap;
 }
+@font-face { font-family: 'IBM Plex Sans'; src: url('./assets/fonts/IBMPlexSans-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('./assets/fonts/IBMPlexSans-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('./assets/fonts/IBMPlexSans-600.woff2') format('woff2'); font-weight: 600 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('./assets/fonts/IBMPlexMono-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('./assets/fonts/IBMPlexMono-500.woff2') format('woff2'); font-weight: 500 700; font-style: normal; font-display: swap; }
 
 /* ============================================================
-   Design tokens (semantic, theme-aware via CSS variables)
-   Values are space-separated RGB channels so Tailwind can apply
-   alpha (rgb(var(--token) / <alpha-value>)).
+   Design tokens — the Planilla system (see the design-system
+   artifact). Values are space-separated RGB channels so Tailwind
+   can apply alpha (rgb(var(--token) / <alpha-value>)).
+
+   Two surfaces: PAPER (the scoresheet: everything you study or
+   read) and CLOCK (the instrument: everything you measure).
    ============================================================ */
 @layer base {
-  /* Linear/Vercel-style neutral palette: flat surfaces, hairline borders,
-     restrained single accent. Light = near-white; dark = near-black zinc. */
   :root {
-    --bg: 250 250 250;        /* app background      (zinc-50)   */
-    --surface: 255 255 255;   /* cards / panels      (white)     */
-    --surface-2: 244 244 245; /* subtle inset panels (zinc-100)  */
-    --fg: 9 9 11;             /* primary text        (zinc-950)  */
-    --fg-muted: 113 113 122;  /* secondary text      (zinc-500)  */
-    /* Tertiary text. Was zinc-400 (2.3-2.6:1 on these surfaces); this is the
-       lightest gray that clears WCAG AA 4.5:1 on surface-2 (4.8:1). */
-    --fg-subtle: 107 107 116;
-    --border: 228 228 231;    /* hairlines           (zinc-200)  */
-    --accent: 16 185 129;     /* emerald-500 (used sparingly)    */
-    --accent-strong: 5 150 105;
-    --accent-fg: 255 255 255;
-    --accent-soft: 16 185 129;/* used at low alpha for tints      */
-    --win: 16 185 129;
-    --draw: 217 119 6;
-    --loss: 225 29 72;
+    --bg: 241 242 236;          /* paper  — app background            */
+    --surface: 251 251 248;     /* sheet  — cards, tables, sidebar    */
+    --surface-2: 232 234 226;   /* sheet-2 — inset, table header      */
+    --fg: 22 27 46;             /* ink                                */
+    --fg-muted: 82 90 106;      /* ink-muted (≥5.9:1 on all papers)   */
+    --fg-subtle: 95 101 116;    /* ink-subtle (≥4.8:1 on every paper)  */
+    --border: 210 213 202;      /* rule — 1px hairlines               */
+    --border-strong: 22 27 46;  /* rule-strong — header rules         */
+    --accent: 35 56 181;        /* pen — the player's ink             */
+    --accent-strong: 27 44 148;
+    --accent-fg: 255 255 255;   /* on-pen                             */
+    --accent-soft: 35 56 181;   /* used at low alpha for selection    */
+    --carbon: 241 229 163;      /* yellow scoresheet copy: today/now  */
+    --carbon-pink: 240 210 210; /* pink copy: blunder / overdue       */
+    --win: 29 106 68;
+    --draw: 95 100 112;
+    --loss: 178 50 30;
 
-    /* Chessboard — the Lichess green. Deliberately identical in both themes:
-       the board is the one surface where contrast beats theme consistency,
-       and a board that changes colour with the app is a board you have to
-       re-read every time. --board-highlight is lime rather than the app's
-       emerald because emerald disappears into the dark squares. */
-    --board-light: 237 238 209;   /* #EDEED1 */
-    --board-dark: 119 149 86;     /* #779556 */
-    --board-highlight: 155 199 0; /* #9BC700 */
+    /* Metrics header ("clock" in the first draft). The user chose the paper
+       treatment, so these now resolve to paper values: anything still using
+       clock-* renders as the scoresheet header. */
+    --clock: 251 251 248;
+    --clock-2: 210 213 202;
+    --clock-fg: 22 27 46;
+    --clock-muted: 82 90 106;
+    --clock-lit: 29 106 68;
+    --clock-flag: 178 50 30;
+
+    /* Chessboard — "Tinta": muted ink-blue dark squares, paper light
+       squares, last move in carbon yellow. Deliberately identical in both
+       themes: a board that changes colour with the app is a board you have
+       to re-read every time. */
+    --board-light: 227 230 222;   /* #E3E6DE */
+    --board-dark: 135 150 170;    /* #8796AA */
+    --board-highlight: 226 207 108; /* #E2CF6C */
 
     /* Width the board shares its column with — an eval bar plus its gap on
        the pages that have one, zero everywhere else. See index.css's board
@@ -62,43 +80,52 @@
     --board-gutter: 0px;
 
     /* Categorical palette for multi-series charts (theme-aware) */
-    --cat-1: 16 185 129;   /* emerald */
-    --cat-2: 59 130 246;   /* blue    */
-    --cat-3: 217 119 6;    /* amber   */
-    --cat-4: 168 85 247;   /* violet  */
-    --cat-5: 236 72 153;   /* pink    */
-    --cat-6: 20 184 166;   /* teal    */
+    --cat-1: 35 56 181;    /* pen    */
+    --cat-2: 154 82 22;    /* umber  */
+    --cat-3: 29 106 68;    /* green  */
+    --cat-4: 122 79 168;   /* violet */
+    --cat-5: 168 69 107;   /* plum   */
+    --cat-6: 47 127 134;   /* teal   */
 
     color-scheme: light;
   }
 
   .dark {
-    --bg: 9 9 11;             /* zinc-950 (near-black) */
-    --surface: 24 24 27;      /* zinc-900 (elevated)   */
-    --surface-2: 39 39 42;    /* zinc-800              */
-    --fg: 250 250 250;        /* zinc-50               */
-    --fg-muted: 161 161 170;  /* zinc-400              */
-    --fg-subtle: 146 146 154; /* AA 4.5:1 on surface-2 (was zinc-500, 3.1:1) */
-    --border: 39 39 42;       /* zinc-800 (subtle)     */
-    --accent: 52 211 153;     /* emerald-400           */
-    --accent-strong: 16 185 129;
-    --accent-fg: 9 9 11;
-    --accent-soft: 52 211 153;
-    --win: 52 211 153;
-    --draw: 251 191 36;
-    --loss: 251 113 133;
+    --bg: 18 20 23;
+    --surface: 26 29 33;
+    --surface-2: 35 39 44;
+    --fg: 232 234 228;
+    --fg-muted: 163 169 179;
+    --fg-subtle: 138 144 155;
+    --border: 49 54 60;
+    --border-strong: 201 206 214;
+    --accent: 140 155 255;
+    --accent-strong: 169 180 255;
+    --accent-fg: 16 19 42;
+    --accent-soft: 140 155 255;
+    --carbon: 74 66 32;
+    --carbon-pink: 75 38 41;
+    --win: 92 196 140;
+    --draw: 163 169 179;
+    --loss: 255 138 110;
 
-    /* Chessboard — same green as light mode, on purpose. See :root above. */
-    --board-light: 237 238 209;
-    --board-dark: 119 149 86;
-    --board-highlight: 155 199 0;
+    --clock: 26 29 33;
+    --clock-2: 49 54 60;
+    --clock-fg: 232 234 228;
+    --clock-muted: 163 169 179;
+    --clock-lit: 92 196 140;
+    --clock-flag: 255 138 110;
 
-    --cat-1: 52 211 153;
-    --cat-2: 96 165 250;
-    --cat-3: 251 191 36;
-    --cat-4: 192 132 252;
-    --cat-5: 244 114 182;
-    --cat-6: 45 212 191;
+    --board-light: 227 230 222;
+    --board-dark: 135 150 170;
+    --board-highlight: 226 207 108;
+
+    --cat-1: 140 155 255;
+    --cat-2: 227 154 85;
+    --cat-3: 92 196 140;
+    --cat-4: 184 146 230;
+    --cat-5: 232 137 173;
+    --cat-6: 108 195 201;
 
     color-scheme: dark;
   }
@@ -106,7 +133,7 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
       'Helvetica Neue', sans-serif;
     background-color: rgb(var(--bg));
     color: rgb(var(--fg));
@@ -136,22 +163,27 @@
    ============================================================ */
 @layer components {
   .text-display {
-    font-size: 2.25rem;      /* 36px */
-    line-height: 1.05;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-  .text-h1 {
-    font-size: 1.5rem;       /* 24px */
-    line-height: 1.2;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-  .text-h2 {
-    font-size: 1.125rem;     /* 18px */
-    line-height: 1.3;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 2.5rem;       /* 40px */
+    line-height: 1.1;
     font-weight: 600;
     letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .text-h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.75rem;      /* 28px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  .text-h2 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.25rem;      /* 20px */
+    line-height: 1.3;
+    font-weight: 600;
+    text-wrap: balance;
   }
   .text-h3 {
     font-size: 0.9375rem;    /* 15px */
@@ -160,11 +192,17 @@
   }
   .text-label {
     font-size: 0.6875rem;    /* 11px */
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: 0.06em;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgb(var(--fg-subtle));
+  }
+  /* Notation: moves, opening names, annotations — the "book" voice. */
+  .text-notation {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.5;
   }
   /* Tabular numerics helper for stats / ELO / eval readouts */
   .nums {
@@ -211,27 +249,29 @@
   /* react-chessboard ships the Cburnett SVGs — the same set Lichess
      uses — but renders them flat. The shadow is what makes a piece
      read as sitting on the square rather than printed into it. */
+  .board-frame img,
   .board-frame svg {
-    filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.35));
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.3));
   }
 }
 
 /* ============================================================
-   Recharts dark theming (centralized — themes every chart's
+   Recharts theming (centralized, both themes — themes every chart's
    grid / axes / legend without per-component changes). Custom
    tooltips are styled inline with semantic tokens per chart.
    ============================================================ */
-.dark .recharts-cartesian-grid line { stroke: rgb(var(--border)); }
-.dark .recharts-cartesian-axis line,
-.dark .recharts-cartesian-axis-tick line,
-.dark .recharts-cartesian-axis-tick-line { stroke: rgb(var(--border)); }
-.dark .recharts-cartesian-axis-tick text,
-.dark .recharts-text,
-.dark .recharts-label { fill: rgb(var(--fg-muted)); }
-.dark .recharts-legend-item-text { color: rgb(var(--fg-muted)) !important; }
-.dark .recharts-default-tooltip {
+.recharts-cartesian-grid line { stroke: rgb(var(--border)); }
+.recharts-cartesian-axis line,
+.recharts-cartesian-axis-tick line,
+.recharts-cartesian-axis-tick-line { stroke: rgb(var(--border)); }
+.recharts-cartesian-axis-tick text,
+.recharts-text,
+.recharts-label { fill: rgb(var(--fg-muted)); }
+.recharts-legend-item-text { color: rgb(var(--fg-muted)) !important; }
+.recharts-cartesian-axis-tick text { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.recharts-default-tooltip {
   background-color: rgb(var(--surface)) !important;
   border-color: rgb(var(--border)) !important;
   color: rgb(var(--fg)) !important;
 }
-.dark .recharts-tooltip-item { color: rgb(var(--fg)) !important; }
+.recharts-tooltip-item { color: rgb(var(--fg)) !important; }

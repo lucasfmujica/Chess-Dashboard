@@ -7,15 +7,15 @@ const ALIGN: Record<Align, string> = {
   right: 'text-right',
 };
 
-/** Scroll container + base table. Roomier density than a raw spreadsheet. */
+/** Planilla ScoreTable: ruled rows, ink rule under the header, numbers aligned. */
 export const Table = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
-  <div className="overflow-x-auto rounded-lg border border-hairline">
-    <table className={`w-full text-sm ${className}`}>{children}</table>
+  <div className="overflow-x-auto rounded border border-hairline bg-surface">
+    <table className={`w-full text-sm tabular-nums ${className}`}>{children}</table>
   </div>
 );
 
 export const THead = ({ children }: { children: ReactNode }) => (
-  <thead className="border-b border-hairline bg-surface-2/50">{children}</thead>
+  <thead className="border-b border-hairline-strong bg-surface-2">{children}</thead>
 );
 
 export const TBody = ({ children }: { children: ReactNode }) => (
@@ -27,7 +27,7 @@ interface TRProps extends HTMLAttributes<HTMLTableRowElement> {
 }
 export const TR = ({ interactive, className = '', children, ...rest }: TRProps) => (
   <tr
-    className={`${interactive ? 'cursor-pointer transition-colors hover:bg-surface-2' : ''} ${className}`}
+    className={`${interactive ? 'cursor-pointer transition-colors hover:bg-app' : ''} ${className}`}
     {...rest}
   >
     {children}
@@ -38,7 +38,7 @@ interface THProps extends ThHTMLAttributes<HTMLTableCellElement> {
   align?: Align;
 }
 export const TH = ({ align = 'left', className = '', children, ...rest }: THProps) => (
-  <th className={`px-4 py-2.5 text-label ${ALIGN[align]} whitespace-nowrap ${className}`} {...rest}>
+  <th className={`px-3 py-2 text-label !text-fg-muted ${ALIGN[align]} whitespace-nowrap ${className}`} {...rest}>
     {children}
   </th>
 );
@@ -49,7 +49,7 @@ interface TDProps extends TdHTMLAttributes<HTMLTableCellElement> {
 }
 export const TD = ({ align = 'left', muted, className = '', children, ...rest }: TDProps) => (
   <td
-    className={`px-4 py-2.5 ${ALIGN[align]} ${muted ? 'text-fg-muted' : 'text-fg'} ${className}`}
+    className={`px-3 py-2 ${ALIGN[align]} ${muted ? 'text-fg-muted' : 'text-fg'} ${className}`}
     {...rest}
   >
     {children}

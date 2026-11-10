@@ -40,7 +40,7 @@ const DrillsHubTab = ({ activeTab, onNavigate }: DrillsHubTabProps) => {
         options={VIEWS}
         value={view}
         onChange={next => onNavigate(next === 'calculation' ? 'drills' : `drills-${next}`)}
-        aria-label="Tipo de drill"
+        aria-label="Tipo de ejercicio"
       />
 
       <LazyTab>{view === 'calculation' ? <BlunderDrillsTab /> : <EndgameDrillsTab />}</LazyTab>

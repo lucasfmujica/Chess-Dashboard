@@ -5,17 +5,14 @@ import BoardFrame from '../../BoardFrame';
 import {
   CheckCircleIcon,
   XCircleIcon,
-  PencilSquareIcon,
   ArrowRightIcon,
-  SparklesIcon,
-  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import { useDailyQueue, type QueueItem } from '../../../../hooks/useDailyQueue';
 import { useHomework } from '../../../../hooks/useHomework';
 import { postTrainingSession, putTrainingSession, postTrainingAttempts } from '../../../../api/client';
 import { programForDate, plannedMinutes } from '../../../../constants/trainingProgram';
 import { formatMaterialDelta } from '../../../../engine/mineEndgames';
-import { Card, Button, Badge } from '../../../ui';
+import { Card, Button, Badge, ClockBar, StatCard } from '../../../ui';
 import PuzzleBoard from '../../PuzzleBoard';
 import LineTrainerBoard from '../repertoire/LineTrainerBoard';
 import ThinkTimer from '../../ThinkTimer';
@@ -254,25 +251,38 @@ const TodayQueue = () => {
 
   return (
     <div className="space-y-6">
+      <ClockBar>
+        <StatCard title="Cola de hoy" value={total} subtitle="blunders, finales, repertorio y conceptos" />
+        <StatCard
+          title="Hechos"
+          value={`${done} / ${total}`}
+          subtitle={`${correctCount} resueltos`}
+          trend={total > 0 && done >= total ? 'up' : undefined}
+        />
+        <StatCard
+          title="Vencidos"
+          value={dueTotals.total}
+          subtitle="en todas las colas"
+          trend={dueTotals.total > 0 ? 'down' : undefined}
+        />
+        <StatCard title="Plan del día" value={`${plannedMinutes(program)}′`} subtitle={program.dayName} />
+      </ClockBar>
+
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="text-label">Hoy · {program.dayName}</div>
-            <h2 className="text-h2 text-fg mt-1">{program.focus}</h2>
-            <p className="text-sm text-fg-muted mt-1">
-              {plannedMinutes(program)} min planificados ·{' '}
-              <span className="nums">{dueTotals.total}</span> ejercicios vencidos en total
-            </p>
+            <h2 className="mt-1 font-serif text-2xl font-semibold leading-tight text-fg text-balance">{program.focus}</h2>
           </div>
           {total > 0 && !finished && (
             <div className="flex items-center gap-3">
-              <div className="w-32 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+              <div className="w-32 h-1.5 rounded-sm bg-surface-2 overflow-hidden">
                 <div
                   className="h-full bg-accent transition-all"
                   style={{ width: `${total ? Math.round((done / total) * 100) : 0}%` }}
                 />
               </div>
-              <span className="text-xs text-fg-muted nums">
+              <span className="font-mono text-xs tabular-nums text-fg-muted">
                 {done}/{total}
               </span>
             </div>
@@ -281,11 +291,12 @@ const TodayQueue = () => {
 
         {homework.open.length > 0 && (
           <div className="mt-5 border-t border-hairline pt-4">
-            <div className="text-label flex items-center gap-1.5">
-              <ClipboardDocumentListIcon className="w-4 h-4" />
-              Tarea de las clases
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-label">Tarea de las clases</span>
               {homework.overdue.length > 0 && (
-                <span className="text-loss nums">· {homework.overdue.length} vencida</span>
+                <Badge tone="alert">
+                  {homework.overdue.length} vencida{homework.overdue.length > 1 ? 's' : ''}
+                </Badge>
               )}
             </div>
             <ul className="mt-2 space-y-1.5">
@@ -294,11 +305,11 @@ const TodayQueue = () => {
                 return (
                   <li key={hw.id} className="flex gap-2 text-sm">
                     <span
-                      className={`shrink-0 nums w-20 ${late ? 'text-loss' : 'text-fg-subtle'}`}
+                      className={`shrink-0 w-20 font-mono text-xs leading-5 tabular-nums ${late ? 'text-loss' : 'text-fg-subtle'}`}
                     >
                       {hw.dueDate ?? 'sin fecha'}
                     </span>
-                    <span className={late ? 'text-fg' : 'text-fg-muted'}>{hw.task}</span>
+                    <span className={`font-serif text-[15px] leading-5 ${late ? 'text-fg' : 'text-fg-muted'}`}>{hw.task}</span>
                   </li>
                 );
               })}
@@ -306,12 +317,12 @@ const TodayQueue = () => {
           </div>
         )}
 
-        <div className="mt-5 space-y-2 border-t border-hairline pt-4">
+        <div className="mt-5 divide-y divide-hairline border-t border-hairline">
           {program.blocks.map((block, i) => (
-            <div key={i} className="flex gap-3 text-sm">
-              <span className="text-fg-muted nums shrink-0 w-14">{block.minutes} min</span>
+            <div key={i} className="flex gap-3 py-3 text-sm">
+              <span className="w-14 shrink-0 font-mono text-xs leading-6 tabular-nums text-fg-subtle">{block.minutes} min</span>
               <div>
-                <span className="text-fg font-medium">{block.label}</span>
+                <span className="font-serif text-base text-fg">{block.label}</span>
                 <p className="text-fg-muted">{block.detail}</p>
               </div>
             </div>
@@ -321,19 +332,14 @@ const TodayQueue = () => {
 
       {finished ? (
         <Card>
-          <div className="flex items-center gap-3">
-            <SparklesIcon className="w-6 h-6 text-accent" />
-            <div>
-              <h3 className="text-h3 text-fg">Sesión guardada</h3>
-              <p className="text-sm text-fg-muted">
-                {done} ejercicios, {correctCount} resueltos. Queda registrado en el Registro.
-              </p>
-            </div>
-          </div>
+          <h3 className="font-serif text-xl font-semibold text-fg">Sesión guardada</h3>
+          <p className="mt-1 text-sm text-fg-muted">
+            {done} ejercicios, {correctCount} resueltos. Queda anotado en el Registro.
+          </p>
         </Card>
       ) : total === 0 ? (
         <Card>
-          <h3 className="text-h3 text-fg">Hoy no toca cola de ejercicios</h3>
+          <h3 className="font-serif text-xl font-semibold text-fg">Hoy no toca cola de ejercicios</h3>
           <p className="text-sm text-fg-muted mt-1">
             Este día del programa es de {program.focus.toLowerCase()}. Seguí los bloques de arriba
             y registralo cuando termines.
@@ -347,7 +353,7 @@ const TodayQueue = () => {
         </Card>
       ) : allResolved ? (
         <Card>
-          <h3 className="text-h3 text-fg">Cola terminada</h3>
+          <h3 className="font-serif text-xl font-semibold text-fg">Cola terminada</h3>
           <p className="text-sm text-fg-muted mt-1">
             {done} ejercicios, {correctCount} resueltos.
           </p>
@@ -364,7 +370,7 @@ const TodayQueue = () => {
             <div className="flex items-center justify-between gap-3 mb-4">
               <div className="flex items-center gap-2">
                 <Badge tone="accent">{KIND_LABEL[current.kind]}</Badge>
-                <span className="text-xs text-fg-muted nums">
+                <span className="font-mono text-xs tabular-nums text-fg-muted">
                   {index + 1} de {total}
                 </span>
               </div>
@@ -385,8 +391,7 @@ const TodayQueue = () => {
                 {!revealed ? (
                   <div>
                     <ThinkTimer startedAt={itemStartedAt} />
-                    <label className="text-label mt-4 flex items-center gap-1.5" htmlFor="candidates">
-                      <PencilSquareIcon className="w-4 h-4" />
+                    <label className="text-label mt-4 block" htmlFor="candidates">
                       {current.kind === 'blunder'
                         ? 'Tus candidatos, antes de mover'
                         : current.kind === 'endgame'
@@ -400,22 +405,22 @@ const TodayQueue = () => {
                       rows={5}
                       placeholder={
                         current.kind === 'blunder'
-                          ? 'Ej: Nf3, Bb5+, d5 — y una evaluación en una palabra al final de cada línea'
+                          ? 'Ej: Nf3, Bb5+, d5, y una evaluación en una palabra al final de cada línea'
                           : 'Ej: activar la torre por la séptima, rey a e4'
                       }
-                      className="mt-2 w-full rounded-lg border border-hairline bg-surface-2 p-3 text-sm text-fg placeholder:text-fg-subtle focus:outline-none focus:ring-1 focus:ring-accent"
+                      className="mt-2 w-full rounded border border-hairline bg-app p-3 font-serif text-[15px] italic leading-6 text-fg placeholder:not-italic placeholder:font-sans placeholder:text-sm placeholder:text-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                     />
                     <p className="text-xs text-fg-subtle mt-2">
                       Escribilos primero. Una lista mental se puede corregir después de ver la
-                      respuesta — una escrita, no.
+                      respuesta; una escrita, no.
                     </p>
                     <Button className="mt-3" disabled={!candidates.trim()} onClick={reveal}>
                       {current.kind === 'blunder' ? 'Listo, ahora juego' : 'Ver la respuesta'}
                     </Button>
                   </div>
                 ) : pendingMiss ? (
-                  <div className="rounded-lg border border-hairline bg-surface-2 p-4">
-                    <h4 className="text-fg font-medium">
+                  <div className="rounded border border-hairline bg-surface-2 p-4">
+                    <h4 className="font-serif text-base font-semibold text-fg">
                       ¿La jugada correcta estaba en tu lista?
                     </h4>
                     <p className="text-xs text-fg-muted mt-1">
@@ -438,7 +443,7 @@ const TodayQueue = () => {
                       frozenSeconds={thinkSecondsRef.current ?? 0}
                     />
                     <p className="mt-3 text-sm text-fg-muted">
-                      Tus candidatos: <span className="text-fg">{candidates}</span>
+                      Tus candidatos: <span className="font-serif italic text-fg">{candidates}</span>
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button
@@ -563,12 +568,12 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
           // about the position from whoever has to act in it.
           <StaticBoard fen={fen} orientation={fen.split(' ')[1] === 'b' ? 'black' : 'white'} />
         ) : (
-          <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
+          <div className="rounded border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
             Este concepto no tiene posición de ejemplo guardada.
           </div>
         )}
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
-          <p className="text-sm font-semibold text-fg">{item.concept.name}</p>
+        <div className="mt-3 rounded border border-hairline bg-surface p-3">
+          <p className="font-serif text-base font-semibold text-fg">{item.concept.name}</p>
           {!revealed ? (
             <p className="mt-1 text-xs text-fg-subtle">
               Decilo con tus palabras antes de revelar. ¿Qué pide esta posición?
@@ -576,11 +581,11 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
           ) : (
             <>
               {item.concept.summary && (
-                <p className="mt-2 whitespace-pre-line text-sm text-fg">{item.concept.summary}</p>
+                <p className="mt-2 whitespace-pre-line font-serif text-[15px] leading-6 text-fg">{item.concept.summary}</p>
               )}
               {item.concept.gameIds.length === 0 && (
-                <p className="mt-2 text-xs text-draw">
-                  Leído, no aprendido — todavía no tiene una partida tuya vinculada.
+                <p className="mt-2 text-xs text-fg-muted">
+                  Leído, no aprendido: todavía no tiene una partida tuya vinculada.
                 </p>
               )}
             </>
@@ -610,18 +615,18 @@ const QueueItemBoard = ({ item, revealed, onResult }: QueueItemBoardProps) => {
       {item.line.keyFen ? (
         <StaticBoard fen={item.line.keyFen} orientation={orientation} />
       ) : (
-        <div className="rounded-lg border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
+        <div className="rounded border border-hairline bg-surface-2 p-4 text-sm text-fg-muted">
           Esta línea no tiene posición clave guardada.
         </div>
       )}
       {revealed && (
-        <div className="mt-3 space-y-2 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-3 space-y-2 rounded border border-hairline bg-surface p-3">
           {item.line.movesSan && (
-            <p className="font-mono text-sm text-fg">{item.line.movesSan}</p>
+            <p className="font-serif text-base text-fg">{item.line.movesSan}</p>
           )}
-          {item.line.plan && <p className="text-sm text-fg-muted">{item.line.plan}</p>}
+          {item.line.plan && <p className="font-serif text-[15px] leading-6 text-fg-muted">{item.line.plan}</p>}
           {item.line.goldenRule && (
-            <p className="text-sm text-accent">{item.line.goldenRule}</p>
+            <p className="rounded-sm bg-carbon px-2 py-1 font-serif text-[15px] leading-6 text-fg">{item.line.goldenRule}</p>
           )}
         </div>
       )}

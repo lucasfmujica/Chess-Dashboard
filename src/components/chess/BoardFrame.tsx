@@ -102,7 +102,7 @@ const BoardFrame = ({ children, className = '', resizable = true }: BoardFramePr
 
   return (
     <div ref={frameRef} className={`board-frame relative ${className}`}>
-      <div className="absolute inset-0 overflow-hidden rounded-lg border border-hairline">
+      <div className="absolute inset-0 overflow-hidden rounded-sm border border-hairline-strong">
         {children}
       </div>
       {resizable && (
@@ -113,7 +113,7 @@ const BoardFrame = ({ children, className = '', resizable = true }: BoardFramePr
           onKeyDown={onKeyDown}
           aria-label="Redimensionar el tablero. Flechas para ajustar, Escape para volver al automático."
           title="Arrastrá para redimensionar · doble clic para volver al automático"
-          className="group absolute -bottom-1.5 -right-1.5 z-30 h-6 w-6 cursor-nwse-resize touch-none rounded-br-lg opacity-40 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+          className="group absolute -bottom-1.5 -right-1.5 z-30 h-6 w-6 cursor-nwse-resize touch-none rounded-br-sm opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent transition-opacity hover:opacity-100 focus-visible:opacity-100"
         >
           <span className="absolute bottom-1 right-1 block h-3.5 w-3.5 border-b-2 border-r-2 border-fg-muted rounded-br-sm group-hover:border-accent" />
         </button>

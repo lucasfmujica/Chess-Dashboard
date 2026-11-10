@@ -1,15 +1,26 @@
 import { useMemo, useState } from 'react';
-import {
-  TrophyIcon,
-  StarIcon,
-  FireIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  SparklesIcon,
-  ArrowTrendingUpIcon,
-} from '@heroicons/react/24/outline';
+import type { ReactNode } from 'react';
 import { useGames } from '../../../context/GamesContext';
 import type { Game } from '../../../types/chess';
+import { Card, CardHeader, ClockBar, StatCard, ResultMark } from '../../ui';
+
+/** 3.5 → "3½". */
+const fmtPoints = (n: number): string => {
+  const whole = Math.floor(n);
+  if (n - whole < 0.5) return String(whole);
+  return whole === 0 ? '½' : `${whole}½`;
+};
+
+/** One line of the record book: label, what it was, the number. */
+const RecordRow = ({ label, children, value, valueClass = '' }: { label: string; children: ReactNode; value: ReactNode; valueClass?: string }) => (
+  <div className="grid grid-cols-1 gap-1 border-b border-hairline px-5 py-3.5 last:border-b-0 sm:grid-cols-[minmax(160px,220px)_1fr] sm:items-baseline sm:gap-4 sm:px-6">
+    <dt className="text-label">{label}</dt>
+    <dd className="flex min-w-0 items-baseline justify-between gap-4">
+      <span className="min-w-0 font-serif text-[17px] leading-6 text-fg">{children}</span>
+      <span className={`shrink-0 text-right font-mono text-xl font-medium tabular-nums text-fg ${valueClass}`}>{value}</span>
+    </dd>
+  </div>
+);
 
 /** Game enriched with optional per-game fields used for record-keeping. */
 type RecordGame = Game & {
@@ -24,6 +35,8 @@ interface EloHistoryEntry {
   eloBefore?: number;
   date?: string;
   game?: number;
+  /** Present on the per-game history; used to name rating milestones. */
+  tournament?: string;
 }
 
 /** Best-performing tournament aggregate. */
@@ -81,7 +94,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     try {
       await syncFideRating();
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'FIDE sync failed');
+      setSyncError(err instanceof Error ? err.message : 'No se pudo sincronizar con FIDE');
     } finally {
       setSyncing(false);
     }
@@ -92,7 +105,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     if (!games || games.length === 0) {
       return {
         highestRating: 0,
-        highestRatingDate: 'N/A',
+        highestRatingDate: '—',
         startingRating: 0,
         longestWinStreak: 0,
         longestUnbeatenStreak: 0,
@@ -126,7 +139,7 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
       eloHistory.forEach(entry => {
         if (entry.elo > highestRating) {
           highestRating = entry.elo;
-          highestRatingDate = entry.date || `Game ${entry.game}`;
+          highestRatingDate = entry.date || `partida ${entry.game}`;
         }
       });
     }
@@ -270,327 +283,142 @@ const RecordsTab = ({ games, eloHistory }: RecordsTabProps) => {
     };
   }, [games, eloHistory]);
 
+  // Every hundred crossed since the start, with where it first happened.
+  const milestones = useMemo(() => {
+    if (!eloHistory || eloHistory.length === 0) return [];
+    const out: { elo: number; where: string; note: string }[] = [];
+    for (let h = Math.floor(records.startingRating / 100) * 100 + 100; h <= records.highestRating; h += 100) {
+      const hit = eloHistory.find(e => e.elo >= h);
+      if (!hit) break;
+      out.push({
+        elo: h,
+        where: hit.tournament || (hit.game ? `Partida ${hit.game}` : '—'),
+        note: [hit.date, hit.game ? `partida ${hit.game}` : null].filter(Boolean).join(' · '),
+      });
+    }
+    return out.reverse();
+  }, [eloHistory, records.startingRating, records.highestRating]);
+
+  const gain = records.highestRating - records.startingRating;
+  const bt = records.bestTournament;
+
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-        <div className="relative px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-surface-2 rounded-lg">
-              <StarIcon className="w-8 h-8 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-fg">Personal Records</h2>
-              <p className="text-fg-muted">Your greatest chess achievements and milestones</p>
-            </div>
+      <p className="text-sm text-fg-muted">
+        <span className="font-mono tabular-nums">{games.length}</span> partidas cargadas
+      </p>
+
+      <ClockBar>
+        <StatCard
+          title="ELO FIDE hoy"
+          value={playerInfo.current_elo}
+          subtitle={
+            <>
+              Estándar{playerInfo.updated_at ? ` · ${playerInfo.updated_at.slice(0, 10)}` : ''} ·{' '}
+              <button
+                type="button"
+                onClick={syncNow}
+                disabled={syncing}
+                className="rounded-sm font-medium text-accent underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-50 disabled:no-underline"
+              >
+                {syncing ? 'Sincronizando…' : 'Sincronizar con FIDE'}
+              </button>
+              {syncError && <span className="mt-1 block text-loss">{syncError}</span>}
+            </>
+          }
+        />
+        <StatCard title="ELO máximo" value={records.highestRating} subtitle={records.highestRatingDate} />
+        <StatCard title="ELO inicial" value={records.startingRating} subtitle="Antes de la primera partida" />
+        <StatCard
+          title="Mejora total"
+          value={gain > 0 ? `+${gain}` : gain < 0 ? `−${Math.abs(gain)}` : '0'}
+          trend={gain > 0 ? 'up' : gain < 0 ? 'down' : undefined}
+          subtitle={`Del inicial al máximo, hasta ${records.highestRating}`}
+        />
+      </ClockBar>
+
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <Card flush className="lg:col-span-2">
+          <div className="p-5 pb-3 sm:p-6 sm:pb-3">
+            <CardHeader title="Libro de récords" />
           </div>
+          <dl className="border-t border-hairline">
+            {records.highestRatedOpponent && (
+              <RecordRow label="Mejor victoria" value={records.highestRatedOpponent.opp_elo}>
+                {records.highestRatedOpponent.opp}
+                <span className="text-fg-muted">
+                  {' · '}
+                  {[records.highestRatedOpponent.tournament, records.highestRatedOpponent.opening].filter(Boolean).join(' · ')}
+                </span>
+              </RecordRow>
+            )}
+            {records.bestPerformance && (
+              <RecordRow label="Mejor rendimiento" value={records.bestPerformance.performanceRating}>
+                contra {records.bestPerformance.opp}
+                <span className="text-fg-muted"> · {records.bestPerformance.tournament}</span>
+              </RecordRow>
+            )}
+            <RecordRow label="Racha de victorias" value={records.longestWinStreak}>
+              {records.longestWinStreak} seguida{records.longestWinStreak === 1 ? '' : 's'}
+            </RecordRow>
+            <RecordRow label="Invicto más largo" value={records.longestUnbeatenStreak}>
+              {records.longestUnbeatenStreak} partida{records.longestUnbeatenStreak === 1 ? '' : 's'} sin perder
+            </RecordRow>
+            {bt && (
+              <RecordRow label="Mejor puntaje en un torneo" value={`${Math.round(parseFloat(String(bt.score)))}%`}>
+                {bt.name}
+                <span className="text-fg-muted"> · {fmtPoints(bt.wins + bt.draws * 0.5)} de {bt.total}</span>
+              </RecordRow>
+            )}
+            {records.mostWinsVsOpponent && (
+              <RecordRow label="Más victorias contra un rival" value={records.mostWinsVsOpponent.wins}>
+                {records.mostWinsVsOpponent.opponent}
+              </RecordRow>
+            )}
+            {records.favoriteOpening && (
+              <RecordRow label="Apertura más jugada" value={records.favoriteOpening.count}>
+                {records.favoriteOpening.opening}
+              </RecordRow>
+            )}
+            {records.quickestWin && (
+              <RecordRow label="Victoria más corta" value={records.quickestWin.moves?.length}>
+                contra {records.quickestWin.opp}
+                {records.quickestWin.opening && <span className="text-fg-muted"> · {records.quickestWin.opening}</span>}
+              </RecordRow>
+            )}
+            {records.longestGame && (
+              <RecordRow label="Partida más larga" value={records.longestGame.moves?.length}>
+                <span className="inline-flex items-center gap-2">
+                  contra {records.longestGame.opp}
+                  <ResultMark result={records.longestGame.result} outline />
+                </span>
+              </RecordRow>
+            )}
+          </dl>
+        </Card>
 
-          {/* Top Records Summary */}
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-surface-2 rounded-lg p-4">
-              <p className="text-fg-muted text-sm font-medium mb-1">Peak Rating</p>
-              <p className="text-4xl font-bold text-fg tabular-nums">{records.highestRating}</p>
-            </div>
-            <div className="bg-surface-2 rounded-lg p-4">
-              <p className="text-fg-muted text-sm font-medium mb-1">Win Streak</p>
-              <p className="text-4xl font-bold text-fg tabular-nums">{records.longestWinStreak}</p>
-            </div>
-            <div className="bg-surface-2 rounded-lg p-4">
-              <p className="text-fg-muted text-sm font-medium mb-1">Unbeaten</p>
-              <p className="text-4xl font-bold text-fg tabular-nums">{records.longestUnbeatenStreak}</p>
-            </div>
-            <div className="bg-surface-2 rounded-lg p-4">
-              <p className="text-fg-muted text-sm font-medium mb-1">Rating Gain</p>
-              <p className="text-4xl font-bold text-fg tabular-nums">+{records.highestRating - records.startingRating}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Rating Records */}
-      <div>
-        <div className="mb-6">
-          <h3 className="text-base font-semibold text-fg mb-2">Rating Milestones</h3>
-          <p className="text-fg-muted">Your journey through the rating ladder</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {/* Where you are now — read from FIDE, not from the game log, which
-              only ever knows the rating the last recorded game produced. */}
-          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-surface-2 rounded-lg">
-                  <ArrowTrendingUpIcon className="w-6 h-6 text-accent" />
-                </div>
-                <h4 className="text-base font-semibold text-fg">Current Rating</h4>
-              </div>
-              <div className="text-center py-4">
-                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{playerInfo.current_elo}</p>
-                <p className="text-sm text-fg-muted">
-                  FIDE standard{playerInfo.updated_at ? ` · ${playerInfo.updated_at.slice(0, 10)}` : ''}
-                </p>
-                <button
-                  onClick={syncNow}
-                  disabled={syncing}
-                  className="mt-3 text-xs font-semibold text-accent hover:underline disabled:opacity-50 disabled:no-underline"
-                >
-                  {syncing ? 'Syncing…' : 'Sync from FIDE'}
-                </button>
-                {syncError && <p className="mt-2 text-xs text-loss">{syncError}</p>}
-              </div>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-surface-2 rounded-lg">
-                  <TrophyIcon className="w-6 h-6 text-accent" />
-                </div>
-                <h4 className="text-base font-semibold text-fg">Highest Rating</h4>
-              </div>
-              <div className="text-center py-4">
-                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{records.highestRating}</p>
-                <p className="text-sm text-fg-muted">Achieved on</p>
-                <p className="text-sm font-medium text-fg">{records.highestRatingDate}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-surface-2 rounded-lg">
-                  <ChartBarIcon className="w-6 h-6 text-accent" />
-                </div>
-                <h4 className="text-base font-semibold text-fg">Starting Rating</h4>
-              </div>
-              <div className="text-center py-4">
-                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">{records.startingRating}</p>
-                <p className="text-sm text-fg-muted">Initial rating</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-surface-2 rounded-lg">
-                  <SparklesIcon className="w-6 h-6 text-accent" />
-                </div>
-                <h4 className="text-base font-semibold text-fg">Total Improvement</h4>
-              </div>
-              <div className="text-center py-4">
-                <p className="text-5xl font-bold text-fg mb-2 tabular-nums">
-                  +{records.highestRating - records.startingRating}
-                </p>
-                <p className="text-sm text-fg-muted">points gained</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Performance Records */}
-      <div>
-        <div className="mb-6">
-          <h3 className="text-base font-semibold text-fg mb-2">Performance Records</h3>
-          <p className="text-fg-muted">Your most impressive competitive achievements</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Best Tournament */}
-          {records.bestTournament && (
-            <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-surface-2 rounded-lg">
-                    <TrophyIcon className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-base font-semibold text-fg">Best Tournament</h4>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-fg-muted">Tournament</p>
-                    <p className="text-lg font-bold text-fg">{records.bestTournament.name}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-fg-muted">Record</p>
-                      <p className="text-md font-semibold text-fg">
-                        {records.bestTournament.wins}-{records.bestTournament.draws}-{records.bestTournament.losses}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-fg-muted">Score</p>
-                      <p className="text-md font-semibold text-accent">{records.bestTournament.score}%</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <Card>
+          <CardHeader title="Hitos de rating" subtitle="Cada centena, la primera vez que la pasaste" />
+          {milestones.length > 0 ? (
+            <ul className="mt-3 divide-y divide-hairline">
+              {milestones.map(m => (
+                <li key={m.elo} className="grid grid-cols-[72px_1fr] items-baseline gap-3 py-2.5">
+                  <span className="font-mono text-lg font-medium tabular-nums text-accent">{m.elo}</span>
+                  <span className="min-w-0">
+                    <span className="block font-serif text-base leading-[22px] text-fg">{m.where}</span>
+                    {m.note && <span className="text-xs text-fg-subtle">{m.note}</span>}
+                  </span>
+                </li>
+              ))}
+              <li className="grid grid-cols-[72px_1fr] items-baseline gap-3 py-2.5">
+                <span className="font-mono text-lg font-medium tabular-nums text-fg-muted">{records.startingRating}</span>
+                <span className="block font-serif text-base leading-[22px] text-fg-muted">Punto de partida</span>
+              </li>
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-fg-muted">Todavía no cruzaste una centena desde el inicio.</p>
           )}
-
-          {/* Longest Win Streak */}
-          <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-surface-2 rounded-lg">
-                  <FireIcon className="w-6 h-6 text-accent" />
-                </div>
-                <h4 className="text-base font-semibold text-fg">Win Streak Record</h4>
-              </div>
-              <div className="text-center py-6">
-                <p className="text-6xl font-bold text-fg mb-2 tabular-nums">{records.longestWinStreak}</p>
-                <p className="text-fg-muted">consecutive victories</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Game Records */}
-      <div>
-        <div className="mb-6">
-          <h3 className="text-base font-semibold text-fg mb-2">Notable Games</h3>
-          <p className="text-fg-muted">Memorable individual game achievements</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Highest Rated Opponent */}
-          {records.highestRatedOpponent && (
-            <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-surface-2 rounded-lg">
-                    <UserGroupIcon className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-fg">Highest Rated Opponent Defeated</h4>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-center py-3">
-                    <p className="text-4xl font-bold text-fg mb-1 tabular-nums">{records.highestRatedOpponent.opp_elo}</p>
-                    <p className="text-sm text-fg-muted">{records.highestRatedOpponent.opp}</p>
-                  </div>
-                  <div className="pt-3 border-t border-hairline">
-                    <p className="text-xs text-fg-muted">{records.highestRatedOpponent.opening}</p>
-                    <p className="text-xs text-fg-subtle mt-1">{records.highestRatedOpponent.tournament}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Quickest Win */}
-          {records.quickestWin && (
-            <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-surface-2 rounded-lg">
-                    <FireIcon className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-fg">Quickest Victory</h4>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-center py-3">
-                    <p className="text-4xl font-bold text-fg mb-1 tabular-nums">{records.quickestWin.moves?.length}</p>
-                    <p className="text-sm text-fg-muted">moves to victory</p>
-                  </div>
-                  <div className="pt-3 border-t border-hairline">
-                    <p className="text-xs text-fg-muted">vs {records.quickestWin.opp}</p>
-                    <p className="text-xs text-fg-subtle mt-1">{records.quickestWin.opening}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Longest Game */}
-          {records.longestGame && (
-            <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 bg-surface-2 rounded-lg">
-                    <ChartBarIcon className="w-6 h-6 text-accent" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-fg">Longest Battle</h4>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-center py-3">
-                    <p className="text-4xl font-bold text-fg mb-1 tabular-nums">{records.longestGame.moves?.length}</p>
-                    <p className="text-sm text-fg-muted">moves played</p>
-                  </div>
-                  <div className="pt-3 border-t border-hairline">
-                    <p className="text-xs text-fg-muted">vs {records.longestGame.opp}</p>
-                    <p className="text-xs text-fg-subtle mt-1">
-                      Result: {records.longestGame.result === 'W' ? 'Won' : records.longestGame.result === 'D' ? 'Draw' : 'Lost'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Opening Records */}
-      {records.favoriteOpening && (
-        <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-          <div className="p-8">
-            <div className="mb-6">
-              <h3 className="text-base font-semibold text-fg mb-2">Opening Preferences</h3>
-              <p className="text-fg-muted">Your most-played opening systems</p>
-            </div>
-
-            <div className="flex items-center gap-6 p-6 bg-surface-2 rounded-lg border border-hairline">
-              <div className="p-4 bg-surface rounded-lg">
-                <span className="text-4xl">📚</span>
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-medium text-fg-muted mb-1">Most Played Opening</h4>
-                <p className="text-2xl font-bold text-fg">{records.favoriteOpening.opening}</p>
-                <p className="text-sm text-fg-muted mt-2">
-                  Played {records.favoriteOpening.count} times
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hall of Fame */}
-      <div className="relative overflow-hidden bg-surface-2 rounded-lg border border-hairline">
-        <div className="p-8">
-          <div className="text-center mb-6">
-            <div className="inline-flex p-4 bg-surface rounded-full mb-4">
-              <StarIcon className="w-12 h-12 text-accent" />
-            </div>
-            <h3 className="text-base font-semibold text-fg mb-2">Hall of Fame</h3>
-            <p className="text-fg-muted">Your legacy in numbers</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-surface rounded-lg border border-hairline">
-              <p className="text-3xl font-bold text-fg tabular-nums">{records.highestRating}</p>
-              <p className="text-sm text-fg-muted mt-1">Peak Rating</p>
-            </div>
-            <div className="text-center p-4 bg-surface rounded-lg border border-hairline">
-              <p className="text-3xl font-bold text-fg tabular-nums">{records.longestWinStreak}</p>
-              <p className="text-sm text-fg-muted mt-1">Win Streak</p>
-            </div>
-            <div className="text-center p-4 bg-surface rounded-lg border border-hairline">
-              <p className="text-3xl font-bold text-fg tabular-nums">{records.longestUnbeatenStreak}</p>
-              <p className="text-sm text-fg-muted mt-1">Unbeaten</p>
-            </div>
-            <div className="text-center p-4 bg-surface rounded-lg border border-hairline">
-              <p className="text-3xl font-bold text-fg tabular-nums">
-                {records.bestTournament ? records.bestTournament.score + '%' : 'N/A'}
-              </p>
-              <p className="text-sm text-fg-muted mt-1">Best Score</p>
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

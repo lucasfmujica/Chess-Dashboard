@@ -1,21 +1,38 @@
 import { useState, useMemo } from 'react';
 import {
-  ClipboardDocumentCheckIcon,
   PencilIcon,
   TrashIcon,
   PlusIcon,
-  StarIcon,
   ArrowTopRightOnSquareIcon,
-  CheckCircleIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import type { RepertoireLine } from '../../../types/chess';
 import { useRepertoireLines } from '../../../context/RepertoireLinesContext';
+import { Badge, Button, Card, CardHeader, ClockBar, SegmentedControl, StatCard, type Segment } from '../../ui';
 
 type ColorFilter = 'all' | 'W' | 'B';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const STALE_AFTER_DAYS = 30;
+
+const COLOR_OPTIONS: Segment<ColorFilter>[] = [
+  { value: 'all', label: 'Todas' },
+  { value: 'W', label: 'Blancas' },
+  { value: 'B', label: 'Negras' },
+];
+
+const FIELD =
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+
+/** Confidence 0–5 as five small squares: filled in pen up to the value. */
+const ConfidenceMarks = ({ value }: { value: number }) => (
+  <span className="inline-flex items-center gap-0.5" role="img" aria-label={`Confianza ${value} de 5`}>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <span key={i} className={`h-2.5 w-2.5 rounded-sm border ${value > i ? 'border-accent bg-accent' : 'border-hairline bg-surface-2'}`} />
+    ))}
+  </span>
+);
 
 const TournamentPrepTab = () => {
   const modal = useModal();
@@ -38,7 +55,7 @@ const TournamentPrepTab = () => {
   };
 
   const removeLine = async (id: string) => {
-    const confirmed = await modal.confirm('Delete this prep line?');
+    const confirmed = await modal.confirm('¿Borrar esta línea de preparación?');
     if (confirmed) {
       await remove(id);
     }
@@ -65,242 +82,214 @@ const TournamentPrepTab = () => {
     return { total, avgConfidence, staleCount };
   }, [lines]);
 
+  const newLine = () => {
+    setSelectedLine({});
+    setEditingLine(null);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-        <div className="relative px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-surface-2 rounded-lg">
-                <ClipboardDocumentCheckIcon className="w-8 h-8 text-accent" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-fg">Tournament Prep</h2>
-                <p className="text-fg-muted">Your prepared lines — plan, golden rule and confidence per line</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                setSelectedLine({});
-                setEditingLine(null);
-              }}
-              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-semibold flex items-center justify-center gap-2 shrink-0"
-            >
-              <PlusIcon className="w-5 h-5" />
-              New Line
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <p className="text-sm font-medium text-fg-muted mb-2">Total Lines</p>
-              <p className="text-2xl font-bold text-fg tabular-nums">{stats.total}</p>
-            </div>
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <p className="text-sm font-medium text-fg-muted mb-2">Avg Confidence</p>
-              <p className="text-2xl font-bold text-fg tabular-nums">{stats.avgConfidence} / 5</p>
-            </div>
-            <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-              <p className="text-sm font-medium text-fg-muted mb-2">Needs Review (30d+)</p>
-              <p className="text-2xl font-bold text-fg tabular-nums">{stats.staleCount}</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-fg-muted">Tus líneas preparadas: plan, regla de oro y confianza en cada una.</p>
+        <Button variant="primary" size="sm" icon={PlusIcon} onClick={newLine}>
+          Nueva línea
+        </Button>
       </div>
 
-      {/* Filter */}
-      <div className="bg-surface rounded-lg border border-hairline p-6">
-        <div className="flex items-center gap-2">
-          {(['all', 'W', 'B'] as ColorFilter[]).map(c => (
-            <button
-              key={c}
-              onClick={() => setColorFilter(c)}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg border transition-colors ${
-                colorFilter === c
-                  ? 'bg-surface-2 border-accent text-fg'
-                  : 'bg-surface border-hairline text-fg-muted hover:bg-surface-2'
-              }`}
-            >
-              {c === 'all' ? 'All' : c === 'W' ? '⚪ White' : '⚫ Black'}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ClockBar>
+        <StatCard title="Líneas" value={stats.total} subtitle="preparadas" />
+        <StatCard title="Confianza promedio" value={`${stats.avgConfidence} / 5`} subtitle="sobre todas las líneas" />
+        <StatCard
+          title="Para repasar"
+          value={stats.staleCount}
+          trend={stats.staleCount > 0 ? 'down' : undefined}
+          subtitle={`sin repaso hace más de ${STALE_AFTER_DAYS} días`}
+        />
+      </ClockBar>
 
-      {/* Line Form */}
+      <SegmentedControl options={COLOR_OPTIONS} value={colorFilter} onChange={setColorFilter} aria-label="Filtrar por color" />
+
       {selectedLine !== null && (
-        <div className="bg-surface rounded-lg border border-hairline overflow-hidden animate-slideUp">
-          <div className="px-6 py-4 bg-surface-2 border-b border-hairline">
-            <h3 className="text-base font-semibold text-fg">
-              {editingLine ? 'Edit Prep Line' : 'New Prep Line'}
+        <Card flush className="overflow-hidden">
+          <div className="border-b border-hairline bg-surface-2 px-5 py-4 sm:px-6">
+            <h3 className="font-serif text-lg font-semibold text-fg">
+              {editingLine ? 'Editar línea' : 'Nueva línea'}
             </h3>
           </div>
 
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-5 p-5 sm:p-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">Color</label>
+                <label htmlFor="prep-color" className="text-label mb-1.5 block">Color</label>
                 <select
+                  id="prep-color"
                   value={selectedLine.color ?? 'W'}
                   onChange={(e) => setSelectedLine({ ...selectedLine, color: e.target.value as 'W' | 'B' })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  className={FIELD}
                 >
-                  <option value="W">White</option>
-                  <option value="B">Black</option>
+                  <option value="W">Blancas</option>
+                  <option value="B">Negras</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">Vs Move</label>
+                <label htmlFor="prep-vs" className="text-label mb-1.5 block">Contra</label>
                 <input
+                  id="prep-vs"
                   type="text"
-                  placeholder="1.e4 / 1.d4 / anti-Sicilian Bb5..."
+                  placeholder="1.e4 / 1.d4 / anti-siciliana Ab5…"
                   value={selectedLine.vsMove || ''}
                   onChange={(e) => setSelectedLine({ ...selectedLine, vsMove: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  className={FIELD}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">ECO</label>
+                <label htmlFor="prep-eco" className="text-label mb-1.5 block">ECO</label>
                 <input
+                  id="prep-eco"
                   type="text"
                   placeholder="B33"
                   value={selectedLine.eco || ''}
                   onChange={(e) => setSelectedLine({ ...selectedLine, eco: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  className={`${FIELD} font-mono`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">Line Name</label>
+                <label htmlFor="prep-name" className="text-label mb-1.5 block">Nombre de la línea</label>
                 <input
+                  id="prep-name"
                   type="text"
-                  placeholder="Dragón Acelerado – Bc4 principal con …a5"
+                  placeholder="Dragón Acelerado – Ac4 principal con …a5"
                   value={selectedLine.lineName || ''}
                   onChange={(e) => setSelectedLine({ ...selectedLine, lineName: e.target.value })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  className={FIELD}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Moves (SAN, up to the tabiya)</label>
+              <label htmlFor="prep-moves" className="text-label mb-1.5 block">Jugadas (SAN, hasta la tabiya)</label>
               <textarea
-                placeholder="1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 g6 5.Nc3 Bg7 6.Be3 Nf6 7.Bc4..."
+                id="prep-moves"
+                placeholder="1.e4 c5 2.Nf3 Nc6 3.d4 cxd4 4.Nxd4 g6 5.Nc3 Bg7 6.Be3 Nf6 7.Bc4…"
                 value={selectedLine.movesSan || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, movesSan: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-20 font-mono text-sm"
+                className={`${FIELD} h-20 resize-none font-mono`}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Key FEN (critical position)</label>
+              <label htmlFor="prep-fen" className="text-label mb-1.5 block">FEN clave (posición crítica)</label>
               <input
+                id="prep-fen"
                 type="text"
                 placeholder="r1bqk2r/pp1pppbp/2n2np1/8/2BNP3/2N1B3/PPP2PPP/R2QK2R b KQkq - 0 7"
                 value={selectedLine.keyFen || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, keyFen: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent font-mono text-sm"
+                className={`${FIELD} font-mono`}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Plan</label>
+              <label htmlFor="prep-plan" className="text-label mb-1.5 block">Plan</label>
               <textarea
-                placeholder="The plan, in one sentence..."
+                id="prep-plan"
+                placeholder="El plan, en una frase…"
                 value={selectedLine.plan || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, plan: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-20"
+                className={`${FIELD} h-20 resize-none`}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Golden Rule / Trap to Avoid</label>
+              <label htmlFor="prep-rule" className="text-label mb-1.5 block">Regla de oro / trampa a evitar</label>
               <textarea
-                placeholder="What NOT to fall for..."
+                id="prep-rule"
+                placeholder="En qué NO caer…"
                 value={selectedLine.goldenRule || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, goldenRule: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-20"
+                className={`${FIELD} h-20 resize-none`}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">Priority (1 = close out first)</label>
+                <label htmlFor="prep-priority" className="text-label mb-1.5 block">Prioridad (1 = cerrar primero)</label>
                 <input
+                  id="prep-priority"
                   type="number"
                   min={1}
                   value={selectedLine.priority ?? ''}
                   onChange={(e) => setSelectedLine({ ...selectedLine, priority: e.target.value ? Number(e.target.value) : undefined })}
-                  className="w-full px-4 py-3 bg-surface border border-hairline text-fg rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                  className={`${FIELD} font-mono`}
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-fg mb-2">Confidence (1-5)</label>
-                <div className="flex gap-2 pt-1">
-                  {[1, 2, 3, 4, 5].map(rating => (
-                    <button
-                      key={rating}
-                      onClick={() => setSelectedLine({ ...selectedLine, confidence: rating })}
-                      className={`p-2 rounded-lg transition-all ${
-                        (selectedLine.confidence || 0) >= rating
-                          ? 'bg-draw/12 text-draw'
-                          : 'bg-surface-2 text-fg-subtle hover:bg-surface-2'
-                      }`}
-                    >
-                      <StarIcon className="w-6 h-6" fill={(selectedLine.confidence || 0) >= rating ? 'currentColor' : 'none'} />
-                    </button>
-                  ))}
+                <span className="text-label mb-1.5 block" id="prep-confidence">Confianza (1 a 5)</span>
+                <div className="flex gap-1.5" role="group" aria-labelledby="prep-confidence">
+                  {[1, 2, 3, 4, 5].map(rating => {
+                    const on = (selectedLine.confidence || 0) >= rating;
+                    return (
+                      <button
+                        key={rating}
+                        type="button"
+                        aria-pressed={(selectedLine.confidence || 0) === rating}
+                        onClick={() => setSelectedLine({ ...selectedLine, confidence: rating })}
+                        className={`h-9 w-9 rounded-sm border font-mono text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                          on ? 'border-accent bg-accent text-accent-fg' : 'border-hairline bg-surface text-fg-muted hover:border-fg-subtle'
+                        }`}
+                      >
+                        {rating}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Lichess Study Link</label>
+              <label htmlFor="prep-lichess" className="text-label mb-1.5 block">Estudio de Lichess</label>
               <input
+                id="prep-lichess"
                 type="text"
-                placeholder="https://lichess.org/study/..."
+                placeholder="https://lichess.org/study/…"
                 value={selectedLine.lichessUrl || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, lichessUrl: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                className={FIELD}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Notes</label>
+              <label htmlFor="prep-notes" className="text-label mb-1.5 block">Notas</label>
               <textarea
-                placeholder="Anything else worth remembering about this line..."
+                id="prep-notes"
+                placeholder="Cualquier otra cosa que valga la pena recordar de esta línea…"
                 value={selectedLine.notes || ''}
                 onChange={(e) => setSelectedLine({ ...selectedLine, notes: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg resize-none focus:border-accent focus:ring-1 focus:ring-accent h-24"
+                className={`${FIELD} h-24 resize-none`}
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <button
-                onClick={() => saveLine(selectedLine)}
-                className="flex-1 px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
-              >
-                {editingLine ? 'Update Line' : 'Save Line'}
-              </button>
-              <button
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button variant="primary" onClick={() => saveLine(selectedLine)}>
+                {editingLine ? 'Guardar cambios' : 'Guardar línea'}
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setSelectedLine(null);
                   setEditingLine(null);
                 }}
-                className="px-6 py-3 text-fg bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors font-semibold"
               >
-                Cancel
-              </button>
+                Cancelar
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Lines List */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {filteredLines.length > 0 ? (
           filteredLines.map(line => {
@@ -309,107 +298,88 @@ const TournamentPrepTab = () => {
               : null;
             const isStale = daysSinceReview === null || daysSinceReview > STALE_AFTER_DAYS;
             return (
-              <div key={line.id} className="bg-surface rounded-lg border border-hairline overflow-hidden hover:bg-surface-2 transition-colors">
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-fg-muted mb-1">
-                        <span>{line.color === 'W' ? '⚪' : '⚫'}</span>
-                        {line.eco && <span className="font-mono font-bold text-accent">{line.eco}</span>}
-                        {line.vsMove && <span>vs {line.vsMove}</span>}
-                        {line.priority != null && (
-                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-surface-2 border border-hairline">
-                            P{line.priority}
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-xl font-bold text-fg">{line.lineName || 'Untitled line'}</h4>
+              <Card key={line.id} className="flex flex-col">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-fg-muted">
+                      <span>{line.color === 'W' ? 'Blancas' : 'Negras'}</span>
+                      {line.eco && <Badge>{line.eco}</Badge>}
+                      {line.vsMove && <span className="font-serif">contra {line.vsMove}</span>}
+                      {line.priority != null && <Badge tone="accent">P{line.priority}</Badge>}
                     </div>
-
-                    <div className="flex gap-2">
-                      {line.lichessUrl && (
-                        <a
-                          href={line.lichessUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Open Lichess study"
-                          className="p-2 text-fg-muted hover:bg-surface-2 hover:text-fg rounded-lg transition-colors"
-                        >
-                          <ArrowTopRightOnSquareIcon className="w-5 h-5" />
-                        </a>
-                      )}
-                      <button
-                        onClick={() => {
-                          setSelectedLine(line);
-                          setEditingLine(line);
-                        }}
-                        className="p-2 text-accent hover:bg-surface-2 rounded-lg transition-colors"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => removeLine(line.id)}
-                        className="p-2 text-loss hover:bg-loss/10 rounded-lg transition-colors"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
+                    <h4 className="font-serif text-xl font-semibold leading-tight text-fg">{line.lineName || 'Línea sin nombre'}</h4>
                   </div>
 
-                  {line.movesSan && (
-                    <p className="text-sm font-mono text-fg-muted mb-3 line-clamp-2">{line.movesSan}</p>
-                  )}
-
-                  {line.plan && (
-                    <p className="text-sm text-fg mb-2"><span className="font-semibold">Plan: </span>{line.plan}</p>
-                  )}
-
-                  {line.goldenRule && (
-                    <p className="text-sm text-fg-muted mb-3"><span className="font-semibold">⚠️ Golden rule: </span>{line.goldenRule}</p>
-                  )}
-
-                  <div className="flex items-center justify-between pt-3 border-t border-hairline">
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className="w-4 h-4 text-yellow-500"
-                          fill={(line.confidence ?? 0) > i ? 'currentColor' : 'none'}
-                        />
-                      ))}
-                    </div>
-
+                  <div className="flex shrink-0 gap-1">
+                    {line.lichessUrl && (
+                      <a
+                        href={line.lichessUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Abrir estudio de Lichess"
+                        aria-label="Abrir estudio de Lichess"
+                        className="rounded p-2 text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                      >
+                        <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                      </a>
+                    )}
                     <button
-                      onClick={() => markReviewed(line)}
-                      className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-                        isStale ? 'text-loss hover:bg-surface-2' : 'text-fg-muted hover:bg-surface-2'
-                      }`}
+                      onClick={() => {
+                        setSelectedLine(line);
+                        setEditingLine(line);
+                      }}
+                      title="Editar línea"
+                      aria-label="Editar línea"
+                      className="rounded p-2 text-accent transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                     >
-                      <CheckCircleIcon className="w-4 h-4" />
-                      {daysSinceReview === null ? 'Never reviewed' : `Reviewed ${daysSinceReview}d ago`}
+                      <PencilIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => removeLine(line.id)}
+                      title="Borrar línea"
+                      aria-label="Borrar línea"
+                      className="rounded p-2 text-loss transition-colors hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                    >
+                      <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
-              </div>
+
+                {line.movesSan && (
+                  <p className="mb-3 line-clamp-2 font-serif text-[15px] text-fg-muted">{line.movesSan}</p>
+                )}
+
+                {line.plan && (
+                  <p className="mb-2 font-serif text-base text-fg"><span className="text-label mr-1.5">Plan</span>{line.plan}</p>
+                )}
+
+                {line.goldenRule && (
+                  <p className="mb-3 font-serif text-base text-fg-muted"><span className="text-label mr-1.5">Regla de oro</span>{line.goldenRule}</p>
+                )}
+
+                <div className="mt-auto flex items-center justify-between border-t border-hairline pt-3">
+                  <ConfidenceMarks value={line.confidence ?? 0} />
+
+                  <button
+                    onClick={() => markReviewed(line)}
+                    className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+                      isStale ? 'text-loss' : 'text-fg-muted'
+                    }`}
+                    title="Marcar como repasada hoy"
+                  >
+                    <CheckIcon className="h-4 w-4" />
+                    {daysSinceReview === null ? 'Nunca repasada' : `Repasada hace ${daysSinceReview} d`}
+                  </button>
+                </div>
+              </Card>
             );
           })
         ) : (
-          <div className="col-span-2 bg-surface rounded-lg border border-hairline p-12 text-center">
-            <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
-              <ClipboardDocumentCheckIcon className="w-12 h-12 text-fg-subtle" />
-            </div>
-            <h3 className="text-base font-semibold text-fg mb-2">No prep lines yet</h3>
-            <p className="text-fg-muted mb-4">Start uploading your tournament preparation, line by line.</p>
-            <button
-              onClick={() => {
-                setSelectedLine({});
-                setEditingLine(null);
-              }}
-              className="px-6 py-3 bg-fg text-app rounded-lg hover:opacity-90 transition-all font-bold"
-            >
-              Add First Line
-            </button>
-          </div>
+          <Card className="py-12 text-center lg:col-span-2">
+            <CardHeader title="Todavía no hay líneas" className="justify-center" />
+            <p className="mb-4 mt-2 text-sm text-fg-muted">Empezá a cargar tu preparación, línea por línea.</p>
+            <Button variant="primary" onClick={newLine}>Agregar la primera línea</Button>
+          </Card>
         )}
       </div>
     </div>

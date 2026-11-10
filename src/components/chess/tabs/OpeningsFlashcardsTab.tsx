@@ -1,12 +1,5 @@
 import { useState, useMemo } from 'react';
-import {
-  SparklesIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-  BookOpenIcon,
-  ArrowTopRightOnSquareIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import type { RepertoireLine } from '../../../types/chess';
 import { useRepertoireLines } from '../../../context/RepertoireLinesContext';
@@ -16,7 +9,7 @@ import { Card } from '../../ui/Card';
 import Badge from '../../ui/Badge';
 import Button from '../../ui/Button';
 import SegmentedControl from '../../ui/SegmentedControl';
-import StatCard from '../../ui/StatCard';
+import StatCard, { ClockBar } from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 
 type StudyMode = 'review' | 'all';
@@ -29,7 +22,7 @@ const isDue = (line: RepertoireLine, now: number) => srsIsDue(line.lastReviewed,
 const nextReviewAt = (line: RepertoireLine) => srsNextReviewAt(line.lastReviewed, line.confidence);
 
 const lineName = (line: RepertoireLine) =>
-  line.lineName || (line.eco ? ecoNames[line.eco] || line.eco : '') || 'Unnamed line';
+  line.lineName || (line.eco ? ecoNames[line.eco] || line.eco : '') || 'Línea sin nombre';
 
 const OpeningsFlashcardsTab = () => {
   const modal = useModal();
@@ -82,7 +75,7 @@ const OpeningsFlashcardsTab = () => {
   };
 
   const resetProgress = async () => {
-    const confirmed = await modal.confirm('Reset review progress for all lines? This clears their last-reviewed dates.');
+    const confirmed = await modal.confirm('¿Reiniciar el repaso de todas las líneas? Se borran las fechas del último repaso.');
     if (!confirmed) return;
     setCurrentIndex(0);
     await Promise.all(
@@ -101,57 +94,47 @@ const OpeningsFlashcardsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <Card>
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-surface-2 rounded-lg">
-            <BookOpenIcon className="w-7 h-7 text-accent" />
-          </div>
-          <div>
-            <h2 className="text-h2 text-fg">Opening Repertoire Trainer</h2>
-            <p className="text-sm text-fg-muted">Drill your repertoire lines with spaced repetition</p>
-          </div>
-        </div>
-      </Card>
+      <p className="text-sm text-fg-muted">
+        Planes y reglas de oro de cada capítulo, con repaso espaciado.
+      </p>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard title="Total Lines" value={stats.total} icon={BookOpenIcon} />
-        <StatCard title="Due Now" value={stats.dueToday} icon={ClockIcon} />
-        <StatCard title="Mastered" value={stats.mastered} icon={SparklesIcon} subtitle="Confidence 5/5" />
-        <StatCard title="Avg Confidence" value={`${stats.avgConfidence}/5`} />
-      </div>
+      <ClockBar>
+        <StatCard title="Líneas" value={stats.total} subtitle="en el repertorio" />
+        <StatCard title="Repaso" value={stats.dueToday} subtitle="vencidas hoy" trend={stats.dueToday > 0 ? 'down' : undefined} />
+        <StatCard title="Dominadas" value={stats.mastered} subtitle="confianza 5/5" />
+        <StatCard title="Confianza media" value={`${stats.avgConfidence}/5`} />
+      </ClockBar>
 
       {/* Filters */}
       <Card>
         <div className="flex flex-wrap items-end gap-6">
           <div>
-            <p className="text-label mb-2">Mode</p>
+            <p className="text-label mb-2">Modo</p>
             <SegmentedControl
-              aria-label="Study mode"
+              aria-label="Modo de estudio"
               value={studyMode}
               onChange={v => { setStudyMode(v); setCurrentIndex(0); }}
               options={[
-                { value: 'review', label: `Due (${stats.dueToday})` },
-                { value: 'all', label: 'All lines' },
+                { value: 'review', label: `Para hoy (${stats.dueToday})` },
+                { value: 'all', label: 'Todas' },
               ]}
             />
           </div>
           <div>
             <p className="text-label mb-2">Color</p>
             <SegmentedControl
-              aria-label="Color filter"
+              aria-label="Filtro de color"
               value={colorFilter}
               onChange={v => { setColorFilter(v); setCurrentIndex(0); }}
               options={[
-                { value: 'all', label: 'All' },
+                { value: 'all', label: 'Ambos' },
                 { value: 'W', label: <PieceLabel color="W" /> },
                 { value: 'B', label: <PieceLabel color="B" /> },
               ]}
             />
           </div>
           <Button variant="secondary" onClick={resetProgress} className="ml-auto">
-            Reset progress
+            Reiniciar repaso
           </Button>
         </div>
       </Card>
@@ -162,36 +145,36 @@ const OpeningsFlashcardsTab = () => {
           {/* Progress */}
           <div className="px-6 py-3 bg-surface-2 border-b border-hairline">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-fg">
-                Card {currentIndex + 1} of {filteredLines.length}
+              <span className="font-mono text-sm tabular-nums text-fg">
+                Tarjeta {currentIndex + 1} de {filteredLines.length}
               </span>
               <span className="text-sm text-fg-muted">
-                Confidence: <span className="font-bold text-accent tabular-nums">{current.confidence ?? '—'}/5</span>
+                Confianza: <span className="font-mono font-medium tabular-nums text-accent">{current.confidence ?? '—'}/5</span>
               </span>
             </div>
-            <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-sm bg-surface">
               <div
-                className="h-full bg-accent rounded-full transition-all duration-300"
+                className="h-full bg-accent transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / filteredLines.length) * 100}%` }}
               />
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             <div className="mb-6">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <h3 className="text-h3 text-fg">{lineName(current)}</h3>
+                <h3 className="font-serif text-[28px] font-semibold leading-tight tracking-tight text-fg text-balance">{lineName(current)}</h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone="neutral"><PieceLabel color={current.color} /></Badge>
-                  {current.eco && <Badge tone="neutral">{current.eco}</Badge>}
+                  {current.eco && <Badge tone="neutral"><span className="font-mono">{current.eco}</span></Badge>}
                   {current.vsMove && <Badge tone="accent">vs {current.vsMove}</Badge>}
                 </div>
               </div>
 
               {/* Prompt */}
-              <div className="p-6 bg-surface-2 rounded-lg border border-hairline">
-                <p className="text-base font-semibold text-fg mb-1">Recall your line & plan</p>
-                <p className="text-sm text-fg-muted">Play through the moves in your head, then reveal.</p>
+              <div className="rounded border border-hairline bg-surface-2 p-5">
+                <p className="mb-1 font-serif text-base font-semibold text-fg">Recordá la línea y el plan</p>
+                <p className="text-sm text-fg-muted">Repasá las jugadas de memoria y después mirá la respuesta.</p>
               </div>
             </div>
 
@@ -199,21 +182,21 @@ const OpeningsFlashcardsTab = () => {
             {showAnswer && (
               <div className="mb-6 animate-slideUp space-y-3">
                 {current.movesSan && (
-                  <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
-                    <p className="text-label mb-2">Moves</p>
-                    <p className="text-lg font-bold text-fg font-mono">{current.movesSan}</p>
+                  <div className="rounded border border-hairline p-5">
+                    <p className="text-label mb-2">Jugadas</p>
+                    <p className="font-serif text-lg text-fg">{current.movesSan}</p>
                   </div>
                 )}
                 {current.plan && (
-                  <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
+                  <div className="rounded border border-hairline p-5">
                     <p className="text-label mb-2">Plan</p>
-                    <p className="text-sm text-fg">{current.plan}</p>
+                    <p className="font-serif text-base leading-6 text-fg">{current.plan}</p>
                   </div>
                 )}
                 {current.goldenRule && (
-                  <div className="p-5 rounded-lg border border-draw/20 bg-draw/10">
-                    <p className="text-label mb-2 text-draw">Golden rule</p>
-                    <p className="text-sm text-fg">{current.goldenRule}</p>
+                  <div className="rounded border border-transparent bg-carbon p-5">
+                    <p className="text-label mb-2">Regla de oro</p>
+                    <p className="font-serif text-base leading-6 text-fg">{current.goldenRule}</p>
                   </div>
                 )}
                 <div className="flex items-center gap-4 text-xs text-fg-subtle">
@@ -224,11 +207,11 @@ const OpeningsFlashcardsTab = () => {
                       rel="noreferrer"
                       className="inline-flex items-center gap-1 text-accent hover:underline"
                     >
-                      <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" /> Open in Lichess
+                      <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" /> Abrir en Lichess
                     </a>
                   )}
                   {current.lastReviewed && (
-                    <span>Last reviewed: {new Date(current.lastReviewed).toLocaleDateString()}</span>
+                    <span>Último repaso: {new Date(current.lastReviewed).toLocaleDateString('es-AR')}</span>
                   )}
                 </div>
               </div>
@@ -237,53 +220,39 @@ const OpeningsFlashcardsTab = () => {
             {/* Actions */}
             <div className="flex gap-3">
               {!showAnswer ? (
-                <button
-                  onClick={() => setShowAnswer(true)}
-                  className="flex-1 px-6 py-4 text-base font-bold text-app bg-fg rounded-lg hover:opacity-90 transition-all"
-                >
-                  Show answer
-                </button>
+                <Button variant="primary" onClick={() => setShowAnswer(true)} className="h-11 flex-1">
+                  Mostrar respuesta
+                </Button>
               ) : (
                 <>
-                  <button
-                    onClick={() => handleResponse(false)}
-                    className="flex-1 px-6 py-4 text-base font-bold text-app bg-loss rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                  >
-                    <XCircleIcon className="w-5 h-5" />
-                    Missed it
-                  </button>
-                  <button
-                    onClick={() => handleResponse(true)}
-                    className="flex-1 px-6 py-4 text-base font-bold text-app bg-win rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                  >
-                    <CheckCircleIcon className="w-5 h-5" />
-                    Got it
-                  </button>
+                  <Button variant="danger" onClick={() => handleResponse(false)} className="h-11 flex-1">
+                    No me acordaba
+                  </Button>
+                  <Button variant="primary" onClick={() => handleResponse(true)} className="h-11 flex-1">
+                    Me acordaba
+                  </Button>
                 </>
               )}
             </div>
 
             {/* Navigation */}
             <div className="flex gap-3 mt-4">
-              <Button variant="secondary" onClick={goPrev}>← Previous</Button>
-              <Button variant="secondary" onClick={goNext}>Next →</Button>
+              <Button variant="secondary" onClick={goPrev}>← Anterior</Button>
+              <Button variant="secondary" onClick={goNext}>Siguiente →</Button>
             </div>
           </div>
         </Card>
       ) : (
-        <Card className="p-12 text-center">
-          <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
-            <CheckCircleIcon className="w-12 h-12 text-win" />
-          </div>
+        <Card className="text-center">
           {lines.length === 0 ? (
             <>
-              <h3 className="text-h3 text-fg mb-2">No repertoire lines yet</h3>
-              <p className="text-fg-muted">Add lines in <span className="font-semibold text-fg">Tournament Prep</span> — they'll show up here to drill.</p>
+              <h3 className="mb-2 font-serif text-xl font-semibold text-fg">Todavía no hay líneas</h3>
+              <p className="text-fg-muted">Cargalas en <span className="font-semibold text-fg">Líneas</span> y aparecen acá para repasar.</p>
             </>
           ) : (
             <>
-              <h3 className="text-h3 text-fg mb-2">All caught up!</h3>
-              <p className="text-fg-muted">No lines due for review. Switch to "All lines" to keep practicing.</p>
+              <h3 className="mb-2 font-serif text-xl font-semibold text-fg">Repaso al día</h3>
+              <p className="text-fg-muted">No hay líneas vencidas. Pasá a "Todas" para seguir practicando.</p>
             </>
           )}
         </Card>

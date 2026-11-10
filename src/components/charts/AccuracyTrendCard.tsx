@@ -8,9 +8,18 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ChartBarIcon } from '@heroicons/react/24/outline';
 import { useSourceFilteredGames } from '../../context/GamesContext';
 import { getCachedAnalysis } from '../../hooks/useGameAnalysis';
+import { Card, CardHeader } from '../ui';
+
+const TOOLTIP_STYLE = {
+  background: 'rgb(var(--surface))',
+  border: '1px solid rgb(var(--border))',
+  borderRadius: 4,
+  fontSize: 12,
+  color: 'rgb(var(--fg))',
+};
+const TICK = { fill: 'rgb(var(--fg-muted))', fontSize: 11, fontFamily: '"IBM Plex Mono", ui-monospace, monospace' };
 
 interface TrendPoint {
   idx: number;
@@ -53,38 +62,41 @@ const AccuracyTrendCard = ({ refreshKey = 0 }: AccuracyTrendCardProps) => {
     : 0;
 
   return (
-    <div className="rounded-lg border border-hairline bg-surface p-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ChartBarIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-lg font-semibold text-fg">Accuracy trend</h3>
-        </div>
-        {points.length > 0 && (
-          <span className="text-sm text-fg-muted tabular-nums">avg {avg}% · {points.length} analysed</span>
-        )}
-      </div>
+    <Card>
+      <CardHeader
+        title="Precisión por partida"
+        subtitle={
+          points.length > 0 ? (
+            <span className="font-mono tabular-nums">
+              promedio {avg} % · {points.length} {points.length === 1 ? 'partida analizada' : 'partidas analizadas'}
+            </span>
+          ) : (
+            'Stockfish sobre las partidas con jugadas, junto a tu ELO de ese momento'
+          )
+        }
+      />
 
       {points.length === 0 ? (
         <p className="mt-3 text-sm text-fg-muted">
-          Analyse games that have moves (with the “Analyze with Stockfish” button) and your accuracy
-          over time will appear here, alongside your ELO.
+          Analizá las partidas que tienen jugadas (con «Analizar con Stockfish» o «Analizar todas») y acá
+          aparece tu precisión en el tiempo, al lado de tu ELO.
         </p>
       ) : (
         <div className="mt-4">
           <ResponsiveContainer width="100%" height={260}>
             <ComposedChart data={points}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="idx" tickLine={false} />
-              <YAxis yAxisId="acc" domain={[0, 100]} tickLine={false} width={36} />
-              <YAxis yAxisId="elo" orientation="right" domain={['dataMin - 30', 'dataMax + 30']} tickLine={false} width={44} />
-              <Tooltip />
-              <Line yAxisId="elo" type="monotone" dataKey="elo" stroke="rgb(var(--fg-muted))" strokeWidth={1.5} dot={false} name="ELO" />
-              <Line yAxisId="acc" type="monotone" dataKey="accuracy" stroke="rgb(var(--accent))" strokeWidth={2} dot={{ r: 3 }} name="Accuracy %" />
+              <CartesianGrid stroke="rgb(var(--border))" vertical={false} />
+              <XAxis dataKey="idx" tickLine={false} axisLine={{ stroke: 'rgb(var(--border-strong))' }} tick={TICK} />
+              <YAxis yAxisId="acc" domain={[0, 100]} tickLine={false} axisLine={false} width={36} tick={TICK} />
+              <YAxis yAxisId="elo" orientation="right" domain={['dataMin - 30', 'dataMax + 30']} tickLine={false} axisLine={false} width={44} tick={TICK} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
+              <Line yAxisId="elo" type="monotone" dataKey="elo" stroke="rgb(var(--fg-subtle))" strokeWidth={1.5} dot={false} name="ELO" />
+              <Line yAxisId="acc" type="monotone" dataKey="accuracy" stroke="rgb(var(--cat-1))" strokeWidth={2} dot={{ r: 3, fill: 'rgb(var(--cat-1))' }} name="Precisión %" />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

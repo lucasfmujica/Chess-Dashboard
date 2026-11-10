@@ -1,4 +1,4 @@
-import { ClockIcon, FireIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { Card, CardHeader } from '../../../ui';
 
 interface ConsistencyInsightsData {
   consistency: number;
@@ -14,60 +14,43 @@ interface ConsistencyInsightsProps {
 
 const ConsistencyInsights = ({ streaksData }: ConsistencyInsightsProps) => {
   const getFrequencyMessage = () => {
-    if (streaksData.consistency >= 75) return 'Excellent! Very consistent player';
-    if (streaksData.consistency >= 50) return 'Good! Playing regularly';
-    if (streaksData.consistency >= 25) return 'Fair. Try to play more often';
-    return 'Low activity. Increase frequency for improvement';
+    if (streaksData.consistency >= 75) return 'Jugás con mucha regularidad.';
+    if (streaksData.consistency >= 50) return 'Jugás seguido.';
+    if (streaksData.consistency >= 25) return 'Jugás de a ratos. Sumá alguna partida más por semana.';
+    return 'Poca actividad. Para mejorar hace falta jugar más seguido.';
   };
 
   const getMomentumMessage = () => {
-    if (streaksData.currentWinStreak >= 3) return '🔥 Hot streak! Keep it going!';
-    if (streaksData.currentUnbeatenStreak >= 5) return '💪 Solid performance!';
-    if (streaksData.currentLossStreak >= 3) return '⚠️ Rough patch - stay focused!';
-    return 'Steady as she goes';
+    if (streaksData.currentWinStreak >= 3) return `${streaksData.currentWinStreak} victorias seguidas.`;
+    if (streaksData.currentUnbeatenStreak >= 5) return `${streaksData.currentUnbeatenStreak} partidas sin perder.`;
+    if (streaksData.currentLossStreak >= 3) return `${streaksData.currentLossStreak} derrotas seguidas. Revisá las últimas antes de la próxima.`;
+    return 'Sin rachas marcadas.';
   };
 
   const getGoalMessage = () => {
-    if (streaksData.gamesThisWeek < 5) return 'Try to play 5+ games this week';
-    if (streaksData.currentWinStreak === 0) return 'Focus on winning your next game';
-    return `Extend your win streak to ${streaksData.currentWinStreak + 1}!`;
+    if (streaksData.gamesThisWeek < 5) return 'Jugá 5 partidas o más esta semana.';
+    if (streaksData.currentWinStreak === 0) return 'Apuntá a ganar la próxima.';
+    return `Llevá la racha a ${streaksData.currentWinStreak + 1}.`;
   };
 
+  const items = [
+    { label: 'Frecuencia', text: getFrequencyMessage() },
+    { label: 'Momento', text: getMomentumMessage() },
+    { label: 'Próximo paso', text: getGoalMessage() },
+  ];
+
   return (
-    <div className="relative overflow-hidden bg-surface rounded-lg border border-hairline">
-      <div className="p-8">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-fg mb-2">Consistency Insights</h3>
-          <p className="text-fg-muted">Keep your practice regular for best improvement</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-            <div className="flex items-center gap-2 mb-2">
-              <ClockIcon className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-fg">Play Frequency</span>
-            </div>
-            <p className="text-fg-muted text-sm">{getFrequencyMessage()}</p>
+    <Card>
+      <CardHeader title="Lectura" subtitle="Jugar con regularidad es lo que más ayuda a mejorar" />
+      <dl className="mt-4 grid grid-cols-1 divide-y divide-hairline rounded border border-hairline md:grid-cols-3 md:divide-x md:divide-y-0">
+        {items.map(item => (
+          <div key={item.label} className="p-4">
+            <dt className="text-label">{item.label}</dt>
+            <dd className="mt-1.5 font-serif text-[15px] leading-[22px] text-fg">{item.text}</dd>
           </div>
-
-          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-            <div className="flex items-center gap-2 mb-2">
-              <FireIcon className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-fg">Current Momentum</span>
-            </div>
-            <p className="text-fg-muted text-sm">{getMomentumMessage()}</p>
-          </div>
-
-          <div className="p-4 bg-surface-2 rounded-lg border border-hairline">
-            <div className="flex items-center gap-2 mb-2">
-              <TrophyIcon className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-fg">Goal Suggestion</span>
-            </div>
-            <p className="text-fg-muted text-sm">{getGoalMessage()}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        ))}
+      </dl>
+    </Card>
   );
 };
 

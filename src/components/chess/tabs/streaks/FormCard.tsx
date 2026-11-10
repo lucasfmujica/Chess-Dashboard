@@ -1,3 +1,4 @@
+import ResultMark from '../../../ui/ResultMark';
 import type { GameResult } from '../../../../types/chess';
 
 export interface FormCardStats {
@@ -13,57 +14,33 @@ interface FormCardProps {
   title: string;
   badge: string;
   stats: FormCardStats;
-  borderColor: string;
-  bgColor: string;
-  badgeColor: string;
+  /** Kept for compatibility; the sheet styling is fixed now. */
+  borderColor?: string;
+  bgColor?: string;
+  badgeColor?: string;
 }
 
-const FormCard = ({ title, badge, stats, borderColor, bgColor, badgeColor }: FormCardProps) => {
-  return (
-    <div className={`p-5 ${bgColor} rounded-lg border ${borderColor}`}>
-      <div className="flex items-center gap-2 mb-4">
-        <div className={`p-2 ${badgeColor} rounded-lg`}>
-          <span className="text-fg text-sm font-bold">{badge}</span>
-        </div>
-        <div>
-          <h4 className="font-bold text-fg">{title}</h4>
-          <p className="text-xs text-fg-muted">{stats.subtitle}</p>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-fg-muted">Record</span>
-          <span className="text-lg font-bold text-fg tabular-nums">
-            {stats.wins}-{stats.draws}-{stats.losses}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-fg-muted">Score</span>
-          <span className={`text-2xl font-bold tabular-nums ${Number(stats.percentage) >= 50 ? 'text-win' : 'text-loss'}`}>
-            {stats.percentage}%
-          </span>
-        </div>
-        <div className={`pt-2 mt-2 border-t ${borderColor}`}>
-          <div className="flex gap-1">
-            {stats.results.map((result, idx) => (
-              <div
-                key={idx}
-                className={`flex-1 h-2 rounded-full ${
-                  result === 'W' ? 'bg-green-500' :
-                  result === 'D' ? 'bg-draw' :
-                  'bg-loss'
-                }`}
-                title={result === 'W' ? 'Win' : result === 'D' ? 'Draw' : 'Loss'}
-              />
-            ))}
-          </div>
-          <p className="text-xs text-fg-subtle mt-1 text-center">
-            {stats.results.join(' • ')}
-          </p>
-        </div>
-      </div>
+/** One column of the form sheet: + = − record, score and the results in order. */
+const FormCard = ({ title, stats }: FormCardProps) => (
+  <div className="p-4">
+    <p className="text-label">{title}</p>
+    <p className="mt-0.5 text-xs text-fg-subtle">{stats.subtitle}</p>
+    <div className="mt-3 flex items-baseline justify-between gap-3">
+      <span className="font-mono text-sm tabular-nums text-fg-muted">
+        + {stats.wins} · = {stats.draws} · − {stats.losses}
+      </span>
+      <span className={`font-mono text-2xl tabular-nums ${Number(stats.percentage) >= 50 ? 'text-win' : 'text-loss'}`}>
+        {stats.percentage}%
+      </span>
     </div>
-  );
-};
+    {stats.results.length > 0 && (
+      <div className="mt-3 flex flex-wrap gap-1 border-t border-hairline pt-3" aria-label="Resultados, la más reciente a la derecha">
+        {[...stats.results].reverse().map((result, idx) => (
+          <ResultMark key={idx} result={result} outline />
+        ))}
+      </div>
+    )}
+  </div>
+);
 
 export default FormCard;

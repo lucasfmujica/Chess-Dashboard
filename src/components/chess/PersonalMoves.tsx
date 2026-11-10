@@ -42,9 +42,9 @@ const PersonalMoves = ({ moves, playedMove, onPlay, color, onColorChange, subjec
             className={`px-2 py-0.5 text-xs font-medium transition-colors ${
               color === c ? 'bg-accent/15 text-accent' : 'text-fg-muted hover:bg-surface-2'
             }`}
-            title={c === 'W' ? 'Your games as White' : 'Your games as Black'}
+            title={c === 'W' ? 'Tus partidas con blancas' : 'Tus partidas con negras'}
           >
-            {c === 'W' ? '⚪ White' : '⚫ Black'}
+            {c === 'W' ? 'Blancas' : 'Negras'}
           </button>
         ))}
       </div>
@@ -65,8 +65,8 @@ const PersonalMoves = ({ moves, playedMove, onPlay, color, onColorChange, subjec
     {moves.length === 0 ? (
       <p className="px-4 py-3 text-xs text-fg-muted">
         {playedMove
-          ? `None of your other games as ${color === 'W' ? 'White' : 'Black'} reached this position — only the move above, from the game you’re viewing.`
-          : `None of your games as ${color === 'W' ? 'White' : 'Black'} (with moves) reached this position.`}
+          ? `Ninguna otra partida tuya con ${color === 'W' ? 'blancas' : 'negras'} llegó a esta posición: solo la jugada de arriba, de la partida que estás viendo.`
+          : `Ninguna partida tuya con ${color === 'W' ? 'blancas' : 'negras'} (con jugadas) llegó a esta posición.`}
       </p>
     ) : (
       <div className="overflow-x-auto">

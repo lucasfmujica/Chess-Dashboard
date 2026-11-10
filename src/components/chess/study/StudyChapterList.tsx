@@ -1,4 +1,3 @@
-import Badge from '../../ui/Badge';
 import type { StudyChapter } from '../../../utils/studyPgn';
 
 interface StudyChapterListProps {
@@ -7,26 +6,44 @@ interface StudyChapterListProps {
   onSelect: (index: number) => void;
 }
 
+/**
+ * The study as a book's table of contents: chapter name in serif, ECO in the
+ * margin, the open chapter marked in pen.
+ */
 const StudyChapterList = ({ chapters, selectedIndex, onSelect }: StudyChapterListProps) => (
-  <div className="space-y-1">
-    {chapters.map((chapter, i) => (
-      <button
-        key={i}
-        onClick={() => onSelect(i)}
-        className={`w-full text-left rounded-md px-3 py-2 transition-colors ${
-          i === selectedIndex ? 'bg-accent/15 text-accent' : 'hover:bg-surface-2 text-fg'
-        }`}
-      >
-        <p className="text-sm font-medium leading-snug">{chapter.header.chapterName}</p>
-        {(chapter.header.eco || chapter.header.opening) && (
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-fg-muted">
-            {chapter.header.eco && <Badge tone={i === selectedIndex ? 'accent' : 'neutral'}>{chapter.header.eco}</Badge>}
-            {chapter.header.opening && <span className="truncate">{chapter.header.opening}</span>}
-          </p>
-        )}
-      </button>
-    ))}
-  </div>
+  <nav aria-label="Índice del estudio">
+    <p className="text-label mx-3 mb-1">Capítulos · {chapters.length}</p>
+    <ol className="space-y-0.5">
+      {chapters.map((chapter, i) => {
+        const active = i === selectedIndex;
+        return (
+          <li key={i}>
+            <button
+              onClick={() => onSelect(i)}
+              aria-current={active ? 'page' : undefined}
+              className={`grid w-full grid-cols-[1fr_auto] items-baseline gap-2 rounded px-3 py-2 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+                active ? 'bg-accent/10 text-accent' : 'text-fg hover:bg-app'
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block font-serif text-[15px] leading-[21px]">{chapter.header.chapterName}</span>
+                {chapter.header.opening && (
+                  <span className={`mt-0.5 block truncate text-xs ${active ? 'text-accent/80' : 'text-fg-subtle'}`}>
+                    {chapter.header.opening}
+                  </span>
+                )}
+              </span>
+              {chapter.header.eco && (
+                <span className={`font-mono text-xs tabular-nums ${active ? 'text-accent' : 'text-fg-subtle'}`}>
+                  {chapter.header.eco}
+                </span>
+              )}
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  </nav>
 );
 
 export default StudyChapterList;

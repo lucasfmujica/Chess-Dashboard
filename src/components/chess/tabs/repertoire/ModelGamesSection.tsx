@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PlayCircleIcon, PlusIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { fetchModelGames, postModelGame, deleteModelGame } from '../../../../api/client';
 import { ecoNames } from '../../../../constants/ecoNames';
 import { useModal } from '../../../modals/ModalContext';
@@ -21,7 +21,7 @@ import type { ModelGame } from '../../../../types/chess';
  */
 
 const INPUT_CLASS =
-  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
+  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
 interface ModelGamesSectionProps {
   /** eco -> heroes, so the pickers offer what's already tracked. */
@@ -130,12 +130,9 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="flex items-center text-h3 text-fg">
-            <PlayCircleIcon className="w-5 h-5 mr-2 text-accent" />
-            Partidas modelo
-          </h3>
+          <h3 className="font-serif text-xl font-semibold leading-tight text-fg">Partidas modelo</h3>
           <p className="text-sm text-fg-muted mt-1">
-            La partida concreta detrás de cada héroe: se reproduce con motor y explorador, igual
+            La partida concreta detrás de cada referente: se reproduce con motor y explorador, igual
             que las tuyas.
           </p>
         </div>
@@ -169,13 +166,13 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
 
       {ecoOptions.length === 0 && !finding && (
         <p className="mt-4 text-sm text-fg-muted">
-          Todavía no hay héroes. Buscá en maestros: quien juega tu línea a ese nivel es el héroe, y
+          Todavía no hay referentes. Buscá en maestros: quien juega tu línea a ese nivel es el referente, y
           su partida es la partida modelo.
         </p>
       )}
 
       {adding && (
-        <div className="mt-4 space-y-3 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-4 space-y-3 rounded border border-hairline bg-surface-2 p-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="block">
               <span className="text-label">Apertura</span>
@@ -196,7 +193,7 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
               </select>
             </label>
             <label className="block">
-              <span className="text-label">Héroe</span>
+              <span className="text-label">Referente</span>
               <select
                 className={`${INPUT_CLASS} mt-1`}
                 value={hero}
@@ -272,7 +269,7 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
         <p className="mt-4 text-sm text-fg-muted">Cargando partidas modelo…</p>
       ) : games.length === 0 ? (
         <p className="mt-4 text-sm text-fg-muted">
-          Todavía no hay ninguna. Una partida por héroe ya convierte la galería en material de
+          Todavía no hay ninguna. Una partida por referente ya convierte la galería en material de
           estudio.
         </p>
       ) : (
@@ -286,18 +283,18 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
                 {list.map(game => (
                   <div
                     key={game.id}
-                    className="rounded-lg border border-hairline bg-surface-2/40 p-3"
+                    className="rounded border border-hairline bg-surface p-3"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-medium text-fg">{game.hero}</span>
+                          <span className="font-serif text-[15px] font-semibold text-fg">{game.hero}</span>
                           {game.result && <Badge>{game.result}</Badge>}
-                          <span className="text-xs text-fg-muted nums">
+                          <span className="font-mono text-xs tabular-nums text-fg-muted">
                             {[game.event, game.year].filter(Boolean).join(' · ')}
                           </span>
                         </div>
-                        {game.note && <p className="text-xs text-fg-muted mt-1">{game.note}</p>}
+                        {game.note && <p className="mt-1 font-serif text-sm text-fg-muted">{game.note}</p>}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Button
@@ -309,7 +306,7 @@ const ModelGamesSection = ({ openingHeroes, setOpeningHeroes }: ModelGamesSectio
                         </Button>
                         <button
                           onClick={() => void remove(game)}
-                          className="p-1.5 text-loss hover:bg-loss/10 rounded-lg"
+                          className="rounded p-1.5 text-loss hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                           aria-label="Borrar partida modelo"
                         >
                           <TrashIcon className="w-4 h-4" />

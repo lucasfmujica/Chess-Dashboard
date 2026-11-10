@@ -66,10 +66,10 @@ describe('App Component', () => {
     expect(document.body).toBeInTheDocument();
   });
 
-  test('renders Chess Performance heading', async () => {
+  test('renders the view heading', async () => {
     renderApp();
     // GamesProvider resolves its API fetches asynchronously before rendering children.
-    const heading = await screen.findByText(/Chess Performance/i);
+    const heading = await screen.findByRole('heading', { level: 1, name: 'Resumen' });
     expect(heading).toBeInTheDocument();
   });
 
@@ -79,9 +79,9 @@ describe('App Component', () => {
     expect(navigation).toBeInTheDocument();
   });
 
-  test('renders Overview tab by default', async () => {
+  test('renders the Resumen tab by default', async () => {
     renderApp();
-    const overviewButton = await screen.findByRole('button', { name: /Overview/i });
+    const overviewButton = await screen.findByRole('button', { name: 'Resumen' });
     expect(overviewButton).toBeInTheDocument();
   });
 });
