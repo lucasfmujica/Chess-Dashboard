@@ -154,12 +154,10 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Run ESLint
-        run: npm run build --if-present
-        continue-on-error: true
+        run: npm run lint
 
       - name: Type check with TypeScript
-        run: npx tsc --noEmit
-        continue-on-error: true
+        run: npm run typecheck
 
   # Security Audit
   security:
