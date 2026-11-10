@@ -5,7 +5,6 @@ import { useTournamentStats } from '../../../hooks/useTournamentStats';
 import UpcomingTournamentsSection from './tournaments/UpcomingTournamentsSection';
 import TournamentPrepPanel from './tournaments/TournamentPrepPanel';
 import TournamentHeroSection from './tournaments/TournamentHeroSection';
-import TournamentSummaryCards from './tournaments/TournamentSummaryCards';
 import TournamentTable from './tournaments/TournamentTable';
 import PerformanceChart from './tournaments/PerformanceChart';
 import TournamentImportPanel from './tournaments/TournamentImportPanel';
@@ -83,16 +82,15 @@ const TournamentsTab = ({ tournamentStats, ratedGames }: TournamentsTabProps) =>
         </>
       ) : (
         <>
+          <TournamentHeroSection stats={stats} tournamentStats={tournamentStats} />
+          <TournamentTable tournamentStats={tournamentStats} ratedGames={ratedGames} />
+          <PerformanceChart tournamentStats={tournamentStats} />
+
           {/* Pull an event's official record (and its PGNs) from chess-results */}
           <OfficialResultsPanel />
 
           {/* Paste a crosstable for an event that has no PGN (team events) */}
           <TournamentImportPanel />
-
-          <TournamentHeroSection stats={stats} />
-          <TournamentSummaryCards stats={stats} />
-          <TournamentTable tournamentStats={tournamentStats} ratedGames={ratedGames} />
-          <PerformanceChart tournamentStats={tournamentStats} />
         </>
       )}
     </div>

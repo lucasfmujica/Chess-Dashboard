@@ -1,11 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import {
-  UserGroupIcon,
-  PlusIcon,
-  PencilIcon,
-  TrashIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useModal } from '../../modals/ModalContext';
 import { useSourceFilteredGames } from '../../../context/GamesContext';
 import { useGameStats } from '../../../hooks/useGameStats';
@@ -16,10 +10,7 @@ import {
   putScoutingTarget,
   deleteScoutingTarget,
 } from '../../../api/client';
-import { Card, CardHeader } from '../../ui/Card';
-import Badge, { resultTone } from '../../ui/Badge';
-import Button from '../../ui/Button';
-import StatCard from '../../ui/StatCard';
+import { Badge, Button, Card, CardHeader, ClockBar, ResultMark, StatCard, Table, TBody, TD, TH, THead, TR } from '../../ui';
 import OpponentExplorerBoard from '../OpponentExplorerBoard';
 import type { ScoutingTarget } from '../../../types/chess';
 
@@ -71,197 +62,228 @@ const OpponentPrepTab = () => {
   };
 
   const removeTarget = async (id: string) => {
-    const confirmed = await modal.confirm('Remove this scouting target?');
+    const confirmed = await modal.confirm('¿Sacar a este rival de tu lista?');
     if (!confirmed) return;
     await deleteScoutingTarget(id);
     setTargets(prev => prev.filter(t => t.id !== id));
     if (selectedId === id) setSelectedId(null);
   };
 
+  const h2h = useMemo(() => {
+    const wins = headToHead.filter(g => g.result === 'W').length;
+    const draws = headToHead.filter(g => g.result === 'D').length;
+    const losses = headToHead.filter(g => g.result === 'L').length;
+    const pts = wins + draws / 2;
+    const whole = Math.floor(pts);
+    return { wins, draws, losses, pts: pts - whole >= 0.5 ? `${whole || ''}½` : String(whole) };
+  }, [headToHead]);
+
+  const inputClass =
+    'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
+  const rivalReady = !!selected?.lichessUsername && !rivalLoading && !rivalError;
+  const lichessRating = rating?.classical ?? rating?.rapid ?? rating?.blitz;
+  const ratingKind = rating?.classical ? 'clásicas' : rating?.rapid ? 'rápidas' : rating?.blitz ? 'blitz' : 'Lichess';
+
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-surface-2 rounded-lg">
-              <UserGroupIcon className="w-7 h-7 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-h2 text-fg">Opponent Prep</h2>
-              <p className="text-sm text-fg-muted">Scout a rival's opening tendencies before your round</p>
-            </div>
-          </div>
-          <Button variant="primary" icon={PlusIcon} onClick={() => { setForm(emptyForm); setEditingId(null); }}>
-            Add rival
-          </Button>
-        </div>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-fg-muted">Qué juega antes de que te toque en la ronda.</p>
+        <Button variant="primary" size="sm" icon={PlusIcon} onClick={() => { setForm(emptyForm); setEditingId(null); }}>
+          Agregar rival
+        </Button>
+      </div>
 
-      {/* Form */}
       {form !== null && (
         <Card>
-          <CardHeader title={editingId ? 'Edit rival' : 'New rival'} />
+          <CardHeader title={editingId ? 'Editar rival' : 'Nuevo rival'} />
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Name</label>
+              <label htmlFor="rival-name" className="text-label mb-1.5 block">Nombre</label>
               <input
+                id="rival-name"
                 type="text"
-                placeholder="Opponent's name (as it appears in your OTB games)"
+                placeholder="Como figura en tus partidas"
                 value={form.name ?? ''}
                 onChange={e => setForm({ ...form, name: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Lichess username</label>
+              <label htmlFor="rival-lichess" className="text-label mb-1.5 block">Usuario de Lichess</label>
               <input
+                id="rival-lichess"
                 type="text"
-                placeholder="e.g. DrNykterstein"
+                placeholder="por ejemplo, DrNykterstein"
                 value={form.lichessUsername ?? ''}
                 onChange={e => setForm({ ...form, lichessUsername: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Tournament</label>
+              <label htmlFor="rival-tournament" className="text-label mb-1.5 block">Torneo</label>
               <input
+                id="rival-tournament"
                 type="text"
-                placeholder="Which tournament you're facing them at"
+                placeholder="Dónde te lo cruzás"
                 value={form.tournament ?? ''}
                 onChange={e => setForm({ ...form, tournament: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-fg mb-2">Notes</label>
+              <label htmlFor="rival-notes" className="text-label mb-1.5 block">Notas</label>
               <input
+                id="rival-notes"
                 type="text"
-                placeholder="Anything worth remembering"
+                placeholder="Lo que valga la pena recordar"
                 value={form.notes ?? ''}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
-                className="w-full px-4 py-3 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent"
+                className={inputClass}
               />
             </div>
           </div>
           <div className="mt-4 flex gap-3">
-            <Button variant="primary" onClick={() => void saveTarget(form)}>{editingId ? 'Update' : 'Save'}</Button>
-            <Button variant="secondary" onClick={() => { setForm(null); setEditingId(null); }}>Cancel</Button>
+            <Button variant="primary" onClick={() => void saveTarget(form)}>{editingId ? 'Guardar cambios' : 'Guardar'}</Button>
+            <Button variant="secondary" onClick={() => { setForm(null); setEditingId(null); }}>Cancelar</Button>
           </div>
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-        {/* Target list */}
-        <Card flush className="overflow-hidden h-fit">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <Card flush className="h-fit overflow-hidden">
+          <div className="border-b border-hairline px-4 py-3">
+            <h2 className="font-serif text-lg font-semibold text-fg">Rivales</h2>
+          </div>
           {loading ? (
-            <p className="p-4 text-sm text-fg-muted">Loading…</p>
+            <p className="p-4 text-sm text-fg-muted">Cargando…</p>
           ) : targets.length === 0 ? (
-            <p className="p-4 text-sm text-fg-muted">No rivals yet — add one to start scouting.</p>
+            <p className="p-4 text-sm text-fg-muted">Todavía no hay rivales. Agregá uno para empezar a prepararte.</p>
           ) : (
             <ul className="divide-y divide-hairline">
-              {targets.map(t => (
-                <li key={t.id}>
-                  <button
-                    onClick={() => setSelectedId(t.id)}
-                    className={`w-full text-left px-4 py-3 hover:bg-surface-2 transition-colors ${
-                      selectedId === t.id ? 'bg-accent/10' : ''
-                    }`}
-                  >
-                    <p className="text-sm font-semibold text-fg truncate">{t.name}</p>
-                    {t.tournament && <p className="text-xs text-fg-muted truncate">{t.tournament}</p>}
-                  </button>
-                </li>
-              ))}
+              {targets.map(t => {
+                const active = selectedId === t.id;
+                return (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => setSelectedId(t.id)}
+                      aria-current={active ? 'true' : undefined}
+                      className={`w-full px-4 py-3 text-left transition-colors hover:bg-app focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+                        active ? 'bg-accent/10' : ''
+                      }`}
+                    >
+                      <p className={`truncate font-serif text-base ${active ? 'text-accent' : 'text-fg'}`}>{t.name}</p>
+                      {t.tournament && <p className="truncate text-xs text-fg-subtle">{t.tournament}</p>}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Card>
 
-        {/* Detail */}
-        <div className="space-y-6 min-w-0">
+        <div className="min-w-0 space-y-6">
           {!selected ? (
-            <Card className="p-12 text-center">
-              <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
-                <MagnifyingGlassIcon className="w-12 h-12 text-fg-subtle" />
-              </div>
-              <h3 className="text-h3 text-fg mb-2">No rival selected</h3>
-              <p className="text-fg-muted">Add or pick a rival on the left to scout their tendencies.</p>
+            <Card className="py-12 text-center">
+              <h3 className="font-serif text-xl font-semibold text-fg">Ningún rival elegido</h3>
+              <p className="mt-2 text-sm text-fg-muted">Agregá o elegí un rival de la lista para ver qué juega.</p>
             </Card>
           ) : (
             <>
-              <Card>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-h3 text-fg">{selected.name}</h3>
-                    {selected.tournament && <p className="text-sm text-fg-muted">{selected.tournament}</p>}
-                    {selected.notes && <p className="mt-2 text-sm text-fg">{selected.notes}</p>}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={PencilIcon}
-                      onClick={() => { setForm(selected); setEditingId(selected.id); }}
-                    >
-                      Edit
-                    </Button>
-                    <Button variant="danger" size="sm" icon={TrashIcon} onClick={() => void removeTarget(selected.id)}>
-                      Remove
-                    </Button>
-                  </div>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div className="min-w-0">
+                  {selected.tournament && <p className="text-label">{selected.tournament}</p>}
+                  <h2 className="mt-1 font-serif text-3xl font-semibold leading-tight tracking-tight text-fg sm:text-4xl">
+                    {selected.name}
+                  </h2>
+                  {selected.notes && <p className="mt-2 font-serif text-base text-fg-muted">{selected.notes}</p>}
                 </div>
-              </Card>
+                <div className="flex gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={PencilIcon}
+                    onClick={() => { setForm(selected); setEditingId(selected.id); }}
+                  >
+                    Editar
+                  </Button>
+                  <Button variant="danger" size="sm" icon={TrashIcon} onClick={() => void removeTarget(selected.id)}>
+                    Sacar
+                  </Button>
+                </div>
+              </div>
+
+              <ClockBar>
+                <StatCard
+                  title="Rating Lichess"
+                  value={rivalReady && lichessRating ? lichessRating : '—'}
+                  subtitle={rivalReady ? ratingKind : 'sin datos de Lichess'}
+                />
+                <StatCard
+                  title="Partidas cargadas"
+                  value={rivalReady ? rivalGames.length : '—'}
+                  subtitle="de Lichess, con rating"
+                />
+                <StatCard
+                  title="Su puntaje"
+                  value={rivalReady ? `${rivalStats.overallStats.winRate}%` : '—'}
+                  subtitle={rivalReady ? `${rivalStats.overallStats.score} · % de victorias` : 'en Lichess'}
+                />
+                <StatCard
+                  title="Contra vos"
+                  value={headToHead.length ? `${h2h.pts} / ${headToHead.length}` : '—'}
+                  subtitle={headToHead.length ? `+${h2h.wins} =${h2h.draws} −${h2h.losses}` : 'sin partidas entre ustedes'}
+                />
+              </ClockBar>
 
               {!selected.lichessUsername ? (
                 <Card className="text-sm text-fg-muted">
-                  Add a Lichess username to this rival to load their opening tendencies and recent form.
+                  Agregale un usuario de Lichess a este rival para cargar sus aperturas y su forma reciente.
                 </Card>
               ) : rivalLoading ? (
-                <Card className="text-sm text-fg-muted">Loading {selected.lichessUsername}'s games…</Card>
+                <Card className="text-sm text-fg-muted">Cargando las partidas de {selected.lichessUsername}…</Card>
               ) : rivalError ? (
                 <Card className="text-sm text-loss">{rivalError}</Card>
               ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                    <StatCard title="Lichess Rating" value={rating?.classical ?? rating?.rapid ?? rating?.blitz ?? '—'} />
-                    <StatCard title="Games Loaded" value={rivalGames.length} />
-                    <StatCard title="Score" value={rivalStats.overallStats.score} />
-                    <StatCard title="Win Rate" value={`${rivalStats.overallStats.winRate}%`} />
+                <Card>
+                  <CardHeader
+                    title="Qué juega"
+                    subtitle={`según sus últimas ${rivalGames.length} partidas con rating en Lichess`}
+                  />
+                  <div className="mt-4">
+                    <OpponentExplorerBoard rivalGames={rivalGames} rivalName={selected.name} />
                   </div>
-
-                  <Card>
-                    <CardHeader title="Opening tendencies" subtitle={`From ${selected.name}'s last ${rivalGames.length} rated Lichess games`} />
-                    <div className="mt-4">
-                      <OpponentExplorerBoard rivalGames={rivalGames} rivalName={selected.name} />
-                    </div>
-                  </Card>
-                </>
+                </Card>
               )}
 
               <Card>
                 <CardHeader
-                  title="Local head-to-head"
-                  subtitle="Heuristic match on opponent name across your own OTB/Lichess games — names may not match exactly"
+                  title="Partidas contra vos"
+                  subtitle="coincidencia aproximada por nombre en tus partidas: puede fallar si el nombre está escrito distinto"
+                  className="mb-4"
                 />
                 {headToHead.length === 0 ? (
-                  <p className="mt-3 text-sm text-fg-muted">No local games found against "{selected.name}".</p>
+                  <p className="text-sm text-fg-muted">No hay partidas tuyas contra “{selected.name}”.</p>
                 ) : (
-                  <div className="mt-3 overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <tbody className="divide-y divide-hairline">
-                        {headToHead.map((g, i) => (
-                          <tr key={i}>
-                            <td className="py-1.5 pr-3 text-fg-muted">{g.date ?? g.tournament}</td>
-                            <td className="py-1.5 pr-3">{g.color === 'W' ? '⚪' : '⚫'}</td>
-                            <td className="py-1.5 pr-3 text-fg-muted">{g.eco}</td>
-                            <td className="py-1.5">
-                              <Badge tone={resultTone(g.result)}>{g.result}</Badge>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <Table>
+                    <THead>
+                      <tr>
+                        <TH>Fecha / torneo</TH>
+                        <TH>Vos</TH>
+                        <TH>ECO</TH>
+                        <TH align="right">Res.</TH>
+                      </tr>
+                    </THead>
+                    <TBody>
+                      {headToHead.map((g, i) => (
+                        <TR key={i}>
+                          <TD muted className="font-mono">{g.date ?? g.tournament}</TD>
+                          <TD muted>{g.color === 'W' ? 'Blancas' : 'Negras'}</TD>
+                          <TD>{g.eco ? <Badge>{g.eco}</Badge> : <span className="text-fg-subtle">—</span>}</TD>
+                          <TD align="right"><ResultMark result={g.result} outline /></TD>
+                        </TR>
+                      ))}
+                    </TBody>
+                  </Table>
                 )}
               </Card>
             </>

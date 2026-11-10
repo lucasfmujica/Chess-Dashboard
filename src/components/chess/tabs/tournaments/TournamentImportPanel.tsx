@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 import { Card, Button, Badge, resultTone } from '../../../ui';
 import { parseRounds, roundsScore, type ParsedRound } from '../../../../utils/roundsImport';
 import { postTournament, postGames } from '../../../../api/client';
@@ -21,7 +20,7 @@ import { useGames } from '../../../../context/GamesContext';
  */
 
 const INPUT_CLASS =
-  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
+  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
 const PLACEHOLDER =
   '1 | Romanelli, Gabriel | 2054 | B | ½\n' +
@@ -179,8 +178,7 @@ const TournamentImportPanel = () => {
       <Card>
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h3 className="text-h3 text-fg flex items-center gap-2">
-              <ClipboardDocumentListIcon className="w-5 h-5 text-accent" />
+            <h3 className="font-serif text-xl font-semibold leading-tight text-fg">
               Cargar un torneo sin PGN
             </h3>
             <p className="text-sm text-fg-muted mt-1">
@@ -197,8 +195,7 @@ const TournamentImportPanel = () => {
 
   return (
     <Card>
-      <h3 className="text-h3 text-fg flex items-center gap-2">
-        <ClipboardDocumentListIcon className="w-5 h-5 text-accent" />
+      <h3 className="font-serif text-xl font-semibold leading-tight text-fg">
         Cargar un torneo sin PGN
       </h3>
 
@@ -306,7 +303,7 @@ const TournamentImportPanel = () => {
         </Field>
       </div>
 
-      <label className="mt-4 flex items-start gap-3 rounded-lg border border-hairline bg-surface-2 p-3">
+      <label className="mt-4 flex items-start gap-3 rounded border border-hairline bg-surface-2 p-3">
         <input
           type="checkbox"
           className="mt-0.5 accent-[var(--accent)]"
@@ -342,7 +339,7 @@ const TournamentImportPanel = () => {
       </div>
 
       {rounds.length > 0 && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
           <div className="text-label">
             Vista previa · {rounds.length} ronda{rounds.length > 1 ? 's' : ''} · {score} punto
             {score === 1 ? '' : 's'}

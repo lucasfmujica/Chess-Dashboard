@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { getChartHeight } from '../../../utils/chartUtils';
 import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
 import TournamentComparison from './analytics/TournamentComparison';
-import { Card, CardHeader } from '../../ui/Card';
-import Badge, { resultTone } from '../../ui/Badge';
-import { PieceGlyph } from '../../ui/PieceGlyph';
+import { Badge, Button, Card, CardHeader, ClockBar, ResultMark, StatCard, Table, TBody, TD, TH, THead, TR } from '../../ui';
 import type { Game } from '../../../types/chess';
 
 /** Per time-of-day-slot aggregate row. */
@@ -66,6 +64,19 @@ interface OpponentStrengthTabProps {
   tournamentComparison: TournamentComparisonEntry[];
 }
 
+const SORT_OPTIONS: { key: SortConfig['key']; label: string }[] = [
+  { key: 'date', label: 'Fecha' },
+  { key: 'opp_elo', label: 'ELO del rival' },
+  { key: 'eloDiff', label: 'Diferencia' },
+  { key: 'result', label: 'Resultado' },
+];
+
+/** 2.5 → "2½", 0.5 → "½". */
+const fmtPts = (p: number) => {
+  const whole = Math.floor(p);
+  return p - whole >= 0.5 ? `${whole || ''}½` : String(whole);
+};
+
 const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: OpponentStrengthTabProps) => {
   const [selectedBracket, setSelectedBracket] = useState<BracketAnalysis | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'desc' });
@@ -74,11 +85,11 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
 
     // Define ELO brackets based on rating difference (opp_elo - player_elo at time of game)
     const brackets = [
-      { label: 'Much Lower (-200+)', minDiff: -Infinity, maxDiff: -200, color: 'rgb(var(--win))' },
-      { label: 'Lower (-100 to -199)', minDiff: -199, maxDiff: -100, color: 'rgb(var(--cat-6))' },
-      { label: 'Similar (±99)', minDiff: -99, maxDiff: 99, color: 'rgb(var(--cat-2))' },
-      { label: 'Higher (+100 to +199)', minDiff: 100, maxDiff: 199, color: 'rgb(var(--draw))' },
-      { label: 'Much Higher (+200+)', minDiff: 200, maxDiff: Infinity, color: 'rgb(var(--loss))' },
+      { label: 'Rival 200+ por debajo', minDiff: -Infinity, maxDiff: -200, color: 'rgb(var(--cat-3))' },
+      { label: 'Rival 100–199 por debajo', minDiff: -199, maxDiff: -100, color: 'rgb(var(--cat-6))' },
+      { label: 'Parejo (±99)', minDiff: -99, maxDiff: 99, color: 'rgb(var(--cat-1))' },
+      { label: 'Rival 100–199 por encima', minDiff: 100, maxDiff: 199, color: 'rgb(var(--cat-2))' },
+      { label: 'Rival 200+ por encima', minDiff: 200, maxDiff: Infinity, color: 'rgb(var(--cat-5))' },
     ];
 
     const analysis = brackets.map(bracket => {
@@ -131,15 +142,6 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
     return analysis;
   }, [games]);
 
-  const chartData = useMemo(() => {
-    return strengthAnalysis.map(bracket => ({
-      bracket: bracket.label.split(' ')[0] + ' ' + bracket.label.match(/\([^)]+\)/)?.[0] || '',
-      actual: bracket.scorePercentage,
-      expected: bracket.expectedPercentage,
-      games: bracket.games,
-    }));
-  }, [strengthAnalysis]);
-
   const strengthTrend = useMemo(() => {
     const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
 
@@ -159,448 +161,294 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
     });
   }, [games]);
 
+  const summary = useMemo(() => {
+    const rated = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
+    const tally = (list: Game[]) => {
+      const pts = list.reduce((s, g) => s + (g.result === 'W' ? 1 : g.result === 'D' ? 0.5 : 0), 0);
+      const exp = list.reduce((s, g) => s + 1 / (1 + Math.pow(10, (g.opp_elo - g.elo) / 400)), 0);
+      return { n: list.length, pts, exp, pct: list.length ? Math.round((pts / list.length) * 100) : 0 };
+    };
+    const avgOpp = rated.length ? Math.round(rated.reduce((s, g) => s + g.opp_elo, 0) / rated.length) : 0;
+    return {
+      all: tally(rated),
+      stronger: tally(rated.filter(g => g.opp_elo - g.elo >= 100)),
+      weaker: tally(rated.filter(g => g.opp_elo - g.elo <= -100)),
+      avgOpp,
+    };
+  }, [games]);
+
+  const sortedGames = useMemo(() => {
+    if (!selectedBracket) return [];
+    const resultOrder: Record<string, number> = { W: 3, D: 2, L: 1 };
+    const val = (g: Game): number => {
+      switch (sortConfig.key) {
+        case 'date':
+          return new Date(g.date || 0).getTime();
+        case 'opp_elo':
+          return g.opp_elo;
+        case 'eloDiff':
+          return g.opp_elo - g.elo;
+        case 'result':
+          return resultOrder[g.result] || 0;
+        default:
+          return 0;
+      }
+    };
+    return [...selectedBracket.bracketGames].sort((a, b) =>
+      sortConfig.direction === 'asc' ? val(a) - val(b) : val(b) - val(a)
+    );
+  }, [selectedBracket, sortConfig]);
+
+  const toggleBracket = (bracket: BracketAnalysis) =>
+    setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket);
+
+  const activeBrackets = strengthAnalysis.filter(b => b.games > 0);
+  const readings = strengthAnalysis.filter(b => b.games >= 5 && Math.abs(b.performance) > 5);
+  const diffPts = summary.all.pts - summary.all.exp;
+
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
-          <div
-            key={idx}
-            className={`p-6 bg-surface border rounded-lg cursor-pointer transition-colors hover:bg-surface-2 ${
-              selectedBracket?.label === bracket.label ? 'ring-2 ring-accent' : ''
-            }`}
-            style={{ borderColor: bracket.color }}
-            onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-sm font-semibold text-fg">{bracket.label}</h3>
-              <span className="px-2 py-1 text-xs font-bold text-white rounded tabular-nums" style={{ backgroundColor: bracket.color }}>
-                {bracket.games} games
-              </span>
+    <div className="space-y-8">
+      <p className="text-sm text-fg-muted">
+        <span className="font-mono tabular-nums">{summary.all.n}</span> partidas con ELO · rival promedio{' '}
+        <span className="font-mono tabular-nums">{summary.avgOpp || '—'}</span>
+      </p>
+
+      <ClockBar>
+        <StatCard
+          title="Puntaje total"
+          value={`${summary.all.pct}%`}
+          subtitle={`${fmtPts(summary.all.pts)} de ${summary.all.n}`}
+        />
+        <StatCard
+          title="Contra rivales más fuertes"
+          value={summary.stronger.n ? `${summary.stronger.pct}%` : '—'}
+          trend={summary.stronger.n ? (summary.stronger.pts >= summary.stronger.exp ? 'up' : 'down') : undefined}
+          subtitle={`${fmtPts(summary.stronger.pts)} de ${summary.stronger.n} · 100+ por encima`}
+        />
+        <StatCard
+          title="Contra rivales más débiles"
+          value={summary.weaker.n ? `${summary.weaker.pct}%` : '—'}
+          trend={summary.weaker.n ? (summary.weaker.pts >= summary.weaker.exp ? 'up' : 'down') : undefined}
+          subtitle={`${fmtPts(summary.weaker.pts)} de ${summary.weaker.n} · 100+ por debajo`}
+        />
+        <StatCard
+          title="Rendimiento vs esperado"
+          value={`${diffPts >= 0 ? '+' : '−'}${Math.abs(diffPts).toFixed(1)}`}
+          trend={summary.all.n ? (diffPts >= 0 ? 'up' : 'down') : undefined}
+          subtitle={`puntos ${diffPts >= 0 ? 'sobre' : 'bajo'} lo esperado por ELO`}
+        />
+      </ClockBar>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <CardHeader
+            title="Por diferencia de ELO"
+            subtitle="barra: puntaje · línea: esperado · tocá una franja para ver sus partidas"
+            className="mb-2"
+          />
+          {activeBrackets.length === 0 ? (
+            <p className="py-6 text-sm text-fg-muted">Todavía no hay partidas con ELO para comparar.</p>
+          ) : (
+            <ul className="divide-y divide-hairline">
+              {activeBrackets.map(bracket => {
+                const selected = selectedBracket?.label === bracket.label;
+                return (
+                  <li key={bracket.label}>
+                    <button
+                      type="button"
+                      onClick={() => toggleBracket(bracket)}
+                      aria-pressed={selected}
+                      className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-2 py-3.5 text-left transition-colors hover:bg-app focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:grid-cols-[150px_minmax(0,1fr)_56px_96px] ${
+                        selected ? 'bg-accent/10' : ''
+                      }`}
+                    >
+                      <span className={`font-serif text-base leading-snug ${selected ? 'text-accent' : 'text-fg'}`}>
+                        {bracket.label}
+                      </span>
+                      <span className="relative col-span-2 row-start-2 h-3.5 rounded-sm bg-surface-2 sm:col-span-1 sm:row-start-auto" aria-hidden="true">
+                        <span className="absolute inset-y-0 left-0 rounded-sm bg-accent" style={{ width: `${Math.min(100, bracket.scorePercentage)}%` }} />
+                        <span
+                          className="absolute -bottom-1 -top-1 w-0.5 bg-fg"
+                          style={{ left: `calc(${Math.min(100, bracket.expectedPercentage)}% - 1px)` }}
+                        />
+                      </span>
+                      <span className="text-right font-mono text-[15px] tabular-nums text-fg sm:row-start-auto">
+                        {Math.round(bracket.scorePercentage)}%
+                      </span>
+                      <span className="col-span-2 font-mono text-xs tabular-nums text-fg-subtle sm:col-span-1 sm:text-right">
+                        +{bracket.wins} ={bracket.draws} −{bracket.losses}
+                        <span className="sm:block">
+                          {' '}· esp. {Math.round(bracket.expectedPercentage)}%
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader title="Lectura" subtitle="franjas con 5 partidas o más" className="mb-4" />
+          {readings.length === 0 ? (
+            <p className="font-serif text-base leading-6 text-fg-muted">
+              En ninguna franja te alejás más de 5 puntos de lo que marca el ELO: rendís lo esperado.
+            </p>
+          ) : (
+            <div className="space-y-4 font-serif text-base leading-6 text-fg">
+              {readings.map(bracket =>
+                bracket.performance > 0 ? (
+                  <p key={bracket.label}>
+                    {bracket.label}: hacés {Math.round(bracket.scorePercentage)}% cuando el ELO espera{' '}
+                    {Math.round(bracket.expectedPercentage)}%. Rendís {bracket.performance.toFixed(1)} puntos por encima, en{' '}
+                    {bracket.games} partidas.
+                  </p>
+                ) : (
+                  <p key={bracket.label}>
+                    {bracket.label}: hacés {Math.round(bracket.scorePercentage)}% contra un esperado de{' '}
+                    {Math.round(bracket.expectedPercentage)}%. Quedás {Math.abs(bracket.performance).toFixed(1)} puntos abajo: ahí
+                    está el trabajo.
+                  </p>
+                )
+              )}
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-fg-muted">Score</span>
-                <span className="text-lg font-bold tabular-nums" style={{ color: bracket.color }}>
-                  {bracket.scorePercentage}%
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-fg-muted">Expected</span>
-                <span className="text-fg-muted tabular-nums">{bracket.expectedPercentage}%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-fg-muted">Performance</span>
-                <span className={`font-semibold ${bracket.performance >= 0 ? 'text-win' : 'text-loss'}`}>
-                  {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
-                </span>
-              </div>
-              <div className="pt-2 mt-2 border-t border-hairline">
-                <div className="flex justify-between text-xs text-fg-muted tabular-nums">
-                  <span>W: {bracket.wins}</span>
-                  <span>D: {bracket.draws}</span>
-                  <span>L: {bracket.losses}</span>
-                </div>
-              </div>
-              <div className="mt-2 text-xs text-center text-fg-subtle">
-                {selectedBracket?.label === bracket.label ? 'Click to close' : 'Click to view games'}
-              </div>
-            </div>
-          </div>
-        ))}
+          )}
+        </Card>
       </div>
 
-      {/* Games Detail Panel */}
       {selectedBracket && (
-        <div className="p-6 bg-surface border border-hairline rounded-lg">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex flex-wrap items-center gap-3 min-w-0">
-              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: selectedBracket.color }}></div>
-              <h3 className="text-h3 text-fg">
-                Games vs {selectedBracket.label}
-              </h3>
-              <Badge tone="neutral">{selectedBracket.games} games</Badge>
+        <Card flush>
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline px-5 py-4 sm:px-6">
+            <div className="min-w-0">
+              <h3 className="font-serif text-xl font-semibold leading-tight text-fg">Partidas · {selectedBracket.label}</h3>
+              <p className="mt-1 font-mono text-xs tabular-nums text-fg-subtle">
+                {fmtPts(parseFloat(selectedBracket.score))} de {selectedBracket.games} ({selectedBracket.scorePercentage}%) · +
+                {selectedBracket.wins} ={selectedBracket.draws} −{selectedBracket.losses}
+              </p>
             </div>
-            <button
-              onClick={() => setSelectedBracket(null)}
-              className="p-2 text-fg-subtle transition-colors hover:text-fg hover:bg-surface-2 rounded-lg shrink-0"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedBracket(null)}>
+              Cerrar
+            </Button>
           </div>
 
-          {/* Sort Controls */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="text-sm text-fg-muted">Sort by:</span>
-            {[
-              { key: 'date', label: 'Date' },
-              { key: 'opp_elo', label: 'Opponent ELO' },
-              { key: 'eloDiff', label: 'ELO Diff' },
-              { key: 'result', label: 'Result' },
-            ].map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => {
-                  if (sortConfig.key === key) {
-                    setSortConfig({ key: key as SortConfig['key'], direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
-                  } else {
-                    setSortConfig({ key: key as SortConfig['key'], direction: 'desc' });
+          <div className="flex flex-wrap items-center gap-2 px-5 pt-3 sm:px-6">
+            <span className="text-label">Ordenar por</span>
+            {SORT_OPTIONS.map(({ key, label }) => {
+              const active = sortConfig.key === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() =>
+                    setSortConfig(
+                      active
+                        ? { key, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' }
+                        : { key, direction: 'desc' }
+                    )
                   }
-                }}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  sortConfig.key === key
-                    ? 'bg-surface-2 text-fg font-semibold'
-                    : 'text-fg-muted hover:bg-surface-2'
-                }`}
-              >
-                {label}
-                {sortConfig.key === key && (
-                  <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                )}
-              </button>
-            ))}
+                  className={`rounded-sm px-2 py-1 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                    active ? 'bg-accent/10 text-accent' : 'text-fg-muted hover:text-fg'
+                  }`}
+                >
+                  {label}
+                  {active && <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Games Table */}
-          <div className="overflow-x-auto max-h-96 overflow-y-auto">
-            <table className="min-w-full">
-              <thead className="bg-surface-2 sticky top-0">
+          <div className="max-h-96 overflow-y-auto p-5 pt-3 sm:p-6 sm:pt-3">
+            <Table>
+              <THead>
                 <tr>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Date</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Opponent</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Your ELO</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Opp ELO</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Diff</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Color</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-center text-fg-subtle uppercase">Result</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
-                  <th scope="col" className="px-4 py-2 text-xs font-medium text-left text-fg-subtle uppercase">Tournament</th>
+                  <TH>Fecha</TH>
+                  <TH>Rival</TH>
+                  <TH align="right">ELO</TH>
+                  <TH align="right">Tu ELO</TH>
+                  <TH align="right">Dif.</TH>
+                  <TH>Color</TH>
+                  <TH>ECO</TH>
+                  <TH>Torneo</TH>
+                  <TH align="right">Res.</TH>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                {[...selectedBracket.bracketGames]
-                  .sort((a, b) => {
-                    let aVal: number, bVal: number;
-                    switch (sortConfig.key) {
-                      case 'date':
-                        aVal = new Date(a.date || 0).getTime();
-                        bVal = new Date(b.date || 0).getTime();
-                        break;
-                      case 'opp_elo':
-                        aVal = a.opp_elo;
-                        bVal = b.opp_elo;
-                        break;
-                      case 'eloDiff':
-                        aVal = a.opp_elo - a.elo;
-                        bVal = b.opp_elo - b.elo;
-                        break;
-                      case 'result':
-                        const resultOrder: Record<string, number> = { W: 3, D: 2, L: 1 };
-                        aVal = resultOrder[a.result] || 0;
-                        bVal = resultOrder[b.result] || 0;
-                        break;
-                      default:
-                        aVal = 0;
-                        bVal = 0;
-                    }
-                    return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-                  })
-                  .map((game, idx) => {
-                    const eloDiff = game.opp_elo - game.elo;
-                    return (
-                      <tr key={idx} className="hover:bg-surface-2">
-                        <td className="px-4 py-2 text-sm text-fg-muted tabular-nums">
-                          {game.date ? new Date(game.date).toLocaleDateString() : '-'}
-                        </td>
-                        <td className="px-4 py-2 text-sm font-medium text-fg">{game.opp}</td>
-                        <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.elo}</td>
-                        <td className="px-4 py-2 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo}</td>
-                        <td className="px-4 py-2 text-sm text-center tabular-nums">
-                          <span className={`font-medium ${eloDiff >= 0 ? 'text-orange-600 dark:text-orange-400' : 'text-win'}`}>
-                            {eloDiff >= 0 ? '+' : ''}{eloDiff}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm text-center">
-                          <span className="inline-flex items-center gap-1.5 text-fg-muted">
-                            <PieceGlyph color={game.color === 'W' ? 'W' : 'B'} size={10} />
-                            {game.color === 'W' ? 'White' : 'Black'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm text-center">
-                          <Badge tone={resultTone(game.result)}>
-                            {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-2 text-sm text-fg-muted">{game.eco || '-'}</td>
-                        <td className="px-4 py-2 text-sm text-fg-muted truncate max-w-[200px]" title={game.tournament}>
-                          {game.tournament || '-'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
+              </THead>
+              <TBody>
+                {sortedGames.map((game, idx) => {
+                  const eloDiff = game.opp_elo - game.elo;
+                  return (
+                    <TR key={idx}>
+                      <TD muted className="whitespace-nowrap font-mono">
+                        {game.date ? new Date(game.date).toLocaleDateString('es-AR') : '—'}
+                      </TD>
+                      <TD className="whitespace-nowrap">{game.opp}</TD>
+                      <TD align="right" className="font-mono">{game.opp_elo}</TD>
+                      <TD align="right" muted className="font-mono">{game.elo}</TD>
+                      <TD align="right" muted className="font-mono">
+                        {eloDiff >= 0 ? '+' : '−'}
+                        {Math.abs(eloDiff)}
+                      </TD>
+                      <TD muted>{game.color === 'W' ? 'Blancas' : 'Negras'}</TD>
+                      <TD>{game.eco ? <Badge>{game.eco}</Badge> : <span className="text-fg-subtle">—</span>}</TD>
+                      <TD muted className="max-w-[200px] truncate" title={game.tournament}>
+                        {game.tournament || '—'}
+                      </TD>
+                      <TD align="right">
+                        <ResultMark result={game.result} outline />
+                      </TD>
+                    </TR>
+                  );
+                })}
+              </TBody>
+            </Table>
           </div>
-
-          {/* Summary Footer */}
-          <div className="flex justify-between items-center mt-4 pt-4 border-t border-hairline text-sm text-fg-muted">
-            <div>
-              Score: <span className="font-semibold tabular-nums">{selectedBracket.score}/{selectedBracket.games}</span> ({selectedBracket.scorePercentage}%)
-            </div>
-            <div className="flex gap-4">
-              <span className="text-win">W: {selectedBracket.wins}</span>
-              <span className="text-draw">D: {selectedBracket.draws}</span>
-              <span className="text-loss">L: {selectedBracket.losses}</span>
-            </div>
-          </div>
-        </div>
+        </Card>
       )}
 
-      {/* Performance vs Expected Chart */}
       <Card>
-        <div>
-          <CardHeader
-            title="Performance vs Expected Score"
-            subtitle="Analysis by opponent strength bracket"
-            className="mb-6"
-          />
-          <ResponsiveContainer width="100%" height={getChartHeight('large')}>
-            <BarChart data={chartData} barGap={8}>
-              <defs>
-                <linearGradient id="actualGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgb(var(--accent))" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="rgb(var(--accent))" stopOpacity={0.55}/>
-                </linearGradient>
-                <linearGradient id="expectedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.6}/>
-                  <stop offset="95%" stopColor="rgb(var(--fg-subtle))" stopOpacity={0.35}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--border))" opacity={0.5} />
-              <XAxis
-                dataKey="bracket"
-                angle={-15}
-                textAnchor="end"
-                height={90}
-                tick={{ fontSize: 12, fontWeight: 600 }}
-                stroke="rgb(var(--fg-subtle))"
-              />
-              <YAxis
-                label={{ value: 'Score %', angle: -90, position: 'insideLeft', style: { fontSize: 14, fontWeight: 600 } }}
-                domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                stroke="rgb(var(--fg-subtle))"
-              />
-              <Tooltip
-                cursor={{ fill: 'rgb(var(--accent) / 0.08)' }}
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    const performance = (data.actual - data.expected).toFixed(1);
-                    const isPositive = parseFloat(performance) >= 0;
-                    return (
-                      <div className="p-4 bg-surface border border-hairline rounded-lg">
-                        <p className="font-bold text-lg text-fg mb-3">{data.bracket}</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-fg-muted">Actual Score:</span>
-                            <span className="text-sm font-bold text-accent tabular-nums">{data.actual}%</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-6">
-                            <span className="text-sm text-fg-muted">Expected:</span>
-                            <span className="text-sm font-semibold text-fg-muted tabular-nums">{data.expected}%</span>
-                          </div>
-                          <div className="pt-2 mt-2 border-t border-hairline">
-                            <div className="flex items-center justify-between gap-6">
-                              <span className="text-sm font-semibold text-fg-muted">Performance:</span>
-                              <span className={`text-lg font-bold ${isPositive ? 'text-win' : 'text-loss'}`}>
-                                {isPositive ? '+' : ''}{performance}%
-                              </span>
-                            </div>
-                            <p className="mt-2 text-xs text-fg-muted text-center">
-                              {data.games} game{data.games !== 1 ? 's' : ''} played
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
-              <Legend
-                wrapperStyle={{ paddingTop: 20 }}
-                iconType="rect"
-                iconSize={14}
-              />
-              <Bar
-                dataKey="actual"
-                fill="url(#actualGradient)"
-                name="Actual Score %"
-                radius={[8, 8, 0, 0]}
-                maxBarSize={80}
-              />
-              <Bar
-                dataKey="expected"
-                fill="url(#expectedGradient)"
-                name="Expected Score %"
-                radius={[8, 8, 0, 0]}
-                maxBarSize={80}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      {/* Detailed Breakdown Table */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-h3 text-fg">Detailed Strength Analysis</h3>
-          <span className="text-xs text-fg-subtle">Click any row to view games</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-surface-2">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Bracket</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Expected</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Performance</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Avg ELO Diff</th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-hairline">
-              {strengthAnalysis.filter(b => b.games > 0).map((bracket, idx) => (
-                <tr
-                  key={idx}
-                  className={`hover:bg-surface-2 cursor-pointer transition-colors ${
-                    selectedBracket?.label === bracket.label ? 'bg-surface-2' : ''
-                  }`}
-                  onClick={() => setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket)}
-                >
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 mr-2 rounded-full" style={{ backgroundColor: bracket.color }}></div>
-                      <span className="font-medium text-fg">{bracket.label}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="underline decoration-dotted decoration-fg-subtle">{bracket.games}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="text-win">{bracket.wins}</span>-
-                    <span className="text-draw">{bracket.draws}</span>-
-                    <span className="text-loss">{bracket.losses}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{bracket.score}</td>
-                  <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold tabular-nums ${bracket.winRate >= 50 ? 'text-win' : 'text-loss'}`}>
-                      {bracket.winRate}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{bracket.expectedPercentage}%</td>
-                  <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-bold tabular-nums ${bracket.performance >= 0 ? 'text-win' : 'text-loss'}`}>
-                      {bracket.performance >= 0 ? '+' : ''}{bracket.performance}%
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-medium tabular-nums ${bracket.avgEloDiff >= 0 ? 'text-orange-600 dark:text-orange-400' : 'text-win'}`}>
-                      {bracket.avgEloDiff >= 0 ? '+' : ''}{bracket.avgEloDiff}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Results vs Opponent Rating Scatter */}
-      <Card>
-        <CardHeader title="Results by Opponent Rating Difference" className="mb-4" />
+        <CardHeader
+          title="Resultado y diferencia de ELO, partida por partida"
+          subtitle="en orden cronológico · eje izquierdo: resultado (1 = 100) · eje derecho: diferencia con el rival"
+          className="mb-4"
+        />
         <ResponsiveContainer width="100%" height={getChartHeight('small')}>
-          <LineChart data={strengthTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="game" label={{ value: 'Game Number', position: 'insideBottom', offset: -5 }} />
-            <YAxis
-              yAxisId="left"
-              label={{ value: 'Result %', angle: -90, position: 'insideLeft' }}
-              domain={[0, 100]}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              label={{ value: 'ELO Difference', angle: 90, position: 'insideRight' }}
-            />
+          <LineChart data={strengthTrend} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
+            <CartesianGrid stroke="rgb(var(--border))" vertical={false} />
+            <XAxis dataKey="game" tick={{ fontSize: 12, fill: 'rgb(var(--fg-subtle))' }} stroke="rgb(var(--border))" />
+            <YAxis yAxisId="left" domain={[0, 100]} tick={{ fontSize: 12, fill: 'rgb(var(--fg-subtle))' }} stroke="rgb(var(--border))" />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: 'rgb(var(--fg-subtle))' }} stroke="rgb(var(--border))" />
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="p-3 bg-surface border border-hairline rounded">
-                      <p className="font-semibold text-fg">Game {data.game}</p>
-                      <p className="text-sm">Your ELO: {data.playerElo}</p>
-                      <p className="text-sm">vs {data.opponent} ({data.oppElo})</p>
-                      <p className="text-sm">ELO Diff: {data.eloDiff >= 0 ? '+' : ''}{data.eloDiff}</p>
-                      <p className="text-sm">Result: {data.result}%</p>
+                    <div className="rounded border border-hairline bg-surface p-3 text-sm">
+                      <p className="font-semibold text-fg">Partida {data.game}</p>
+                      <p className="text-fg-muted">vs {data.opponent} <span className="font-mono tabular-nums">({data.oppElo})</span></p>
+                      <p className="font-mono tabular-nums text-fg-muted">
+                        Tu ELO {data.playerElo} · dif. {data.eloDiff >= 0 ? '+' : '−'}
+                        {Math.abs(data.eloDiff)}
+                      </p>
+                      <p className="font-mono tabular-nums text-fg">
+                        Resultado {data.result === 100 ? '1' : data.result === 50 ? '½' : '0'}
+                      </p>
                     </div>
                   );
                 }
                 return null;
               }}
             />
-            <Legend />
-            <Line yAxisId="left" type="monotone" dataKey="result" stroke="rgb(var(--win))" strokeWidth={2} name="Result %" dot={{ r: 3 }} />
-            <Line yAxisId="right" type="monotone" dataKey="eloDiff" stroke="rgb(var(--cat-4))" strokeWidth={2} name="ELO Diff" dot={{ r: 3 }} />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Line yAxisId="left" type="monotone" dataKey="result" stroke="rgb(var(--cat-1))" strokeWidth={1.5} name="Resultado" dot={{ r: 2 }} />
+            <Line yAxisId="right" type="monotone" dataKey="eloDiff" stroke="rgb(var(--cat-2))" strokeWidth={1.5} name="Diferencia de ELO" dot={{ r: 2 }} />
           </LineChart>
         </ResponsiveContainer>
       </Card>
 
-      {/* Time of Day Performance */}
       <TimeOfDayPerformance timeOfDayStats={timeOfDayStats} />
 
-      {/* Tournament Comparison */}
       <TournamentComparison tournamentComparison={tournamentComparison} />
-
-      {/* Insights */}
-      <Card>
-        <CardHeader title="Insights & Recommendations" subtitle="Brackets where you over- or under-perform (min. 5 games)" className="mb-4" />
-        <div className="space-y-3">
-          {strengthAnalysis.filter(b => b.games >= 5).map((bracket, idx) => {
-            const isOverperforming = bracket.performance > 5;
-            const isUnderperforming = bracket.performance < -5;
-
-            if (isOverperforming) {
-              return (
-                <div key={idx} className="p-4 bg-win/10 border border-win/30 rounded-lg">
-                  <p className="font-semibold text-win">✓ Strength: {bracket.label}</p>
-                  <p className="text-sm text-win">
-                    You're performing {bracket.performance}% above expectations in this bracket!
-                    Your {bracket.scorePercentage}% score exceeds the expected {bracket.expectedPercentage}%.
-                  </p>
-                </div>
-              );
-            } else if (isUnderperforming) {
-              return (
-                <div key={idx} className="p-4 bg-draw/10 border border-draw/30 rounded-lg">
-                  <p className="font-semibold text-draw">⚠ Area for Improvement: {bracket.label}</p>
-                  <p className="text-sm text-draw">
-                    You're performing {Math.abs(bracket.performance)}% below expectations.
-                    Focus on improving results against {bracket.label.toLowerCase()} opponents.
-                  </p>
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
-      </Card>
     </div>
   );
 };

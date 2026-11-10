@@ -1,51 +1,61 @@
-import { TrophyIcon } from '@heroicons/react/24/outline';
+import { ClockBar, StatCard } from '../../../ui';
+import type { TournamentStat } from '../../../../types/chess';
 
 interface TournamentHeroStats {
   totalTournaments: number;
   totalGames: number;
   bestPerformance: number;
   averageScore: number | string;
+  totalWins: number;
+  totalDraws: number;
+  totalLosses: number;
 }
 
 interface TournamentHeroSectionProps {
   stats: TournamentHeroStats;
+  /** Per-event rows, for the ELO gained across all of them. */
+  tournamentStats?: TournamentStat[];
 }
 
-const TournamentHeroSection = ({ stats }: TournamentHeroSectionProps) => {
-  return (
-    <div className="relative overflow-hidden bg-surface border border-hairline rounded-lg">
-      <div className="relative px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-surface-2 rounded-lg">
-            <TrophyIcon className="w-8 h-8 text-accent" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-fg">Tournament History</h2>
-            <p className="text-fg-muted">Complete record of your competitive performance</p>
-          </div>
-        </div>
+/** 30.5 → "30½". */
+const fmtPts = (p: number) => {
+  const whole = Math.floor(p);
+  return p - whole >= 0.5 ? `${whole || ''}½` : String(whole);
+};
 
-        {/* Quick Stats */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-surface-2 rounded-lg p-4">
-            <p className="text-fg-muted text-sm font-medium mb-1">Tournaments</p>
-            <p className="text-3xl font-bold text-fg tabular-nums">{stats.totalTournaments}</p>
-          </div>
-          <div className="bg-surface-2 rounded-lg p-4">
-            <p className="text-fg-muted text-sm font-medium mb-1">Games Played</p>
-            <p className="text-3xl font-bold text-fg tabular-nums">{stats.totalGames}</p>
-          </div>
-          <div className="bg-surface-2 rounded-lg p-4">
-            <p className="text-fg-muted text-sm font-medium mb-1">Best Rating</p>
-            <p className="text-3xl font-bold text-fg tabular-nums">{stats.bestPerformance}</p>
-          </div>
-          <div className="bg-surface-2 rounded-lg p-4">
-            <p className="text-fg-muted text-sm font-medium mb-1">Avg Score</p>
-            <p className="text-3xl font-bold text-fg tabular-nums">{stats.averageScore}%</p>
-          </div>
-        </div>
-      </div>
-    </div>
+/** Totals of the tournament record, read like the header of a scoresheet. */
+const TournamentHeroSection = ({ stats, tournamentStats = [] }: TournamentHeroSectionProps) => {
+  const points = stats.totalWins + stats.totalDraws / 2;
+  const eloGained = tournamentStats.reduce((sum, t) => sum + (t.eloChange || 0), 0);
+  const best = tournamentStats.reduce<TournamentStat | null>(
+    (b, t) => (t.performanceRating > (b?.performanceRating ?? -Infinity) ? t : b),
+    null
+  );
+
+  return (
+    <ClockBar>
+      <StatCard
+        title="Partidas"
+        value={stats.totalGames}
+        subtitle={`+${stats.totalWins} =${stats.totalDraws} −${stats.totalLosses} · ${stats.totalTournaments} torneos`}
+      />
+      <StatCard
+        title="Puntaje"
+        value={stats.totalGames ? `${Math.round(Number(stats.averageScore))}%` : '—'}
+        subtitle={`${fmtPts(points)} de ${stats.totalGames}`}
+      />
+      <StatCard
+        title="Mejor performance"
+        value={stats.bestPerformance || '—'}
+        subtitle={best?.name || best?.tournament || 'sin torneos'}
+      />
+      <StatCard
+        title="ELO ganado"
+        value={`${eloGained >= 0 ? '+' : '−'}${Math.abs(Math.round(eloGained))}`}
+        trend={stats.totalTournaments ? (eloGained >= 0 ? 'up' : 'down') : undefined}
+        subtitle={`en ${stats.totalTournaments} torneos`}
+      />
+    </ClockBar>
   );
 };
 

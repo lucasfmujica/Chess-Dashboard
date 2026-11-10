@@ -1,16 +1,31 @@
-import { useMemo } from 'react';
-import { GlobeAltIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { useMemo, useState } from 'react';
 import { useGames, useComputedStats } from '../../../context/GamesContext';
 import { useUI } from '../../../context/UIContext';
 import { useGeographyStats, resolveCityKey } from '../../../hooks/useGeographyStats';
 import { CITY_OPTIONS, CITY_DIRECTORY } from '../../../constants/locations';
 import GeoMap from '../../charts/GeoMap';
+import { Card, CardHeader, ClockBar, SegmentedControl, StatCard, Table, TBody, TD, TH, THead, TR, type Segment } from '../../ui';
+
+type GroupBy = 'city' | 'country';
+
+const GROUPS: Segment<GroupBy>[] = [
+  { value: 'city', label: 'Por ciudad' },
+  { value: 'country', label: 'Por país' },
+];
+
+/** '12.5/20' → { pts: '12½', pct: 63 }. */
+const readScore = (score: string, total: number) => {
+  const pts = parseFloat(String(score).split('/')[0]) || 0;
+  const whole = Math.floor(pts);
+  return { pts: pts - whole >= 0.5 ? `${whole || ''}½` : String(whole), pct: total > 0 ? Math.round((pts / total) * 100) : 0 };
+};
 
 const GeographyTab = () => {
   const { tournamentLocations, setTournamentLocations } = useGames();
   const { gameFilter } = useUI();
   const { filteredGames } = useComputedStats(gameFilter);
   const geo = useGeographyStats(filteredGames, tournamentLocations);
+  const [groupBy, setGroupBy] = useState<GroupBy>('city');
 
   // All tournaments present in the current games, with their resolved city.
   const tournaments = useMemo(() => {
@@ -25,145 +40,156 @@ const GeographyTab = () => {
     setTournamentLocations(next);
   };
 
-  const best = geo.byCity[0];
-  const worst = geo.byCity.length > 1 ? [...geo.byCity].sort((a, b) => a.winRate - b.winRate)[0] : undefined;
+  const ranked = [...geo.byCity].map(c => ({ ...c, pct: readScore(c.score, c.total).pct })).sort((a, b) => b.pct - a.pct);
+  const best = ranked[0];
+  const worst = ranked.length > 1 ? ranked[ranked.length - 1] : undefined;
+  const unmapped = geo.unmappedTournaments.length;
 
   return (
-    <div className="space-y-6">
-      {/* Summary tiles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-hairline bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">Located games</p>
-          <p className="mt-2 text-2xl font-semibold text-fg tabular-nums">{geo.totalLocatedGames}</p>
-          <p className="mt-1 text-xs text-fg-muted">{geo.byCity.length} cities · {geo.byCountry.length} countries</p>
-        </div>
-        <div className="rounded-lg border border-hairline bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">Best venue</p>
-          <p className="mt-2 text-2xl font-semibold text-fg">{best ? best.city : '—'}</p>
-          {best && <p className="mt-1 text-xs text-win tabular-nums">{best.winRate}% win rate · {best.total} games</p>}
-        </div>
-        <div className="rounded-lg border border-hairline bg-surface p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-fg-subtle">Toughest venue</p>
-          <p className="mt-2 text-2xl font-semibold text-fg">{worst ? worst.city : '—'}</p>
-          {worst && <p className="mt-1 text-xs text-loss tabular-nums">{worst.winRate}% win rate · {worst.total} games</p>}
-        </div>
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <p className="text-sm text-fg-muted">Dónde jugaste y cómo te fue en cada lugar.</p>
+        <SegmentedControl options={GROUPS} value={groupBy} onChange={setGroupBy} aria-label="Agrupar" size="sm" />
       </div>
 
-      {/* Map */}
-      <div className="rounded-lg border border-hairline bg-surface p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <GlobeAltIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-sm font-semibold text-fg">Results by location</h3>
-        </div>
-        <GeoMap markers={geo.byCity} />
+      <ClockBar>
+        <StatCard
+          title="Ciudades"
+          value={geo.byCity.length}
+          subtitle={`${geo.byCountry.length} ${geo.byCountry.length === 1 ? 'país' : 'países'}`}
+        />
+        <StatCard
+          title="Partidas ubicadas"
+          value={geo.totalLocatedGames}
+          subtitle={unmapped > 0 ? `${unmapped} ${unmapped === 1 ? 'torneo' : 'torneos'} sin lugar cargado` : 'todos los torneos tienen lugar'}
+        />
+        <StatCard
+          title="Mejor sede"
+          value={best ? `${best.pct}%` : '—'}
+          trend={best ? 'up' : undefined}
+          subtitle={best ? `${best.city} · ${best.total} partidas` : 'sin sedes'}
+        />
+        <StatCard
+          title="Sede más dura"
+          value={worst ? `${worst.pct}%` : '—'}
+          trend={worst ? 'down' : undefined}
+          subtitle={worst ? `${worst.city} · ${worst.total} partidas` : 'hace falta más de una sede'}
+        />
+      </ClockBar>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+        <Card className="xl:col-span-3">
+          <CardHeader title="Mapa de sedes" subtitle="tamaño del punto = partidas jugadas ahí" className="mb-4" />
+          <GeoMap markers={geo.byCity} />
+        </Card>
+
+        <Card flush className="xl:col-span-2">
+          <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+            <CardHeader title={groupBy === 'city' ? 'Por ciudad' : 'Por país'} className="mb-4" />
+          </div>
+          <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+            {groupBy === 'city' ? (
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Ciudad</TH>
+                    <TH align="right">P</TH>
+                    <TH align="right">+ = −</TH>
+                    <TH align="right">Pts</TH>
+                    <TH align="right">%</TH>
+                    <TH align="right">Perf.</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {geo.byCity.map(c => {
+                    const { pts, pct } = readScore(c.score, c.total);
+                    return (
+                      <TR key={c.key}>
+                        <TD>
+                          <div className="font-serif text-[15px] text-fg">{c.city}</div>
+                          <div className="text-xs text-fg-subtle">{c.province ? `${c.province}, ` : ''}{c.country}</div>
+                        </TD>
+                        <TD align="right" className="font-mono">{c.total}</TD>
+                        <TD align="right" muted className="whitespace-nowrap font-mono">+{c.wins} ={c.draws} −{c.losses}</TD>
+                        <TD align="right" className="font-mono">{pts}</TD>
+                        <TD align="right" className="font-mono">{pct}</TD>
+                        <TD align="right" muted className="font-mono">{c.performanceRating || '—'}</TD>
+                      </TR>
+                    );
+                  })}
+                  {geo.byCity.length === 0 && (
+                    <tr><td colSpan={6} className="px-3 py-6 text-center text-sm text-fg-muted">Ninguna partida tiene lugar todavía.</td></tr>
+                  )}
+                </TBody>
+              </Table>
+            ) : (
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>País</TH>
+                    <TH align="right">Ciudades</TH>
+                    <TH align="right">P</TH>
+                    <TH align="right">Pts</TH>
+                    <TH align="right">%</TH>
+                    <TH align="right">Perf.</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {geo.byCountry.map(c => {
+                    const { pts, pct } = readScore(c.score, c.total);
+                    return (
+                      <TR key={c.country}>
+                        <TD className="font-serif text-[15px]">{c.country}</TD>
+                        <TD align="right" muted className="font-mono">{c.cities}</TD>
+                        <TD align="right" className="font-mono">{c.total}</TD>
+                        <TD align="right" className="font-mono">{pts}</TD>
+                        <TD align="right" className="font-mono">{pct}</TD>
+                        <TD align="right" muted className="font-mono">{c.performanceRating || '—'}</TD>
+                      </TR>
+                    );
+                  })}
+                  {geo.byCountry.length === 0 && (
+                    <tr><td colSpan={6} className="px-3 py-6 text-center text-sm text-fg-muted">Ninguna partida tiene lugar todavía.</td></tr>
+                  )}
+                </TBody>
+              </Table>
+            )}
+          </div>
+        </Card>
       </div>
 
-      {/* City ranking */}
-      {geo.byCity.length > 0 && (
-        <div className="rounded-lg border border-hairline bg-surface overflow-hidden">
-          <h3 className="px-5 py-3 text-sm font-semibold text-fg border-b border-hairline">By city</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-2">
-                <tr>
-                  <th scope="col" className="px-5 py-2.5 text-left text-xs font-medium uppercase text-fg-subtle">City</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Games</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">W-D-L</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Score</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Win rate</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Perf</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                {geo.byCity.map(c => (
-                  <tr key={c.key} className="hover:bg-surface-2">
-                    <td className="px-5 py-2.5">
-                      <div className="font-medium text-fg">{c.city}</div>
-                      <div className="text-xs text-fg-subtle">{c.province ? `${c.province}, ` : ''}{c.country}</div>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-fg-muted tabular-nums">{c.total}</td>
-                    <td className="px-4 py-2.5 text-center tabular-nums">
-                      <span className="text-win">{c.wins}</span>-<span className="text-draw">{c.draws}</span>-<span className="text-loss">{c.losses}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-fg tabular-nums">{c.score}</td>
-                    <td className="px-4 py-2.5 text-center font-semibold tabular-nums">
-                      <span className={c.winRate >= 50 ? 'text-win' : 'text-loss'}>{c.winRate}%</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-fg-muted tabular-nums">{c.performanceRating || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Country breakdown */}
-      {geo.byCountry.length > 0 && (
-        <div className="rounded-lg border border-hairline bg-surface overflow-hidden">
-          <h3 className="px-5 py-3 text-sm font-semibold text-fg border-b border-hairline">By country</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-2">
-                <tr>
-                  <th scope="col" className="px-5 py-2.5 text-left text-xs font-medium uppercase text-fg-subtle">Country</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Cities</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Games</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Win rate</th>
-                  <th scope="col" className="px-4 py-2.5 text-center text-xs font-medium uppercase text-fg-subtle">Perf</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-hairline">
-                {geo.byCountry.map(c => (
-                  <tr key={c.country} className="hover:bg-surface-2">
-                    <td className="px-5 py-2.5 font-medium text-fg">{c.country}</td>
-                    <td className="px-4 py-2.5 text-center text-fg-muted tabular-nums">{c.cities}</td>
-                    <td className="px-4 py-2.5 text-center text-fg-muted tabular-nums">{c.total}</td>
-                    <td className="px-4 py-2.5 text-center font-semibold tabular-nums">
-                      <span className={c.winRate >= 50 ? 'text-win' : 'text-loss'}>{c.winRate}%</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-center text-fg-muted tabular-nums">{c.performanceRating || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Tournament location editor */}
-      <div className="rounded-lg border border-hairline bg-surface p-5">
-        <div className="mb-1 flex items-center gap-2">
-          <MapPinIcon className="w-5 h-5 text-accent" />
-          <h3 className="text-sm font-semibold text-fg">Tournament locations</h3>
-        </div>
-        <p className="mb-4 text-xs text-fg-muted">
-          Assign a city to each tournament so its games appear on the map.
-          {geo.unmappedTournaments.length > 0 && (
-            <span className="text-loss"> {geo.unmappedTournaments.length} still unassigned.</span>
-          )}
-        </p>
-        <div className="space-y-2">
+      <Card>
+        <CardHeader
+          title="Lugar de cada torneo"
+          subtitle="asigná una ciudad a cada torneo para que sus partidas aparezcan en el mapa"
+          className="mb-1"
+        />
+        {unmapped > 0 && (
+          <p className="mb-3 text-sm text-fg-muted">
+            Faltan <span className="font-mono tabular-nums text-fg">{unmapped}</span> {unmapped === 1 ? 'torneo' : 'torneos'}.
+          </p>
+        )}
+        <ul className="mt-3 divide-y divide-hairline border-y border-hairline">
           {tournaments.map(t => (
-            <div key={t.name} className="flex items-center justify-between gap-3 rounded-md border border-hairline bg-surface-2 px-3 py-2">
-              <span className="text-sm text-fg truncate">{t.name}</span>
+            <li key={t.name} className="flex flex-wrap items-center justify-between gap-2 py-2">
+              <span className="min-w-0 truncate font-serif text-[15px] text-fg">{t.name}</span>
               <select
                 value={t.cityKey}
                 onChange={e => assignCity(t.name, e.target.value)}
-                className="flex-shrink-0 rounded-md border border-hairline bg-surface text-fg text-sm px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent"
-                aria-label={`City for ${t.name}`}
+                className="max-w-full shrink-0 rounded border border-hairline bg-surface px-2 py-1.5 text-sm text-fg focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                aria-label={`Ciudad de ${t.name}`}
               >
-                <option value="">— Unassigned —</option>
+                <option value="">Sin asignar</option>
                 {CITY_OPTIONS.map(key => (
                   <option key={key} value={key}>
                     {CITY_DIRECTORY[key].city} ({CITY_DIRECTORY[key].country})
                   </option>
                 ))}
               </select>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </Card>
     </div>
   );
 };

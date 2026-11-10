@@ -66,12 +66,13 @@ const GeoMap = ({ markers }: GeoMapProps) => {
   }, [markers]);
 
   const maxTotal = Math.max(1, ...markers.map(m => m.total));
-  const radius = (total: number) => 7 + (total / maxTotal) * 12;
+  // Area, not radius, tracks the game count.
+  const radius = (total: number) => 4 + Math.sqrt(total / maxTotal) * 12;
+  const label = `Mapa de sedes: ${markers.map(m => `${m.city} ${m.total} partidas`).join(', ') || 'sin sedes'}`;
 
   return (
     <div className="relative w-full">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="w-full h-auto" role="img" aria-label="World map of tournament locations">
-        {/* Country shapes */}
+      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" role="img" aria-label={label}>
         <g>
           {worldFeatures.features.map((f, i) => (
             <path
@@ -79,12 +80,11 @@ const GeoMap = ({ markers }: GeoMapProps) => {
               d={pathFor(f) || undefined}
               fill="rgb(var(--surface-2))"
               stroke="rgb(var(--border))"
-              strokeWidth={0.5}
+              strokeWidth={0.75}
             />
           ))}
         </g>
 
-        {/* City markers */}
         <g>
           {markers.map(m => {
             const xy = projection(m.coordinates);
@@ -97,48 +97,40 @@ const GeoMap = ({ markers }: GeoMapProps) => {
                 transform={`translate(${xy[0]}, ${xy[1]})`}
                 onMouseEnter={() => setHovered(m.key)}
                 onMouseLeave={() => setHovered(null)}
-                className="cursor-pointer"
+                className="cursor-default"
               >
+                <title>{`${m.city}: ${m.total} partidas · ${m.score}`}</title>
                 <circle
                   r={r}
                   fill="rgb(var(--accent))"
-                  fillOpacity={isHovered ? 0.95 : 0.82}
+                  fillOpacity={isHovered ? 1 : 0.85}
                   stroke="rgb(var(--surface))"
-                  strokeWidth={isHovered ? 3 : 2}
+                  strokeWidth={1.5}
                 />
                 <text
-                  textAnchor="middle"
+                  x={r + 6}
                   dy="0.35em"
-                  className="select-none"
-                  fill="rgb(var(--accent-fg))"
-                  fontSize={Math.min(13, r)}
-                  fontWeight={600}
+                  className="select-none font-serif"
+                  fill="rgb(var(--fg))"
+                  fontSize={15}
+                  paintOrder="stroke"
+                  stroke="rgb(var(--surface))"
+                  strokeWidth={4}
+                  strokeLinejoin="round"
                 >
-                  {m.total}
+                  {m.city}
+                  <tspan className="font-mono" fill="rgb(var(--fg-muted))" fontSize={12} dx={6}>
+                    {isHovered ? `${m.total} P · ${m.score}` : m.total}
+                  </tspan>
                 </text>
-                {isHovered && (
-                  <g transform={`translate(0, ${-r - 8})`}>
-                    <text
-                      textAnchor="middle"
-                      fill="rgb(var(--fg))"
-                      fontSize={13}
-                      fontWeight={600}
-                      paintOrder="stroke"
-                      stroke="rgb(var(--surface))"
-                      strokeWidth={4}
-                    >
-                      {m.city} · {m.winRate}%
-                    </text>
-                  </g>
-                )}
               </g>
             );
           })}
         </g>
       </svg>
       {markers.length === 0 && (
-        <p className="absolute inset-0 flex items-center justify-center text-sm text-fg-muted">
-          No located games yet — assign cities to your tournaments below.
+        <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-fg-muted">
+          Todavía no hay partidas ubicadas: asigná ciudades a tus torneos más abajo.
         </p>
       )}
     </div>

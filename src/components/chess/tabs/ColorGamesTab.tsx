@@ -1,12 +1,9 @@
-import ResultsDonut from '../../charts/ResultsDonut';
 import { PlayIcon } from '@heroicons/react/24/solid';
 import type { Game, GameStats, PlayerColor } from '../../../types/chess';
 import { useGameViewer } from '../../../context/GameViewerContext';
 import { useGameFilters } from '../../../hooks/useGameFilters';
 import GameFiltersBar from '../GameFiltersBar';
-import StatCard from '../../ui/StatCard';
-import { Card, CardHeader } from '../../ui/Card';
-import Badge, { resultTone } from '../../ui/Badge';
+import { Badge, Card, CardHeader, ClockBar, ResultMark, StatCard, Table, TBody, TD, TH, THead, TR } from '../../ui';
 
 /** Per-opening aggregate row attached to colored game stats. */
 interface ColorOpeningStat {
@@ -47,7 +44,7 @@ const ColorGamesTab = ({
   ecoNames
 }: ColorGamesTabProps) => {
   const { openGameViewer } = useGameViewer();
-  const colorLabel = color === 'W' ? 'White' : 'Black';
+  const colorLabel = color === 'W' ? 'Blancas' : 'Negras';
   const colorGamesAll = games
     .map((game, idx) => ({ ...game, gameNumber: idx + 1 }))
     .filter(game => game.color === color);
@@ -74,34 +71,138 @@ const ColorGamesTab = ({
     speed: g => g.speed,
     searchText: g => `${g.opp} ${ecoNames[g.eco] || g.eco} ${g.tournament}`,
   });
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <StatCard
-          title={`Games as ${colorLabel}`}
-          value={colorStats.total}
-          subtitle={`Win rate: ${colorStats.winRate}%`}
-        />
-        <StatCard
-          title="Score"
-          value={colorStats.score}
-          subtitle={`${colorStats.wins}W ${colorStats.draws}D ${colorStats.losses}L`}
-        />
-        <StatCard
-          title="Performance Rating"
-          value={colorStats.performanceRating}
-        />
-      </div>
+  const total = colorStats.total;
+  const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
+  const [points] = colorStats.score.split('/');
+  const pointsNum = parseFloat(points) || 0;
+  const scorePct = total > 0 ? Math.round((pointsNum / total) * 100) : 0;
+  const fmtPts = (p: number) => {
+    const whole = Math.floor(p);
+    return p - whole >= 0.5 ? `${whole || ''}½` : String(whole);
+  };
 
-      <Card>
-        <CardHeader title={`Results distribution as ${colorLabel}`} className="mb-4" />
-        <ResultsDonut wins={colorStats.wins} draws={colorStats.draws} losses={colorStats.losses} />
+  const sortedGames = [...colorGames].sort((a, b) => {
+    let compareA: number | string;
+    let compareB: number | string;
+
+    switch (sortBy) {
+      case 'date':
+        compareA = a.gameNumber;
+        compareB = b.gameNumber;
+        break;
+      case 'opponent':
+        compareA = (a.opp || '').toLowerCase();
+        compareB = (b.opp || '').toLowerCase();
+        break;
+      case 'result': {
+        const resultOrder: Record<string, number> = { 'W': 3, 'D': 2, 'L': 1 };
+        compareA = resultOrder[a.result];
+        compareB = resultOrder[b.result];
+        break;
+      }
+      default:
+        compareA = a.gameNumber;
+        compareB = b.gameNumber;
+    }
+
+    if (compareA < compareB) return sortOrder === 'asc' ? -1 : 1;
+    if (compareA > compareB) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const sortButton = (key: SortBy, label: string, firstOrder: SortOrder) => {
+    const active = sortBy === key;
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          if (key === 'result' || active) {
+            if (!active) setSortBy(key);
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortBy(key);
+            setSortOrder(firstOrder);
+          }
+        }}
+        className="inline-flex items-center gap-1 uppercase hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      >
+        {label}
+        {active && <span aria-hidden="true">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+      </button>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+      <ClockBar>
+        <StatCard title={`Partidas con ${colorLabel.toLowerCase()}`} value={total} subtitle={`rival promedio ${colorStats.avgOppElo || '—'}`} />
+        <StatCard
+          title="Puntaje"
+          value={`${scorePct}%`}
+          subtitle={
+            <>
+              <span className="font-mono tabular-nums">
+                {fmtPts(pointsNum)} de {total} · +{colorStats.wins} ={colorStats.draws} −{colorStats.losses}
+              </span>
+              <span className="mt-2 flex h-2 overflow-hidden rounded-sm bg-surface-2" aria-hidden="true">
+                <span className="h-full bg-win" style={{ width: `${pct(colorStats.wins)}%` }} />
+                <span className="h-full bg-draw/60" style={{ width: `${pct(colorStats.draws)}%` }} />
+                <span className="h-full bg-loss" style={{ width: `${pct(colorStats.losses)}%` }} />
+              </span>
+            </>
+          }
+        />
+        <StatCard title="Rendimiento" value={colorStats.performanceRating || '—'} subtitle="ELO de performance" />
+      </ClockBar>
+
+      <Card flush>
+        <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+          <CardHeader title={`Aperturas con ${colorLabel.toLowerCase()}`} subtitle="ordenadas por cantidad de partidas" className="mb-4" />
+        </div>
+        <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+          <Table>
+            <THead>
+              <tr>
+                <TH>Apertura</TH>
+                <TH>ECO</TH>
+                <TH align="right">P</TH>
+                <TH align="right">+ = −</TH>
+                <TH align="right">Pts</TH>
+                <TH align="right">%</TH>
+              </tr>
+            </THead>
+            <TBody>
+              {colorStats.openings.map((opening) => {
+                const pts = opening.wins + opening.draws / 2;
+                return (
+                  <TR key={opening.eco}>
+                    <TD className="font-serif text-[15px]">{opening.name}</TD>
+                    <TD><Badge>{opening.eco}</Badge></TD>
+                    <TD align="right" className="font-mono">{opening.games}</TD>
+                    <TD align="right" muted className="whitespace-nowrap font-mono">
+                      +{opening.wins} ={opening.draws} −{opening.losses}
+                    </TD>
+                    <TD align="right" className="font-mono">{fmtPts(pts)}</TD>
+                    <TD align="right" className="font-mono">
+                      {opening.games > 0 ? Math.round((pts / opening.games) * 100) : 0}
+                    </TD>
+                  </TR>
+                );
+              })}
+              {colorStats.openings.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-3 py-6 text-center text-sm text-fg-muted">Sin aperturas registradas con {colorLabel.toLowerCase()}.</td>
+                </tr>
+              )}
+            </TBody>
+          </Table>
+        </div>
       </Card>
 
       <Card>
         <CardHeader
-          title={`All Games as ${colorLabel}`}
-          subtitle="Filter and replay your games"
+          title={`Partidas con ${colorLabel.toLowerCase()}`}
+          subtitle="filtrá y repasá tus partidas"
           className="mb-4"
         />
         <div className="mb-4">
@@ -122,170 +223,65 @@ const ColorGamesTab = ({
             onClear={clearFilters}
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-surface-2">
+        <Table>
+          <THead>
+            <tr>
+              <TH aria-sort={sortBy === 'date' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}>
+                {sortButton('date', 'N.º', 'desc')}
+              </TH>
+              <TH align="right">Tu ELO</TH>
+              <TH aria-sort={sortBy === 'opponent' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}>
+                {sortButton('opponent', 'Rival', 'asc')}
+              </TH>
+              <TH align="right">ELO</TH>
+              <TH align="center" aria-sort={sortBy === 'result' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined}>
+                {sortButton('result', 'Res.', 'desc')}
+              </TH>
+              <TH>Apertura</TH>
+              <TH>Torneo</TH>
+              <TH><span className="sr-only">Repasar</span></TH>
+            </tr>
+          </THead>
+          <TBody>
+            {sortedGames.map((game) => (
+              <TR key={game.gameNumber}>
+                <TD className="font-mono">{game.gameNumber}</TD>
+                <TD align="right" muted className="font-mono">{game.elo}</TD>
+                <TD className="whitespace-nowrap">{game.opp}</TD>
+                <TD align="right" muted className="font-mono">{game.opp_elo || 'Sin ELO'}</TD>
+                <TD align="center"><ResultMark result={game.result} outline /></TD>
+                <TD>
+                  <div className="font-serif text-[15px] text-fg">{ecoNames[game.eco] || game.eco}</div>
+                  <div className="font-mono text-xs text-fg-subtle">{game.eco}</div>
+                </TD>
+                <TD muted>{game.tournament}</TD>
+                <TD align="center">
+                  {game.pgn && (
+                    <button
+                      onClick={() => openGameViewer({
+                        pgn: game.pgn,
+                        orientation: color === 'W' ? 'white' : 'black',
+                        white: color === 'W' ? 'Vos' : game.opp,
+                        black: color === 'W' ? game.opp : 'Vos',
+                        title: game.tournament,
+                      })}
+                      aria-label={`Repasar la partida contra ${game.opp}`}
+                      title="Repasar partida"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded border border-hairline text-fg-muted transition-colors hover:border-fg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      <PlayIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </TD>
+              </TR>
+            ))}
+            {colorGames.length === 0 && (
               <tr>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
-                  onClick={() => {
-                    if (sortBy === 'date') {
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    } else {
-                      setSortBy('date');
-                      setSortOrder('desc');
-                    }
-                  }}
-                >
-                  Game # {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">My ELO</th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-xs font-medium text-left uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
-                  onClick={() => {
-                    if (sortBy === 'opponent') {
-                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                    } else {
-                      setSortBy('opponent');
-                      setSortOrder('asc');
-                    }
-                  }}
-                >
-                  Opponent {sortBy === 'opponent' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle">Opp ELO</th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-xs font-medium text-center uppercase cursor-pointer text-fg-subtle hover:bg-surface-2"
-                  onClick={() => {
-                    setSortBy('result');
-                    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                  }}
-                >
-                  Result {sortBy === 'result' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Opening</th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-left uppercase text-fg-subtle">Tournament</th>
-                <th scope="col" className="px-4 py-3 text-xs font-medium text-center uppercase text-fg-subtle"><span className="sr-only">Replay</span></th>
+                <td colSpan={8} className="px-3 py-6 text-center text-sm text-fg-muted">Ninguna partida coincide con los filtros.</td>
               </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-hairline">
-              {(() => {
-                const sortedGames = [...colorGames].sort((a, b) => {
-                  let compareA: number | string;
-                  let compareB: number | string;
-
-                  switch (sortBy) {
-                    case 'date':
-                      compareA = a.gameNumber;
-                      compareB = b.gameNumber;
-                      break;
-                    case 'opponent':
-                      compareA = (a.opp || '').toLowerCase();
-                      compareB = (b.opp || '').toLowerCase();
-                      break;
-                    case 'result': {
-                      const resultOrder: Record<string, number> = { 'W': 3, 'D': 2, 'L': 1 };
-                      compareA = resultOrder[a.result];
-                      compareB = resultOrder[b.result];
-                      break;
-                    }
-                    default:
-                      compareA = a.gameNumber;
-                      compareB = b.gameNumber;
-                  }
-
-                  if (compareA < compareB) return sortOrder === 'asc' ? -1 : 1;
-                  if (compareA > compareB) return sortOrder === 'asc' ? 1 : -1;
-                  return 0;
-                });
-
-                return sortedGames.map((game) => (
-                  <tr key={game.gameNumber} className="hover:bg-surface-2">
-                    <td className="px-4 py-3 text-sm font-medium text-fg tabular-nums">#{game.gameNumber}</td>
-                    <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.elo}</td>
-                    <td className="px-4 py-3 text-sm text-fg">{game.opp}</td>
-                    <td className="px-4 py-3 text-sm text-center text-fg-muted tabular-nums">{game.opp_elo || 'Unrated'}</td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      <Badge tone={resultTone(game.result)}>
-                        {game.result === 'W' ? 'Win' : game.result === 'D' ? 'Draw' : 'Loss'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-fg-muted">
-                      <div>{ecoNames[game.eco] || game.eco}</div>
-                      <div className="text-xs text-fg-subtle">{game.eco}</div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-fg-muted">{game.tournament}</td>
-                    <td className="px-4 py-3 text-center">
-                      {game.pgn && (
-                        <button
-                          onClick={() => openGameViewer({
-                            pgn: game.pgn,
-                            orientation: color === 'W' ? 'white' : 'black',
-                            white: color === 'W' ? 'You' : game.opp,
-                            black: color === 'W' ? game.opp : 'You',
-                            title: game.tournament,
-                          })}
-                          aria-label={`Replay game vs ${game.opp}`}
-                          title="Replay game"
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-hairline text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors"
-                        >
-                          <PlayIcon className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ));
-              })()}
-              {colorGames.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center text-sm text-fg-muted">No games match your filters.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <Card>
-        <CardHeader title={`Openings as ${colorLabel}`} className="mb-4" />
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-surface-2">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-left text-fg-subtle uppercase">Opening</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Games</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">W-D-L</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Score</th>
-                <th scope="col" className="px-6 py-3 text-xs font-medium text-center text-fg-subtle uppercase">Win Rate</th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-hairline">
-              {colorStats.openings.map((opening) => (
-                <tr key={opening.eco} className="hover:bg-surface-2">
-                  <td className="px-6 py-4 text-sm">
-                    <div className="font-medium text-fg">{opening.name}</div>
-                    <div className="text-xs text-fg-muted">{opening.eco}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">{opening.games}</td>
-                  <td className="px-6 py-4 text-sm text-center text-fg-muted tabular-nums">
-                    <span className="text-win">{opening.wins}</span>-
-                    <span className="text-draw">{opening.draws}</span>-
-                    <span className="text-loss">{opening.losses}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-semibold text-center text-fg tabular-nums">{opening.score}</td>
-                  <td className="px-6 py-4 text-sm text-center">
-                    <span className={`font-semibold ${parseFloat(opening.winRate) >= 50 ? 'text-win' : 'text-loss'}`}>
-                      {opening.winRate}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            )}
+          </TBody>
+        </Table>
       </Card>
     </div>
   );

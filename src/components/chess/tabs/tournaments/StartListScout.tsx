@@ -33,7 +33,7 @@ const StartListScout = ({ tournament }: StartListScoutProps) => {
 
   if (!tournament.chessResultsUrl) {
     return (
-      <div className="mt-6 rounded-lg border border-hairline bg-surface-2 p-4">
+      <div className="mt-6 rounded border border-hairline bg-surface-2 p-4">
         <p className="text-label">Rivales</p>
         <p className="mt-1 text-sm text-fg-muted">
           Cargá el link de chess-results del torneo y se cruza la lista de inscriptos contra tus
@@ -76,12 +76,12 @@ const StartListScout = ({ tournament }: StartListScoutProps) => {
   };
 
   return (
-    <div className="mt-6 rounded-lg border border-hairline bg-surface-2 p-4">
+    <div className="mt-6 rounded border border-hairline bg-surface-2 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-label">Rivales</p>
           <p className="mt-1 text-sm text-fg-muted">
-            Cruza la lista de inscriptos contra tus partidas.
+            Cruzá la lista de inscriptos contra tus partidas y armá la prep de cada rival posible.
           </p>
         </div>
         <Button onClick={() => void scan()} disabled={loading}>
@@ -90,11 +90,11 @@ const StartListScout = ({ tournament }: StartListScoutProps) => {
       </div>
 
       {error && <p className="mt-3 text-sm text-loss">{error}</p>}
-      {warning && <p className="mt-3 text-sm text-draw">{warning}</p>}
+      {warning && <p className="mt-3 text-sm text-fg-muted">{warning}</p>}
 
       {matches !== null && !warning && (
         <>
-          <p className="mt-3 text-sm text-fg-muted tabular-nums">
+          <p className="mt-3 font-mono text-sm text-fg-muted tabular-nums">
             {entryCount} inscriptos · {matches.length} que ya enfrentaste.
           </p>
           {matches.length === 0 ? (
@@ -110,21 +110,21 @@ const StartListScout = ({ tournament }: StartListScoutProps) => {
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
                 >
                   {match.entry.title && <Badge tone="neutral">{match.entry.title}</Badge>}
-                  <span className="font-medium text-fg">{match.entry.name}</span>
+                  <span className="font-serif text-base text-fg">{match.entry.name}</span>
                   {match.entry.rating && (
-                    <span className="tabular-nums text-fg-subtle">{match.entry.rating}</span>
+                    <span className="font-mono tabular-nums text-fg-subtle">{match.entry.rating}</span>
                   )}
-                  <span className="tabular-nums text-fg-muted">
+                  <span className="font-mono tabular-nums text-fg-muted">
                     {match.score}/{match.games} a favor tuyo
                   </span>
                   {added.has(match.entry.name) ? (
-                    <span className="text-xs text-fg-subtle">ya está en scouting</span>
+                    <span className="text-xs text-fg-subtle">ya está en Prep del rival</span>
                   ) : (
                     <button
                       onClick={() => void add(match)}
-                      className="text-xs font-medium text-accent hover:opacity-80"
+                      className="text-xs font-medium text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     >
-                      Agregar a scouting
+                      Agregar a Prep del rival
                     </button>
                   )}
                 </li>
