@@ -2,6 +2,7 @@ import { Chess, type Move } from 'chess.js';
 import rulesJson from '../constants/chapterRules.json';
 import { sanitizePgn } from '../hooks/useGameReplay';
 import { ecoMatches } from './eco';
+import { tokenizeMovesSan } from './repertoireMatch';
 import type { Game } from '../types/chess';
 
 /**
@@ -70,8 +71,13 @@ export const FIANCHETTO_A25_TARGET: string | null = '02';
 const FIANCHETTO_ENTRY_ID = 'lucas-a25-bg7';
 const FIANCHETTO_MAX_PLY = 24;
 
-const INDEX_PLIES = 40;
 const DEFAULT_MAX_PLY = 30;
+/**
+ * Plies que se indexan por partida. Nada del motor lee más allá del ply 30: en
+ * el JSON el maxPly explícito máximo es 24, el default es DEFAULT_MAX_PLY (30),
+ * el prefijo máximo es 5 jugadas y la regla ...Bg7 mira hasta el ply 24.
+ */
+export const INDEX_PLIES = 30;
 
 export interface IndexedMove {
   ply: number;
@@ -84,9 +90,9 @@ export interface IndexedMove {
 export interface ChapterIndex {
   /** Todas las jugadas SAN de la línea principal, normalizadas. */
   sans: string[];
-  /** posKey tras cada uno de los primeros 40 plies. */
+  /** posKey tras cada uno de los primeros INDEX_PLIES plies. */
   keys: string[];
-  /** Los primeros 40 plies. */
+  /** Los primeros INDEX_PLIES plies. */
   moves: IndexedMove[];
 }
 
@@ -118,9 +124,31 @@ export const indexFromSans = (sans: string[]): ChapterIndex => {
 const MAX_CACHE = 4000;
 const indexCache = new Map<string, ChapterIndex | null>();
 
+const HAS_SETUP = /\[(?:FEN|SetUp) /;
+
+/** Camino completo (PGN con posición inicial propia): loadPgn de toda la partida. */
+const indexFromFullPgn = (pgn: string): ChapterIndex | null => {
+  const chess = new Chess();
+  chess.loadPgn(sanitizePgn(pgn));
+  const history = chess.history({ verbose: true });
+  return history.length ? buildIndex(history.map(m => m.san), history) : null;
+};
+
+/** Camino rápido: el motor solo usa INDEX_PLIES plies, así que juega solo esos tokens. */
+const indexFromPrefix = (pgn: string): ChapterIndex | null => {
+  const movetext = sanitizePgn(pgn.replace(/^\s*\[.*$/gm, ' '));
+  const chess = new Chess();
+  const played: Move[] = [];
+  for (const token of tokenizeMovesSan(movetext).slice(0, INDEX_PLIES)) {
+    played.push(chess.move(token));
+  }
+  return played.length ? buildIndex(played.map(m => m.san), played) : null;
+};
+
 /**
- * Índice de la línea principal de un PGN, con el mismo parseo que `parsePgn`.
- * null = sin jugadas (vacío, no parsea o 0 jugadas).
+ * Índice de la línea principal de un PGN, con el mismo resultado que `parsePgn`
+ * en los primeros INDEX_PLIES plies.
+ * null = sin jugadas (vacío, no parsea, jugada ilegal o 0 jugadas).
  */
 export const indexFromPgn = (pgn: string | undefined): ChapterIndex | null => {
   if (!pgn || !pgn.trim()) return null;
@@ -128,10 +156,7 @@ export const indexFromPgn = (pgn: string | undefined): ChapterIndex | null => {
   if (cached !== undefined) return cached;
   let idx: ChapterIndex | null;
   try {
-    const chess = new Chess();
-    chess.loadPgn(sanitizePgn(pgn));
-    const history = chess.history({ verbose: true });
-    idx = history.length ? buildIndex(history.map(m => m.san), history) : null;
+    idx = HAS_SETUP.test(pgn) ? indexFromFullPgn(pgn) : indexFromPrefix(pgn);
   } catch {
     idx = null;
   }
@@ -139,6 +164,9 @@ export const indexFromPgn = (pgn: string | undefined): ChapterIndex | null => {
   indexCache.set(pgn, idx);
   return idx;
 };
+
+/** true si el PGN ya está en la cache de índices (indexarlo no cuesta nada). */
+export const isPgnIndexed = (pgn: string | undefined): boolean => !pgn || !pgn.trim() || indexCache.has(pgn);
 
 /** Ply en que la entry quedó cumplida, o null si no matchea. */
 export const evalEntry = (e: Entry, idx: ChapterIndex): number | null => {

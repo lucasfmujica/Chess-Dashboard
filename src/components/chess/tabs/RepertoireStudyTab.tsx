@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useStudyChapters } from '../../../utils/studyPgn';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
@@ -8,15 +8,15 @@ import StudyChapterReader from '../study/StudyChapterReader';
 import StudyChapterMetrics from '../study/StudyChapterMetrics';
 import { useSourceFilteredGames } from '../../../context/GamesContext';
 import { useRepertoireMoves } from '../../../hooks/useRepertoireMoves';
-import { buildChapterAssignment } from '../../../utils/chapterRules';
+import { useChapterAssignment } from '../../../hooks/useChapterAssignment';
 
 const RepertoireStudyTab = () => {
   const { chapters, loading, error } = useStudyChapters();
   const [selectedIndex, setSelectedIndex] = useLocalStorage('chess-dashboard-repertoire-study-chapter', 0);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const games = useSourceFilteredGames();
-  // Capítulo por reglas de jugadas, una vez para todas las partidas.
-  const assignment = useMemo(() => buildChapterAssignment(games), [games]);
+  // Capítulo por reglas de jugadas; null mientras se indexan las partidas en tandas.
+  const assignment = useChapterAssignment(games);
   // Para el panel "Repaso": las jugadas del entrenador, con su vencimiento.
   const { moves, loading: movesLoading, error: movesError } = useRepertoireMoves();
   const [now] = useState(() => Date.now());
@@ -40,7 +40,7 @@ const RepertoireStudyTab = () => {
 
   const index = Math.min(Math.max(selectedIndex, 0), chapters.length - 1);
   const chapter = chapters[index];
-  const noMoves = assignment.noMoves.length;
+  const noMoves = assignment?.noMoves.length ?? 0;
 
   return (
     /* Declared tracks rather than nested flex: the chapter list is a fixed

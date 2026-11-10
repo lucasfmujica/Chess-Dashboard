@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
@@ -7,8 +8,10 @@ import {
   FIANCHETTO_A25_TARGET,
   assignByRules,
   buildChapterAssignment,
+  INDEX_PLIES,
   evalEntry,
   indexFromPgn,
+  isPgnIndexed,
   indexFromSans,
   type ChapterRule,
   type Side,
@@ -303,5 +306,72 @@ describe('formatos de PGN', () => {
     expect(b).toEqual(a);
     expect(a).toEqual(indexFromSans(bare.split(' ')));
     expect(assignByRules('W', b!)?.chapter).toBe('29');
+  });
+});
+
+describe('INDEX_PLIES', () => {
+  const plies = (e: { prefix?: string[]; maxPly?: number; whitePlays?: unknown[]; blackPlays?: unknown[]; reaches?: { maxPly: number }[]; exclude?: unknown[] }): number[] => [
+    e.maxPly ?? 0,
+    (e.prefix?.length ?? 0),
+    ...[...(e.whitePlays ?? []), ...(e.blackPlays ?? [])].map(p => (typeof p === 'object' && p ? ((p as { maxPly?: number }).maxPly ?? 0) : 0)),
+    ...(e.reaches ?? []).map(r => r.maxPly),
+    ...((e.exclude ?? []) as Parameters<typeof plies>[0][]).flatMap(plies),
+  ];
+
+  it('ningún maxPly ni prefix del JSON supera INDEX_PLIES', () => {
+    const all = CHAPTER_RULES.flatMap(r => [...r.entries, ...r.exclude].flatMap(plies));
+    expect(Math.max(...all)).toBeLessThanOrEqual(INDEX_PLIES);
+  });
+
+  it('isPgnIndexed: sin jugadas cuenta como listo, indexar lo marca', () => {
+    expect(isPgnIndexed(undefined)).toBe(true);
+    const pgn = '1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5';
+    expect(isPgnIndexed(pgn)).toBe(false);
+    indexFromPgn(pgn);
+    expect(isPgnIndexed(pgn)).toBe(true);
+  });
+});
+
+describe('indexFromPgn: camino rápido por prefijo', () => {
+  const long =
+    'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7 Re1 b5 Bb3 d6 c3 O-O h3 Nb8 d4 Nbd7 Nbd2 Bb7 Bc2 Re8 Nf1 Bf8 Ng3 g6 a4 c5 d5 c4 Bg5 h6 Be3 Nc5 Qd2 h5 Bg5 Be7 Bxf6 Bxf6 Nxh5';
+  const sansOf = (t: string) => t.split(' ');
+
+  it('una partida de más de 30 plies da el mismo índice que el camino completo', () => {
+    expect(sansOf(long).length).toBeGreaterThan(30);
+    const fast = indexFromPgn(long)!;
+    const chess = new Chess();
+    chess.loadPgn(long);
+    const h = chess.history({ verbose: true });
+    const full = indexFromSans(h.map(m => m.san)); // índice de referencia con toda la partida
+    expect(fast.sans).toHaveLength(30);
+    expect(fast.sans).toEqual(full.sans.slice(0, 30));
+    expect(fast.keys).toEqual(full.keys);
+    expect(fast.moves).toEqual(full.moves);
+  });
+
+  it('headers, comentarios con clk, variantes y 1.e4 sin espacio dan lo mismo que el movetext limpio', () => {
+    const clean = '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6';
+    const messy = [
+      '[Event "Torneo (rápido); test"]',
+      '[Site "?"]',
+      '',
+      '1.e4 {[%clk 0:10:00]} e5 2.Nf3 (2.f4 exf4) Nc6 3.Bb5 $1 a6 4.Ba4 Nf6 1/2-1/2',
+    ].join('\n');
+    expect(indexFromPgn(messy)).toEqual(indexFromPgn(clean));
+    expect(indexFromPgn(clean)).not.toBeNull();
+  });
+
+  it('un token ilegal da null', () => {
+    expect(indexFromPgn('1. e4 e5 2. Ke4')).toBeNull();
+  });
+
+  it('un PGN con [FEN usa el camino completo (posición inicial propia)', () => {
+    const fen = '4k3/8/8/8/8/8/4P3/4K3 w - - 0 1';
+    const pgn = `[SetUp "1"]\n[FEN "${fen}"]\n\n1. e4 Kd7 2. Kd2 Kd6`;
+    const idx = indexFromPgn(pgn)!;
+    expect(idx).not.toBeNull();
+    expect(idx.sans).toEqual(['e4', 'Kd7', 'Kd2', 'Kd6']);
+    expect(idx.moves[0]).toMatchObject({ side: 'W', from: 'e2', to: 'e4' });
   });
 });

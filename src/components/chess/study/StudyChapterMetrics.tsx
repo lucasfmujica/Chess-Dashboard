@@ -14,8 +14,8 @@ interface StudyChapterMetricsProps {
   chapter: StudyChapter;
   /** Partidas propias, ya filtradas por la fuente del encabezado. */
   games: Game[];
-  /** Asignación por reglas de jugadas de esas mismas partidas. */
-  assignment: ChapterAssignmentResult;
+  /** Asignación por reglas de jugadas de esas mismas partidas; null mientras se calcula. */
+  assignment: ChapterAssignmentResult | null;
   /** Jugadas de repertorio; null mientras cargan o si la API falló. */
   moves: RepertoireMove[] | null;
   movesError?: string | null;
@@ -31,24 +31,27 @@ const COLOR_LABEL = { W: 'con blancas', B: 'con negras' } as const;
  */
 const StudyChapterMetrics = ({ chapter, games, assignment, moves, movesError, now }: StudyChapterMetricsProps) => {
   const link = useMemo(
-    () => linkGamesToChapter(chapter.header, games, assignment),
+    () => (assignment ? linkGamesToChapter(chapter.header, games, assignment) : null),
     [chapter, games, assignment],
   );
-  const score = useMemo(() => scoreGames(link.games), [link]);
+  const score = useMemo(() => (link ? scoreGames(link.games) : null), [link]);
   const review = useMemo(() => (moves ? chapterReview(chapter, moves, now) : null), [chapter, moves, now]);
 
-  const lineValue = score.total ? (
-    <>
-      {formatPoints(score.points)}
-      <span className="text-fg-subtle">/{score.total}</span>
-    </>
-  ) : (
-    '—'
-  );
+  const lineValue =
+    score?.total ? (
+      <>
+        {formatPoints(score.points)}
+        <span className="text-fg-subtle">/{score.total}</span>
+      </>
+    ) : (
+      '—'
+    );
 
-  const extras = link.unassigned.length ? ` · ${link.unassigned.length} sin capítulo` : '';
+  const extras = link?.unassigned.length ? ` · ${link.unassigned.length} sin capítulo` : '';
 
-  const lineSubtitle = score.total ? (
+  const lineSubtitle = !link || !score ? (
+    'Calculando capítulos…'
+  ) : score.total ? (
     <>
       <span className="font-mono tabular-nums">{score.pct}%</span>
       {' · '}
