@@ -87,7 +87,7 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
             continue;
           }
           if (!cancelled) {
-            setError('Masters explorer is unavailable right now (Lichess). It’ll load when the service responds.');
+            setError('El explorador de maestros de Lichess no responde ahora. Se carga cuando vuelva el servicio.');
             setLoading(false);
           }
           return;
@@ -95,7 +95,7 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
       }
       // Exhausted retries while being rate-limited.
       if (!cancelled) {
-        setError('Masters explorer is busy (rate-limited) — try again in a moment.');
+        setError('El explorador de maestros está saturado. Probá de nuevo en un momento.');
         setLoading(false);
       }
     };
@@ -117,7 +117,7 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
         {data?.opening && <span className="text-xs text-fg-muted truncate ml-2">{data.opening.name}</span>}
       </div>
 
-      {loading && <p className="px-4 py-3 text-xs text-fg-muted">Loading master games…</p>}
+      {loading && <p className="px-4 py-3 text-xs text-fg-muted">Cargando partidas de maestros…</p>}
       {error && <p className="px-4 py-3 text-xs text-loss">{error}</p>}
       {!loading && !error && data && data.moves.length === 0 && (
         <p className="px-4 py-3 text-xs text-fg-muted">No master games from this position.</p>
@@ -128,8 +128,8 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
           <table className="w-full text-sm min-w-[420px]">
             <thead className="bg-surface-2 sticky top-0">
               <tr>
-                <th scope="col" className="px-3 py-1.5 text-left text-[11px] font-medium uppercase text-fg-subtle">Move</th>
-                <th scope="col" className="px-3 py-1.5 text-right text-[11px] font-medium uppercase text-fg-subtle">Games</th>
+                <th scope="col" className="px-3 py-1.5 text-left text-[11px] font-medium uppercase text-fg-subtle">Jugada</th>
+                <th scope="col" className="px-3 py-1.5 text-right text-[11px] font-medium uppercase text-fg-subtle">Partidas</th>
                 <th scope="col" className="px-3 py-1.5 text-left text-[11px] font-medium uppercase text-fg-subtle">White / Draw / Black</th>
               </tr>
             </thead>
@@ -152,9 +152,9 @@ const MovesExplorer = ({ fen, playedMove, onPlayMove }: MovesExplorerProps) => {
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex h-3.5 w-full max-w-[180px] overflow-hidden rounded-sm border border-hairline tabular-nums text-[9px] leading-[14px] text-center">
-                        <div className="bg-zinc-100 text-zinc-900" style={{ width: `${pct(m.white, g)}%` }}>{pct(m.white, g) >= 12 ? pct(m.white, g) : ''}</div>
-                        <div className="bg-zinc-400 text-zinc-900" style={{ width: `${pct(m.draws, g)}%` }}>{pct(m.draws, g) >= 12 ? pct(m.draws, g) : ''}</div>
-                        <div className="bg-zinc-800 text-zinc-100" style={{ width: `${pct(m.black, g)}%` }}>{pct(m.black, g) >= 12 ? pct(m.black, g) : ''}</div>
+                        <div className="bg-board-light text-fg" style={{ width: `${pct(m.white, g)}%` }}>{pct(m.white, g) >= 12 ? pct(m.white, g) : ''}</div>
+                        <div className="bg-board-dark text-fg" style={{ width: `${pct(m.draws, g)}%` }}>{pct(m.draws, g) >= 12 ? pct(m.draws, g) : ''}</div>
+                        <div className="bg-fg text-surface" style={{ width: `${pct(m.black, g)}%` }}>{pct(m.black, g) >= 12 ? pct(m.black, g) : ''}</div>
                       </div>
                     </td>
                   </tr>
