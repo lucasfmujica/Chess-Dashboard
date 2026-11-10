@@ -1,0 +1,493 @@
+{
+  "version": "2026-11",
+  "count": 34,
+  "items": [
+    {
+      "id": "drill-001",
+      "fen": "3rr1k1/p4pbp/6p1/1q1bp3/1P6/6P1/PBQR1PBP/3R2K1 b - - 2 20",
+      "color": "black",
+      "acceptedUci": [
+        "d8c8"
+      ],
+      "plan": "En la partida se jugó e4: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -689,
+      "ply": 39,
+      "notes": "Control de amenazas. Patrón: línea que se abre. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-02"
+    },
+    {
+      "id": "drill-002",
+      "fen": "r1b2rk1/1p3p1p/p2pp1p1/1P6/PnqP4/2N5/3B1PPP/2RQ1RK1 b - - 2 23",
+      "color": "black",
+      "acceptedUci": [
+        "b4d3",
+        "c4d3"
+      ],
+      "plan": "En la partida se jugó Qxd4: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -618,
+      "ply": 45,
+      "notes": "Control de amenazas. Patrón: sobrecarga. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-11"
+    },
+    {
+      "id": "drill-003",
+      "fen": "1r1q1rk1/p3ppbp/1npp2p1/2p1P3/2P5/1PP2NBP/P2Q1PP1/R4RK1 b - - 0 16",
+      "color": "black",
+      "acceptedUci": [
+        "d6e5"
+      ],
+      "plan": "En la partida se jugó Qd7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -363,
+      "ply": 31,
+      "notes": "Control de amenazas. Patrón: línea que se abre. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-07"
+    },
+    {
+      "id": "drill-004",
+      "fen": "2b2rk1/rp2ppbp/q4np1/3pN3/P2P4/1QB1PPP1/6BP/R2R2K1 b - - 0 20",
+      "color": "black",
+      "acceptedUci": [
+        "b7b6",
+        "c8d7",
+        "a6e6"
+      ],
+      "plan": "En la partida se jugó e6: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -544,
+      "ply": 39,
+      "notes": "Control de amenazas. Patrón: línea que se abre. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-02"
+    },
+    {
+      "id": "drill-005",
+      "fen": "3rrbk1/p2q1p2/5Ppp/1p1nP3/3pQ3/1B1P2B1/PP5P/R4RK1 b - - 4 23",
+      "color": "black",
+      "acceptedUci": [
+        "d7e6",
+        "d7b7"
+      ],
+      "plan": "En la partida se jugó Nc7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -1279,
+      "ply": 45,
+      "notes": "Control de amenazas. Patrón: clavada que aparece. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-07"
+    },
+    {
+      "id": "drill-006",
+      "fen": "4rr2/p2qn1kp/1p4p1/2pNnp2/2P1P3/3PQ1P1/P1N3KP/1R3R2 w - - 2 21",
+      "color": "white",
+      "acceptedUci": [
+        "d5f4",
+        "e3e2"
+      ],
+      "plan": "En la partida se jugó d4: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -630,
+      "ply": 40,
+      "notes": "Control de amenazas. Patrón: sobrecarga. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-11"
+    },
+    {
+      "id": "drill-007",
+      "fen": "r2qrbk1/1p3pp1/2n2nbp/p7/2Ppp1P1/PP1P1N1P/1BQNRPB1/4R1K1 w - - 0 19",
+      "color": "white",
+      "acceptedUci": [
+        "d2e4",
+        "e2e4"
+      ],
+      "plan": "En la partida se jugó Nh4: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -708,
+      "ply": 36,
+      "notes": "Control de amenazas. Patrón: ataque doble. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia"
+    },
+    {
+      "id": "drill-008",
+      "fen": "5rk1/1Rr3p1/7p/3qpp2/3n4/3P2P1/1Q1NPP1P/5RK1 w - - 1 25",
+      "color": "white",
+      "acceptedUci": [
+        "b2d4"
+      ],
+      "plan": "En la partida se jugó Re1: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -804,
+      "ply": 48,
+      "notes": "Control de amenazas. Patrón: ataque doble. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2024-05"
+    },
+    {
+      "id": "drill-009",
+      "fen": "r1b2rk1/ppq1pp1p/6p1/4P3/2pR3Q/2N5/PPP2PPP/2K1R3 b - - 2 14",
+      "color": "black",
+      "acceptedUci": [
+        "f8d8",
+        "g8g7"
+      ],
+      "plan": "En la partida se jugó f6: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -782,
+      "ply": 27,
+      "notes": "Control de amenazas. Patrón: rey y casillas débiles. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-07"
+    },
+    {
+      "id": "drill-010",
+      "fen": "1r3r2/1q3p1k/3p2n1/2p2RQN/1p6/8/1PP3RP/7K b - - 4 32",
+      "color": "black",
+      "acceptedUci": [
+        "b8e8",
+        "f8e8"
+      ],
+      "plan": "En la partida se jugó Qe7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -100000,
+      "ply": 63,
+      "notes": "Control de amenazas. Patrón: rey y casillas débiles. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-08"
+    },
+    {
+      "id": "drill-011",
+      "fen": "1qb2r2/4n1kp/n5p1/N1p2p2/5N2/P1Q3P1/1r3P1P/2RR1BK1 b - - 1 26",
+      "color": "black",
+      "acceptedUci": [
+        "g7h6"
+      ],
+      "plan": "En la partida se jugó Kf7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -1372,
+      "ply": 51,
+      "notes": "Control de amenazas. Patrón: rey y casillas débiles. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia"
+    },
+    {
+      "id": "drill-012",
+      "fen": "r1b2r1k/pp1np2p/1qnp2p1/6P1/2B1PP2/1NP5/P1P1Q3/R1B1K2R b KQ - 0 16",
+      "color": "black",
+      "acceptedUci": [
+        "e7e6",
+        "d6d5"
+      ],
+      "plan": "En la partida se jugó Kg7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -100000,
+      "ply": 31,
+      "notes": "Control de amenazas. Patrón: rey y casillas débiles. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-06"
+    },
+    {
+      "id": "drill-013",
+      "fen": "1r1r4/1b4kp/p2q2p1/Q2Ppp2/3pP3/6P1/P4PBP/1R1R2K1 b - - 3 23",
+      "color": "black",
+      "acceptedUci": [
+        "f5e4"
+      ],
+      "plan": "En la partida se jugó Rdc8: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -494,
+      "ply": 45,
+      "notes": "Control de amenazas. Patrón: sobrecarga. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2024-02"
+    },
+    {
+      "id": "drill-014",
+      "fen": "2r2k2/2r2p1p/1pnqp1p1/p7/3Pp1P1/1P1NP3/P1RQ1P1P/2R3K1 w - - 0 23",
+      "color": "white",
+      "acceptedUci": [
+        "d3e1"
+      ],
+      "plan": "En la partida se jugó Nf4: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -644,
+      "ply": 44,
+      "notes": "Control de amenazas. Patrón: primera fila. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-12"
+    },
+    {
+      "id": "drill-015",
+      "fen": "3q1rk1/1pr1bpp1/pN1p1n1p/P2P1b2/NP2n3/1Q2B2P/4BPP1/2R2RK1 b - - 4 24",
+      "color": "black",
+      "acceptedUci": [
+        "f6e8",
+        "c7c1"
+      ],
+      "plan": "En la partida se jugó Nd7: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -480,
+      "ply": 47,
+      "notes": "Control de amenazas. Patrón: sobrecarga. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2023-08"
+    },
+    {
+      "id": "drill-016",
+      "fen": "4k3/7R/3KP3/8/8/8/8/r7 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "a1d1",
+        "a1a6"
+      ],
+      "plan": "La torre da jaques desde atrás: con el peón en la sexta, el rey rival ya no se tapa con el peón.",
+      "notes": "Final de torres: defensa con jaques desde atrás. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-017",
+      "fen": "2K5/2P1k3/8/8/8/8/1r6/3R4 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Construí el puente: alejá al rey rival con un jaque y llevá la torre a la cuarta fila para tapar los jaques.",
+      "evalBefore": 684,
+      "notes": "Final de torres: el puente. Tarea: ganar. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-018",
+      "fen": "3K4/1k1P4/8/8/8/8/R7/7r b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "h1h8"
+      ],
+      "plan": "Jaques laterales desde el lado largo: la torre necesita varias columnas de distancia al peón.",
+      "notes": "Final de torres: lado corto y lado largo. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-019",
+      "fen": "R7/6k1/P7/8/4K3/8/8/5r2 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "f1f6"
+      ],
+      "plan": "Peón de torre en sexta: la torre lo ataca de costado y el rey rival no puede acercarse sin recibir jaques.",
+      "notes": "Final de torres: torre de costado contra peón de torre. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-020",
+      "fen": "7R/2k4P/8/8/8/8/1K6/7r b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "h1h2",
+        "c7b7"
+      ],
+      "plan": "El rey va al rincón donde no le llega el rayo X por la fila; los jaques también salvan.",
+      "notes": "Final de torres: peón de torre en séptima. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-021",
+      "fen": "1k4r1/1R6/KP6/8/8/8/8/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "b8a8"
+      ],
+      "plan": "El rey se queda pegado al peón y la torre sigue cuidando la primera fila.",
+      "notes": "Final de torres: defensa de la primera fila. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-022",
+      "fen": "6r1/8/5k2/8/2P5/2K5/8/7R w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "h1e1"
+      ],
+      "plan": "Cortá al rey rival a dos columnas del peón y después avanzá con el tuyo.",
+      "evalBefore": 604,
+      "notes": "Final de torres: cortar al rey. Tarea: ganar. Eval: tablebase.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-023",
+      "fen": "6k1/R4pp1/P6p/8/8/8/r4PPP/6K1 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Ejercicio de evaluación: la torre delante del peón pasado no tiene casillas y la torre rival, detrás del peón, está libre. Con juego normal es tablas; la torre va detrás del peón.",
+      "notes": "Final de torres: torre detrás del peón. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "libro"
+    },
+    {
+      "id": "drill-024",
+      "fen": "8/P6R/8/r3k3/7K/8/8/8 b - - 6 65",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Nunca pongas el rey en la misma fila que tu torre si la torre rival puede dar jaque por esa fila. La torre por la columna del peón o el rey hacia el centro empatan.",
+      "evalAfter": -100000,
+      "ply": 129,
+      "notes": "Final de torres: rayo X. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2024-07"
+    },
+    {
+      "id": "drill-025",
+      "fen": "8/8/p1K5/2R5/7k/2P5/2r5/8 b - - 1 64",
+      "color": "black",
+      "acceptedUci": [
+        "h4g3",
+        "h4g4"
+      ],
+      "plan": "El rey va hacia el peón rival, no a cuidar el propio.",
+      "evalAfter": -100000,
+      "ply": 127,
+      "notes": "Final de torres: rey activo. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-09"
+    },
+    {
+      "id": "drill-026",
+      "fen": "8/8/8/6p1/6kp/r7/5PK1/7R w - - 2 60",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "La torre a la primera fila, libre para dar jaques de costado; no la ates a defender un peón.",
+      "evalAfter": -100000,
+      "ply": 118,
+      "notes": "Final de torres: torre activa. Tarea: hacer tablas. Eval: tablebase.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-07"
+    },
+    {
+      "id": "drill-027",
+      "fen": "8/8/1k1r4/1p5P/6R1/2K5/8/8 w - - 5 62",
+      "color": "white",
+      "acceptedUci": [
+        "g4g6"
+      ],
+      "plan": "Ofrecé el cambio de torres y contá: tu peón pasado corona antes de que llegue el rey rival.",
+      "evalBefore": 838,
+      "evalAfter": 0,
+      "ply": 122,
+      "notes": "Final de torres: final de peones. Tarea: ganar. Eval: tablebase.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-08"
+    },
+    {
+      "id": "drill-028",
+      "fen": "r3k1nr/pb5p/1pnqpppP/1B6/2pP1P2/2N5/PPPQ1PP1/2KR3R w kq - 0 16",
+      "color": "white",
+      "acceptedUci": [
+        "d4d5"
+      ],
+      "plan": "El rey rival sigue en el centro: abrí líneas aunque cueste un peón.",
+      "evalBefore": 530,
+      "ply": 30,
+      "notes": "Checklist: ataque. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-029",
+      "fen": "r1br4/pp2kppp/2nNpn2/2Ppq3/5P2/PN6/1P2P1PP/R1Q1KB1R b KQ - 0 14",
+      "color": "black",
+      "acceptedUci": [
+        "e5h5"
+      ],
+      "plan": "La dama está atacada: revisá cada casilla contra los jaques y capturas del rival.",
+      "ply": 27,
+      "notes": "Checklist: defensa. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-030",
+      "fen": "r6r/pp3pb1/n2k1np1/3Ppb2/8/1P1NB1Pp/1P2PP1P/R4RKB w - - 0 18",
+      "color": "white",
+      "acceptedUci": [
+        "d3e5"
+      ],
+      "plan": "La pieza atacada se salva capturando; si el rey la toma, mirá qué jaque aparece.",
+      "ply": 34,
+      "notes": "Checklist: defensa. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-031",
+      "fen": "2k1r3/2qn3p/4pQ2/p1r2p2/p7/2N3BP/1P3PPK/3R4 w - - 2 29",
+      "color": "white",
+      "acceptedUci": [
+        "f6f7"
+      ],
+      "plan": "No retires la dama: buscá una casilla desde la que ataque dos cosas a la vez.",
+      "evalBefore": 632,
+      "ply": 56,
+      "notes": "Checklist: ataque. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-032",
+      "fen": "2k4r/1pq4p/p3pQ2/3rnp2/N7/6B1/PP3PPP/R5K1 b - - 1 23",
+      "color": "black",
+      "acceptedUci": [
+        "h8e8"
+      ],
+      "plan": "Hay dos amenazas: buscá una jugada que cubra las dos.",
+      "ply": 45,
+      "notes": "Checklist: defensa. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-033",
+      "fen": "5rk1/2p4p/1p4n1/1q1n4/4Q3/5N2/6PP/B2R2K1 b - - 0 33",
+      "color": "black",
+      "acceptedUci": [
+        "d5f4"
+      ],
+      "plan": "Contá atacantes y defensores; si la pieza cae, movela con una amenaza propia.",
+      "ply": 65,
+      "notes": "Checklist: defensa. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    },
+    {
+      "id": "drill-034",
+      "fen": "5bk1/5p1p/5pp1/1P1B4/8/4P3/Pp3PPP/6K1 w - - 0 30",
+      "color": "white",
+      "acceptedUci": [
+        "d5e4"
+      ],
+      "plan": "Controlá la casilla de coronación con la pieza que llega a tiempo.",
+      "ply": 58,
+      "notes": "Checklist: defensa. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2026-01"
+    }
+  ]
+}

@@ -478,7 +478,7 @@ const ChessDashboard = () => {
           {activeTab === 'concepts' && <LazyTab><ConceptsTab /></LazyTab>}
 
           {activeTab === 'training' && (
-            <TrainingTab dailyNotes={dailyNotes} updateDailyNote={updateDailyNote} />
+            <TrainingTab dailyNotes={dailyNotes} updateDailyNote={updateDailyNote} onNavigate={setActiveTab} />
           )}
 
           {activeTab === 'goals' && (

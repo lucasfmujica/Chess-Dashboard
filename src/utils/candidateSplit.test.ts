@@ -72,3 +72,16 @@ describe('isWeakSignal', () => {
     expect(isWeakSignal(15)).toBe(false);
   });
 });
+
+describe('intentos external (conversión y guías)', () => {
+  it('no mueven candidateSplit: no traen candidateMiss', () => {
+    const base = candidateSplit([attempt({ candidateMiss: true }), attempt({ candidateMiss: false })]);
+    const withExternal = candidateSplit([
+      attempt({ candidateMiss: true }),
+      attempt({ candidateMiss: false }),
+      attempt({ itemKind: 'external', correct: false }),
+      attempt({ itemKind: 'external', correct: true }),
+    ]);
+    expect(withExternal).toEqual(base);
+  });
+});

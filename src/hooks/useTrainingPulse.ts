@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchAnnotations, fetchTrainingAttempts, fetchTrainingSessions } from '../api/client';
 import { candidateSplit, momentCandidateSplit, type CandidateSplit } from '../utils/candidateSplit';
+import { dailyQueueAttempts } from '../utils/trainingAttempts';
 import { daysAgoKey, localDateKey, dateFromKey, weekdayIndex } from '../utils/localDate';
 
 /**
@@ -87,8 +88,8 @@ export const useTrainingPulse = (): TrainingPulse => {
               );
 
         setPulse({
-          attemptsThisWeek: weekAttempts.length,
-          split: candidateSplit(windowAttempts),
+          attemptsThisWeek: dailyQueueAttempts(weekAttempts).length,
+          split: candidateSplit(dailyQueueAttempts(windowAttempts)),
           momentSplit: momentCandidateSplit(
             annotations.filter(a => a.date && a.date >= daysAgoKey(SPLIT_WINDOW_DAYS))
           ),

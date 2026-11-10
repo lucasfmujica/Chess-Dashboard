@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { lazy, useState } from 'react';
+import LazyTab from '../../LazyTab';
 import { SegmentedControl, type Segment } from '../../ui';
 import TodayQueue from './training/TodayQueue';
 import WeekProgram from './training/WeekProgram';
 import TrainingLog from './training/TrainingLog';
 import HomeworkPanel from './training/HomeworkPanel';
+
+const ConversionTodayCard = lazy(() => import('./training/ConversionTodayCard'));
 
 /**
  * Sub-views. "Hoy" is the default because the point of the rebuild is that
@@ -27,9 +30,11 @@ const VIEWS: Segment<TrainingView>[] = [
 interface TrainingTabProps {
   dailyNotes: Record<string, string>;
   updateDailyNote: (key: string, note: string) => void;
+  /** Cambia de pestaña de la app; la tarjeta de conversión lo usa para abrir Ejercicios. */
+  onNavigate?: (tab: string) => void;
 }
 
-const TrainingTab = ({ dailyNotes, updateDailyNote }: TrainingTabProps) => {
+const TrainingTab = ({ dailyNotes, updateDailyNote, onNavigate }: TrainingTabProps) => {
   const [view, setView] = useState<TrainingView>('today');
 
   return (
@@ -41,6 +46,11 @@ const TrainingTab = ({ dailyNotes, updateDailyNote }: TrainingTabProps) => {
         aria-label="Vista de entrenamiento"
       />
 
+      {view === 'today' && onNavigate && (
+        <LazyTab fallback={null}>
+          <ConversionTodayCard onOpen={() => onNavigate('drills-conversion')} />
+        </LazyTab>
+      )}
       {view === 'today' && <TodayQueue />}
       {view === 'week' && <WeekProgram dailyNotes={dailyNotes} updateDailyNote={updateDailyNote} />}
       {view === 'tareas' && <HomeworkPanel />}

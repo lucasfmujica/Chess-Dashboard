@@ -10,6 +10,7 @@ import {
   Legend,
 } from 'recharts';
 import { fetchTrainingSessions, fetchTrainingAttempts, fetchAnnotations } from '../../../../api/client';
+import { dailyQueueAttempts } from '../../../../utils/trainingAttempts';
 import { daysAgoKey, localDateKey, dateFromKey } from '../../../../utils/localDate';
 import {
   candidateSplit as computeCandidateSplit,
@@ -88,7 +89,8 @@ const TrainingLog = () => {
     Promise.all([fetchTrainingSessions(from), fetchTrainingAttempts(from), fetchAnnotations()])
       .then(([s, a, ann]) => {
         setSessions(s);
-        setAttempts(a);
+        // Sin los `external` (conversión y guías): este registro mide la cola diaria.
+        setAttempts(dailyQueueAttempts(a));
         setAnnotations(ann);
       })
       .catch(err => console.error('Failed to load training log', err))
