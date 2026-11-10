@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import { useStudyChapters } from '../../../utils/studyPgn';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
@@ -8,12 +8,15 @@ import StudyChapterReader from '../study/StudyChapterReader';
 import StudyChapterMetrics from '../study/StudyChapterMetrics';
 import { useSourceFilteredGames } from '../../../context/GamesContext';
 import { useRepertoireMoves } from '../../../hooks/useRepertoireMoves';
+import { buildChapterAssignment } from '../../../utils/chapterRules';
 
 const RepertoireStudyTab = () => {
   const { chapters, loading, error } = useStudyChapters();
   const [selectedIndex, setSelectedIndex] = useLocalStorage('chess-dashboard-repertoire-study-chapter', 0);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const games = useSourceFilteredGames();
+  // Capítulo por reglas de jugadas, una vez para todas las partidas.
+  const assignment = useMemo(() => buildChapterAssignment(games), [games]);
   // Para el panel "Repaso": las jugadas del entrenador, con su vencimiento.
   const { moves, loading: movesLoading, error: movesError } = useRepertoireMoves();
   const [now] = useState(() => Date.now());
@@ -37,6 +40,7 @@ const RepertoireStudyTab = () => {
 
   const index = Math.min(Math.max(selectedIndex, 0), chapters.length - 1);
   const chapter = chapters[index];
+  const noMoves = assignment.noMoves.length;
 
   return (
     /* Declared tracks rather than nested flex: the chapter list is a fixed
@@ -76,19 +80,28 @@ const RepertoireStudyTab = () => {
         <StudyChapterList chapters={chapters} selectedIndex={index} onSelect={setSelectedIndex} />
       </div>
 
-      <div className="min-w-0 xl:h-full">
-        <StudyChapterReader
-          chapter={chapter}
-          metrics={
-            <StudyChapterMetrics
-              chapter={chapter}
-              games={games}
-              moves={movesLoading ? null : moves}
-              movesError={movesError}
-              now={now}
-            />
-          }
-        />
+      <div className="min-w-0 xl:h-full xl:flex xl:flex-col">
+        {noMoves > 0 && (
+          <p className="mb-2 flex-shrink-0 text-xs text-fg-muted" title="no entran en capítulos con regla">
+            {noMoves === 1 ? '1 partida sin jugadas' : `${noMoves} partidas sin jugadas`}
+            <span className="text-fg-subtle"> · no entran en capítulos con regla</span>
+          </p>
+        )}
+        <div className="min-w-0 xl:min-h-0 xl:flex-1">
+          <StudyChapterReader
+            chapter={chapter}
+            metrics={
+              <StudyChapterMetrics
+                chapter={chapter}
+                games={games}
+                assignment={assignment}
+                moves={movesLoading ? null : moves}
+                movesError={movesError}
+                now={now}
+              />
+            }
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,967 @@
+{
+  "version": "2026-11-10",
+  "author": "Segundo",
+  "estudio": "Lichess DPH7PV7i \"Repertorio Copa AFA V2\", export local 09/11/2026 13:02 ART",
+  "semantica": {
+    "llave": "numero NN del ChapterName (como chapterNumber)",
+    "alcance": "la regla se evalua sobre TODAS las partidas del color del capitulo, sin filtrar por ECO. Un capitulo sin regla sigue por ECO como hoy.",
+    "san": "SAN normalizado (sin +, #, !, ?), solo linea principal del PGN (sin variantes ni comentarios); parsear con parsePgn/chess.js, no con regex.",
+    "posKey": "los 2 primeros campos del FEN: colocacion de piezas + turno. Sin enroques, al paso ni contadores (para que transposiciones con distinto derecho de enroque teorico igual coincidan).",
+    "ply": "ply 1 = primera jugada de blancas. Una condicion con maxPly N se cumple solo si ocurre en un ply <= N. Indexar los primeros 40 plies alcanza.",
+    "entry": "AND de sus condiciones. El capitulo matchea si alguna entry matchea y ningun exclude de nivel capitulo matchea.",
+    "condiciones": {
+      "prefix": "la partida empieza exactamente con esa lista SAN",
+      "reaches": "alguna de esas posiciones (fen = posKey) aparece tras un ply <= su maxPly. line = jugadas desde las que se calculo el fen.",
+      "whitePlays_blackPlays": "ese lado juega cada SAN. Item string: dentro del maxPly de la entry (default 30). Item {san,maxPly}: con su propio limite.",
+      "firstMoveFrom": "la PRIMERA jugada de la pieza que arranca en square (dentro del maxPly de la entry) termina en to.",
+      "exclude": "condiciones con la misma forma. Dentro de una entry: anulan esa entry. A nivel capitulo: anulan el capitulo. Pueden anidar su propio exclude."
+    },
+    "profundidad": "ply en que la entry quedo cumplida = max(largo del prefix, ply de la primera posicion alcanzada, ply de la ultima jugada requerida, ply de firstMoveFrom). Si varias entries del capitulo matchean, vale la de mayor profundidad.",
+    "desempate": "si una partida matchea varios capitulos con regla: 1) mayor profundidad; 2) menor priority (hoy todas 100); 3) menor numero de capitulo. Cada partida queda en un solo capitulo.",
+    "regla_sobre_eco": "una partida asignada por regla no se muestra en ningun capitulo por ECO. Una partida con el ECO de un capitulo con regla que no matchea ninguna regla queda \"sin capitulo\".",
+    "sin_pgn": "sin jugadas no entra en ningun capitulo con regla; se cuenta aparte (\"N partidas sin jugadas\"). Hoy son 18 y todas tienen ECO Unknown.",
+    "propuesta": "entries con propuesta=true (28c, 28d, 10b) amplian el capitulo mas alla de su linea; necesitan OK de Lucas. Si no se aprueban, se borran del JSON y el resto no cambia."
+  },
+  "pares": [
+    {
+      "eco": "A14",
+      "capitulos": [
+        "01",
+        "05"
+      ]
+    },
+    {
+      "eco": "A25",
+      "capitulos": [
+        "29",
+        "30"
+      ]
+    },
+    {
+      "eco": "A10",
+      "capitulos": [
+        "07",
+        "08"
+      ]
+    },
+    {
+      "eco": "B34",
+      "capitulos": [
+        "10",
+        "32"
+      ]
+    },
+    {
+      "eco": "B36",
+      "capitulos": [
+        "11",
+        "28"
+      ]
+    },
+    {
+      "eco": "B22",
+      "capitulos": [
+        "13",
+        "14"
+      ]
+    },
+    {
+      "eco": "B20",
+      "capitulos": [
+        "17",
+        "18"
+      ]
+    },
+    {
+      "eco": "A70",
+      "capitulos": [
+        "19",
+        "23"
+      ]
+    },
+    {
+      "eco": "A61",
+      "capitulos": [
+        "21",
+        "24"
+      ]
+    },
+    {
+      "eco": "A48",
+      "capitulos": [
+        "25",
+        "27"
+      ]
+    }
+  ],
+  "capitulos": {
+    "01": {
+      "chapter": "01",
+      "name": "01 BLANCAS - vs 1...Nf6 (doble fianchetto)",
+      "color": "W",
+      "studyEco": "A14",
+      "entries": [
+        {
+          "id": "01a",
+          "prefix": [
+            "c4",
+            "Nf6"
+          ],
+          "blackPlays": [
+            "e6"
+          ],
+          "maxPly": 6
+        },
+        {
+          "id": "01b",
+          "prefix": [
+            "Nf3",
+            "Nf6",
+            "c4"
+          ],
+          "blackPlays": [
+            "e6"
+          ],
+          "maxPly": 6
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden): comparte posicion con 05 desde el ply 6",
+      "notes": ""
+    },
+    "05": {
+      "chapter": "05",
+      "name": "05 BLANCAS - vs 1...e6 (Agincourt / Neo-Catalan)",
+      "color": "W",
+      "studyEco": "A14",
+      "entries": [
+        {
+          "id": "05a",
+          "prefix": [
+            "c4",
+            "e6"
+          ]
+        },
+        {
+          "id": "05b",
+          "prefix": [
+            "Nf3",
+            "e6",
+            "c4"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "id": "05x-holandesa",
+          "blackPlays": [
+            "f5"
+          ],
+          "maxPly": 8
+        }
+      ],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "07": {
+      "chapter": "07",
+      "name": "07 BLANCAS - vs 1...f5 (Holandesa)",
+      "color": "W",
+      "studyEco": "A10",
+      "entries": [
+        {
+          "id": "07a",
+          "prefix": [
+            "c4",
+            "f5"
+          ]
+        },
+        {
+          "id": "07b",
+          "prefix": [
+            "Nf3",
+            "f5"
+          ]
+        },
+        {
+          "id": "07d",
+          "prefix": [
+            "c4"
+          ],
+          "blackPlays": [
+            "f5",
+            "g6"
+          ],
+          "maxPly": 8,
+          "exclude": [
+            {
+              "blackPlays": [
+                "e5"
+              ],
+              "maxPly": 8
+            }
+          ]
+        },
+        {
+          "id": "07c",
+          "prefix": [
+            "c4"
+          ],
+          "blackPlays": [
+            "f5"
+          ],
+          "maxPly": 4,
+          "exclude": [
+            {
+              "blackPlays": [
+                "e5"
+              ],
+              "maxPly": 8
+            }
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "parcial: entra cualquier ...f5 en las primeras 4 jugadas negras despues de 1.c4",
+      "notes": ""
+    },
+    "08": {
+      "chapter": "08",
+      "name": "08 BLANCAS - vs 1...g6 y 1...d6 (esquemas KID)",
+      "color": "W",
+      "studyEco": "A10",
+      "entries": [
+        {
+          "id": "08a",
+          "prefix": [
+            "c4",
+            "g6"
+          ]
+        },
+        {
+          "id": "08b",
+          "prefix": [
+            "c4",
+            "d6"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "id": "08x-holandesa",
+          "blackPlays": [
+            "f5"
+          ],
+          "maxPly": 8
+        },
+        {
+          "id": "08x-inglesa-cerrada",
+          "blackPlays": [
+            "e5",
+            "Nc6"
+          ],
+          "maxPly": 8,
+          "exclude": [
+            {
+              "blackPlays": [
+                "Nf6"
+              ],
+              "maxPly": 8
+            }
+          ]
+        }
+      ],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "06": {
+      "chapter": "06",
+      "name": "06 BLANCAS - vs 1...c6 (anti-Slav de Marin)",
+      "color": "W",
+      "studyEco": "A12",
+      "entries": [
+        {
+          "id": "06a",
+          "prefix": [
+            "c4",
+            "c6"
+          ]
+        },
+        {
+          "id": "06b",
+          "prefix": [
+            "Nf3",
+            "c6",
+            "c4"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": "extra: no es par, pero resuelve el desfase A12/A11 (Lucas juega 2.g3 y 2.Nf3 casi igual)"
+    },
+    "29": {
+      "chapter": "29",
+      "name": "29 BLANCAS - vs 1...e5 Karpov (...Nf6 + ...Bc5) [Marin]",
+      "color": "W",
+      "studyEco": "A25",
+      "entries": [
+        {
+          "id": "29a",
+          "reaches": [
+            {
+              "line": "c4 e5 Nc3 Nc6 g3 Nf6 Bg2 Bc5",
+              "fen": "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2P5/2N3P1/PP1PPPBP/R1BQK1NR w",
+              "maxPly": 16
+            }
+          ]
+        },
+        {
+          "id": "29b",
+          "prefix": [
+            "c4"
+          ],
+          "blackPlays": [
+            {
+              "san": "e5",
+              "maxPly": 4
+            },
+            "Nc6",
+            "Nf6"
+          ],
+          "firstMoveFrom": {
+            "square": "f8",
+            "to": "c5"
+          },
+          "maxPly": 16
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "30": {
+      "chapter": "30",
+      "name": "30 BLANCAS - vs 1...e5 Rossolimo invertida (...Bb4) [Marin]",
+      "color": "W",
+      "studyEco": "A25",
+      "entries": [
+        {
+          "id": "30a",
+          "reaches": [
+            {
+              "line": "c4 e5 Nc3 Nc6 g3 Nf6 Bg2 Bb4",
+              "fen": "r1bqk2r/pppp1ppp/2n2n2/4p3/1bP5/2N3P1/PP1PPPBP/R1BQK1NR w",
+              "maxPly": 16
+            }
+          ]
+        },
+        {
+          "id": "30b",
+          "prefix": [
+            "c4"
+          ],
+          "blackPlays": [
+            {
+              "san": "e5",
+              "maxPly": 4
+            },
+            "Nc6"
+          ],
+          "firstMoveFrom": {
+            "square": "f8",
+            "to": "b4"
+          },
+          "maxPly": 16
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "10": {
+      "chapter": "10",
+      "name": "10 NEGRAS vs e4 - Dragon Acelerado, cambio Nxc6",
+      "color": "B",
+      "studyEco": "B34",
+      "entries": [
+        {
+          "id": "10a",
+          "reaches": [
+            {
+              "line": "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 Nxc6",
+              "fen": "r1bqkbnr/pp1ppp1p/2N3p1/8/4P3/8/PPP2PPP/RNBQKB1R b",
+              "maxPly": 14
+            }
+          ]
+        },
+        {
+          "id": "10b",
+          "prefix": [
+            "e4",
+            "c5"
+          ],
+          "blackPlays": [
+            {
+              "san": "g6",
+              "maxPly": 10
+            },
+            "bxc6"
+          ],
+          "whitePlays": [
+            "Nxc6"
+          ],
+          "maxPly": 14,
+          "exclude": [
+            {
+              "whitePlays": [
+                "Bc4"
+              ],
+              "maxPly": 14
+            }
+          ],
+          "propuesta": true
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "32": {
+      "chapter": "32",
+      "name": "32 NEGRAS vs e4 - Dragon Acelerado Clasica (7.Be2 y 7.Nb3) [Lalic]",
+      "color": "B",
+      "studyEco": "B34",
+      "entries": [
+        {
+          "id": "32a",
+          "reaches": [
+            {
+              "line": "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 Nc3 Bg7 Be3 Nf6 Be2",
+              "fen": "r1bqk2r/pp1pppbp/2n2np1/8/3NP3/2N1B3/PPP1BPPP/R2QK2R b",
+              "maxPly": 20
+            },
+            {
+              "line": "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 Nc3 Bg7 Be3 Nf6 Nb3",
+              "fen": "r1bqk2r/pp1pppbp/2n2np1/8/4P3/1NN1B3/PPP2PPP/R2QKB1R b",
+              "maxPly": 20
+            }
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "11": {
+      "chapter": "11",
+      "name": "11 NEGRAS vs e4 - Maroczy (Gurgenidze)",
+      "color": "B",
+      "studyEco": "B36",
+      "entries": [
+        {
+          "id": "11a",
+          "prefix": [
+            "e4"
+          ],
+          "reaches": [
+            {
+              "line": "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 c4",
+              "fen": "r1bqkbnr/pp1ppp1p/2n3p1/8/2PNP3/8/PP3PPP/RNBQKB1R b",
+              "maxPly": 14
+            }
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si dentro de 1.e4 (posicion); las que empiezan 1.c4/1.Nf3 van al 28",
+      "notes": ""
+    },
+    "28": {
+      "chapter": "28",
+      "name": "28 NEGRAS vs 1.c4 y 1.Nf3 - ...c5 espejo (puente al Maroczy)",
+      "color": "B",
+      "studyEco": "B36",
+      "entries": [
+        {
+          "id": "28a",
+          "prefix": [
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "id": "28b",
+          "prefix": [
+            "Nf3",
+            "c5"
+          ]
+        },
+        {
+          "id": "28c",
+          "prefix": [
+            "c4",
+            "Nf6"
+          ],
+          "blackPlays": [
+            {
+              "san": "c5",
+              "maxPly": 6
+            }
+          ],
+          "exclude": [
+            {
+              "whitePlays": [
+                {
+                  "san": "d4",
+                  "maxPly": 4
+                }
+              ]
+            }
+          ],
+          "propuesta": true
+        },
+        {
+          "id": "28d",
+          "prefix": [
+            "Nf3",
+            "Nf6"
+          ],
+          "blackPlays": [
+            {
+              "san": "c5",
+              "maxPly": 6
+            }
+          ],
+          "exclude": [
+            {
+              "whitePlays": [
+                {
+                  "san": "d4",
+                  "maxPly": 4
+                }
+              ]
+            }
+          ],
+          "propuesta": true
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "13": {
+      "chapter": "13",
+      "name": "13 NEGRAS vs e4 - Alapin 2.c3 (y diferida 3.c3)",
+      "color": "B",
+      "studyEco": "B22",
+      "entries": [
+        {
+          "id": "13a",
+          "prefix": [
+            "e4",
+            "c5",
+            "c3"
+          ]
+        },
+        {
+          "id": "13b",
+          "prefix": [
+            "e4",
+            "c5",
+            "Nf3",
+            "Nc6",
+            "c3"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "14": {
+      "chapter": "14",
+      "name": "14 NEGRAS vs e4 - Smith-Morra rechazado 3...d3",
+      "color": "B",
+      "studyEco": "B22",
+      "entries": [
+        {
+          "id": "14a",
+          "prefix": [
+            "e4",
+            "c5",
+            "d4",
+            "cxd4",
+            "c3"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "17": {
+      "chapter": "17",
+      "name": "17 NEGRAS vs e4 - Gambito de ala 2.b4",
+      "color": "B",
+      "studyEco": "B20",
+      "entries": [
+        {
+          "id": "17a",
+          "prefix": [
+            "e4",
+            "c5",
+            "b4"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "18": {
+      "chapter": "18",
+      "name": "18 NEGRAS vs e4 - anti (2.b3, KIA, 2.Bc4)",
+      "color": "B",
+      "studyEco": "B20",
+      "entries": [
+        {
+          "id": "18a",
+          "prefix": [
+            "e4",
+            "c5",
+            "b3"
+          ]
+        },
+        {
+          "id": "18b",
+          "prefix": [
+            "e4",
+            "c5",
+            "g3"
+          ]
+        },
+        {
+          "id": "18c",
+          "prefix": [
+            "e4",
+            "c5",
+            "Bc4"
+          ]
+        },
+        {
+          "id": "18d",
+          "prefix": [
+            "e4",
+            "c5",
+            "d3"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden)",
+      "notes": ""
+    },
+    "19": {
+      "chapter": "19",
+      "name": "19 NEGRAS vs d4 - BENONI CLASICA h3",
+      "color": "B",
+      "studyEco": "A70",
+      "entries": [
+        {
+          "id": "19a",
+          "reaches": [
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Nf3 Bg7 h3",
+              "fen": "rnbqk2r/pp3pbp/3p1np1/2pP4/4P3/2N2N1P/PP3PP1/R1BQKB1R b",
+              "maxPly": 24
+            }
+          ]
+        },
+        {
+          "id": "19b",
+          "reaches": [
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Nf3 Bg7 Be2",
+              "fen": "rnbqk2r/pp3pbp/3p1np1/2pP4/4P3/2N2N2/PP2BPPP/R1BQK2R b",
+              "maxPly": 24
+            }
+          ]
+        },
+        {
+          "id": "19c",
+          "reaches": [
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Bd3",
+              "fen": "rnbqkb1r/pp3p1p/3p1np1/2pP4/4P3/2NB4/PP3PPP/R1BQK1NR b",
+              "maxPly": 24
+            },
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Bd3 Bg7 Nf3",
+              "fen": "rnbqk2r/pp3pbp/3p1np1/2pP4/4P3/2NB1N2/PP3PPP/R1BQK2R b",
+              "maxPly": 24
+            }
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "23": {
+      "chapter": "23",
+      "name": "23 NEGRAS vs d4 - Benoni (Nf3-d2)",
+      "color": "B",
+      "studyEco": "A70",
+      "entries": [
+        {
+          "id": "23a",
+          "reaches": [
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Nf3 Bg7 Nd2",
+              "fen": "rnbqk2r/pp3pbp/3p1np1/2pP4/4P3/2N5/PP1N1PPP/R1BQKB1R b",
+              "maxPly": 24
+            },
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 e4 g6 Nf3 Bg7 Be2 O-O Nd2",
+              "fen": "rnbq1rk1/pp3pbp/3p1np1/2pP4/4P3/2N5/PP1NBPPP/R1BQK2R b",
+              "maxPly": 24
+            }
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "21": {
+      "chapter": "21",
+      "name": "21 NEGRAS vs d4 - Benoni con Bg5",
+      "color": "B",
+      "studyEco": "A61",
+      "entries": [
+        {
+          "id": "21a",
+          "reaches": [
+            {
+              "line": "d4 Nf6 c4 c5 d5 e6 Nc3 exd5 cxd5 d6 Nf3",
+              "fen": "rnbqkb1r/pp3ppp/3p1n2/2pP4/8/2N2N2/PP2PPPP/R1BQKB1R b",
+              "maxPly": 24
+            }
+          ],
+          "whitePlays": [
+            "Bg5"
+          ],
+          "maxPly": 20
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (posicion)",
+      "notes": ""
+    },
+    "24": {
+      "chapter": "24",
+      "name": "24 NEGRAS vs d4 - ordenes anti-Benoni",
+      "color": "B",
+      "studyEco": "A61",
+      "entries": [
+        {
+          "id": "24a",
+          "prefix": [
+            "d4",
+            "Nf6",
+            "Nf3",
+            "c5"
+          ]
+        },
+        {
+          "id": "24b",
+          "prefix": [
+            "d4",
+            "c5"
+          ]
+        },
+        {
+          "id": "24c",
+          "prefix": [
+            "Nf3",
+            "Nf6",
+            "d4",
+            "c5"
+          ]
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "no (orden); si transpone a 19/21/23 gana el capitulo mas profundo",
+      "notes": ""
+    },
+    "25": {
+      "chapter": "25",
+      "name": "25 NEGRAS vs d4 - Londres (Bf4)",
+      "color": "B",
+      "studyEco": "A48",
+      "entries": [
+        {
+          "id": "25a",
+          "whitePlays": [
+            {
+              "san": "d4",
+              "maxPly": 3
+            },
+            "Bf4"
+          ],
+          "maxPly": 6
+        }
+      ],
+      "exclude": [
+        {
+          "id": "25x-e4",
+          "whitePlays": [
+            {
+              "san": "e4",
+              "maxPly": 6
+            }
+          ]
+        },
+        {
+          "id": "25x-trompowsky",
+          "prefix": [
+            "d4",
+            "Nf6",
+            "Bg5"
+          ]
+        },
+        {
+          "id": "25x-jobava",
+          "whitePlays": [
+            "Nc3"
+          ],
+          "maxPly": 6
+        },
+        {
+          "id": "25x-c4",
+          "whitePlays": [
+            "c4"
+          ],
+          "maxPly": 6
+        }
+      ],
+      "priority": 100,
+      "transpositions": "parcial: Bf4 en las 3 primeras jugadas blancas, cualquier orden",
+      "notes": ""
+    },
+    "27": {
+      "chapter": "27",
+      "name": "27 NEGRAS vs d4 - Colle, Torre y Trompowsky",
+      "color": "B",
+      "studyEco": "A48",
+      "entries": [
+        {
+          "id": "27a",
+          "prefix": [
+            "d4",
+            "Nf6",
+            "Bg5"
+          ]
+        },
+        {
+          "id": "27b",
+          "whitePlays": [
+            {
+              "san": "d4",
+              "maxPly": 3
+            },
+            "Nf3",
+            "Bg5"
+          ],
+          "maxPly": 8,
+          "exclude": [
+            {
+              "whitePlays": [
+                "Bf4"
+              ],
+              "maxPly": 10
+            },
+            {
+              "whitePlays": [
+                "c4"
+              ],
+              "maxPly": 6
+            },
+            {
+              "whitePlays": [
+                "Nc3"
+              ],
+              "maxPly": 6
+            }
+          ]
+        },
+        {
+          "id": "27c",
+          "whitePlays": [
+            {
+              "san": "d4",
+              "maxPly": 3
+            },
+            "Nf3",
+            "e3"
+          ],
+          "maxPly": 8,
+          "exclude": [
+            {
+              "whitePlays": [
+                "Bf4"
+              ],
+              "maxPly": 10
+            },
+            {
+              "whitePlays": [
+                "c4"
+              ],
+              "maxPly": 6
+            },
+            {
+              "whitePlays": [
+                "Nc3"
+              ],
+              "maxPly": 6
+            }
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "id": "27x-e4",
+          "whitePlays": [
+            {
+              "san": "e4",
+              "maxPly": 6
+            }
+          ]
+        }
+      ],
+      "priority": 100,
+      "transpositions": "parcial: jugadas blancas en cualquier orden",
+      "notes": ""
+    }
+  }
+}

@@ -1,10 +1,5 @@
-import {
-  CHAPTER_TIEBREAKS,
-  classifyGame,
-  redirectTargets,
-  tiebreakGroupFor,
-  type TiebreakGroup,
-} from './chapterTiebreaks';
+import { buildChapterAssignment, type ChapterAssignmentResult } from './chapterRules';
+import { ecoMatches, parseEcoRange } from './eco';
 import { chapterColor, chapterNumber } from './repertoireMoves';
 import { isDue } from './srs';
 import type { StudyChapter, StudyChapterHeader } from './studyPgn';
@@ -15,47 +10,14 @@ import type { Game, PlayerColor, RepertoireMove } from '../types/chess';
  * las partidas propias jugadas con esa apertura y las jugadas de repertorio
  * de ese capítulo que están vencidas para repasar.
  *
- * El PGN del estudio no trae ningún id compartido con las partidas, así que
- * el vínculo con ellas es por ECO (o rango ECO), y si falta, por nombre de
- * apertura. Con las jugadas de repertorio sí hay una llave estable: el número
- * `NN` del título del capítulo.
+ * El PGN del estudio no trae ningún id compartido con las partidas. Los
+ * capítulos con regla (`chapterRules`) se llenan por jugadas y posiciones; el
+ * resto, por ECO (o rango ECO), y si falta, por nombre de apertura. Con las
+ * jugadas de repertorio sí hay una llave estable: el número `NN` del título
+ * del capítulo.
  */
 
-const ECO_CODE = /^([A-E])(\d{2})$/i;
-const ECO_RANGE = /^([A-E]\d{2})\s*[-–]\s*([A-E]\d{2})$/i;
-
-/** Código ECO a un número ordenable (A00 → 0, E99 → 499), o null si no es ECO. */
-const ecoOrdinal = (eco: string): number | null => {
-  const match = ECO_CODE.exec(eco.trim());
-  if (!match) return null;
-  return (match[1].toUpperCase().charCodeAt(0) - 65) * 100 + Number(match[2]);
-};
-
-/**
- * El ECO del capítulo como rango cerrado. Acepta un código suelto (`B30`) o un
- * rango (`B30-B39`); cualquier otra cosa da null.
- */
-export const parseEcoRange = (eco: string | undefined): [number, number] | null => {
-  if (!eco) return null;
-  const trimmed = eco.trim();
-  const range = ECO_RANGE.exec(trimmed);
-  if (range) {
-    const from = ecoOrdinal(range[1]);
-    const to = ecoOrdinal(range[2]);
-    if (from === null || to === null) return null;
-    return from <= to ? [from, to] : [to, from];
-  }
-  const single = ecoOrdinal(trimmed);
-  return single === null ? null : [single, single];
-};
-
-/** True si el ECO de la partida cae dentro del ECO (o rango) del capítulo. */
-export const ecoMatches = (chapterEco: string | undefined, gameEco: string | undefined): boolean => {
-  const range = parseEcoRange(chapterEco);
-  if (!range || !gameEco) return false;
-  const value = ecoOrdinal(gameEco);
-  return value !== null && value >= range[0] && value <= range[1];
-};
+export { ecoMatches, parseEcoRange };
 
 const normalizeName = (name: string): string =>
   name
@@ -84,39 +46,46 @@ export const openingMatches = (chapterOpening: string | undefined, gameOpening: 
 export const chapterSide = (header: StudyChapterHeader): PlayerColor | null =>
   chapterColor(header.chapterName);
 
-const sameGame = (a: Game, b: Game): boolean => a === b || (a.id !== undefined && a.id === b.id);
-
-export type GameLinkMethod = 'eco' | 'opening' | 'tiebreak' | null;
+export type GameLinkMethod = 'eco' | 'opening' | 'rule' | null;
 
 export interface ChapterGamesLink {
   games: Game[];
-  /** Cómo se vincularon; null cuando el capítulo no trae ni ECO ni apertura. */
+  /** Cómo se vincularon; null cuando el capítulo no trae regla, ECO ni apertura. */
   method: GameLinkMethod;
   /** Color filtrado; null cuando cuentan los dos. */
   color: PlayerColor | null;
-  /** Partidas del ECO del capítulo sin PGN legible: no se pueden asignar. */
-  noPgn: Game[];
-  /** Partidas del ECO del par que el desempate no manda a ningún capítulo. */
+  /** Capítulo con regla: partidas de su ECO, con jugadas, que ninguna regla asigna. */
   unassigned: Game[];
-  /** Id del grupo de desempate aplicado, si hubo. */
-  tiebreakGroup?: string;
 }
 
 /**
- * Las partidas propias que corresponden al capítulo. Por ECO si el capítulo
- * trae uno válido; si no, por nombre de apertura. Filtra por el color del
- * capítulo cuando se puede deducir del título. Si el capítulo comparte ECO con
- * otro (tabla de desempates), después se queda solo con las partidas que las
- * jugadas asignan a este capítulo.
+ * Las partidas propias que corresponden al capítulo. Si el capítulo tiene
+ * regla, las que la asignación por jugadas le da. Si no, por ECO si trae uno
+ * válido, o por nombre de apertura, sin las que una regla mandó a otro
+ * capítulo y con las que una regla le mandó a este. Filtra por el color del
+ * capítulo cuando se puede deducir del título.
  */
 export const linkGamesToChapter = (
   header: StudyChapterHeader,
   games: Game[],
-  groups: TiebreakGroup[] = CHAPTER_TIEBREAKS,
+  assignment: ChapterAssignmentResult = buildChapterAssignment(games),
 ): ChapterGamesLink => {
   const color = chapterSide(header);
   const sameSide = color ? games.filter(g => g.color === color) : games;
   const chapterNo = chapterNumber(header.chapterName);
+  const key = chapterNo === null ? null : String(chapterNo).padStart(2, '0');
+  const { byGame } = assignment;
+  const isHere = (g: Game) => key !== null && byGame.get(g)?.chapter === key;
+
+  if (key !== null && assignment.ruleChapters.has(key)) {
+    const noMoves = new Set(assignment.noMoves);
+    return {
+      games: sameSide.filter(isHere),
+      method: 'rule',
+      color,
+      unassigned: sameSide.filter(g => !noMoves.has(g) && !byGame.has(g) && ecoMatches(header.eco, g.eco)),
+    };
+  }
 
   let method: GameLinkMethod = null;
   let linked: Game[] = [];
@@ -127,41 +96,13 @@ export const linkGamesToChapter = (
     method = 'opening';
     linked = sameSide.filter(g => openingMatches(header.opening, g.opening));
   }
-
-  const noPgn: Game[] = [];
-  const unassigned: Game[] = [];
-  let tiebreakGroup: string | undefined;
-
-  const group = method ? tiebreakGroupFor(chapterNo, groups) : null;
-  if (group && chapterNo !== null) {
-    const own: Game[] = [];
-    for (const g of linked) {
-      const outcome = classifyGame(g.pgn, group);
-      if (outcome.kind === 'noPgn') noPgn.push(g);
-      else if (outcome.kind === 'unassigned') unassigned.push(g);
-      else if (outcome.chapter === chapterNo) own.push(g);
-    }
-    linked = own;
-    method = 'tiebreak';
-    tiebreakGroup = group.id;
+  if (method) {
+    linked = linked.filter(g => !byGame.has(g) || isHere(g));
+    const seen = new Set(linked);
+    linked = [...linked, ...sameSide.filter(g => isHere(g) && !seen.has(g))];
   }
 
-  // Capítulo de afuera de un par al que la regla de un grupo le manda partidas.
-  if (method && chapterNo !== null) {
-    for (const g of groups) {
-      if (g.chapters.includes(chapterNo) || !redirectTargets(g).includes(chapterNo)) continue;
-      if (color && color !== g.color) continue;
-      for (const game of games) {
-        if (game.color !== g.color || !ecoMatches(g.eco, game.eco) || linked.some(l => sameGame(l, game))) continue;
-        const outcome = classifyGame(game.pgn, g);
-        if (outcome.kind === 'chapter' && outcome.chapter === chapterNo) linked = [...linked, game];
-      }
-    }
-  }
-
-  const result: ChapterGamesLink = { games: linked, method, color, noPgn, unassigned };
-  if (tiebreakGroup) result.tiebreakGroup = tiebreakGroup;
-  return result;
+  return { games: linked, method, color, unassigned: [] };
 };
 
 export interface LineScore {
