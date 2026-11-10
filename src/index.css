@@ -56,13 +56,15 @@
     --draw: 95 100 112;
     --loss: 178 50 30;
 
-    /* Clock — the instrument panel. Dark in both themes. */
-    --clock: 22 24 27;
-    --clock-2: 36 39 44;
-    --clock-fg: 230 233 225;
-    --clock-muted: 149 154 164;
-    --clock-lit: 181 227 58;
-    --clock-flag: 255 181 71;
+    /* Metrics header ("clock" in the first draft). The user chose the paper
+       treatment, so these now resolve to paper values: anything still using
+       clock-* renders as the scoresheet header. */
+    --clock: 251 251 248;
+    --clock-2: 210 213 202;
+    --clock-fg: 22 27 46;
+    --clock-muted: 82 90 106;
+    --clock-lit: 29 106 68;
+    --clock-flag: 178 50 30;
 
     /* Chessboard — "Tinta": muted ink-blue dark squares, paper light
        squares, last move in carbon yellow. Deliberately identical in both
@@ -107,12 +109,12 @@
     --draw: 163 169 179;
     --loss: 255 138 110;
 
-    --clock: 11 12 14;
-    --clock-2: 25 27 31;
-    --clock-fg: 230 233 225;
-    --clock-muted: 142 147 157;
-    --clock-lit: 181 227 58;
-    --clock-flag: 255 181 71;
+    --clock: 26 29 33;
+    --clock-2: 49 54 60;
+    --clock-fg: 232 234 228;
+    --clock-muted: 163 169 179;
+    --clock-lit: 92 196 140;
+    --clock-flag: 255 138 110;
 
     --board-light: 227 230 222;
     --board-dark: 135 150 170;
@@ -254,21 +256,22 @@
 }
 
 /* ============================================================
-   Recharts dark theming (centralized — themes every chart's
+   Recharts theming (centralized, both themes — themes every chart's
    grid / axes / legend without per-component changes). Custom
    tooltips are styled inline with semantic tokens per chart.
    ============================================================ */
-.dark .recharts-cartesian-grid line { stroke: rgb(var(--border)); }
-.dark .recharts-cartesian-axis line,
-.dark .recharts-cartesian-axis-tick line,
-.dark .recharts-cartesian-axis-tick-line { stroke: rgb(var(--border)); }
-.dark .recharts-cartesian-axis-tick text,
-.dark .recharts-text,
-.dark .recharts-label { fill: rgb(var(--fg-muted)); }
-.dark .recharts-legend-item-text { color: rgb(var(--fg-muted)) !important; }
-.dark .recharts-default-tooltip {
+.recharts-cartesian-grid line { stroke: rgb(var(--border)); }
+.recharts-cartesian-axis line,
+.recharts-cartesian-axis-tick line,
+.recharts-cartesian-axis-tick-line { stroke: rgb(var(--border)); }
+.recharts-cartesian-axis-tick text,
+.recharts-text,
+.recharts-label { fill: rgb(var(--fg-muted)); }
+.recharts-legend-item-text { color: rgb(var(--fg-muted)) !important; }
+.recharts-cartesian-axis-tick text { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+.recharts-default-tooltip {
   background-color: rgb(var(--surface)) !important;
   border-color: rgb(var(--border)) !important;
   color: rgb(var(--fg)) !important;
 }
-.dark .recharts-tooltip-item { color: rgb(var(--fg)) !important; }
+.recharts-tooltip-item { color: rgb(var(--fg)) !important; }
