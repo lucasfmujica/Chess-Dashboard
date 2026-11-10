@@ -87,9 +87,9 @@ const Modal: React.FC<ModalProps> = ({
     switch (type) {
       case 'alert':
         return (
-          <div className="p-3 bg-blue-100 dark:bg-blue-500/20 rounded-full">
+          <div className="p-2.5 bg-accent/10 rounded-sm">
             <svg
-              className="w-6 h-6 text-blue-600 dark:text-blue-400"
+              className="w-5 h-5 text-accent"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -106,9 +106,9 @@ const Modal: React.FC<ModalProps> = ({
         );
       case 'confirm':
         return (
-          <div className="p-3 bg-yellow-100 dark:bg-yellow-500/20 rounded-full">
+          <div className="p-2.5 bg-carbon rounded-sm">
             <svg
-              className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
+              className="w-5 h-5 text-fg"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -125,9 +125,9 @@ const Modal: React.FC<ModalProps> = ({
         );
       case 'prompt':
         return (
-          <div className="p-3 bg-emerald-100 dark:bg-emerald-500/20 rounded-full">
+          <div className="p-2.5 bg-accent/10 rounded-sm">
             <svg
-              className="w-6 h-6 text-emerald-600 dark:text-emerald-400"
+              className="w-5 h-5 text-accent"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -157,14 +157,14 @@ const Modal: React.FC<ModalProps> = ({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-fg/40 transition-opacity"
         onClick={type === 'alert' ? handleConfirm : handleCancel}
         aria-hidden="true"
       />
 
       {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-surface rounded-lg border border-hairline shadow-xl max-w-md w-full transform transition-all">
+        <div className="relative bg-surface rounded border border-hairline border-t-[3px] border-t-hairline-strong shadow-[0_12px_32px_rgb(0_0_0/0.18)] max-w-md w-full transform transition-all">
           {/* Header */}
           <div className="p-6 pb-4">
             <div className="flex items-start gap-4">
@@ -172,7 +172,7 @@ const Modal: React.FC<ModalProps> = ({
               <div className="flex-1">
                 <h3
                   id="modal-title"
-                  className="text-lg font-semibold text-fg"
+                  className="font-serif text-xl font-semibold text-fg"
                 >
                   {title}
                 </h3>
@@ -180,7 +180,7 @@ const Modal: React.FC<ModalProps> = ({
               {type !== 'alert' && (
                 <button
                   onClick={handleCancel}
-                  className="p-1 rounded-lg hover:bg-surface-2 transition-colors"
+                  className="p-1 rounded hover:bg-surface-2 transition-colors"
                   aria-label="Close modal"
                 >
                   <svg
@@ -217,19 +217,19 @@ const Modal: React.FC<ModalProps> = ({
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="mt-4 w-full px-4 py-2 bg-surface border border-hairline text-fg rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                  className="mt-4 w-full px-4 py-2 bg-surface border border-hairline text-fg rounded focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors"
                   aria-label="Input field"
                 />
               )}
             </div>
 
             {/* Actions */}
-            <div className="bg-surface-2 px-6 py-4 rounded-b-2xl flex gap-3 justify-end">
+            <div className="bg-surface-2 border-t border-hairline px-6 py-4 rounded-b flex flex-wrap gap-3 justify-end">
               {type === 'confirm' && (
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 text-sm font-semibold text-fg-muted bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors"
+                  className="h-9 px-4 text-sm font-medium text-fg bg-surface border border-hairline rounded hover:border-fg-subtle transition-colors"
                   aria-label="Cancel"
                 >
                   Cancel
@@ -239,7 +239,7 @@ const Modal: React.FC<ModalProps> = ({
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-4 py-2 text-sm font-semibold text-fg-muted bg-surface border border-hairline rounded-lg hover:bg-surface-2 transition-colors"
+                  className="h-9 px-4 text-sm font-medium text-fg bg-surface border border-hairline rounded hover:border-fg-subtle transition-colors"
                   aria-label="Cancel"
                 >
                   Cancel
@@ -249,11 +249,7 @@ const Modal: React.FC<ModalProps> = ({
                 ref={confirmButtonRef}
                 type={type === 'prompt' ? 'submit' : 'button'}
                 onClick={type === 'prompt' ? undefined : handleConfirm}
-                className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all ${
-                  type === 'confirm'
-                    ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:shadow-lg'
-                    : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg'
-                }`}
+                className="h-9 px-4 text-sm font-medium text-accent-fg bg-accent border border-accent rounded hover:bg-accent-strong transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 aria-label={type === 'confirm' ? 'Confirm' : 'OK'}
               >
                 {type === 'confirm' ? 'Confirm' : 'OK'}

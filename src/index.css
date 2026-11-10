@@ -43,7 +43,7 @@
     --surface-2: 232 234 226;   /* sheet-2 — inset, table header      */
     --fg: 22 27 46;             /* ink                                */
     --fg-muted: 82 90 106;      /* ink-muted (≥5.9:1 on all papers)   */
-    --fg-subtle: 102 108 123;   /* ink-subtle (paper + sheet only)    */
+    --fg-subtle: 95 101 116;    /* ink-subtle (≥4.8:1 on every paper)  */
     --border: 210 213 202;      /* rule — 1px hairlines               */
     --border-strong: 22 27 46;  /* rule-strong — header rules         */
     --accent: 35 56 181;        /* pen — the player's ink             */

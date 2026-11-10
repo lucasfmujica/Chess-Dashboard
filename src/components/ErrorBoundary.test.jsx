@@ -38,8 +38,8 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('Oops! Something went wrong')).toBeInTheDocument();
-    expect(screen.getByText(/The application encountered an unexpected error/i)).toBeInTheDocument();
+    expect(screen.getByText('Algo salió mal')).toBeInTheDocument();
+    expect(screen.getByText(/La app encontró un error inesperado/i)).toBeInTheDocument();
   });
 
   it('should display error details', () => {
@@ -59,7 +59,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    const reloadButton = screen.getByRole('button', { name: /reload application/i });
+    const reloadButton = screen.getByRole('button', { name: /recargar la app/i });
     expect(reloadButton).toBeInTheDocument();
   });
 
@@ -70,7 +70,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    const goBackButton = screen.getByRole('button', { name: /go back/i });
+    const goBackButton = screen.getByRole('button', { name: /volver/i });
     expect(goBackButton).toBeInTheDocument();
   });
 });

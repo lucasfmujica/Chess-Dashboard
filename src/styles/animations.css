@@ -131,3 +131,16 @@
 .stagger-item:nth-child(4) { animation-delay: 0.2s; }
 .stagger-item:nth-child(5) { animation-delay: 0.25s; }
 .stagger-item:nth-child(6) { animation-delay: 0.3s; }
+
+/* Loading screen: each scoresheet cell inks in and fades, row by row. */
+@keyframes loading-ink {
+  0%, 100% { transform: scaleX(0.15); opacity: 0.4; }
+  50% { transform: scaleX(1); opacity: 1; }
+}
+.loading-ink {
+  transform-origin: left center;
+  animation: loading-ink 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-ink { animation: none; transform: none; }
+}

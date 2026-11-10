@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { LogoMark } from '../components/brand/Logo';
+import { APP_NAME } from '../config/brand';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { initialGames, playerInfo as initialPlayerInfo } from '../data/initialGames';
 import { useGameStats } from '../hooks/useGameStats';
@@ -37,7 +39,6 @@ import type { Game, PlayerInfo, Repertoire, Tournament, AnnotatedGame } from '..
 import type { GameAnalysis } from '../engine/analyzeGame';
 import type { WeeklyPlans } from '../types/training';
 import { useUI, type GameFilter } from './UIContext';
-import { LoadingSpinner } from '../components/LoadingSkeleton';
 
 const MIGRATION_FLAG_KEY = 'chess-dashboard-migrated-to-db';
 // Separate flag: the Stockfish analysis cache uses its own dynamic keys
@@ -445,19 +446,48 @@ export const GamesProvider = ({ children }: { children: ReactNode }) => {
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-3 px-6 text-center">
-        <p className="text-fg font-medium">Couldn't load data from the database.</p>
-        <p className="text-fg-muted text-sm max-w-md">{loadError}</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-app px-4 text-fg">
+        <div className="w-full max-w-md rounded border border-hairline bg-surface p-6 text-left">
+          <div className="flex items-center gap-2.5">
+            <LogoMark className="h-6 w-6" />
+            <span className="font-serif text-lg font-semibold">{APP_NAME}</span>
+          </div>
+          <p className="mt-5 rounded-sm bg-carbon-pink px-3 py-2 text-sm text-fg">No se pudieron cargar tus partidas desde la base de datos.</p>
+          <p className="mt-3 font-mono text-xs text-fg-muted break-words">{loadError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-5 inline-flex h-9 items-center rounded border border-hairline bg-surface px-4 text-sm font-medium hover:border-fg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            Probar de nuevo
+          </button>
+        </div>
+      </main>
     );
   }
 
   if (!ready) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <LoadingSpinner size="lg" color="indigo" />
-        <p className="text-fg-muted">Loading your games…</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-app px-4 text-fg" aria-busy="true">
+        <div className="flex w-full max-w-xs flex-col items-center gap-5 text-center">
+          <div className="flex items-center gap-2.5">
+            <LogoMark className="h-8 w-8" />
+            <span className="font-serif text-3xl font-semibold leading-none">
+              Jaque<span className="text-accent">+</span>
+            </span>
+          </div>
+          {/* A scoresheet filling in, row by row: the loading indicator. */}
+          <div className="w-full overflow-hidden rounded-sm border border-hairline border-t-[3px] border-t-hairline-strong bg-surface" aria-hidden="true">
+            {[0, 1, 2, 3].map(row => (
+              <div key={row} className="grid grid-cols-[32px_1fr_1fr] border-b border-hairline last:border-b-0">
+                <span className="bg-surface-2 py-1.5 pr-2 text-right font-mono text-xs text-fg-subtle">{row + 1}.</span>
+                <span className="px-3 py-2"><span className="loading-ink block h-2 rounded-sm bg-fg/15" style={{ animationDelay: `${row * 0.3}s` }} /></span>
+                <span className="border-l border-hairline px-3 py-2"><span className="loading-ink block h-2 rounded-sm bg-fg/15" style={{ animationDelay: `${row * 0.3 + 0.15}s` }} /></span>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-fg-muted" role="status">Cargando tus partidas…</p>
+        </div>
+      </main>
     );
   }
 

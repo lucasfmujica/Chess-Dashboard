@@ -53,108 +53,53 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950 dark:via-orange-950 dark:to-yellow-950 flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full bg-surface rounded-2xl shadow-2xl border border-red-200/60 dark:border-red-800/60 overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-500 to-orange-600 p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <svg
-                    className="w-8 h-8 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white">
-                    Oops! Something went wrong
-                  </h1>
-                  <p className="text-red-100 text-sm mt-1">
-                    The application encountered an unexpected error
-                  </p>
-                </div>
-              </div>
+        <main className="min-h-screen bg-app text-fg flex items-center justify-center p-4">
+          <div className="max-w-xl w-full rounded border border-hairline border-t-[3px] border-t-hairline-strong bg-surface p-6 sm:p-8">
+            <p className="text-label">Error</p>
+            <h1 className="mt-1 font-serif text-2xl font-semibold">Algo salió mal</h1>
+            <p className="mt-1 text-sm text-fg-muted">La app encontró un error inesperado y no pudo seguir.</p>
+
+            <div className="mt-5 rounded-sm bg-carbon-pink px-4 py-3">
+              <h2 className="text-label !text-fg-muted mb-1">Detalle</h2>
+              <p className="text-sm text-fg font-mono break-words">
+                {this.state.error && this.state.error.toString()}
+              </p>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-4">
-              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-lg p-4">
-                <h2 className="text-sm font-semibold text-red-900 dark:text-red-300 mb-2">
-                  Error Details:
-                </h2>
-                <p className="text-sm text-red-700 dark:text-red-400 font-mono break-words">
-                  {this.state.error && this.state.error.toString()}
-                </p>
-              </div>
+            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+              <details className="mt-4 rounded-sm border border-hairline bg-surface-2 p-4">
+                <summary className="text-sm font-medium text-fg cursor-pointer">Stack (modo desarrollo)</summary>
+                <pre className="mt-3 text-xs text-fg-muted overflow-x-auto whitespace-pre-wrap break-words">
+                  {this.state.errorInfo.componentStack}
+                </pre>
+              </details>
+            )}
 
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <details className="bg-surface-2 border border-hairline rounded-lg p-4">
-                  <summary className="text-sm font-semibold text-fg cursor-pointer hover:text-fg-muted">
-                    Stack Trace (Development Mode)
-                  </summary>
-                  <pre className="mt-3 text-xs text-fg-muted overflow-x-auto whitespace-pre-wrap break-words">
-                    {this.state.errorInfo.componentStack}
-                  </pre>
-                </details>
-              )}
+            <h3 className="mt-6 text-label !text-fg-muted">Qué podés hacer</h3>
+            <ul className="mt-2 space-y-1 text-sm text-fg-muted list-disc list-inside">
+              <li>Recargar la página</li>
+              <li>Borrar la caché y el almacenamiento local del navegador</li>
+              <li>Revisar la conexión a internet</li>
+            </ul>
 
-              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">
-                  What you can do:
-                </h3>
-                <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
-                  <li>Try refreshing the page</li>
-                  <li>Clear your browser cache and local storage</li>
-                  <li>Check your internet connection</li>
-                  <li>If the problem persists, please report this issue</li>
-                </ul>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={this.handleReset}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  aria-label="Reload application"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Reload Application
-                  </span>
-                </button>
-                <button
-                  onClick={() => window.history.back()}
-                  className="px-6 py-3 bg-surface-2 text-fg-muted font-semibold rounded-xl hover:bg-surface transition-all duration-200"
-                  aria-label="Go back to previous page"
-                >
-                  Go Back
-                </button>
-              </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={this.handleReset}
+                className="inline-flex h-10 flex-1 items-center justify-center rounded border border-accent bg-accent px-5 text-sm font-medium text-accent-fg hover:bg-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                aria-label="Recargar la app"
+              >
+                Recargar la app
+              </button>
+              <button
+                onClick={() => window.history.back()}
+                className="inline-flex h-10 items-center justify-center rounded border border-hairline bg-surface px-5 text-sm font-medium text-fg hover:border-fg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                aria-label="Volver a la página anterior"
+              >
+                Volver
+              </button>
             </div>
           </div>
-        </div>
+        </main>
       );
     }
 
