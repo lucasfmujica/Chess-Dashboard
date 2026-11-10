@@ -39,15 +39,15 @@ const EvalBar = ({ evaluation, flip = false, loading = false }: EvalBarProps) =>
 
   return (
     <div className="flex items-center gap-3">
-      <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+      {/* The board's own squares: the solver's share is the light square. */}
+      <div className="relative h-3 flex-1 overflow-hidden rounded-sm bg-board-dark">
         <div
-          className={`h-full rounded-full transition-all duration-300 ${
-            !known ? 'bg-fg-subtle/30' : raw >= 0 ? 'bg-win' : 'bg-loss'
-          }`}
+          className={`h-full transition-all duration-300 ${known ? 'bg-board-light' : 'bg-board-light/50'}`}
           style={{ width: `${known ? pct : 50}%` }}
         />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-fg/30" aria-hidden="true" />
       </div>
-      <span className="nums w-14 shrink-0 text-right text-xs text-fg-muted">
+      <span className="w-14 shrink-0 text-right font-mono text-xs tabular-nums text-fg-muted">
         {loading && !known ? '…' : label(cp, mate)}
       </span>
     </div>

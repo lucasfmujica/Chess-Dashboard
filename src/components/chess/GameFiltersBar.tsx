@@ -20,11 +20,18 @@ interface GameFiltersBarProps {
   searchPlaceholder?: string;
 }
 
+const RESULT_ARIA: Record<ResultFilter, string> = {
+  all: 'Todos los resultados',
+  W: 'Victorias',
+  D: 'Tablas',
+  L: 'Derrotas',
+};
+
 const RESULT_OPTIONS: { value: ResultFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'W', label: 'Win' },
-  { value: 'D', label: 'Draw' },
-  { value: 'L', label: 'Loss' },
+  { value: 'all', label: 'Todos' },
+  { value: 'W', label: '1' },
+  { value: 'D', label: '½' },
+  { value: 'L', label: '0' },
 ];
 
 const SOURCE_OPTIONS: { value: SourceFilter; label: string }[] = [
@@ -44,7 +51,7 @@ const SPEED_OPTIONS: { value: SpeedFilter; label: string }[] = [
 ];
 
 const SELECT =
-  'rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent';
+  'h-9 rounded border border-hairline bg-surface px-2.5 text-sm text-fg focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent';
 
 /** Shared search + date-range + result filter bar for games-list views. */
 const GameFiltersBar = ({
@@ -62,28 +69,32 @@ const GameFiltersBar = ({
   onSpeedFilterChange,
   hasActiveFilters,
   onClear,
-  searchPlaceholder = 'Search opponent, opening, tournament…',
+  searchPlaceholder = 'Rival, apertura o torneo',
 }: GameFiltersBarProps) => (
-  <div className="flex flex-wrap items-center gap-3">
-    <div className="relative flex-1 min-w-[200px]">
-      <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
+  <div className="flex flex-wrap items-center gap-2">
+    <div className="relative min-w-[200px] flex-1">
+      <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-subtle" />
       <input
+        type="search"
         value={query}
         onChange={e => onQueryChange(e.target.value)}
         placeholder={searchPlaceholder}
-        className="w-full rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle text-sm pl-9 pr-3 py-2 focus:border-accent focus:ring-1 focus:ring-accent"
+        aria-label={searchPlaceholder}
+        className="h-9 w-full rounded border border-hairline bg-surface pl-9 pr-3 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
     </div>
 
-    <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface p-1" role="group" aria-label="Filter by result">
+    <div className="inline-flex border-b border-hairline" role="group" aria-label="Filtrar por resultado">
       {RESULT_OPTIONS.map(opt => (
         <button
           key={opt.value}
           onClick={() => onResultFilterChange(opt.value)}
           aria-pressed={resultFilter === opt.value}
-          className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${
-            resultFilter === opt.value ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
-          }`}
+          aria-label={RESULT_ARIA[opt.value]}
+          title={RESULT_ARIA[opt.value]}
+          className={`-mb-px border-b-2 px-2.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+            opt.value === 'all' ? '' : 'font-mono'
+          } ${resultFilter === opt.value ? 'border-accent text-fg' : 'border-transparent text-fg-muted hover:text-fg'}`}
         >
           {opt.label}
         </button>
@@ -95,7 +106,7 @@ const GameFiltersBar = ({
         value={sourceFilter}
         onChange={e => onSourceFilterChange(e.target.value as SourceFilter)}
         className={SELECT}
-        aria-label="Filter by source"
+        aria-label="Filtrar por origen"
       >
         {SOURCE_OPTIONS.map(opt => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -108,7 +119,7 @@ const GameFiltersBar = ({
         value={speedFilter}
         onChange={e => onSpeedFilterChange(e.target.value as SpeedFilter)}
         className={SELECT}
-        aria-label="Filter by time control"
+        aria-label="Filtrar por ritmo"
       >
         {SPEED_OPTIONS.map(opt => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -121,23 +132,26 @@ const GameFiltersBar = ({
         type="date"
         value={dateFrom}
         onChange={e => onDateFromChange(e.target.value)}
-        className="rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent"
-        aria-label="From date"
+        className={`${SELECT} font-mono`}
+        aria-label="Desde"
       />
-      <span className="text-fg-subtle text-xs">–</span>
+      <span className="text-xs text-fg-subtle">–</span>
       <input
         type="date"
         value={dateTo}
         onChange={e => onDateToChange(e.target.value)}
-        className="rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent"
-        aria-label="To date"
+        className={`${SELECT} font-mono`}
+        aria-label="Hasta"
       />
     </div>
 
     {hasActiveFilters && (
-      <button onClick={onClear} className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
-        <XMarkIcon className="w-3.5 h-3.5" />
-        Clear
+      <button
+        onClick={onClear}
+        className="inline-flex items-center gap-1 text-xs text-accent hover:underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+      >
+        <XMarkIcon className="h-3.5 w-3.5" />
+        Limpiar filtros
       </button>
     )}
   </div>

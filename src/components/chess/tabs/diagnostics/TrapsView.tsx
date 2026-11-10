@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
-import { Badge } from '../../../ui';
+import { Badge, Card } from '../../../ui';
 import BoardFrame from '../../BoardFrame';
 import { boardSquareStyles } from '../../boardTheme';
 import { fetchPositionTraps } from '../../../../api/client';
@@ -68,38 +68,42 @@ const TrapsView = () => {
   if (error) return <p className="text-sm text-loss">{error}</p>;
   if (traps.length === 0) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface-2 p-6 text-sm text-fg-muted">
-        Todavía no se buscaron trampas. Corré{' '}
-        <code className="text-fg">python3 scripts/position_diagnostics.py --traps --source otb</code>{' '}
-        en tu máquina.
-      </div>
+      <Card>
+        <p className="text-sm text-fg-muted">
+          Todavía no se buscaron trampas. Corré{' '}
+          <code className="font-mono text-xs text-fg">python3 scripts/position_diagnostics.py --traps --source otb</code>{' '}
+          en tu máquina.
+        </p>
+      </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+    <Card flush>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2 border-b border-hairline-strong px-5 py-4 sm:px-6">
+        <h2 className="font-serif text-xl font-semibold leading-tight text-fg">Trampas para el rival</h2>
+        <button
+          onClick={() => setOnlyFallen(v => !v)}
+          aria-pressed={onlyFallen}
+          className={`rounded border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+            onlyFallen
+              ? 'border-transparent bg-accent/10 text-accent'
+              : 'border-hairline text-fg-muted hover:text-fg'
+          }`}
+        >
+          Solo las que cayeron <span className="font-mono tabular-nums">{fallen}</span>
+        </button>
+      </div>
+      <div className="space-y-4 p-5 sm:p-6">
         <p className="text-sm text-fg-muted">
           Posiciones donde lo que juega un ~1900 de Lichess por instinto pierde. Son las que
           conviene buscar, aunque objetivamente no sean lo mejor.
         </p>
-        <button
-          onClick={() => setOnlyFallen(v => !v)}
-          aria-pressed={onlyFallen}
-          className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
-            onlyFallen
-              ? 'bg-surface-2 text-fg border-hairline'
-              : 'border-transparent text-fg-muted hover:bg-surface-2'
-          }`}
-        >
-          Solo las que cayeron <span className="tabular-nums text-fg-subtle">{fallen}</span>
-        </button>
-      </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]"
-        style={{ '--board-fit': 'calc(100dvh - 300px)' } as CSSProperties}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]"
+        style={{ '--board-fit': 'calc(100dvh - 360px)' } as CSSProperties}
       >
-        <div>
+        <div className="min-w-0">
           {selected && (
             <>
               <BoardFrame>
@@ -115,21 +119,21 @@ const TrapsView = () => {
                   }}
                 />
               </BoardFrame>
-              <div className="mt-3 space-y-1.5 text-sm">
+              <div className="mt-4 space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Badge tone={selected.fellForIt ? 'win' : 'neutral'}>
                     {selected.fellForIt ? 'Cayó' : 'La esquivó'}
                   </Badge>
                   <span className="text-fg-muted">
-                    jugada {selected.moveNumber} · cuesta {selected.trapCp}cp
+                    jugada {selected.moveNumber} · cuesta <span className="font-mono tabular-nums">{selected.trapCp} cp</span>
                   </span>
                 </div>
                 <p className="text-fg">
-                  Un ~1900 juega <strong className="text-loss">{selected.maiaMove}</strong>
+                  Un ~1900 juega <strong className="font-serif text-base font-semibold text-loss">{selected.maiaMove}</strong>
                   {selected.maiaPolicy !== undefined
                     ? ` (${(selected.maiaPolicy * 100).toFixed(0)}% de las veces)`
                     : ''}{' '}
-                  y pierde. Lo correcto era <strong className="text-win">{selected.bestMove}</strong>.
+                  y pierde. Lo correcto era <strong className="font-serif text-base font-semibold text-win">{selected.bestMove}</strong>.
                 </p>
                 <p className="text-xs text-fg-subtle">
                   {selected.game.opponent}
@@ -143,23 +147,25 @@ const TrapsView = () => {
           )}
         </div>
 
-        <ul className="min-w-0 space-y-1 lg:max-h-[70vh] lg:overflow-y-auto">
+        <ul className="min-w-0 divide-y divide-hairline border-y border-hairline lg:max-h-[70vh] lg:overflow-y-auto">
           {shown.map(t => (
             <li key={t.id}>
               <button
                 onClick={() => setSelectedId(t.id)}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selected?.id === t.id ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
+                aria-current={selected?.id === t.id ? 'true' : undefined}
+                className={`w-full px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+                  selected?.id === t.id ? 'bg-accent/10 text-fg' : 'text-fg-muted hover:bg-app'
                 }`}
               >
                 <span className="flex items-center justify-between gap-2">
-                  <span className="truncate">
-                    <span className="tabular-nums">{t.moveNumber}.</span> {t.maiaMove}
+                  <span className="truncate font-serif text-[15px]">
+                    <span className="font-mono text-xs tabular-nums text-fg-subtle">{t.moveNumber}.</span>{' '}
+                    <span className="text-fg">{t.maiaMove}</span>
                     <span className="text-fg-subtle"> en vez de {t.bestMove}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-1.5">
                     {t.fellForIt && <Badge tone="win">cayó</Badge>}
-                    <Badge tone="neutral">−{t.trapCp}</Badge>
+                    <span className="font-mono text-xs tabular-nums text-fg-muted">−{t.trapCp}</span>
                   </span>
                 </span>
                 <span className="mt-0.5 block truncate text-xs text-fg-subtle">
@@ -172,7 +178,8 @@ const TrapsView = () => {
           ))}
         </ul>
       </div>
-    </div>
+      </div>
+    </Card>
   );
 };
 

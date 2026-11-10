@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CpuChipIcon, ChevronUpDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronUpDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { Badge, Button, Card, CardHeader, ResultMark } from '../ui';
 import { useSourceFilteredGames } from '../../context/GamesContext';
 import { getCachedAnalysis, analyzeAndCacheGame } from '../../hooks/useGameAnalysis';
 import { useGameFilters } from '../../hooks/useGameFilters';
@@ -33,10 +34,19 @@ interface Row {
   playable: boolean;
 }
 
-const RESULT_META: Record<Game['result'], { label: string; cls: string }> = {
-  W: { label: 'Win', cls: 'text-win' },
-  L: { label: 'Loss', cls: 'text-loss' },
-  D: { label: 'Draw', cls: 'text-draw' },
+/** Spanish result words, so the search box finds "tablas" or "derrota". */
+const RESULT_META: Record<Game['result'], { label: string }> = {
+  W: { label: 'Victoria' },
+  L: { label: 'Derrota' },
+  D: { label: 'Tablas' },
+};
+
+/** 3.5 → "3½", 0.5 → "½": points the way a crosstable writes them. */
+const formatPoints = (pts: number): string => {
+  const whole = Math.floor(pts);
+  const half = pts - whole >= 0.5;
+  if (!half) return String(whole);
+  return whole === 0 ? '½' : `${whole}½`;
 };
 
 const RESULT_RANK: Record<Game['result'], number> = { W: 0, D: 1, L: 2 };
@@ -220,88 +230,104 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
   const SortableTh = ({ label, k, align = 'left' }: { label: string; k: SortKey; align?: 'left' | 'right' }) => (
     <th
       scope="col"
-      onClick={() => toggleSort(k)}
-      className={`px-3 py-2 ${align === 'right' ? 'text-right' : 'text-left'} text-[11px] font-medium uppercase tracking-wide text-fg-subtle cursor-pointer select-none hover:text-fg`}
+      aria-sort={sortKey === k ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
+      className={`whitespace-nowrap px-3 py-2 ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
-      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
+      <button
+        type="button"
+        onClick={() => toggleSort(k)}
+        className={`text-label inline-flex items-center gap-1 !text-fg-muted hover:!text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${align === 'right' ? 'flex-row-reverse' : ''}`}
+      >
         {label}
-        <ChevronUpDownIcon className={`w-3.5 h-3.5 ${sortKey === k ? 'text-accent' : 'text-fg-subtle/50'}`} />
-      </span>
+        <ChevronUpDownIcon className={`h-3.5 w-3.5 ${sortKey === k ? 'text-accent' : 'text-fg-subtle/50'}`} />
+      </button>
     </th>
   );
 
-  return (
-    <div className="rounded-lg border border-hairline bg-surface p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-fg">Your games</h3>
-          <p className="mt-0.5 text-sm text-fg-muted tabular-nums">
-            {record.total} games · <span className="text-win">{record.w}W</span>{' '}
-            <span className="text-draw">{record.d}D</span> <span className="text-loss">{record.l}L</span> ·{' '}
-            <span className="font-medium text-fg">{record.winRate}% win rate</span>
-          </p>
-        </div>
+  // Rows grouped by tournament, the way a scorebook files them. Only while the
+  // list keeps its own order: sorted by rival or result, consecutive rows no
+  // longer share a tournament and a group row per game would be noise.
+  const grouped = sortKey === 'order' || sortKey === 'date';
+  const groupScore = useMemo(() => {
+    const out = new Map<string, { pts: number; n: number }>();
+    filtered.forEach(r => {
+      const key = r.g.tournament || '';
+      const cur = out.get(key) ?? { pts: 0, n: 0 };
+      cur.pts += r.g.result === 'W' ? 1 : r.g.result === 'D' ? 0.5 : 0;
+      cur.n += 1;
+      out.set(key, cur);
+    });
+    return out;
+  }, [filtered]);
 
-        {batch ? (
-          <div className="flex items-center gap-3">
-            <div className="w-32 h-1.5 rounded-full bg-surface-2 overflow-hidden">
-              <div
-                className="h-full bg-accent transition-all"
-                style={{ width: `${Math.round((batch.done / batch.total) * 100)}%` }}
-              />
+  return (
+    <Card>
+      <CardHeader
+        title="Tus partidas"
+        subtitle={
+          <span className="font-mono tabular-nums">
+            {record.total} {record.total === 1 ? 'partida' : 'partidas'} · +{record.w} ={record.d} −{record.l} ·{' '}
+            {record.winRate} % de los puntos
+          </span>
+        }
+        actions={
+          batch ? (
+            <div className="flex items-center gap-3">
+              <div className="h-1.5 w-32 overflow-hidden rounded-sm bg-surface-2">
+                <div
+                  className="h-full bg-accent transition-all"
+                  style={{ width: `${Math.round((batch.done / batch.total) * 100)}%` }}
+                />
+              </div>
+              <span className="font-mono text-xs tabular-nums text-fg-muted">
+                {batch.done}/{batch.total} · {batch.name}
+              </span>
+              <Button variant="ghost" size="sm" onClick={cancelBatch}>
+                Cancelar
+              </Button>
             </div>
-            <span className="text-xs text-fg-muted tabular-nums">
-              {batch.done}/{batch.total} · {batch.name}
-            </span>
-            <button onClick={cancelBatch} className="text-xs text-fg-muted hover:text-fg">
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <button
-                onClick={() => setShowExportMenu(s => !s)}
-                disabled={filtered.length === 0}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-hairline bg-surface text-fg text-sm font-medium hover:bg-surface-2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                <ArrowDownTrayIcon className="w-4 h-4" />
-                Export
-              </button>
-              {showExportMenu && (
-                <div className="absolute right-0 mt-1 w-40 rounded-md border border-hairline bg-surface shadow-lg z-20 py-1">
-                  <button
-                    onClick={() => {
-                      downloadFile(gamesToPGN(filtered.map(r => r.g)), 'games.pgn', 'application/x-chess-pgn');
-                      setShowExportMenu(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm text-fg hover:bg-surface-2"
-                  >
-                    PGN ({filtered.length})
-                  </button>
-                  <button
-                    onClick={() => {
-                      downloadFile(gamesToCSV(filtered.map(r => r.g)), 'games.csv', 'text/csv');
-                      setShowExportMenu(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm text-fg hover:bg-surface-2"
-                  >
-                    CSV ({filtered.length})
-                  </button>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={analyzeAll}
-              disabled={pendingCount === 0}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-            >
-              <CpuChipIcon className="w-4 h-4" />
-              {pendingCount > 0 ? `Analyze all (${pendingCount})` : 'All analyzed'}
-            </button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <>
+              <div className="relative">
+                <Button
+                  size="sm"
+                  icon={ArrowDownTrayIcon}
+                  onClick={() => setShowExportMenu(s => !s)}
+                  disabled={filtered.length === 0}
+                  aria-expanded={showExportMenu}
+                >
+                  Exportar
+                </Button>
+                {showExportMenu && (
+                  <div className="absolute right-0 z-20 mt-1 w-40 rounded border border-hairline bg-surface py-1">
+                    <button
+                      onClick={() => {
+                        downloadFile(gamesToPGN(filtered.map(r => r.g)), 'games.pgn', 'application/x-chess-pgn');
+                        setShowExportMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-fg hover:bg-app"
+                    >
+                      PGN <span className="font-mono tabular-nums text-fg-subtle">({filtered.length})</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        downloadFile(gamesToCSV(filtered.map(r => r.g)), 'games.csv', 'text/csv');
+                        setShowExportMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-sm text-fg hover:bg-app"
+                    >
+                      CSV <span className="font-mono tabular-nums text-fg-subtle">({filtered.length})</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <Button variant="primary" size="sm" onClick={analyzeAll} disabled={pendingCount === 0}>
+                {pendingCount > 0 ? `Analizar todas (${pendingCount})` : 'Todas analizadas'}
+              </Button>
+            </>
+          )
+        }
+      />
 
       <div className="mt-4">
         <GameFiltersBar
@@ -319,67 +345,106 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
           onSpeedFilterChange={setSpeedFilter}
           hasActiveFilters={hasActiveFilters}
           onClear={clearFilters}
-          searchPlaceholder="Search opponent, opening, tournament…"
+          searchPlaceholder="Rival, apertura o torneo"
         />
       </div>
 
-      <div className="mt-4 max-h-[420px] overflow-auto rounded-lg border border-hairline">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead className="bg-surface-2 sticky top-0 z-10">
+      <div className="mt-4 max-h-[480px] overflow-auto rounded border border-hairline">
+        <table className="w-full min-w-[760px] text-sm tabular-nums">
+          <thead className="sticky top-0 z-10 border-b border-hairline-strong bg-surface-2">
             <tr>
               <SortableTh label="#" k="order" />
               <SortableTh label="Fecha" k="date" />
-              <SortableTh label="Opponent" k="opponent" />
-              <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-fg-subtle">Color</th>
-              <SortableTh label="Result" k="result" />
-              <th scope="col" className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wide text-fg-subtle">Opening</th>
-              <SortableTh label="Accuracy" k="accuracy" align="right" />
+              <SortableTh label="Rival" k="opponent" />
+              <th scope="col" className="text-label whitespace-nowrap px-3 py-2 text-right !text-fg-muted">ELO</th>
+              <th scope="col" className="text-label whitespace-nowrap px-3 py-2 text-left !text-fg-muted">Color</th>
+              <th scope="col" className="text-label whitespace-nowrap px-3 py-2 text-left !text-fg-muted">Apertura</th>
+              <SortableTh label="Res." k="result" align="right" />
+              <SortableTh label="Análisis" k="accuracy" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-hairline">
-            {filtered.map(r => {
-              const meta = RESULT_META[r.g.result];
+          <tbody>
+            {filtered.map((r, pos) => {
               const isLoaded = r.index === loadedIndex;
+              const tournament = r.g.tournament || '';
+              const newGroup = grouped && (pos === 0 || (filtered[pos - 1].g.tournament || '') !== tournament);
+              const score = groupScore.get(tournament);
               return (
-                <tr
-                  key={r.index}
-                  onClick={() => r.hasMoves && onLoad(r.index)}
-                  title={
-                    !r.hasMoves
-                      ? 'No moves yet — add them above to analyse'
-                      : r.playable
-                        ? 'Load on the board'
-                        : "Has a PGN but the moves can't be read — try re-pasting it"
-                  }
-                  className={`${r.hasMoves ? 'cursor-pointer' : 'opacity-60'} hover:bg-surface-2 ${isLoaded ? 'bg-accent/10' : ''}`}
-                >
-                  <td className="px-3 py-2 text-fg-subtle tabular-nums">{r.index + 1}</td>
-                  <td className="px-3 py-2 text-fg-muted tabular-nums whitespace-nowrap">
-                    {r.g.date ?? '—'}
-                    {r.g.time && <span className="ml-1 text-xs text-fg-subtle">{r.g.time}</span>}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="text-fg">{r.g.opp}</span>
-                    {r.g.opp_elo > 0 && <span className="ml-1 text-xs text-fg-subtle tabular-nums">({r.g.opp_elo})</span>}
-                    {!r.hasMoves && <span className="ml-2 text-[10px] uppercase tracking-wide text-fg-subtle">no moves</span>}
-                    {r.hasMoves && !r.playable && <span className="ml-2 text-[10px] uppercase tracking-wide text-loss">bad PGN</span>}
-                  </td>
-                  <td className="px-3 py-2 text-fg-muted">{r.g.color === 'W' ? '⚪' : '⚫'}</td>
-                  <td className={`px-3 py-2 font-medium ${meta.cls}`}>{meta.label}</td>
-                  <td className="px-3 py-2 text-fg-muted truncate max-w-[260px]" title={r.opening}>{r.opening}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {r.accuracy !== null ? (
-                      <span className="text-fg">{r.accuracy}%</span>
-                    ) : (
-                      <span className="text-fg-subtle">{r.hasMoves ? '—' : ''}</span>
-                    )}
-                  </td>
-                </tr>
+                <Fragment key={r.index}>
+                  {newGroup && (
+                    <tr className="border-b border-hairline-strong bg-app">
+                      <td colSpan={6} className="px-3 pb-2 pt-5">
+                        <span className="font-serif text-[17px] font-semibold leading-snug text-fg">
+                          {tournament || 'Sin torneo'}
+                        </span>
+                      </td>
+                      <td colSpan={2} className="px-3 pb-2 pt-5 text-right font-mono text-xs text-fg-muted">
+                        {score && `${formatPoints(score.pts)} / ${score.n}`}
+                      </td>
+                    </tr>
+                  )}
+                  <tr
+                    onClick={() => r.hasMoves && onLoad(r.index)}
+                    onKeyDown={e => {
+                      if (r.hasMoves && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        onLoad(r.index);
+                      }
+                    }}
+                    tabIndex={r.hasMoves ? 0 : undefined}
+                    aria-selected={isLoaded || undefined}
+                    title={
+                      !r.hasMoves
+                        ? 'Sin jugadas: agregalas arriba para analizarla'
+                        : r.playable
+                          ? 'Cargar en el tablero'
+                          : 'Tiene PGN pero las jugadas no se pueden leer: probá pegarlo de nuevo'
+                    }
+                    className={`border-b border-hairline transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+                      r.hasMoves ? 'cursor-pointer hover:bg-app' : 'text-fg-muted'
+                    } ${isLoaded ? 'bg-accent/10' : ''}`}
+                  >
+                    <td className="px-3 py-2 font-mono text-fg-subtle">{r.index + 1}</td>
+                    <td className="whitespace-nowrap px-3 py-2 font-mono text-xs text-fg-muted">
+                      {r.g.date ?? '—'}
+                      {r.g.time && <span className="ml-1 text-fg-subtle">{r.g.time}</span>}
+                    </td>
+                    <td className={`px-3 py-2 ${isLoaded ? 'text-accent' : 'text-fg'}`}>{r.g.opp}</td>
+                    <td className="px-3 py-2 text-right font-mono text-fg-muted">{r.g.opp_elo > 0 ? r.g.opp_elo : '—'}</td>
+                    <td className="px-3 py-2 text-fg-muted">{r.g.color === 'W' ? 'Blancas' : 'Negras'}</td>
+                    <td className="max-w-[260px] px-3 py-2" title={r.opening}>
+                      <span className="flex items-baseline gap-2">
+                        {r.g.eco && (
+                          <span className="shrink-0 rounded-sm border border-hairline px-1.5 font-mono text-xs text-fg-muted">
+                            {r.g.eco}
+                          </span>
+                        )}
+                        <span className="truncate font-serif text-fg">{r.opening}</span>
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <ResultMark result={r.g.result} outline />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {!r.hasMoves ? (
+                        <Badge>Sin jugadas</Badge>
+                      ) : !r.playable ? (
+                        <Badge tone="alert">PGN ilegible</Badge>
+                      ) : r.accuracy !== null ? (
+                        <Badge>
+                          Analizada · <span className="font-mono tabular-nums">{r.accuracy} %</span>
+                        </Badge>
+                      ) : (
+                        <Badge tone="today">Sin analizar</Badge>
+                      )}
+                    </td>
+                  </tr>
+                </Fragment>
               );
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-sm text-fg-muted">No games match your search.</td>
+                <td colSpan={8} className="px-3 py-6 text-center text-sm text-fg-muted">Ninguna partida coincide con la búsqueda.</td>
               </tr>
             )}
           </tbody>
@@ -387,13 +452,15 @@ const GamesAnalysisList = ({ onLoad, loadedIndex, onAnalyzed }: GamesAnalysisLis
       </div>
       {failed.length > 0 && (
         <p className="mt-2 text-xs text-loss">
-          Couldn’t analyse {failed.length} game{failed.length === 1 ? '' : 's'} (unreadable moves): {failed.join(', ')}. Re-paste their PGN above.
+          No se {failed.length === 1 ? 'pudo analizar 1 partida' : `pudieron analizar ${failed.length} partidas`} (jugadas
+          ilegibles): {failed.join(', ')}. Volvé a pegar su PGN arriba.
         </p>
       )}
       <p className="mt-2 text-xs text-fg-subtle">
-        Click a game to load it on the board. “Analyze all” runs Stockfish over every game with moves — it can take a while and fills the accuracy trend.
+        Tocá una partida para cargarla en el tablero. «Analizar todas» corre Stockfish sobre cada partida con
+        jugadas: puede tardar un rato y alimenta la precisión por partida.
       </p>
-    </div>
+    </Card>
   );
 };
 

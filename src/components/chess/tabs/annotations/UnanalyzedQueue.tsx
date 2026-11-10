@@ -1,5 +1,4 @@
-import { CheckCircleIcon } from '@heroicons/react/24/outline';
-import { Badge, Button, Card, resultTone } from '../../../ui';
+import { Badge, Button, Card, CardHeader, ResultMark } from '../../../ui';
 import { gameLabel } from '../../../../utils/gameMapping';
 import { isOtbGame, REQUIRED_OTB_MOMENTS, CANDIDATE_FATE_QUESTION } from './moments';
 import type { Game } from '../../../../types/chess';
@@ -9,8 +8,6 @@ interface UnanalyzedQueueProps {
   games: Game[];
   onAnalyze: (game: Game) => void;
 }
-
-const RESULT_LABEL: Record<Game['result'], string> = { W: 'Ganada', D: 'Tablas', L: 'Perdida' };
 
 /**
  * The games still owing a post-mortem, at the top of the library.
@@ -23,49 +20,50 @@ const UnanalyzedQueue = ({ games, onAnalyze }: UnanalyzedQueueProps) => {
   if (games.length === 0) {
     return (
       <Card>
-        <div className="flex items-center gap-3">
-          <CheckCircleIcon className="w-5 h-5 text-win shrink-0" />
-          <div>
-            <h3 className="text-fg font-medium">Todo analizado</h3>
-            <p className="text-sm text-fg-muted">
-              Ninguna partida de las últimas dos semanas quedó sin su fila.
-            </p>
-          </div>
-        </div>
+        <CardHeader title="Para analizar" actions={<Badge>0</Badge>} />
+        <p className="mt-3 text-sm text-fg-muted">
+          Todo analizado: ninguna partida de las últimas dos semanas quedó sin su fila.
+        </p>
       </Card>
     );
   }
 
   return (
     <Card>
-      <h3 className="text-fg font-medium">
-        {games.length} partida{games.length > 1 ? 's' : ''} sin analizar
-      </h3>
-      <p className="text-sm text-fg-muted mt-1">
-        Elegí una y el tablero se abre abajo con la partida cargada.
+      <CardHeader
+        title="Para analizar"
+        actions={
+          <Badge tone="today">
+            <span className="font-mono tabular-nums">{games.length}</span>
+          </Badge>
+        }
+      />
+      <p className="mt-3 text-sm text-fg-muted">
+        {games.length} partida{games.length > 1 ? 's' : ''} sin analizar. Elegí una y el tablero se abre
+        con la partida cargada.
       </p>
 
-      <ul className="mt-3 divide-y divide-hairline">
+      <ul className="mt-3 divide-y divide-hairline border-t border-hairline">
         {games.map(game => (
           <li
             key={game.id ?? `${game.opp}-${game.date}`}
-            className="flex flex-wrap items-center justify-between gap-3 py-2"
+            className="flex items-start justify-between gap-3 py-3"
           >
             <div className="min-w-0">
-              <p className="text-sm text-fg truncate">{gameLabel(game)}</p>
+              <p className="text-sm text-fg">{gameLabel(game)}</p>
               {isOtbGame(game) && (
-                <p className="text-xs text-fg-muted mt-0.5">
+                <p className="mt-0.5 text-xs text-fg-muted">
                   OTB: anotá {REQUIRED_OTB_MOMENTS} momentos y respondé «{CANDIDATE_FATE_QUESTION}»
                 </p>
               )}
               {!game.pgn && (
-                <p className="text-xs text-fg-subtle mt-0.5">
-                  Sin jugadas guardadas — se puede anotar igual, pero sin tablero.
+                <p className="mt-0.5 text-xs text-fg-subtle">
+                  Sin jugadas guardadas: se puede anotar igual, pero sin tablero.
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Badge tone={resultTone(game.result)}>{RESULT_LABEL[game.result]}</Badge>
+            <div className="flex shrink-0 items-center gap-2">
+              <ResultMark result={game.result} outline />
               <Button variant="primary" size="sm" onClick={() => onAnalyze(game)}>
                 Analizar
               </Button>

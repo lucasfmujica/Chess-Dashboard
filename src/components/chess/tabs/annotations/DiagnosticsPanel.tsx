@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BeakerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Badge, Button } from '../../../ui';
 import { usePositionDiagnostics } from '../../../../hooks/usePositionDiagnostics';
 import { useDiagnosticChat } from '../../../../hooks/useDiagnosticChat';
@@ -34,11 +34,12 @@ const CATEGORY_LABEL: Record<DiagnosticCategory, string> = {
   error_propio: 'Error propio',
 };
 
-const CATEGORY_TONE: Record<DiagnosticCategory, 'accent' | 'draw' | 'loss'> = {
-  // La brecha es la que más enseña, así que se lleva el color de acento.
-  brecha_conceptual: 'accent',
-  jugada_inhumana: 'draw',
-  error_propio: 'loss',
+const CATEGORY_TONE: Record<DiagnosticCategory, 'today' | 'neutral' | 'alert'> = {
+  // Copias de planilla: la brecha, que es la que más enseña, va en amarillo;
+  // el error propio en rosa, como un blunder.
+  brecha_conceptual: 'today',
+  jugada_inhumana: 'neutral',
+  error_propio: 'alert',
 };
 
 const CATEGORY_HINT: Record<DiagnosticCategory, string> = {
@@ -82,7 +83,7 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
           leer como "11 a 19". El rating completo está en el tooltip, y los
           extremos alcanzan para ubicar la escala. */}
       <div className="flex items-center gap-1.5">
-        <span className="text-[10px] tabular-nums text-fg-subtle">1100</span>
+        <span className="font-mono text-[10px] tabular-nums text-fg-subtle">1100</span>
         <div className="flex flex-1 gap-0.5">
           {rungs.map(rung => (
             <div
@@ -96,9 +97,9 @@ const MaiaLadder = ({ rungs }: { rungs: MaiaRung[] }) => {
             />
           ))}
         </div>
-        <span className="text-[10px] tabular-nums text-fg-subtle">1900</span>
+        <span className="font-mono text-[10px] tabular-nums text-fg-subtle">1900</span>
       </div>
-      <p className="mt-1 text-xs text-fg-muted">
+      <p className="mt-1 font-serif text-sm italic text-accent">
         {highest === undefined ? (
           <>Ningún nivel de Maia juega esto: es un error tuyo, no del nivel.</>
         ) : highest === 1900 && lowest === 1100 ? (
@@ -176,7 +177,7 @@ const PositionChat = ({
           <span className="text-fg-subtle">{t.role === 'user' ? 'Vos: ' : ''}</span>
           {t.text}
           {t.evaluated && t.evaluated.length > 0 && (
-            <p className="mt-0.5 font-mono text-[10px] text-fg-subtle">
+            <p className="mt-0.5 font-serif text-[11px] text-fg-subtle">
               evaluó: {t.evaluated.join(' · ')}
             </p>
           )}
@@ -201,7 +202,7 @@ const PositionChat = ({
           onKeyDown={e => e.key === 'Enter' && send()}
           placeholder="¿Y si jugaba otra cosa?"
           aria-label="Preguntar sobre esta posición"
-          className="min-w-0 flex-1 rounded border border-hairline bg-surface px-2 py-1 text-xs text-fg placeholder-fg-subtle focus:border-accent focus:outline-none"
+          className="h-8 min-w-0 flex-1 rounded border border-hairline bg-surface px-2.5 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
         <Button size="sm" onClick={send} disabled={thinking || !draft.trim()}>
           Preguntar
@@ -254,23 +255,21 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
   // pegado en el Analysis Board.
   if (!gameId) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+      <section className="rounded border border-hairline bg-surface p-4" aria-label="Preguntar sobre esta posición">
+        <p className="text-label mb-1">Preguntar sobre esta posición</p>
         <PositionChat key={position.ply} fen={position.fen} />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="rounded-lg border border-hairline bg-surface-2 p-3 space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <BeakerIcon className="w-4 h-4 text-fg-muted" />
-          <span className="text-sm font-semibold text-fg">Stockfish vs Maia-1900</span>
-        </div>
+    <section className="space-y-3 rounded border border-hairline bg-surface p-4" aria-label="Diagnóstico de la posición">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline pb-2">
+        <h4 className="font-serif text-lg font-semibold leading-tight text-fg">Stockfish contra Maia-1900</h4>
         {state === 'pedida' && <Badge tone="accent">Pedida</Badge>}
         {state === 'analizada' && run && (
           <Badge tone="neutral">
-            {run.findings} en {run.positions} pos. · prof. {run.depth}
+            <span className="font-mono tabular-nums">{run.findings} en {run.positions} pos. · prof. {run.depth}</span>
           </Badge>
         )}
       </div>
@@ -306,15 +305,15 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
       )}
 
       {current && (
-        <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-2">
-          <div className="flex items-center gap-2">
+        <div className="space-y-2 rounded border border-hairline bg-app p-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span title={CATEGORY_HINT[current.category]}>
               <Badge tone={CATEGORY_TONE[current.category]}>
                 {CATEGORY_LABEL[current.category]}
               </Badge>
             </span>
-            <span className="text-xs text-fg-muted">−{current.cpLoss}cp</span>
-            <span className="ml-auto text-xs text-fg-subtle tabular-nums">
+            <span className="font-mono text-xs tabular-nums text-loss">−{current.cpLoss} cp</span>
+            <span className="ml-auto font-mono text-xs tabular-nums text-fg-subtle">
               jugada {current.moveNumber}
             </span>
           </div>
@@ -327,12 +326,12 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           {/* La explicación primero: es la respuesta a "por qué", y los números
               de abajo son la evidencia que la sostiene. */}
           {current.explanation && (
-            <p className="rounded border-l-2 border-accent/40 bg-surface/60 py-1.5 pl-2 text-xs leading-relaxed text-fg">
+            <p className="font-serif text-[15px] italic leading-relaxed text-accent">
               {current.explanation}
             </p>
           )}
           <p className="text-xs text-fg-muted">
-            Jugaste <strong className="text-fg">{current.movePlayed}</strong>
+            Jugaste <strong className="font-serif text-sm font-semibold text-loss">{current.movePlayed}</strong>
             <span className="text-fg-subtle"> ({pct(current.maiaPolicyPlayed)} en Maia)</span>
             {current.maiaTopMove === current.movePlayed ? (
               <span title="Rating de Lichess: ~1750-1800 FIDE">
@@ -340,7 +339,7 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               </span>
             ) : (
               <span title="Rating de Lichess: ~1750-1800 FIDE">
-                ; Maia-1900 juega <strong className="text-fg">{current.maiaTopMove}</strong>.
+                ; Maia-1900 juega <strong className="font-serif text-sm font-semibold text-fg">{current.maiaTopMove}</strong>.
               </span>
             )}
           </p>
@@ -357,7 +356,7 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               type="button"
               onClick={() => setShowLines(v => !v)}
               aria-expanded={showLines}
-              className="flex w-full items-center gap-1 text-xs text-fg-subtle hover:text-fg"
+              className="flex w-full items-center gap-1 text-xs text-fg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             >
               <ChevronRightIcon
                 className={`w-3 h-3 transition-transform ${showLines ? 'rotate-90' : ''}`}
@@ -369,18 +368,18 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               {current.sfTop3.map(c => (
                 <li key={c.rank} className="text-xs">
                   <div className="flex justify-between gap-2">
-                    <span className={c.rank === 1 ? 'text-fg font-medium' : 'text-fg-muted'}>
+                    <span className={c.rank === 1 ? 'font-serif text-sm font-semibold text-fg' : 'font-serif text-sm text-fg-muted'}>
                       {c.rank}. {c.moveSan}
                       {c.maiaPolicy !== undefined && (
                         <span className="text-fg-subtle"> · {pct(c.maiaPolicy)} en Maia</span>
                       )}
                     </span>
-                    <span className="text-fg-subtle tabular-nums">{evalLabel(c.evalCp)}</span>
+                    <span className="font-mono tabular-nums text-fg-subtle">{evalLabel(c.evalCp)}</span>
                   </div>
                   {/* La línea es la explicación: sin ella "Bf5 era mejor" no
                       dice por qué. */}
                   {c.line && (
-                    <p className="mt-0.5 font-mono text-[11px] leading-snug text-fg-subtle">
+                    <p className="mt-0.5 font-serif text-xs leading-snug text-fg-subtle">
                       {c.line}
                     </p>
                   )}
@@ -404,15 +403,16 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
               <button
                 type="button"
                 onClick={() => position.goTo(d.ply - 1)}
-                className={`w-full flex items-center justify-between gap-2 rounded px-2 py-1 text-xs text-left hover:bg-surface ${
-                  atDecisionPoint(d) ? 'bg-surface text-fg' : 'text-fg-muted'
+                aria-current={atDecisionPoint(d) ? 'true' : undefined}
+                className={`flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+                  atDecisionPoint(d) ? 'bg-carbon text-fg' : 'text-fg-muted hover:bg-app'
                 }`}
               >
-                <span className="tabular-nums">
-                  {d.moveNumber}. {d.movePlayed}
+                <span className="font-serif">
+                  <span className="font-mono text-xs tabular-nums text-fg-subtle">{d.moveNumber}.</span> {d.movePlayed}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="text-fg-subtle">{d.sfTop3[0]?.moveSan}</span>
+                  <span className="font-serif text-fg-subtle">{d.sfTop3[0]?.moveSan}</span>
                   <Badge tone={CATEGORY_TONE[d.category]}>−{d.cpLoss}</Badge>
                 </span>
               </button>
@@ -432,7 +432,7 @@ const DiagnosticsPanel = ({ position, gameId, onMarks }: DiagnosticsPanelProps) 
           diagnóstico se le pasa como contexto; cuando no, el modelo igual puede
           contestar, porque su fuente es el motor del navegador y no lo que sabe. */}
       <PositionChat key={position.ply} fen={position.fen} diagnostic={current} />
-    </div>
+    </section>
   );
 };
 

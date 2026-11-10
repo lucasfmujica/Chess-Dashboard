@@ -42,34 +42,34 @@ const CaptureMomentPanel = ({
   useEffect(() => onNavigate(goTo), [goTo, onNavigate]);
 
   return (
-    <div className="rounded-lg border border-accent/30 bg-accent/5 p-3 space-y-2">
+    <section className="space-y-2 rounded border border-hairline border-t-[3px] border-t-hairline-strong bg-surface p-4" aria-label="Anotar esta posición">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h4 className="text-sm font-semibold text-fg">Anotar esta posición</h4>
+        <h4 className="text-label">Anotar esta posición</h4>
         {worstPly !== undefined && (
           <button
             onClick={() => goTo(worstPly)}
-            className="text-xs font-medium text-accent hover:underline"
+            className="text-xs font-medium text-accent underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
             Ir a mi peor jugada
           </button>
         )}
       </div>
 
-      <p className="text-xs text-fg-muted">
+      <p className="text-sm text-fg-muted">
         {playedSan ? (
           <>
             Desde acá jugaste{' '}
-            <span className="font-mono font-semibold text-fg">
+            <span className="font-serif text-base text-fg">
               {playedSan}
-              {suffix && <span className="text-loss">{suffix}</span>}
+              {suffix && <span className="font-sans font-semibold text-loss">{suffix}</span>}
             </span>
             {cpLoss !== undefined && cpLoss > 0 && (
-              <span className="text-fg-subtle"> (−{(cpLoss / 100).toFixed(1)})</span>
+              <span className="font-mono text-xs tabular-nums text-fg-subtle"> (−{(cpLoss / 100).toFixed(1)})</span>
             )}
             {bestSan && (
               <>
                 {' · motor: '}
-                <span className="font-mono font-semibold text-fg">{bestSan}</span>
+                <span className="font-serif text-base text-fg">{bestSan}</span>
               </>
             )}
           </>
@@ -103,7 +103,7 @@ const CaptureMomentPanel = ({
           la mejor jugada.
         </p>
       )}
-    </div>
+    </section>
   );
 };
 

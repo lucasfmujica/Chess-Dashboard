@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
-import { Badge } from '../../ui';
+import { Badge, Card, ClockBar, StatCard } from '../../ui';
 import BoardFrame from '../BoardFrame';
 import { boardSquareStyles } from '../boardTheme';
 import SegmentedControl from '../../ui/SegmentedControl';
@@ -18,11 +18,15 @@ const CATEGORY_LABEL: Record<DiagnosticCategory, string> = {
   error_propio: 'Error propio',
 };
 
-const CATEGORY_TONE: Record<DiagnosticCategory, 'accent' | 'draw' | 'loss'> = {
-  brecha_conceptual: 'accent',
-  jugada_inhumana: 'draw',
-  error_propio: 'loss',
+/** Copias de planilla: rosa el error propio, amarillo la brecha (lo que más enseña). */
+const CATEGORY_TONE: Record<DiagnosticCategory, 'today' | 'neutral' | 'alert'> = {
+  brecha_conceptual: 'today',
+  jugada_inhumana: 'neutral',
+  error_propio: 'alert',
 };
+
+/** Evaluación en peones, con signo, como la escribe el motor. */
+const evalText = (cp: number) => `${cp > 0 ? '+' : cp < 0 ? '−' : ''}${(Math.abs(cp) / 100).toFixed(1)}`;
 
 const CATEGORY_BLURB: Record<DiagnosticCategory, string> = {
   brecha_conceptual:
@@ -121,164 +125,205 @@ const DiagnosticsTab = () => {
   }, [selected]);
 
   const header = (
-    <div className="space-y-3">
-      <div>
-        <h2 className="text-lg font-semibold text-fg">Stockfish vs Maia-1900</h2>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="text-sm text-fg-muted">
-          Dónde te separaste del motor, y por qué. Ordenado por pérdida, no por fecha.
+          Stockfish contra Maia-1900: qué errores son tuyos y cuáles son del nivel.
         </p>
+        <SegmentedControl
+          aria-label="Vista del diagnóstico"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'divergencias', label: 'Mis divergencias' },
+            { value: 'temas', label: 'Temas' },
+            { value: 'trampas', label: 'Trampas' },
+          ]}
+        />
       </div>
-      <SegmentedControl
-        aria-label="Vista del diagnóstico"
-        value={view}
-        onChange={setView}
-        options={[
-          { value: 'divergencias', label: 'Mis divergencias' },
-          { value: 'temas', label: 'Temas' },
-          { value: 'trampas', label: 'Trampas' },
-        ]}
-      />
+
+      <ClockBar>
+        <StatCard title="Error propio" value={loading ? '—' : counts.error_propio ?? 0} subtitle="ningún nivel de Maia lo juega" />
+        <StatCard title="Brecha conceptual" value={loading ? '—' : counts.brecha_conceptual ?? 0} subtitle="Maia-1900 tampoco lo ve" />
+        <StatCard title="Jugada inhumana" value={loading ? '—' : counts.jugada_inhumana ?? 0} subtitle="solo el motor la encuentra" />
+        <StatCard title="Pedidos en cola" value={pending} subtitle="corren en tu máquina" />
+      </ClockBar>
+
       {/* Pedir no dispara nada: el análisis corre local. Sin este aviso un
           pedido se queda esperando sin que nada lo diga. */}
       {pending > 0 && (
-        <p className="rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-fg-muted">
+        <p className="rounded border border-hairline bg-carbon px-3 py-2 text-sm text-fg">
           {pending} partida{pending > 1 ? 's' : ''} esperando análisis. Corré{' '}
-          <code className="text-fg">python3 scripts/position_diagnostics.py --requested</code> en tu
+          <code className="font-mono text-xs">python3 scripts/position_diagnostics.py --requested</code> en tu
           máquina.
         </p>
       )}
     </div>
   );
 
-  if (view === 'temas') return <div className="space-y-4">{header}<PatternsView /></div>;
-  if (view === 'trampas') return <div className="space-y-4">{header}<TrapsView /></div>;
+  if (view === 'temas') return <div className="space-y-6">{header}<PatternsView /></div>;
+  if (view === 'trampas') return <div className="space-y-6">{header}<TrapsView /></div>;
 
-  if (loading) return <div className="space-y-4">{header}<p className="text-sm text-fg-muted">Cargando diagnóstico…</p></div>;
-  if (error) return <p className="text-sm text-loss">{error}</p>;
+  if (loading) return <div className="space-y-6">{header}<p className="text-sm text-fg-muted">Cargando diagnóstico…</p></div>;
+  if (error) return <div className="space-y-6">{header}<p className="text-sm text-loss">{error}</p></div>;
   if (rows.length === 0) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface-2 p-6 text-sm text-fg-muted">
-        Todavía no hay divergencias analizadas. El análisis corre en tu máquina:{' '}
-        <code className="text-fg">python3 scripts/position_diagnostics.py --source otb</code>, y
-        después <code className="text-fg">--evidence</code> y <code className="text-fg">--explain</code>.
+      <div className="space-y-6">
+        {header}
+        <Card>
+          <p className="text-sm text-fg-muted">
+            Todavía no hay divergencias analizadas. El análisis corre en tu máquina:{' '}
+            <code className="font-mono text-xs text-fg">python3 scripts/position_diagnostics.py --source otb</code>, y
+            después <code className="font-mono text-xs text-fg">--evidence</code> y <code className="font-mono text-xs text-fg">--explain</code>.
+          </p>
+        </Card>
       </div>
     );
   }
 
+  const best = selected?.sfTop3[0];
+  const maiaShare =
+    selected && selected.maiaTopMove === selected.movePlayed
+      ? selected.maiaPolicyPlayed
+      : selected && best && selected.maiaTopMove === best.moveSan
+        ? selected.maiaPolicySfTop
+        : undefined;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {header}
 
-      <div className="flex flex-wrap gap-1.5">
-        {FILTERS.map(f => (
-          <button
-            key={f}
-            onClick={() => {
+      <Card flush>
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-hairline-strong px-5 pt-4 sm:px-6">
+          <h2 className="pb-3 font-serif text-xl font-semibold leading-tight text-fg">Mis divergencias</h2>
+          <SegmentedControl
+            aria-label="Filtrar por categoría"
+            size="sm"
+            value={filter}
+            onChange={f => {
               setFilter(f);
               setSelectedId(undefined);
             }}
-            aria-pressed={filter === f}
-            className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
-              filter === f
-                ? 'bg-surface-2 text-fg border-hairline'
-                : 'border-transparent text-fg-muted hover:bg-surface-2'
-            }`}
-          >
-            {f === 'todas' ? 'Todas' : CATEGORY_LABEL[f]}{' '}
-            <span className="tabular-nums text-fg-subtle">{counts[f] ?? 0}</span>
-          </button>
-        ))}
-      </div>
-
-      {filter !== 'todas' && (
-        <p className="text-xs text-fg-muted">{CATEGORY_BLURB[filter]}</p>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]"
-        style={{ '--board-fit': 'calc(100dvh - 300px)' } as CSSProperties}
-      >
-        <div>
-          {selected && (
-            <BoardFrame>
-              <Chessboard
-                options={{
-                  position: selected.fen,
-                  boardOrientation: (selected.game ?? EMPTY_GAME).color === 'B' ? 'black' : 'white',
-                  allowDragging: false,
-                  showNotation: true,
-                  arrows,
-                  squareStyles,
-                  ...boardSquareStyles,
-                }}
-              />
-            </BoardFrame>
-          )}
-          {selected && (
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge tone={CATEGORY_TONE[selected.category]}>
-                  {CATEGORY_LABEL[selected.category]}
-                </Badge>
-                <span className="text-sm text-fg-muted">
-                  jugada {selected.moveNumber} · −{selected.cpLoss}cp
-                </span>
-              </div>
-              <div className="text-xs text-fg-subtle">
-                vs {(selected.game ?? EMPTY_GAME).opponent}
-                {selected.game?.opponentElo ? ` (${selected.game.opponentElo})` : ''}
-                {selected.game?.tournament ? ` · ${selected.game.tournament}` : ''}
-                {shortDate(selected.game?.playedDate) ? ` · ${shortDate(selected.game?.playedDate)}` : ''}
-              </div>
-              <p className="text-sm text-fg">
-                Jugaste <strong>{selected.movePlayed}</strong>; el motor quería{' '}
-                <strong>{selected.sfTop3[0]?.moveSan}</strong>.
-              </p>
-              {selected.sfTop3[0]?.line && (
-                <p className="font-mono text-xs text-fg-subtle">{selected.sfTop3[0].line}</p>
-              )}
-              {selected.explanation && (
-                <p className="rounded border-l-2 border-accent/40 bg-surface-2 py-2 pl-3 text-sm leading-relaxed text-fg">
-                  {selected.explanation}
-                </p>
-              )}
-              {selected.culprits && selected.culprits.length > 0 && (
-                <p className="text-xs text-fg-muted">
-                  En rojo, lo que tu jugada activó:{' '}
-                  {selected.culprits.map(c => `${c.piece} en ${c.square}`).join(', ')}.
-                </p>
-              )}
-              {/* El paso que faltaba: de saber en qué me equivoco, a entrenarlo. */}
-              <FindingActions key={selected.id} finding={selected} />
-            </div>
-          )}
+            options={FILTERS.map(f => ({
+              value: f,
+              label: (
+                <>
+                  {f === 'todas' ? 'Todas' : CATEGORY_LABEL[f]}
+                  <span className="font-mono tabular-nums text-fg-subtle">{counts[f] ?? 0}</span>
+                </>
+              ),
+            }))}
+            className="border-b-0"
+          />
         </div>
 
-        <ul className="min-w-0 space-y-1 lg:max-h-[70vh] lg:overflow-y-auto">
-          {shown.map(r => (
-            <li key={r.id}>
-              <button
-                onClick={() => setSelectedId(r.id)}
-                className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
-                  selected?.id === r.id ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
-                }`}
-              >
-                <span className="flex items-center justify-between gap-2">
-                  <span className="truncate">
-                    <span className="tabular-nums">{r.moveNumber}.</span> {r.movePlayed}
-                    <span className="text-fg-subtle"> vs {r.sfTop3[0]?.moveSan}</span>
-                  </span>
-                  <Badge tone={CATEGORY_TONE[r.category]}>−{r.cpLoss}</Badge>
-                </span>
-                <span className="mt-0.5 block truncate text-xs text-fg-subtle">
-                  {(r.game ?? EMPTY_GAME).opponent}
-                  {r.game?.openingName ? ` · ${r.game.openingName}` : ''}
-                  {shortDate(r.game?.playedDate) ? ` · ${shortDate(r.game?.playedDate)}` : ''}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+        <div className="space-y-4 p-5 sm:p-6">
+          {filter !== 'todas' && <p className="text-sm text-fg-muted">{CATEGORY_BLURB[filter]}</p>}
+          <p className="text-xs text-fg-subtle">Ordenado por pérdida, no por fecha. Maia usa rating de Lichess (~1750–1800 FIDE).</p>
+
+          <div
+            className="grid gap-6 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]"
+            style={{ '--board-fit': 'calc(100dvh - 360px)' } as CSSProperties}
+          >
+            <div className="min-w-0">
+              {selected && (
+                <BoardFrame>
+                  <Chessboard
+                    options={{
+                      position: selected.fen,
+                      boardOrientation: (selected.game ?? EMPTY_GAME).color === 'B' ? 'black' : 'white',
+                      allowDragging: false,
+                      showNotation: true,
+                      arrows,
+                      squareStyles,
+                      ...boardSquareStyles,
+                    }}
+                  />
+                </BoardFrame>
+              )}
+              {selected && (
+                <div className="mt-4 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone={CATEGORY_TONE[selected.category]}>{CATEGORY_LABEL[selected.category]}</Badge>
+                    <span className="text-xs text-fg-subtle">
+                      vs {(selected.game ?? EMPTY_GAME).opponent}
+                      {selected.game?.opponentElo ? ` (${selected.game.opponentElo})` : ''}
+                      {selected.game?.tournament ? ` · ${selected.game.tournament}` : ''}
+                      {` · jugada ${selected.moveNumber}`}
+                      {shortDate(selected.game?.playedDate) ? ` · ${shortDate(selected.game?.playedDate)}` : ''}
+                    </span>
+                  </div>
+
+                  <dl className="grid grid-cols-[auto_1fr_auto] items-baseline gap-x-4 gap-y-1.5">
+                    <dt className="text-label">Jugaste</dt>
+                    <dd className="font-serif text-[17px] leading-6 text-loss">{selected.movePlayed}</dd>
+                    <dd className="text-right font-mono text-sm tabular-nums text-loss">
+                      {best ? evalText(best.evalCp - selected.cpLoss) : `−${selected.cpLoss} cp`}
+                    </dd>
+                    <dt className="text-label">Stockfish</dt>
+                    <dd className="font-serif text-[17px] leading-6 text-fg">{best?.moveSan ?? '—'}</dd>
+                    <dd className="text-right font-mono text-sm tabular-nums text-fg">{best ? evalText(best.evalCp) : ''}</dd>
+                    <dt className="text-label">Maia-1900</dt>
+                    <dd className="font-serif text-[17px] leading-6 text-fg">
+                      {selected.maiaTopMove}
+                      {selected.maiaTopMove === selected.movePlayed && (
+                        <span className="ml-1 font-sans text-xs text-fg-subtle">(igual que vos)</span>
+                      )}
+                    </dd>
+                    <dd className="text-right font-mono text-sm tabular-nums text-fg-subtle">
+                      {maiaShare !== undefined ? `${Math.round(maiaShare * 100)} %` : ''}
+                    </dd>
+                  </dl>
+
+                  {best?.line && <p className="font-serif text-sm text-fg-subtle">{best.line}</p>}
+                  {selected.explanation && (
+                    <p className="font-serif text-[15px] italic leading-relaxed text-accent">{selected.explanation}</p>
+                  )}
+                  {selected.culprits && selected.culprits.length > 0 && (
+                    <p className="text-xs text-fg-muted">
+                      Recuadrado, lo que tu jugada activó:{' '}
+                      {selected.culprits.map(c => `${c.piece} en ${c.square}`).join(', ')}.
+                    </p>
+                  )}
+                  {/* El paso que faltaba: de saber en qué me equivoco, a entrenarlo. */}
+                  <FindingActions key={selected.id} finding={selected} />
+                </div>
+              )}
+            </div>
+
+            <ul className="min-w-0 divide-y divide-hairline border-y border-hairline lg:max-h-[70vh] lg:overflow-y-auto">
+              {shown.map(r => (
+                <li key={r.id}>
+                  <button
+                    onClick={() => setSelectedId(r.id)}
+                    aria-current={selected?.id === r.id ? 'true' : undefined}
+                    className={`w-full px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${
+                      selected?.id === r.id ? 'bg-accent/10 text-fg' : 'text-fg-muted hover:bg-app'
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="truncate font-serif text-[15px]">
+                        <span className="font-mono text-xs tabular-nums text-fg-subtle">{r.moveNumber}.</span>{' '}
+                        <span className="text-fg">{r.movePlayed}</span>
+                        <span className="text-fg-subtle"> en vez de {r.sfTop3[0]?.moveSan}</span>
+                      </span>
+                      <span className="shrink-0 font-mono text-xs tabular-nums text-loss">−{r.cpLoss}</span>
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-2 truncate text-xs text-fg-subtle">
+                      <Badge tone={CATEGORY_TONE[r.category]}>{CATEGORY_LABEL[r.category]}</Badge>
+                      <span className="truncate">
+                        {(r.game ?? EMPTY_GAME).opponent}
+                        {r.game?.openingName ? ` · ${r.game.openingName}` : ''}
+                        {shortDate(r.game?.playedDate) ? ` · ${shortDate(r.game?.playedDate)}` : ''}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

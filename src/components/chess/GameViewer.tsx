@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { boardSquareStyles } from './boardTheme';
 import BoardFrame from './BoardFrame';
@@ -11,7 +11,7 @@ import {
   ChevronDoubleRightIcon,
   ArrowsUpDownIcon,
 } from '@heroicons/react/24/solid';
-import { CpuChipIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { useGameReplay } from '../../hooks/useGameReplay';
 import { useGameAnalysis } from '../../hooks/useGameAnalysis';
 import { useEngineSettings } from '../../hooks/useEngineSettings';
@@ -25,6 +25,7 @@ import MovesExplorer from './MovesExplorer';
 import EngineLines from './EngineLines';
 import PersonalMoves from './PersonalMoves';
 import EvalGraph from '../charts/EvalGraph';
+import { Button, ResultMark } from '../ui';
 
 /**
  * What the board is showing right now, handed to the `capture` slot.
@@ -92,10 +93,11 @@ interface GameViewerProps {
   wide?: boolean;
 }
 
+/** NAGs on the score sheet: the symbol and its ink. */
 const QUALITY_META: Partial<Record<MoveQuality, { sym: string; cls: string }>> = {
   blunder: { sym: '??', cls: 'text-loss' },
-  mistake: { sym: '?', cls: 'text-draw' },
-  inaccuracy: { sym: '?!', cls: 'text-fg-subtle' },
+  mistake: { sym: '?', cls: 'text-loss' },
+  inaccuracy: { sym: '?!', cls: 'text-cat-2' },
 };
 
 const ControlButton = ({
@@ -114,11 +116,35 @@ const ControlButton = ({
     disabled={disabled}
     aria-label={label}
     title={label}
-    className="flex items-center justify-center w-10 h-9 rounded-md border border-hairline bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+    className="flex h-9 w-11 items-center justify-center rounded border border-hairline bg-surface text-fg-muted transition-colors hover:border-fg-subtle hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-45"
   >
     {children}
   </button>
 );
+
+/** '1-0' / '0-1' / '½-½' seen from one side, as the arbiter writes it. */
+const sideResult = (result: string | undefined, side: 'white' | 'black'): 'W' | 'D' | 'L' | undefined => {
+  const r = (result ?? '').replace(/\s/g, '');
+  if (r === '1-0') return side === 'white' ? 'W' : 'L';
+  if (r === '0-1') return side === 'white' ? 'L' : 'W';
+  if (r === '1/2-1/2' || r === '½-½') return 'D';
+  return undefined;
+};
+
+/** One player's line above or below the board: result, name, colour. */
+const PlayerLine = ({ name, side, result }: { name?: string; side: 'white' | 'black'; result?: string }) => {
+  const mark = sideResult(result, side);
+  const colour = side === 'white' ? 'Blancas' : 'Negras';
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span className="flex min-w-0 items-center gap-2">
+        {mark && <ResultMark result={mark} outline />}
+        <span className="truncate font-medium text-fg">{name || colour}</span>
+      </span>
+      {name && <span className="shrink-0 font-mono text-xs tabular-nums text-fg-muted">{colour.toLowerCase()}</span>}
+    </div>
+  );
+};
 
 const GameViewer = ({
   pgn,
@@ -226,10 +252,10 @@ const GameViewer = ({
   // changed yet while the picker is up, since the move isn't played until
   // a piece is chosen.
   const PROMOTION_CHOICES: { code: string; glyph: string; label: string }[] = [
-    { code: 'q', glyph: sideToMove === 'w' ? '♕' : '♛', label: 'Queen' },
-    { code: 'r', glyph: sideToMove === 'w' ? '♖' : '♜', label: 'Rook' },
-    { code: 'b', glyph: sideToMove === 'w' ? '♗' : '♝', label: 'Bishop' },
-    { code: 'n', glyph: sideToMove === 'w' ? '♘' : '♞', label: 'Knight' },
+    { code: 'q', glyph: sideToMove === 'w' ? '♕' : '♛', label: 'Dama' },
+    { code: 'r', glyph: sideToMove === 'w' ? '♖' : '♜', label: 'Torre' },
+    { code: 'b', glyph: sideToMove === 'w' ? '♗' : '♝', label: 'Alfil' },
+    { code: 'n', glyph: sideToMove === 'w' ? '♘' : '♞', label: 'Caballo' },
   ];
   const [settings, setSettings] = useEngineSettings();
   const [engineOn, setEngineOn] = useState(false);
@@ -384,24 +410,39 @@ const GameViewer = ({
   const isMate = Math.abs(currentEval) >= 9000;
   const evalLabel = isMate ? '#' : (Math.abs(currentEval) / 100).toFixed(1);
 
-  const moveButton = (san: string, plyNum: number) => {
+  /** One move cell on the score sheet. */
+  const moveCell = (san: string | undefined, plyNum: number) => {
+    if (!san) return <span className="border-b border-l border-hairline" aria-hidden="true" />;
     const isVar = isVariation && plyNum - 1 >= variationStart;
     const q = isVar ? undefined : analysis?.moves[plyNum - 1]?.quality;
     const meta = q ? QUALITY_META[q] : undefined;
+    const active = ply === plyNum;
+    const tone = active
+      ? 'bg-carbon text-fg'
+      : q === 'blunder'
+        ? 'bg-carbon-pink text-fg'
+        : isVar
+          ? 'italic text-fg-muted hover:bg-app'
+          : 'text-fg hover:bg-app';
     return (
       <button
-        data-active={ply === plyNum}
+        data-active={active}
+        aria-current={active ? 'true' : undefined}
         onClick={() => goTo(plyNum)}
-        className={`px-2 py-0.5 rounded font-medium tabular-nums transition-colors ${
-          ply === plyNum ? 'bg-accent/15 text-accent' : isVar ? 'text-fg-muted italic hover:bg-surface-2' : 'text-fg hover:bg-surface-2'
-        }`}
-        title={isVar ? 'Variation move' : undefined}
+        className={`border-b border-l border-hairline px-3 py-1 text-left font-serif text-base leading-6 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent ${tone}`}
+        title={isVar ? 'Jugada de una variante' : undefined}
       >
         {san}
-        {meta && <sup className={`ml-0.5 font-bold ${meta.cls}`}>{meta.sym}</sup>}
+        {meta && <span className={`ml-0.5 font-sans font-semibold ${meta.cls}`}>{meta.sym}</span>}
       </button>
     );
   };
+
+  const whiteName = white;
+  const blackName = black;
+  const topSide: 'white' | 'black' = boardOrientation === 'white' ? 'black' : 'white';
+  const bottomSide: 'white' | 'black' = topSide === 'white' ? 'black' : 'white';
+  const showPlayers = !!(white || black || result);
 
   // In `wide` mode (the Analysis Board) the board gets its own capped grid
   // track and the analysis panel absorbs the rest; the modal and inline
@@ -410,8 +451,8 @@ const GameViewer = ({
     <div
       className={
         wide
-          ? 'grid gap-5 xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(380px,1fr)]'
-          : 'flex flex-col xl:flex-row gap-5'
+          ? 'grid gap-6 xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(380px,1fr)]'
+          : 'flex flex-col xl:flex-row gap-6'
       }
       style={
         {
@@ -419,31 +460,35 @@ const GameViewer = ({
           // The eval bar shares the track with the board, so the track has to
           // be that much wider for the board itself to end up the size the
           // user dragged it to.
-          '--board-gutter': '36px',
+          '--board-gutter': '28px',
         } as CSSProperties
       }
     >
-      <div className={`w-full min-w-0 ${wide ? '' : 'xl:w-[520px] xl:flex-shrink-0'}`}>
+      <div className={`w-full min-w-0 space-y-2 ${wide ? '' : 'xl:w-[520px] xl:flex-shrink-0'}`}>
+        {showPlayers && (
+          <PlayerLine name={topSide === 'white' ? whiteName : blackName} side={topSide} result={result} />
+        )}
+
         <div className="flex justify-center gap-2">
-          {/* Eval bar */}
-          {/* Eval bar — black/white sides are semantic (not theme-driven), so
-              use zinc-* which the dark-mode compatibility layer never remaps. */}
+          {/* Eval bar. Its two halves are the board's own squares, which keep
+              their colour in both themes: white's share is the light square. */}
           <div
-            className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900"
+            className="relative w-5 shrink-0 overflow-hidden rounded-sm bg-board-dark"
             title={
               evalAvailable
-                ? `Evaluation ${formatEval(currentEval)} (White's perspective)${liveEvalCp !== undefined ? ' · live' : ''}`
-                : 'Turn on the engine or run analysis to see the evaluation'
+                ? `Evaluación ${formatEval(currentEval)} (desde Blancas)${liveEvalCp !== undefined ? ' · en vivo' : ''}`
+                : 'Prendé el motor o analizá la partida para ver la evaluación'
             }
           >
             <div
-              className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
+              className="absolute left-0 right-0 bg-board-light transition-all duration-200"
               style={flip ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
             />
+            <div className="absolute left-0 right-0 top-1/2 h-px bg-fg/30" aria-hidden="true" />
             {evalAvailable && (
               <span
-                className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-zinc-900' : 'text-zinc-100'}`}
-                style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
+                className="absolute left-0 right-0 bg-surface py-0.5 text-center font-mono text-[9px] font-medium leading-none tabular-nums text-fg"
+                style={labelAtBottom ? { bottom: 0 } : { top: 0 }}
               >
                 {evalLabel}
               </span>
@@ -474,17 +519,17 @@ const GameViewer = ({
             />
 
             {pendingPromotion && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
-                <div className="rounded-lg border border-hairline bg-surface p-3 shadow-lg">
-                  <p className="mb-2 text-center text-xs font-medium text-fg-muted">Promote to</p>
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-fg/40">
+                <div className="rounded border border-hairline bg-surface p-3">
+                  <p className="text-label mb-2 text-center">Coronar</p>
                   <div className="flex gap-1.5">
                     {PROMOTION_CHOICES.map(({ code, glyph, label }) => (
                       <button
                         key={code}
                         onClick={() => choosePromotion(code)}
-                        aria-label={`Promote to ${label}`}
+                        aria-label={`Coronar ${label}`}
                         title={label}
-                        className="flex h-11 w-11 items-center justify-center rounded-md border border-hairline bg-surface-2 text-3xl leading-none hover:bg-accent/15 hover:border-accent/40 transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded border border-hairline bg-surface-2 text-3xl leading-none transition-colors hover:border-accent hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                       >
                         {glyph}
                       </button>
@@ -494,7 +539,7 @@ const GameViewer = ({
                     onClick={() => setPendingPromotion(null)}
                     className="mt-2 w-full text-center text-xs text-fg-muted hover:text-fg"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                 </div>
               </div>
@@ -502,9 +547,13 @@ const GameViewer = ({
           </BoardFrame>
         </div>
 
+        {showPlayers && (
+          <PlayerLine name={bottomSide === 'white' ? whiteName : blackName} side={bottomSide} result={result} />
+        )}
+
         {/* Controls */}
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <ControlButton onClick={() => setFlipped(f => !f)} label="Flip board">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+          <ControlButton onClick={() => setFlipped(f => !f)} label="Girar tablero">
             <ArrowsUpDownIcon className="w-4 h-4" />
           </ControlButton>
           {pgn && (
@@ -517,103 +566,148 @@ const GameViewer = ({
                 ].join('\n');
                 downloadFile(`${headers}\n\n${pgn.trim()}`, 'game.pgn', 'application/x-chess-pgn');
               }}
-              label="Download PGN"
+              label="Descargar PGN"
             >
               <ArrowDownTrayIcon className="w-4 h-4" />
             </ControlButton>
           )}
-          <ControlButton onClick={first} disabled={ply === 0} label="First move">
+          <ControlButton onClick={first} disabled={ply === 0} label="Primera jugada">
             <ChevronDoubleLeftIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={prev} disabled={ply === 0} label="Previous move">
+          <ControlButton onClick={prev} disabled={ply === 0} label="Jugada anterior">
             <ChevronLeftIcon className="w-4 h-4" />
           </ControlButton>
-          <span className="min-w-[64px] text-center text-sm text-fg-muted tabular-nums">
+          <span className="min-w-[64px] text-center font-mono text-sm tabular-nums text-fg-muted">
             {ply} / {totalPlies}
           </span>
-          <ControlButton onClick={next} disabled={ply >= totalPlies} label="Next move">
+          <ControlButton onClick={next} disabled={ply >= totalPlies} label="Jugada siguiente">
             <ChevronRightIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={last} disabled={ply >= totalPlies} label="Last move">
+          <ControlButton onClick={last} disabled={ply >= totalPlies} label="Última jugada">
             <ChevronDoubleRightIcon className="w-4 h-4" />
           </ControlButton>
         </div>
-        <p className="mt-2 text-center text-xs text-fg-subtle">
-          Use ← → to step, Home/End to jump{explorable && ' · click or drag a piece to explore a line'}
+        <p className="text-center text-xs text-fg-subtle">
+          ← → para avanzar, Inicio y Fin para saltar{explorable && ' · tocá o arrastrá una pieza para explorar una línea'}
         </p>
       </div>
 
-      {/* Right column: analysis, engine, compare, eval graph, move list */}
-      <div className={`min-w-0 space-y-3 ${wide ? '' : 'flex-1'}`}>
+      {/* Right column: capture, opening, engine, evaluation, score sheet */}
+      <div className={`min-w-0 space-y-4 ${wide ? '' : 'flex-1'}`}>
         {capture?.(capturePosition)}
-
-        {(white || black) && (
-          <div className="text-sm">
-            <span className="font-semibold text-fg">{white || 'White'}</span>
-            <span className="text-fg-subtle"> vs </span>
-            <span className="font-semibold text-fg">{black || 'Black'}</span>
-            {result && <span className="ml-2 text-fg-muted tabular-nums">{result}</span>}
-          </div>
-        )}
 
         {/* Live opening name for the current position (offline dataset). */}
         {opening && (
-          <div className="text-xs text-fg-muted">
-            <span className="font-medium text-fg-subtle tabular-nums">{opening.eco}</span>
-            {opening.eco && ' · '}
-            {opening.name}
+          <p className="flex flex-wrap items-baseline gap-2">
+            {opening.eco && (
+              <span className="rounded-sm border border-hairline px-1.5 font-mono text-xs tabular-nums text-fg-muted">
+                {opening.eco}
+              </span>
+            )}
+            <span className="font-serif text-base text-fg">{opening.name}</span>
+          </p>
+        )}
+
+        {/* Live engine: the engine's panel on paper, under a thick ink rule. */}
+        {showEngine && (
+          <div className="[&>*]:rounded-t-none [&>*]:border-t-[3px] [&>*]:border-t-hairline-strong">
+            <EngineLines
+              state={engineState}
+              enabled={engineOn}
+              onToggle={() => setEngineOn(o => !o)}
+              settings={settings}
+              setSettings={setSettings}
+              onPlay={playUci}
+            />
           </div>
         )}
 
         {/* Full-game analysis (accuracy / blunders) */}
         {isValid && (
-          <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+          <section className="rounded border border-hairline border-t-[3px] border-t-hairline-strong bg-surface p-4" aria-label="Análisis de la partida">
             {!analysis && !analyzing && (
-              <button
-                onClick={analyze}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fg text-app text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                <CpuChipIcon className="w-4 h-4" />
-                Analyze with Stockfish
-              </button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-fg-muted">Stockfish revisa cada jugada y marca los errores en la planilla.</p>
+                <Button variant="primary" size="sm" onClick={analyze}>
+                  Analizar con Stockfish
+                </Button>
+              </div>
             )}
             {analyzing && (
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-sm bg-surface-2">
                   <div className="h-full bg-accent transition-all" style={{ width: `${Math.round(progress * 100)}%` }} />
                 </div>
-                <span className="text-xs text-fg-muted tabular-nums">{Math.round(progress * 100)}%</span>
-                <button onClick={cancel} className="text-xs text-fg-muted hover:text-fg">Cancel</button>
+                <span className="font-mono text-xs tabular-nums text-fg-muted">{Math.round(progress * 100)} %</span>
+                <Button variant="ghost" size="sm" onClick={cancel}>Cancelar</Button>
               </div>
             )}
             {analysisError && <p className="text-xs text-loss">{analysisError}</p>}
             {analysis && !analyzing && (
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-                <span className="text-fg-muted">Accuracy</span>
-                <span className="text-fg tabular-nums">⚪ {analysis.accuracyWhite}%</span>
-                <span className="text-fg tabular-nums">⚫ {analysis.accuracyBlack}%</span>
-                <span className="text-loss tabular-nums">{analysis.blunders} blunders</span>
-                <span className="text-draw tabular-nums">{analysis.mistakes} mistakes</span>
-                <span className="text-fg-subtle tabular-nums">{analysis.inaccuracies} inaccuracies</span>
-                <span className="text-fg-subtle text-xs">depth {analysis.depth}</span>
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-label">Precisión</span>
+                  <span className="font-mono text-xs tabular-nums text-fg-subtle">prof. {analysis.depth}</span>
+                </div>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  <span className="text-sm text-fg-muted">
+                    Blancas <span className="font-mono text-xl font-medium tabular-nums text-fg">{analysis.accuracyWhite} %</span>
+                  </span>
+                  <span className="text-sm text-fg-muted">
+                    Negras <span className="font-mono text-xl font-medium tabular-nums text-fg">{analysis.accuracyBlack} %</span>
+                  </span>
+                </div>
+                <p className="font-mono text-xs tabular-nums text-fg-muted">
+                  <span className="text-loss">{analysis.blunders} ??</span> · {analysis.mistakes} ? · {analysis.inaccuracies} ?!
+                  <span className="font-sans text-fg-subtle"> · blunders, errores e imprecisiones</span>
+                </p>
               </div>
             )}
-          </div>
+          </section>
         )}
 
         {/* Whole-game evaluation curve (mainline only) */}
         {analysis && !isVariation && <EvalGraph evals={analysis.evals} ply={ply} onSelect={goTo} />}
 
-        {/* Live engine */}
-        {showEngine && (
-          <EngineLines
-            state={engineState}
-            enabled={engineOn}
-            onToggle={() => setEngineOn(o => !o)}
-            settings={settings}
-            setSettings={setSettings}
-            onPlay={playUci}
-          />
+        {isVariation && (
+          <div className="flex items-center justify-between gap-2 rounded border border-hairline bg-accent/10 px-3 py-2 text-sm">
+            <span className="text-accent">Estás explorando una variante.</span>
+            <Button variant="ghost" size="sm" onClick={reset}>Volver a la partida</Button>
+          </div>
+        )}
+
+        {!isValid ? (
+          <div className={`rounded border p-4 text-sm ${error ? 'border-hairline bg-carbon-pink text-fg' : 'border-hairline bg-surface-2 text-fg-muted'}`}>
+            {error
+              ? `No se pudieron leer las jugadas: ${error}. Puede haber un error de transcripción en el PGN: volvé a pegarlo en «Agregar jugadas».`
+              : explorable
+                ? 'Arrastrá una pieza o tocá una jugada de los paneles para empezar a explorar una línea.'
+                : 'Esta partida no tiene jugadas guardadas para reproducir.'}
+          </div>
+        ) : (
+          <section className="overflow-hidden rounded border border-hairline bg-surface" aria-label="Planilla">
+            <header className="flex items-baseline justify-between gap-3 border-b border-hairline-strong px-4 py-3">
+              <h3 className="font-serif text-xl font-semibold text-fg">Planilla</h3>
+              <span className="font-mono text-xs tabular-nums text-fg-subtle">
+                {totalPlies ? `jugada ${Math.ceil(Math.max(ply, 1) / 2)} de ${Math.ceil(totalPlies / 2)}` : 'sin jugadas'}
+              </span>
+            </header>
+            <div ref={moveListRef} className="grid max-h-[320px] grid-cols-[40px_1fr_1fr] overflow-auto">
+              {rows.map(row => {
+                const whitePly = (row.num - 1) * 2 + 1;
+                const blackPly = whitePly + 1;
+                return (
+                  <Fragment key={row.num}>
+                    <span className="select-none border-b border-hairline bg-surface-2 px-2 py-1 text-right font-mono text-[13px] leading-6 tabular-nums text-fg-muted">
+                      {row.num}.
+                    </span>
+                    {moveCell(row.white, whitePly)}
+                    {moveCell(row.black, blackPly)}
+                  </Fragment>
+                );
+              })}
+            </div>
+          </section>
         )}
 
         {/* You vs Masters — give Masters more room when you barely have any
@@ -628,41 +722,6 @@ const GameViewer = ({
               onColorChange={setPersonalColor}
             />
             <MovesExplorer fen={fen} playedMove={playedMove} onPlayMove={playUci} />
-          </div>
-        )}
-
-        {isVariation && (
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-accent/30 bg-accent/10 px-3 py-2 text-sm">
-            <span className="text-accent">You’re exploring a variation.</span>
-            <button onClick={reset} className="font-medium text-accent hover:underline">← Back to game</button>
-          </div>
-        )}
-
-        {!isValid ? (
-          <div className={`rounded-lg border p-4 text-sm ${error ? 'border-loss/40 bg-loss/10 text-loss' : 'border-hairline bg-surface-2 text-fg-muted'}`}>
-            {error
-              ? `Couldn’t read this game’s moves: ${error}. The PGN may have a transcription error — re-paste it via “Add moves to a game”.`
-              : explorable
-                ? 'Drag a piece or click a move from the panels above to start exploring a line.'
-                : 'This game has no recorded moves to replay.'}
-          </div>
-        ) : (
-          <div ref={moveListRef} className="rounded-lg border border-hairline bg-surface max-h-[320px] overflow-auto">
-            <table className="w-full text-sm">
-              <tbody>
-                {rows.map(row => {
-                  const whitePly = (row.num - 1) * 2 + 1;
-                  const blackPly = whitePly + 1;
-                  return (
-                    <tr key={row.num} className="border-b border-hairline last:border-0">
-                      <td className="w-10 px-3 py-1.5 text-fg-subtle tabular-nums select-none">{row.num}.</td>
-                      <td className="px-2 py-1">{row.white && moveButton(row.white, whitePly)}</td>
-                      <td className="px-2 py-1">{row.black && moveButton(row.black, blackPly)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
           </div>
         )}
       </div>
