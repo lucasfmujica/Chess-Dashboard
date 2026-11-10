@@ -158,6 +158,7 @@ export const useGameStats = (ratedGames: Game[]) => {
         .filter((d): d is string => !!d)
         .sort()[0] ?? '';
 
+    let lastEloAfter = 0;
     return Object.keys(byTournament)
       .sort((a, b) => {
         const dateA = earliestDate(a);
@@ -169,6 +170,7 @@ export const useGameStats = (ratedGames: Game[]) => {
       })
       .map(tournament => {
         const stats = byTournament[tournament];
+        const prevEloAfter = lastEloAfter;
         const gameStats = calculateGameStats(stats.games);
 
         // Calculate color-specific performance
@@ -178,6 +180,13 @@ export const useGameStats = (ratedGames: Game[]) => {
         const blackStats = blackGames.length > 0 ? calculateGameStats(blackGames) : null;
 
         const tournamentData: Partial<TournamentDataEntry> = TOURNAMENT_DATA[tournament] || {};
+
+        // A tournament missing from the legacy map (team events, newer imports)
+        // starts where the previous one ended, not at the very first rating.
+        const eloBefore = tournamentData.startElo || prevEloAfter || stats.games.find(g => g.elo > 0)?.elo || 1651;
+        const eloChange = tournamentData.eloChange || 0;
+        const eloAfter = eloBefore + eloChange;
+        lastEloAfter = eloAfter;
 
         return {
           tournament,
@@ -189,9 +198,9 @@ export const useGameStats = (ratedGames: Game[]) => {
           score: gameStats.score,
           performanceRating: tournamentData.performanceRating || gameStats.performanceRating,
           avgOppElo: gameStats.avgOppElo,
-          eloChange: tournamentData.eloChange || 0,
-          eloBefore: tournamentData.startElo || 1651,
-          eloAfter: (tournamentData.startElo || 1651) + (tournamentData.eloChange || 0),
+          eloChange,
+          eloBefore,
+          eloAfter,
           whitePerformance: whiteStats?.performanceRating ?? '-',
           blackPerformance: blackStats?.performanceRating ?? '-',
         };
