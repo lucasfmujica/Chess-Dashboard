@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 import { Badge } from '../../ui';
@@ -194,7 +194,9 @@ const DiagnosticsTab = () => {
         <p className="text-xs text-fg-muted">{CATEGORY_BLURB[filter]}</p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_1fr]"
+        style={{ '--board-fit': 'calc(100dvh - 300px)' } as CSSProperties}
+      >
         <div>
           {selected && (
             <BoardFrame>
