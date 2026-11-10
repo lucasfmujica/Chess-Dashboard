@@ -1,7 +1,8 @@
 // Falla si los assets de build/ que llevan las posiciones de la cola de
 // conversión (los que contienen `conv-001` o `drill-001`) tienen claves fuera de
 // la lista permitida, datos personales o links, o si no hay exactamente 90 ids
-// `conv-` y 34 `drill-`. Nunca imprime el contenido que matcheó.
+// `conv-` y 64 `drill-` (35 guías + 29 clases). También falla si aparece el
+// nombre del profesor o de un rival (ver la lista negra). Nunca imprime el contenido que matcheó.
 // Usage: npm run build (corre esto después de vite build) o npm run assert:conversion-privacy
 import { checkConversionAssets, readBuildAssets } from './lib/conversionPrivacy.mjs';
 

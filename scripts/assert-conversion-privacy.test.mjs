@@ -5,13 +5,13 @@ import { checkConversionAssets, topLevelKeys } from './lib/conversionPrivacy.mjs
 const item = (prefix, n, extra = '') =>
   `{id:\`${prefix}-${String(n).padStart(3, '0')}\`,fen:\`8/8/8/8/8/8/8/K6k w - - 0 1\`,color:\`white\`,acceptedUci:[\`a1a2\`],gameId:null,source:\`otb\`,date:\`2026-03\`${extra}}`;
 
-const chunk = ({ conv = 90, drills = 34, extra = '' } = {}) =>
-  `var e=[${Array.from({ length: conv }, (_, i) => item('conv', i + 1, i === 0 ? extra : '')).join(',')}],t=[${Array.from({ length: drills }, (_, i) => item('drill', i + 1)).join(',')}];export{e as a,t as b};`;
+const chunk = ({ conv = 90, drills = 64, extra = '', drillExtra = '' } = {}) =>
+  `var e=[${Array.from({ length: conv }, (_, i) => item('conv', i + 1, i === 0 ? extra : '')).join(',')}],t=[${Array.from({ length: drills }, (_, i) => item('drill', i + 1, i === 63 ? drillExtra : '')).join(',')}];export{e as a,t as b};`;
 
 const check = text => checkConversionAssets([{ path: 'assets/conversion-data-x.js', text }, { path: 'assets/index-y.js', text: 'console.log("http://x")' }]);
 
 describe('checkConversionAssets', () => {
-  it('pasa con 90 + 34 ítems limpios (y no mira los assets sin datos)', () => {
+  it('pasa con 90 + 64 ítems (35 guías y 29 clases) limpios (y no mira los assets sin datos)', () => {
     expect(check(chunk()).findings).toEqual([]);
   });
 
@@ -33,14 +33,27 @@ describe('checkConversionAssets', () => {
     ['[Event', ',notes:`[Event "x"]`'],
     ['Elo', ',notes:`Elo 1800`'],
     ['Lucas', ',notes:`Lucas`'],
+    ['Toto', ',notes:`clase con Toto`'],
+    ['Toto en minúsculas', ',notes:`toto`'],
+    ['Botz', ',notes:`vs Botz`'],
     ['fecha exacta', ',notes:`2026-03-14`'],
   ])('falla con %s', (_label, extra) => {
     expect(check(chunk({ extra })).findings.length).toBeGreaterThan(0);
   });
 
-  it('falla con una cantidad distinta de 90 o 34', () => {
+  it('falla con una cantidad distinta de 90 conv- o 64 drill-', () => {
     expect(check(chunk({ conv: 89 })).findings.join()).toMatch(/90/);
-    expect(check(chunk({ drills: 35 })).findings.join()).toMatch(/34/);
+    expect(check(chunk({ drills: 63 })).findings.join()).toMatch(/64/);
+  });
+
+  it('falla si un ítem de clase tiene claves fuera de la lista (y acepta needsReview)', () => {
+    expect(check(chunk({ drillExtra: ',opponent:`x`' })).findings.join()).toMatch(/drill-064.*opponent/);
+    expect(check(chunk({ drillExtra: ',needsReview:!0' })).findings).toEqual([]);
+  });
+
+  it('falla si Toto o Botz aparecen en el chunk de datos', () => {
+    expect(check(chunk({ drillExtra: ',plan:`Toto`' })).findings.join()).toMatch(/Toto/);
+    expect(check(chunk({ drillExtra: ',plan:`BOTZ`' })).findings.join()).toMatch(/Botz/);
   });
 
   it('no repite el contenido que matcheó', () => {

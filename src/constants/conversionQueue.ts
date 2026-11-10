@@ -1,9 +1,10 @@
 import conversionFile from './conversionQueue.json';
 import guideFile from './guideDrills.json';
+import classFile from './classDrills.json';
 
 /**
- * Cola estática de conversión (partidas propias donde se escapó una ventaja) y
- * ejercicios de las guías. Los dos JSON los genera `scripts/build-conversion-queue.mjs`
+ * Cola estática de conversión (partidas propias donde se escapó una ventaja),
+ * ejercicios de las guías y finales de las clases. Los tres JSON los genera `scripts/build-conversion-queue.mjs`
  * a partir de los exports de Segundo; acá solo se tipan y se unen.
  *
  * Los JSON viajan en el bundle del cliente, que se descarga sin login, así que
@@ -11,8 +12,8 @@ import guideFile from './guideDrills.json';
  * solo desde chunks lazy: `scripts/assert-conversion-privacy.mjs` revisa el build.
  */
 
-export type ConversionKind = 'conversion' | 'guide';
-export type ConversionSource = 'lichess' | 'chesscom' | 'otb' | 'libro' | 'guia';
+export type ConversionKind = 'conversion' | 'guide' | 'class';
+export type ConversionSource = 'lichess' | 'chesscom' | 'otb' | 'libro' | 'guia' | 'clase';
 
 /** Un ítem tal como sale del JSON. */
 export interface ConversionItemData {
@@ -33,6 +34,8 @@ export interface ConversionItemData {
   source: ConversionSource;
   /** `YYYY-MM`. */
   date?: string | null;
+  /** Solo en clases: la posición acepta varias jugadas y conviene consultarla. */
+  needsReview?: boolean;
 }
 
 export interface ConversionItem extends ConversionItemData {
@@ -50,5 +53,6 @@ const withKind = (file: ConversionFile, kind: ConversionKind): ConversionItem[] 
 
 export const CONVERSION_ITEMS: ConversionItem[] = withKind(conversionFile as ConversionFile, 'conversion');
 export const GUIDE_ITEMS: ConversionItem[] = withKind(guideFile as ConversionFile, 'guide');
-/** Las dos fuentes juntas: 90 + 34. */
-export const ALL_CONVERSION_ITEMS: ConversionItem[] = [...CONVERSION_ITEMS, ...GUIDE_ITEMS];
+export const CLASS_ITEMS: ConversionItem[] = withKind(classFile as ConversionFile, 'class');
+/** Las tres fuentes juntas: 90 + 35 + 29 = 154. */
+export const ALL_CONVERSION_ITEMS: ConversionItem[] = [...CONVERSION_ITEMS, ...GUIDE_ITEMS, ...CLASS_ITEMS];

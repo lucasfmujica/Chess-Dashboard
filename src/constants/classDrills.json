@@ -1,0 +1,437 @@
+{
+  "version": "2026-11",
+  "count": 29,
+  "items": [
+    {
+      "id": "drill-036",
+      "fen": "3n4/1p3pk1/p4p1p/P4P1K/1P2B3/5P2/8/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "b4b5"
+      ],
+      "plan": "Avanzá el peón b para crear un peón pasado y usá el alfil para cortar al caballo.",
+      "evalBefore": 649,
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-037",
+      "fen": "4k3/4P3/8/4PpK1/6n1/8/4B3/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "g5f5"
+      ],
+      "plan": "Tomá el peón de f5 con el rey y después avanzá los peones del centro.",
+      "evalBefore": 891,
+      "notes": "Final de alfil y caballo. Eval: tablebase + SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-038",
+      "fen": "8/1B1P1pk1/8/2n3KP/8/8/8/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "b7c6",
+        "h5h6"
+      ],
+      "plan": "El peón de d7 está a un paso de coronar y el caballo lo ataca. Buscá la forma más fuerte de coronar o de desviar al rey.",
+      "evalBefore": 867,
+      "notes": "Final de alfil y caballo. Eval: tablebase + SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10",
+      "needsReview": true
+    },
+    {
+      "id": "drill-039",
+      "fen": "8/8/5K2/4n3/4k1B1/7P/8/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "g4c8"
+      ],
+      "plan": "Llevá el alfil a la diagonal larga para inmovilizar al caballo y después avanzá el peón h.",
+      "evalBefore": 671,
+      "notes": "Final de alfil y caballo. Eval: tablebase + SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-040",
+      "fen": "8/8/8/p1pk1p1p/Pp3P1P/1P1K2P1/3N4/3b4 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "d1b3"
+      ],
+      "plan": "Tomá en b3, rompé la cadena de peones y dejá peones pasados en el flanco de dama.",
+      "evalBefore": 660,
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-041",
+      "fen": "8/8/b7/K2kp1p1/4p1Pp/4Pp1P/3N1P2/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "a6f1"
+      ],
+      "plan": "Llevá el alfil a f1 para atacar los peones del flanco de rey y fijar la estructura.",
+      "evalBefore": 641,
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-042",
+      "fen": "8/3k4/6n1/8/2K4p/B7/8/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "a3c5"
+      ],
+      "plan": "El alfil tiene que controlar las casillas del peón h y del caballo. Es un final preciso: muchas jugadas pierden.",
+      "notes": "Final de alfil y caballo. Eval: tablebase + SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-043",
+      "fen": "8/k7/Pp5P/4p3/3b4/8/7N/1K6 w - - 2 8",
+      "color": "white",
+      "acceptedUci": [
+        "h2f3"
+      ],
+      "plan": "Acercá el caballo a f3 para apoyar el peón h y limitar al alfil negro.",
+      "evalBefore": 617,
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-044",
+      "fen": "1N6/b7/8/7p/3p3k/5P2/6PK/8 w - - 3 12",
+      "color": "white",
+      "acceptedUci": [
+        "b8c6"
+      ],
+      "plan": "El caballo tiene que ir a c6 para frenar al alfil y no perder los peones del flanco de rey.",
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-045",
+      "fen": "3k4/4n1p1/1p1pPp1p/p1p2P1P/P1P1K1P1/1P6/1B6/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "g4g5",
+        "b2a1"
+      ],
+      "plan": "Rompé con g5 para abrir paso a tus peones y al alfil en la gran diagonal.",
+      "evalBefore": 678,
+      "notes": "Final de alfil y caballo. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-046",
+      "fen": "3r2k1/5pb1/4pq2/3rB1pP/1ppP4/2P1Q3/1p4R1/4R1K1 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "d5e5",
+        "f6f5"
+      ],
+      "plan": "Tomá en e5 y usá el peón pasado de h, con las torres activas.",
+      "evalBefore": 848,
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-047",
+      "fen": "8/ppp4p/1bp1k3/2B3r1/1P2pp2/2P5/P2K1p1P/R4R2 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "g5c5"
+      ],
+      "plan": "Tomá el alfil de c5 y dejá tus peones del flanco de dama como peones pasados.",
+      "evalBefore": 601,
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-048",
+      "fen": "8/b1r2p1k/2Pp2pp/3B4/1P6/3p1PP1/5K1P/R7 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "a1a7"
+      ],
+      "plan": "La torre entra en séptima, come en a7 y el peón de c6 amenaza coronar.",
+      "evalBefore": 754,
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-049",
+      "fen": "8/p4k1p/1p6/2pR4/2P5/2P3r1/P2K4/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "f7g6",
+        "g3g2"
+      ],
+      "plan": "Acercá el rey a los peones y usá la torre para atacar la cadena rival.",
+      "evalBefore": 518,
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-050",
+      "fen": "8/5pK1/k5p1/P6p/7P/5rP1/R4P2/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "a2d2",
+        "a2b2",
+        "a2c2",
+        "a2e2"
+      ],
+      "plan": "Llevá la torre a la segunda fila para cortar al rey rival y apoyar el peón a.",
+      "evalBefore": 651,
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-051",
+      "fen": "R7/5pk1/P5p1/7p/7P/r5P1/5P2/5K2 b - - 1 1",
+      "color": "black",
+      "acceptedUci": [
+        "a3a2",
+        "f7f6",
+        "a3a4",
+        "g7f6",
+        "g7h7"
+      ],
+      "plan": "Mantené la torre activa, en la segunda fila o detrás del peón a, para no quedar peor.",
+      "notes": "Peón pasado en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-10"
+    },
+    {
+      "id": "drill-052",
+      "fen": "8/5p2/p5p1/2k4p/1ppbPP1P/P5P1/1P1K4/3N4 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "d4b2"
+      ],
+      "plan": "Tomá en b2: el alfil gana peones y deja un final favorable.",
+      "evalBefore": 625,
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-053",
+      "fen": "2r3k1/6p1/1p4P1/p4RP1/P1nPp2p/4P3/8/2BK4 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "c8f8"
+      ],
+      "plan": "Desafiá la torre de f5. Si cambian, el rey y el caballo llegan a tiempo.",
+      "evalBefore": 668,
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-054",
+      "fen": "4k3/1p4p1/2b2p2/4nP2/p1P3P1/B3K3/4B3/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "c6f3"
+      ],
+      "plan": "Llevá el alfil a f3 para dominar casillas oscuras antes de decidir un cambio.",
+      "evalBefore": 405,
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-055",
+      "fen": "8/pp3Rpk/7p/1r6/8/5P2/6PP/6K1 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "b5b1",
+        "a7a5"
+      ],
+      "plan": "Jaque en la primera fila y después activá la torre; no dejes la torre rival suelta en séptima.",
+      "evalBefore": 629,
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-056",
+      "fen": "8/8/5k1P/p1n5/1pp1B3/4K3/PP6/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "e3d4",
+        "e4d5",
+        "e4b1",
+        "e4c2",
+        "h6h7"
+      ],
+      "plan": "El rey al centro. Si cambian caballo por alfil, el final de peones queda controlado.",
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-057",
+      "fen": "8/1Q3pk1/P3r1p1/8/6K1/4b3/8/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "e6e4",
+        "e3g1",
+        "e3d4",
+        "e3c5",
+        "g7f8"
+      ],
+      "plan": "Con dama contra torre y alfil, no cuelgues material. Coordiná alfil y torre o buscá jaques que no pierdan pieza.",
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11",
+      "needsReview": true
+    },
+    {
+      "id": "drill-058",
+      "fen": "8/3nrp1p/5k2/3B1P2/7R/4P3/5K1P/8 b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "d7e5",
+        "f6f5",
+        "h7h5",
+        "h7h6",
+        "e7e5"
+      ],
+      "plan": "El caballo a e5 desafía el alfil; el cambio puede llevar a un final de torres equilibrado.",
+      "notes": "Decidir si cambiar piezas en el final. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-11"
+    },
+    {
+      "id": "drill-059",
+      "fen": "8/1B5k/5qp1/p1p1b3/2P1P2p/1P6/P5QP/7K b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "f6f4"
+      ],
+      "plan": "Acercá la dama a f4, atacá al rey y aprovechá que los alfiles son de distinto color.",
+      "evalBefore": 354,
+      "notes": "Alfiles de distinto color con damas. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-09"
+    },
+    {
+      "id": "drill-060",
+      "fen": "8/1b3kpp/2p1q3/P5P1/2Q2B2/3P4/3KP3/8 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "d2c3"
+      ],
+      "plan": "El rey va al centro, a c3, para apoyar tus peones y la dama.",
+      "evalBefore": 649,
+      "notes": "Alfiles de distinto color con damas. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-09"
+    },
+    {
+      "id": "drill-061",
+      "fen": "8/6k1/3b2p1/p1pP1pq1/1pP5/1P1Q3P/P3B3/7K b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "g5f4"
+      ],
+      "plan": "La dama a f4 presiona y busca jaques. No cambies damas si tu ataque es más fuerte.",
+      "evalBefore": 699,
+      "notes": "Alfiles de distinto color con damas. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-09"
+    },
+    {
+      "id": "drill-062",
+      "fen": "8/1p4k1/p2b2p1/2pP2q1/2P1Pp2/PP3QP1/2B5/7K b - - 0 1",
+      "color": "black",
+      "acceptedUci": [
+        "f4g3",
+        "g5h6"
+      ],
+      "plan": "Abrí la columna g tomando en g3 y usá la dama contra el rey blanco.",
+      "evalBefore": 136,
+      "notes": "Alfiles de distinto color con damas. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-09"
+    },
+    {
+      "id": "drill-063",
+      "fen": "8/1p1r1p2/p4k2/2RP2pp/8/1P5P/P4PP1/6K1 w - - 0 1",
+      "color": "white",
+      "acceptedUci": [
+        "g1f1"
+      ],
+      "plan": "Mejorá el rey y activá la torre antes de avanzar peones.",
+      "evalBefore": 133,
+      "notes": "Final de torres. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-08"
+    },
+    {
+      "id": "drill-064",
+      "fen": "8/pr2k1pp/8/R7/8/4PK2/P5PP/8 w - - 4 20",
+      "color": "white",
+      "acceptedUci": [
+        "a5a6",
+        "a2a4",
+        "f3f4",
+        "h2h4",
+        "g2g4"
+      ],
+      "plan": "La torre a la sexta corta al rey y prepara el avance de la mayoría; también sirve avanzar el peón a.",
+      "evalBefore": 449,
+      "notes": "Final de torres. Eval: SF19 prof. 24.",
+      "gameId": null,
+      "source": "clase",
+      "date": "2026-08"
+    }
+  ]
+}

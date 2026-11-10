@@ -52,7 +52,7 @@ export default defineConfig({
         // sin código de la app: scripts/assert-conversion-privacy.mjs lo
         // revisa en el build y se queda con él por el id `conv-001`.
         codeSplitting: {
-          groups: [{ name: 'conversion-data', test: /src[\\/]constants[\\/](conversionQueue|guideDrills)\.json$/ }],
+          groups: [{ name: 'conversion-data', test: /src[\\/]constants[\\/](conversionQueue|guideDrills|classDrills)\.json$/ }],
         },
       },
     },

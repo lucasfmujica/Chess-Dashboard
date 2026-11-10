@@ -7,7 +7,10 @@ import { ALLOWED_KEYS } from './conversionQueue.mjs';
 import { walk } from './secretScan.mjs';
 
 export const EXPECTED_CONVERSION = 90;
-export const EXPECTED_GUIDES = 34;
+export const EXPECTED_GUIDES = 35;
+export const EXPECTED_CLASSES = 29;
+/** Ids `drill-`: guías (001..035) + clases (036..064). */
+export const EXPECTED_DRILLS = EXPECTED_GUIDES + EXPECTED_CLASSES;
 
 /** Los assets que llevan datos de la cola son los que contienen estos ids. */
 export const MARKERS = ['conv-001', 'drill-001'];
@@ -26,6 +29,10 @@ const FORBIDDEN = [
   [/@/, '@'],
   [/Lucas/i, 'Lucas'],
   [/Mujica/i, 'Mujica'],
+  // Nombres del profesor y de un rival de las clases. Es el único lugar del repo
+  // (junto con sus tests) donde pueden aparecer: acá son la lista negra.
+  [/\bToto\b/i, 'Toto'],
+  [/\bBotz\b/i, 'Botz'],
   [/lucasfmujica/i, 'lucasfmujica'],
   [/\d{4}-\d{2}-\d{2}/, 'fecha exacta'],
 ];
@@ -105,8 +112,8 @@ export const checkConversionAssets = assets => {
   if (new Set(conv).size !== conv.length || conv.length !== EXPECTED_CONVERSION) {
     findings.push(`se esperaban ${EXPECTED_CONVERSION} ids conv- únicos y hay ${conv.length} (${new Set(conv).size} únicos)`);
   }
-  if (new Set(drills).size !== drills.length || drills.length !== EXPECTED_GUIDES) {
-    findings.push(`se esperaban ${EXPECTED_GUIDES} ids drill- únicos y hay ${drills.length} (${new Set(drills).size} únicos)`);
+  if (new Set(drills).size !== drills.length || drills.length !== EXPECTED_DRILLS) {
+    findings.push(`se esperaban ${EXPECTED_DRILLS} ids drill- únicos y hay ${drills.length} (${new Set(drills).size} únicos)`);
   }
   return { findings, files: hits.map(h => h.path) };
 };

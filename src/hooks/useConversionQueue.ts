@@ -28,7 +28,7 @@ import type { TrainingAttempt } from '../types/training';
 export type { ConversionAttempt };
 
 /**
- * La cola de conversión y guías (124 ítems estáticos).
+ * La cola de conversión, guías y clases (154 ítems estáticos).
  *
  * El progreso de cada ítem vive en localStorage y se reconstruye con los
  * intentos del servidor (`training_attempts`, `item_kind = 'external'`,
@@ -120,6 +120,7 @@ export const useConversionQueue = (items: ConversionItem[] = ALL_CONVERSION_ITEM
       all: items.length,
       conversion: filterByKind(items, 'conversion').length,
       guide: filterByKind(items, 'guide').length,
+      class: filterByKind(items, 'class').length,
     }),
     [items]
   );

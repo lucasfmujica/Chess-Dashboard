@@ -23,17 +23,19 @@ const mk = (id: string, kind: ConversionItem['kind'], evalBefore?: number): Conv
   acceptedUci: ['e2e4'],
   evalBefore,
   gameId: null,
-  source: kind === 'conversion' ? 'lichess' : 'guia',
+  source: kind === 'conversion' ? 'lichess' : kind === 'class' ? 'clase' : 'guia',
   date: kind === 'conversion' ? '2026-03' : null,
 });
 
-// Inventados: 3 conversiones y 2 guías.
+// Inventados: 3 conversiones, 2 guías y 2 clases.
 const ITEMS: ConversionItem[] = [
   mk('conv-001', 'conversion', 300),
   mk('conv-002', 'conversion', 900),
   mk('conv-003', 'conversion', 300),
   mk('drill-001', 'guide'),
   mk('drill-002', 'guide', 150),
+  mk('drill-036', 'class', 400),
+  mk('drill-037', 'class'),
 ];
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -53,9 +55,9 @@ beforeEach(() => {
 });
 
 describe('filtro y conteos', () => {
-  it('cuenta Todas, Partidas y Guías desde los datos', async () => {
+  it('cuenta Todas, Partidas, Guías y Clases desde los datos', async () => {
     const { result } = await setup();
-    expect(result.current.counts).toEqual({ all: 5, conversion: 3, guide: 2 });
+    expect(result.current.counts).toEqual({ all: 7, conversion: 3, guide: 2, class: 2 });
   });
 
   it('filtra la lista y guarda el filtro en localStorage', async () => {
@@ -63,19 +65,20 @@ describe('filtro y conteos', () => {
     expect(result.current.filter).toBe('all');
     expect(result.current.ordered('conversion').map(i => i.id)).toHaveLength(3);
     expect(result.current.ordered('guide').map(i => i.id)).toEqual(['drill-001', 'drill-002']);
+    expect(result.current.ordered('class').map(i => i.id)).toEqual(['drill-036', 'drill-037']);
     act(() => result.current.setFilter('guide'));
     expect(JSON.parse(window.localStorage.getItem(FILTER_KEY) as string)).toBe('guide');
   });
 
-  it('con los datos reales: 124, 90 y 34', async () => {
+  it('con los datos reales: 154, 90, 35 y 29', async () => {
     const hook = renderHook(() => useConversionQueue());
     await waitFor(() => expect(hook.result.current.syncedAt).not.toBeNull());
-    expect(hook.result.current.counts).toEqual({ all: 124, conversion: 90, guide: 34 });
+    expect(hook.result.current.counts).toEqual({ all: 154, conversion: 90, guide: 35, class: 29 });
   });
 });
 
 describe('orden', () => {
-  it('no vistas: conversión por evalBefore descendente y por id, después las guías por id', async () => {
+  it('no vistas: conversión por evalBefore descendente y por id, después las guías y al final las clases, por id', async () => {
     const { result } = await setup();
     expect(result.current.ordered('all', NOW).map(i => i.id)).toEqual([
       'conv-002', // +9.00
@@ -83,6 +86,8 @@ describe('orden', () => {
       'conv-003',
       'drill-001',
       'drill-002',
+      'drill-036',
+      'drill-037',
     ]);
   });
 
@@ -98,11 +103,13 @@ describe('orden', () => {
     expect(result.current.ordered('all', NOW).map(i => i.id)).toEqual([
       'conv-003',
       'drill-001',
-      'drill-002', // no vistas
+      'drill-002',
+      'drill-036',
+      'drill-037', // no vistas
       'conv-002', // vencida
       'conv-001', // al día
     ]);
-    expect(result.current.stats('all', NOW)).toEqual({ total: 5, seen: 2, due: 4 });
+    expect(result.current.stats('all', NOW)).toEqual({ total: 7, seen: 2, due: 6 });
   });
 });
 

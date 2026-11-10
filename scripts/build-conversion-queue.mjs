@@ -1,11 +1,15 @@
-// Genera src/constants/conversionQueue.json (90 conversiones) y
-// src/constants/guideDrills.json (34 guías) a partir de los dos exports públicos
-// de Segundo. Corre fuera del bundle: filtra campos, valida y falla si algo no
-// cumple. Nunca lee los *.private.json.
+// Genera src/constants/conversionQueue.json (90 conversiones),
+// src/constants/guideDrills.json (35 guías) y src/constants/classDrills.json
+// (29 drills de clase) a partir de los tres exports públicos de Segundo. Corre
+// fuera del bundle: filtra campos, valida y falla si algo no cumple. Nunca lee
+// los *.private.json.
+//
+// Ojo: el export de guías se llama `drills-guias-34.json` pero ahora trae 35
+// ítems (drill-001..035). El nombre es del export de Segundo y no cambia.
 //
 // Uso:
 //   node scripts/build-conversion-queue.mjs [--games-snapshot <ruta>]
-//        [--conversion <json>] [--guides <json>] [--out-dir <dir>]
+//        [--conversion <json>] [--guides <json>] [--classes <json>] [--out-dir <dir>]
 //
 // `--games-snapshot` es un array JSON de games de prod ({id, source, played_date,
 // pgn}) sacado con un SELECT de solo lectura y guardado FUERA del repo. Con él,
@@ -17,20 +21,26 @@ import {
   buildFile,
   assertNoCrossDuplicates,
   enrichGameIds,
+  markNeedsReview,
 } from './lib/conversionQueue.mjs';
 
 const EXPORT_DIR = '/workspace/brain/segundo/export';
+
+// origen: Chief 10/11 16:10, acepta varias jugadas
+const NEEDS_REVIEW_IDS = ['drill-038', 'drill-057'];
 
 const parseArgs = argv => {
   const opts = {
     conversion: `${EXPORT_DIR}/fugas-conversion-107.json`,
     guides: `${EXPORT_DIR}/drills-guias-34.json`,
+    classes: `${EXPORT_DIR}/drills-clase-toto-29.json`,
     outDir: new URL('../src/constants', import.meta.url).pathname,
     gamesSnapshot: null,
   };
   const flags = {
     '--conversion': 'conversion',
     '--guides': 'guides',
+    '--classes': 'classes',
     '--out-dir': 'outDir',
     '--games-snapshot': 'gamesSnapshot',
   };
@@ -54,7 +64,9 @@ const main = () => {
 
   const conversion = buildFile(readJson(opts.conversion), 'conversion');
   const guides = buildFile(readJson(opts.guides), 'guide');
-  assertNoCrossDuplicates(conversion.items, guides.items);
+  const classRaw = readJson(opts.classes);
+  const classes = buildFile({ ...classRaw, items: markNeedsReview(classRaw.items, NEEDS_REVIEW_IDS) }, 'class');
+  assertNoCrossDuplicates(conversion.items, guides.items, classes.items);
 
   if (opts.gamesSnapshot) {
     const games = readJson(opts.gamesSnapshot);
@@ -84,7 +96,10 @@ const main = () => {
 
   writeJson(`${opts.outDir}/conversionQueue.json`, conversion);
   writeJson(`${opts.outDir}/guideDrills.json`, guides);
-  console.log(`OK: ${conversion.count} conversiones y ${guides.count} guías en ${opts.outDir}.`);
+  writeJson(`${opts.outDir}/classDrills.json`, classes);
+  console.log(
+    `OK: ${conversion.count} conversiones, ${guides.count} guías y ${classes.count} clases en ${opts.outDir}.`
+  );
 };
 
 try {

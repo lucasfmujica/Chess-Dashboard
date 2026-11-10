@@ -18,7 +18,7 @@ beforeEach(() => {
 describe('ConversionTodayCard', () => {
   it('sin estado local muestra el total como no vistas y no pide nada al servidor', () => {
     render(<ConversionTodayCard onOpen={() => undefined} />);
-    expect(screen.getByRole('button')).toHaveTextContent('Conversión y guías: 124 para hoy');
+    expect(screen.getByRole('button')).toHaveTextContent('Conversión y drills: 154 para hoy');
     expect(fetchAttempts).not.toHaveBeenCalled();
   });
 
@@ -28,7 +28,7 @@ describe('ConversionTodayCard', () => {
       JSON.stringify({ 'conv-001': { confidence: 5, lastReviewed: Date.now() - 1000, reviewCount: 1, solvedCount: 1 } })
     );
     render(<ConversionTodayCard onOpen={() => undefined} />);
-    expect(screen.getByRole('button')).toHaveTextContent('Conversión y guías: 123 para hoy');
+    expect(screen.getByRole('button')).toHaveTextContent('Conversión y drills: 153 para hoy');
     expect(fetchAttempts).not.toHaveBeenCalled();
   });
 });

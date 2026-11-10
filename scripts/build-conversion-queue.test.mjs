@@ -6,6 +6,7 @@ import {
   assertNoCrossDuplicates,
   enrichGameIds,
   fenKey,
+  markNeedsReview,
 } from './lib/conversionQueue.mjs';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -33,6 +34,12 @@ const guide = (n, over = {}) => ({
   plan: 'Listá jaques, capturas y amenazas.',
   gameId: null,
   source: 'guia',
+  ...over,
+});
+
+const klass = (n, over = {}) => ({
+  ...guide(n, { source: 'clase' }),
+  id: `drill-${String(n).padStart(3, '0')}`,
   ...over,
 });
 
@@ -89,6 +96,40 @@ describe('buildFile', () => {
     expect(() => build([guide(1, { gameId: UUID_A })], 'guide')).toThrow(/gameId/);
   });
 
+  it('acepta una clase (source clase, gameId null, con y sin fecha y evalBefore)', () => {
+    expect(() => build([klass(36), klass(37, { date: '2026-10', evalBefore: 250 })], 'class')).not.toThrow();
+  });
+
+  it('source clase es válida solo en el archivo de clases', () => {
+    expect(() => build([conv(1, { source: 'clase' })])).toThrow(/source/);
+    expect(() => build([guide(1, { source: 'clase' })], 'guide')).toThrow(/source/);
+    expect(() => build([klass(36, { source: 'guia' })], 'class')).toThrow(/source/);
+  });
+
+  it('falla con gameId no null en una clase', () => {
+    expect(() => build([klass(36, { gameId: UUID_A })], 'class')).toThrow(/gameId/);
+  });
+
+  it('falla con evalBefore <= 0 en una clase si viene', () => {
+    expect(() => build([klass(36, { evalBefore: 0 })], 'class')).toThrow(/evalBefore/);
+  });
+
+  it('falla con un id fuera de drill-036..064 en clases (y de drill-001..035 en guías)', () => {
+    expect(() => build([klass(35)], 'class')).toThrow(/fuera de rango/);
+    expect(() => build([klass(65)], 'class')).toThrow(/fuera de rango/);
+    expect(() => build([guide(36)], 'guide')).toThrow(/fuera de rango/);
+  });
+
+  it('needsReview debe ser boolean y pasa la whitelist', () => {
+    expect(build([klass(36, { needsReview: true })], 'class').items[0].needsReview).toBe(true);
+    expect(() => build([klass(36, { needsReview: 'si' })], 'class')).toThrow(/needsReview/);
+  });
+
+  it('falla con el nombre del profesor o de un rival en un string', () => {
+    expect(() => build([klass(36, { notes: 'Dijo Toto que sí' })], 'class')).toThrow();
+    expect(() => build([klass(36, { plan: 'contra botz' })], 'class')).toThrow();
+  });
+
   it('falla con evalBefore <= 0 en una guía si viene', () => {
     expect(() => build([guide(1, { evalBefore: -50 })], 'guide')).toThrow(/evalBefore/);
   });
@@ -101,11 +142,13 @@ describe('buildFile', () => {
     expect(() => build([guide(1, { id: 'conv-001' })], 'guide')).toThrow(/id no matchea/);
   });
 
-  it('falla con un conteo distinto de 90 (conversión) o de 34 (guías)', () => {
+  it('falla con un conteo distinto de 90 (conversión), 35 (guías) o 29 (clases)', () => {
     const ninety = Array.from({ length: 89 }, (_, i) => conv(i + 1));
     expect(() => buildFile(file(ninety), 'conversion')).toThrow(/90/);
-    const thirtyFour = Array.from({ length: 35 }, (_, i) => guide(i + 1));
-    expect(() => buildFile(file(thirtyFour), 'guide')).toThrow(/34/);
+    const thirtyFour = Array.from({ length: 34 }, (_, i) => guide(i + 1));
+    expect(() => buildFile(file(thirtyFour), 'guide')).toThrow(/35/);
+    const thirty = Array.from({ length: 30 }, (_, i) => klass(i + 36));
+    expect(() => buildFile(file(thirty), 'class')).toThrow(/29/);
   });
 
   it('falla si count no coincide con los ítems', () => {
@@ -114,9 +157,11 @@ describe('buildFile', () => {
 
   it('acepta los conteos exactos', () => {
     const ninety = Array.from({ length: 90 }, (_, i) => conv(i + 1));
-    const thirtyFour = Array.from({ length: 34 }, (_, i) => guide(i + 1));
+    const thirtyFive = Array.from({ length: 35 }, (_, i) => guide(i + 1));
+    const twentyNine = Array.from({ length: 29 }, (_, i) => klass(i + 36));
     expect(buildFile(file(ninety), 'conversion').count).toBe(90);
-    expect(buildFile(file(thirtyFour), 'guide').count).toBe(34);
+    expect(buildFile(file(thirtyFive), 'guide').count).toBe(35);
+    expect(buildFile(file(twentyNine), 'class').count).toBe(29);
   });
 });
 
@@ -124,8 +169,23 @@ describe('assertNoCrossDuplicates', () => {
   it('falla con ids repetidos entre archivos', () => {
     expect(() => assertNoCrossDuplicates([conv(1)], [guide(1, { id: 'conv-001' })])).toThrow(/entre archivos/);
   });
+  it('falla con un id repetido entre guías y clases', () => {
+    expect(() => assertNoCrossDuplicates([conv(1)], [guide(36)], [klass(36)])).toThrow(/drill-036/);
+  });
   it('pasa con ids distintos', () => {
-    expect(() => assertNoCrossDuplicates([conv(1)], [guide(1)])).not.toThrow();
+    expect(() => assertNoCrossDuplicates([conv(1)], [guide(1)], [klass(36)])).not.toThrow();
+  });
+});
+
+describe('markNeedsReview', () => {
+  it('marca solo los ids pedidos, sin mutar la entrada', () => {
+    const input = [klass(36), klass(37), klass(38)];
+    const out = markNeedsReview(input, ['drill-038']);
+    expect(out.map(i => i.needsReview)).toEqual([undefined, undefined, true]);
+    expect(input[2]).not.toHaveProperty('needsReview');
+  });
+  it('falla si un id no existe', () => {
+    expect(() => markNeedsReview([klass(36)], ['drill-099'])).toThrow(/inexistentes/);
   });
 });
 

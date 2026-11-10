@@ -3,7 +3,7 @@ import type { ConversionKind } from '../constants/conversionQueue';
 import type { TrainingAttempt } from '../types/training';
 
 /**
- * Estado SRS de un ítem estático (conversión o guía). No existe tabla para esto
+ * Estado SRS de un ítem estático (conversión, guía o clase). No existe tabla para esto
  * (a diferencia de `blunder_drills`), así que se deriva de los intentos en
  * `training_attempts` y se cachea en localStorage.
  */
@@ -18,7 +18,7 @@ export interface ConversionProgress {
 /** Indexado por id estático (`conv-001`, `drill-001`): una sola clave para las dos fuentes. */
 export type ProgressMap = Record<string, ConversionProgress>;
 
-export type ConversionFilter = 'all' | 'conversion' | 'guide';
+export type ConversionFilter = 'all' | 'conversion' | 'guide' | 'class';
 
 export const PROGRESS_KEY = 'chess-dashboard-conversion-progress';
 export const FILTER_KEY = 'chess-dashboard-conversion-filter';
@@ -83,6 +83,8 @@ interface Orderable {
   evalBefore?: number;
 }
 
+const KIND_RANK: Record<ConversionKind, number> = { conversion: 0, guide: 1, class: 2 };
+
 export const filterByKind = <T extends Pick<Orderable, 'kind'>>(items: T[], filter: ConversionFilter): T[] =>
   filter === 'all' ? items : items.filter(i => i.kind === filter);
 
@@ -92,7 +94,8 @@ export const isSeen = (p: ConversionProgress | undefined): boolean => !!p?.lastR
  * Primero las no vistas, después las que vencen por SRS y al final el resto.
  *
  * Entre las no vistas van primero las de conversión, por `evalBefore`
- * descendente (las ventajas más grandes) y por id; las guías siguen por id.
+ * descendente (las ventajas más grandes) y por id; después las guías por id y
+ * al final las clases por id.
  */
 export const orderConversionItems = <T extends Orderable>(
   items: T[],
@@ -110,7 +113,7 @@ export const orderConversionItems = <T extends Orderable>(
   }
   const byId = (a: Orderable, b: Orderable) => a.id.localeCompare(b.id);
   unseen.sort((a, b) => {
-    if (a.kind !== b.kind) return a.kind === 'conversion' ? -1 : 1;
+    if (a.kind !== b.kind) return KIND_RANK[a.kind] - KIND_RANK[b.kind];
     if (a.kind === 'conversion') return (b.evalBefore ?? 0) - (a.evalBefore ?? 0) || byId(a, b);
     return byId(a, b);
   });
