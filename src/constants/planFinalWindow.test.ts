@@ -34,7 +34,7 @@ describe('plan-final window', () => {
 describe('programForDate inside the window', () => {
   it('serves the plan T day on 2026-11-10, not the generic Monday', () => {
     const day = programForDate('2026-11-10');
-    expect(day.focus).toBe('T · Táctica y cálculo. Martes fijos: drills 10 min antes de las 19, clase con Toto 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART');
+    expect(day.focus).toBe('T · Táctica y cálculo. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART');
     expect(day.weekday).toBe(weekdayIndex('2026-11-10'));
     expect(day.blocks.map(b => b.block)).toEqual(['calculation', 'lesson', 'lesson']);
     expect(day.blocks.map(b => b.minutes)).toEqual([10, 60, 60]);
@@ -246,7 +246,7 @@ describe('a week straddling the window edge', () => {
 
 describe('martes fijos', () => {
   const LESSONS = [
-    { block: 'lesson', minutes: 60, label: 'Clase con Toto (19:00 a 20:00 ART)' },
+    { block: 'lesson', minutes: 60, label: 'Clase (19:00 a 20:00 ART)' },
     { block: 'lesson', minutes: 60, label: 'Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)' },
   ];
   const DRILLS = { block: 'calculation', minutes: 10, label: 'Cola de drills (antes de las 19)' };

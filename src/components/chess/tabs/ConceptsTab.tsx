@@ -41,6 +41,7 @@ import type {
   Book,
   BookStatus,
 } from '../../../types/training';
+import { SOURCE_TYPES, sourceOptions } from './conceptSources';
 
 /**
  * The study inventory: what has been read, and what of it has actually shown
@@ -74,14 +75,6 @@ const STATUSES: { value: ConceptStatus; label: string }[] = [
   { value: 'applied', label: 'Aplicado' },
   { value: 'mastered', label: 'Dominado' },
   { value: 'archivado', label: 'Archivado' },
-];
-
-const SOURCE_TYPES = [
-  { value: 'book', label: 'Libro' },
-  { value: 'studer', label: 'Curso Studer' },
-  { value: 'lesson-toto', label: 'Clase Toto' },
-  { value: 'lesson-juancruz', label: 'Clase Juan Cruz' },
-  { value: 'video', label: 'Video' },
 ];
 
 const BOOK_STATUSES: { value: BookStatus; label: string }[] = [
@@ -325,7 +318,7 @@ const ConceptsTab = () => {
                       }
                     >
                       <option value="">Sin fuente</option>
-                      {SOURCE_TYPES.map(s => (
+                      {sourceOptions(draft.sourceType).map(s => (
                         <option key={s.value} value={s.value}>
                           {s.label}
                         </option>
@@ -479,7 +472,7 @@ const ConceptsTab = () => {
           {visibleConcepts.length === 0 ? (
             <Card>
               <p className="text-sm text-fg-muted">
-                Todavía no hay conceptos cargados. Empezá por lo último que viste con Toto o
+                Todavía no hay conceptos cargados. Empezá por lo último que viste con el profe o
                 Juan Cruz y vinculalo a la partida donde apareció.
               </p>
             </Card>
@@ -529,7 +522,8 @@ const ConceptsTab = () => {
                             {concept.sourceChapter}
                           </>
                         ) : (
-                          SOURCE_TYPES.find(st => st.value === concept.sourceType)?.label ?? '—'
+                          SOURCE_TYPES.find(st => st.value === concept.sourceType)?.label ??
+                          (concept.sourceType?.startsWith('lesson-') ? 'Clase' : '—')
                         )}
                       </TD>
                       <TD className="whitespace-nowrap">

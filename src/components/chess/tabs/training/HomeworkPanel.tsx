@@ -10,6 +10,7 @@ import {
   type ConceptCategory,
 } from '../../../../types/training';
 import ConceptQuickAdd from '../../ConceptQuickAdd';
+import { coachOptions, defaultCoach } from './homeworkCoaches';
 
 /**
  * Homework assigned by the coaches.
@@ -28,8 +29,6 @@ const KINDS: { value: HomeworkKind; label: string }[] = [
   { value: 'partida', label: 'Partida' },
 ];
 
-const COACHES = ['Toto', 'Juan Cruz'];
-
 /** 'Juan Cruz' -> 'lesson-juan-cruz', so sourceType stays a usable key. */
 const coachSource = (coach: string) => `lesson-${coach.trim().toLowerCase().replace(/\s+/g, '-')}`;
 
@@ -43,8 +42,8 @@ const KIND_CATEGORY: Partial<Record<HomeworkKind, ConceptCategory>> = {
 const INPUT_CLASS =
   'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
-const emptyDraft = (): Partial<Homework> => ({
-  coach: 'Toto',
+const emptyDraft = (coach: string): Partial<Homework> => ({
+  coach,
   task: '',
   kind: 'final',
   assignedDate: localDateKey(),
@@ -73,10 +72,10 @@ const HomeworkPanel = () => {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="max-w-prose text-sm text-fg-muted">
-          Toto y Juan Cruz asignan hablando, sin fecha ni compromiso explícito. Si no queda acá, se
+          Los profes asignan hablando, sin fecha ni compromiso explícito. Si no queda acá, se
           pierde.
         </p>
-        <Button variant="primary" icon={PlusIcon} onClick={() => setDraft(emptyDraft())}>
+        <Button variant="primary" icon={PlusIcon} onClick={() => setDraft(emptyDraft(defaultCoach(items)))}>
           Cargar tarea
         </Button>
       </div>
@@ -117,10 +116,10 @@ const HomeworkPanel = () => {
                 <label className="text-label block mb-1">Profe</label>
                 <select
                   className={INPUT_CLASS}
-                  value={draft.coach ?? 'Toto'}
+                  value={draft.coach ?? defaultCoach(items)}
                   onChange={e => setDraft({ ...draft, coach: e.target.value })}
                 >
-                  {COACHES.map(c => (
+                  {coachOptions(draft.coach, items).map(c => (
                     <option key={c} value={c}>
                       {c}
                     </option>

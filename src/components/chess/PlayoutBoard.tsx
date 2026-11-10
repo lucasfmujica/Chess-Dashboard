@@ -14,7 +14,7 @@ import { Button } from '../ui';
  *
  * This is what an endgame drill needs and a puzzle board can't give it: an
  * endgame has no single move to find, the question is whether you can hold or
- * convert it over many moves. It also covers the homework Toto actually set —
+ * convert it over many moves. It also covers the homework the coach actually set —
  * "jugá el final de torres 4v3 contra el bot, cuatro veces".
  */
 

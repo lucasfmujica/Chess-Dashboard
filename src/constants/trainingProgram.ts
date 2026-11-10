@@ -103,7 +103,7 @@ export const trainingProgram: ProgramDay[] = [
         minutes: 10,
         label: 'Clases + carga',
         detail:
-          'Clase con Toto y con Juan Cruz. Después sólo 10 minutos para cargar el recap, las posiciones y la tarea que te dieron. No entrenes más este día.',
+          'Clases. Después sólo 10 minutos para cargar el recap, las posiciones y la tarea que te dieron. No entrenes más este día.',
       },
     ],
   },
@@ -220,9 +220,9 @@ export const trainingProgram: ProgramDay[] = [
       {
         block: 'repertoire',
         minutes: 20,
-        label: 'Repertorio o tarea de Toto',
+        label: 'Repertorio o tarea del profe',
         detail:
-          'Semanas alternas. Una semana la cola: las jugadas primero, en el tablero, y sólo después los planes de las líneas con menor confianza. La otra, la tarea de Toto con la Benoni (A61) y la cola se saltea.',
+          'Semanas alternas. Una semana la cola: las jugadas primero, en el tablero, y sólo después los planes de las líneas con menor confianza. La otra, la tarea del profe con la Benoni (A61) y la cola se saltea.',
       },
       {
         block: 'analysis',
@@ -281,7 +281,7 @@ const planFinalDays = planFinalPayload.days as Record<string, PlanFinalDay>;
  */
 const planBlock = (id: string): TrainingBlock | null => {
   if (id === 'drills' || id === 'calculo-papel') return 'calculation';
-  if (id === 'clase-jc' || id === 'clase-toto') return 'lesson';
+  if (id === 'clase-jc' || id === 'clase-profe') return 'lesson';
   if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
   if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
   if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim' || id === 'analisis-torneo') return 'analysis';
