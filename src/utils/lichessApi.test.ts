@@ -49,13 +49,32 @@ describe('fetchLichessGames', () => {
     return { params: new URL(url).searchParams, init };
   };
 
-  it('asks for clocks and the PGN, with the identifying User-Agent', async () => {
+  it('asks for clocks and the PGN', async () => {
     const fetchMock = stubFetch();
     await fetchLichessGames('lmujica24');
-    const { params, init } = lastCall(fetchMock);
+    const { params } = lastCall(fetchMock);
     expect(params.get('clocks')).toBe('true');
     expect(params.get('pgnInJson')).toBe('true');
-    expect((init.headers as Record<string, string>)['User-Agent']).toMatch(/^Chess-Dashboard\/1\.0/);
+  });
+
+  it('in the browser sends no User-Agent (any casing) and only CORS-safelisted headers', async () => {
+    expect(typeof window).toBe('object');
+    const fetchMock = stubFetch();
+    await fetchLichessGames('lmujica24');
+    const headers = lastCall(fetchMock).init.headers as Record<string, string>;
+    const names = Object.keys(headers).map(h => h.toLowerCase());
+    expect(names).not.toContain('user-agent');
+    const safelisted = ['accept', 'accept-language', 'content-language', 'content-type'];
+    expect(names.every(n => safelisted.includes(n))).toBe(true);
+  });
+
+  it('outside the browser (no window) sends the identifying User-Agent', async () => {
+    vi.stubGlobal('window', undefined);
+    const fetchMock = stubFetch();
+    await fetchLichessGames('lmujica24');
+    const headers = lastCall(fetchMock).init.headers as Record<string, string>;
+    expect(headers['User-Agent']).toMatch(/^Chess-Dashboard\/1\.0/);
+    expect(headers.Accept).toBe('application/x-ndjson');
   });
 
   it('documents the fetch defaults: rated, max 50, rapid+classical', async () => {
