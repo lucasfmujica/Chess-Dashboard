@@ -118,7 +118,7 @@ describe('linkGamesToChapter', () => {
 
   it('has nothing to link with neither ECO nor opening', () => {
     const link = linkGamesToChapter(header({ eco: '', opening: '' }), games);
-    expect(link).toEqual({ games: [], method: null, color: 'W' });
+    expect(link).toEqual({ games: [], method: null, color: 'W', noPgn: [], unassigned: [] });
   });
 });
 
