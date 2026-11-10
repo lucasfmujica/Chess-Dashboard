@@ -1,6 +1,6 @@
 {
   "version": "2026-11",
-  "count": 34,
+  "count": 35,
   "items": [
     {
       "id": "drill-001",
@@ -488,6 +488,21 @@
       "gameId": null,
       "source": "guia",
       "date": "2026-01"
+    },
+    {
+      "id": "drill-035",
+      "fen": "4rr2/p2qn1kp/1pn3p1/2pN1p2/2P1P3/3P1QP1/P1N3KP/1R3R2 w - - 0 20",
+      "color": "white",
+      "acceptedUci": [
+        "f3f4"
+      ],
+      "plan": "En la partida se jugó Qe3: listá los jaques, capturas y amenazas que le deja al rival y buscá una jugada mejor.",
+      "evalAfter": -253,
+      "ply": 38,
+      "notes": "Control de amenazas. Patrón: clavada que aparece. Eval: SF19 prof. 26.",
+      "gameId": null,
+      "source": "guia",
+      "date": "2025-11"
     }
   ]
 }

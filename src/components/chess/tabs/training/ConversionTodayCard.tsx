@@ -31,7 +31,7 @@ const ConversionTodayCard = ({ onOpen }: ConversionTodayCardProps) => {
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
       >
         <span className="font-serif text-base text-fg">
-          Conversión y guías:{' '}
+          Conversión y drills:{' '}
           <span className="font-mono font-medium tabular-nums text-accent">
             {due}
           </span>{' '}

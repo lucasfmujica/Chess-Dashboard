@@ -10,8 +10,8 @@ import { useConversionQueue, type RecordOptions } from '../../../hooks/useConver
 import type { ConversionFilter } from '../../../utils/conversionProgress';
 
 /**
- * Conversión y guías: 124 posiciones estáticas (90 de partidas propias donde se
- * escapó una ventaja, 34 ejercicios de las guías) con la mecánica del resto de
+ * Conversión, guías y clases: 154 posiciones estáticas (90 de partidas propias
+ * donde se escapó una ventaja, 35 ejercicios de las guías, 29 finales de clase) con la mecánica del resto de
  * Ejercicios: tablero, veredicto y SRS. Un solo segmento con filtro, porque la
  * mecánica es la misma.
  *
@@ -25,17 +25,23 @@ const fmtEval = (cp: number) => (Math.abs(cp) >= 9000 ? (cp > 0 ? '#' : '-#') : 
 /** `2026-03` → `03/2026`. */
 const monthYear = (date: string) => `${date.slice(5, 7)}/${date.slice(0, 4)}`;
 
-const SOURCE_LABEL: Record<string, string> = { libro: 'Libro', guia: 'Guía' };
+const SOURCE_LABEL: Record<string, string> = { libro: 'Libro', guia: 'Guía', clase: 'Clase' };
 
-/** De dónde sale la posición: partida y fecha en conversión; libro o guía en las guías. */
+/** De dónde sale la posición: partida y fecha en conversión; libro, guía o clase en el resto. */
 export const originLabel = (item: ConversionItem): string => {
   if (item.kind === 'conversion') return `Partida · ${item.date ? monthYear(item.date) : '—'}`;
   const base = SOURCE_LABEL[item.source] ?? 'Guía';
   return item.date ? `${base} · ${monthYear(item.date)}` : base;
 };
 
+const KIND_LABEL: Record<ConversionItem['kind'], string> = {
+  conversion: 'Conversión',
+  guide: 'Guía',
+  class: 'Clase',
+};
+
 const selfCheckQuestion = (item: ConversionItem) =>
-  item.kind === 'conversion' ? '¿Mantuve la ventaja?' : '¿Lo resolví?';
+  item.kind === 'conversion' ? '¿Mantuve la ventaja?' : '¿Lo resolví?'; // guías y clases
 
 const secondsSince = (start: number) => Math.round((Date.now() - start) / 1000);
 
@@ -108,8 +114,9 @@ const ItemView = ({ item, confidence, onRecord, onNext }: ItemViewProps) => {
             <PieceGlyph color={item.color === 'white' ? 'W' : 'B'} /> Juegan las {item.color === 'white' ? 'blancas' : 'negras'}
           </Badge>
           <Badge tone={item.kind === 'conversion' ? 'alert' : 'accent'}>
-            {item.kind === 'conversion' ? 'Conversión' : 'Guía'}
+            {KIND_LABEL[item.kind]}
           </Badge>
+          {item.needsReview && <Badge tone="neutral">Para consultar</Badge>}
           {item.evalBefore !== undefined && (
             <Badge tone="win">
               <span className="font-mono tabular-nums">{fmtEval(item.evalBefore)}</span> ventaja
@@ -221,7 +228,7 @@ const ConversionDrillsTab = () => {
   return (
     <div className="space-y-6">
       <p className="text-sm text-fg-muted">
-        Posiciones ganadas que se escaparon en tus partidas y ejercicios de las guías.
+        Posiciones ganadas que se escaparon en tus partidas, ejercicios de las guías y finales de las clases.
       </p>
 
       <SegmentedControl<ConversionFilter>
@@ -232,6 +239,7 @@ const ConversionDrillsTab = () => {
           { value: 'all', label: `Todas (${counts.all})` },
           { value: 'conversion', label: `Partidas (${counts.conversion})` },
           { value: 'guide', label: `Guías (${counts.guide})` },
+          { value: 'class', label: `Clases (${counts.class})` },
         ]}
       />
 

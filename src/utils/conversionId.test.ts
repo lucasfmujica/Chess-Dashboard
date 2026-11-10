@@ -27,12 +27,12 @@ describe('uuidv5', () => {
     expect(a).toBe(uuidv5('conv-001', NAMESPACE_CONVERSION));
   });
 
-  it('no colisiona entre los 124 ids', () => {
+  it('no colisiona entre los 154 ids', () => {
     const ids = [
       ...Array.from({ length: 90 }, (_, i) => `conv-${String(i + 1).padStart(3, '0')}`),
-      ...Array.from({ length: 34 }, (_, i) => `drill-${String(i + 1).padStart(3, '0')}`),
+      ...Array.from({ length: 64 }, (_, i) => `drill-${String(i + 1).padStart(3, '0')}`),
     ];
-    expect(new Set(ids.map(conversionItemUuid)).size).toBe(124);
+    expect(new Set(ids.map(conversionItemUuid)).size).toBe(154);
   });
 
   it('rechaza un namespace que no es uuid', () => {
