@@ -1,3 +1,10 @@
+import {
+  CHAPTER_TIEBREAKS,
+  classifyGame,
+  redirectTargets,
+  tiebreakGroupFor,
+  type TiebreakGroup,
+} from './chapterTiebreaks';
 import { chapterColor, chapterNumber } from './repertoireMoves';
 import { isDue } from './srs';
 import type { StudyChapter, StudyChapterHeader } from './studyPgn';
@@ -77,7 +84,9 @@ export const openingMatches = (chapterOpening: string | undefined, gameOpening: 
 export const chapterSide = (header: StudyChapterHeader): PlayerColor | null =>
   chapterColor(header.chapterName);
 
-export type GameLinkMethod = 'eco' | 'opening' | null;
+const sameGame = (a: Game, b: Game): boolean => a === b || (a.id !== undefined && a.id === b.id);
+
+export type GameLinkMethod = 'eco' | 'opening' | 'tiebreak' | null;
 
 export interface ChapterGamesLink {
   games: Game[];
@@ -85,24 +94,74 @@ export interface ChapterGamesLink {
   method: GameLinkMethod;
   /** Color filtrado; null cuando cuentan los dos. */
   color: PlayerColor | null;
+  /** Partidas del ECO del capítulo sin PGN legible: no se pueden asignar. */
+  noPgn: Game[];
+  /** Partidas del ECO del par que el desempate no manda a ningún capítulo. */
+  unassigned: Game[];
+  /** Id del grupo de desempate aplicado, si hubo. */
+  tiebreakGroup?: string;
 }
 
 /**
  * Las partidas propias que corresponden al capítulo. Por ECO si el capítulo
  * trae uno válido; si no, por nombre de apertura. Filtra por el color del
- * capítulo cuando se puede deducir del título.
+ * capítulo cuando se puede deducir del título. Si el capítulo comparte ECO con
+ * otro (tabla de desempates), después se queda solo con las partidas que las
+ * jugadas asignan a este capítulo.
  */
-export const linkGamesToChapter = (header: StudyChapterHeader, games: Game[]): ChapterGamesLink => {
+export const linkGamesToChapter = (
+  header: StudyChapterHeader,
+  games: Game[],
+  groups: TiebreakGroup[] = CHAPTER_TIEBREAKS,
+): ChapterGamesLink => {
   const color = chapterSide(header);
   const sameSide = color ? games.filter(g => g.color === color) : games;
+  const chapterNo = chapterNumber(header.chapterName);
 
+  let method: GameLinkMethod = null;
+  let linked: Game[] = [];
   if (parseEcoRange(header.eco)) {
-    return { games: sameSide.filter(g => ecoMatches(header.eco, g.eco)), method: 'eco', color };
+    method = 'eco';
+    linked = sameSide.filter(g => ecoMatches(header.eco, g.eco));
+  } else if (header.opening.trim()) {
+    method = 'opening';
+    linked = sameSide.filter(g => openingMatches(header.opening, g.opening));
   }
-  if (header.opening.trim()) {
-    return { games: sameSide.filter(g => openingMatches(header.opening, g.opening)), method: 'opening', color };
+
+  const noPgn: Game[] = [];
+  const unassigned: Game[] = [];
+  let tiebreakGroup: string | undefined;
+
+  const group = method ? tiebreakGroupFor(chapterNo, groups) : null;
+  if (group && chapterNo !== null) {
+    const own: Game[] = [];
+    for (const g of linked) {
+      const outcome = classifyGame(g.pgn, group);
+      if (outcome.kind === 'noPgn') noPgn.push(g);
+      else if (outcome.kind === 'unassigned') unassigned.push(g);
+      else if (outcome.chapter === chapterNo) own.push(g);
+    }
+    linked = own;
+    method = 'tiebreak';
+    tiebreakGroup = group.id;
   }
-  return { games: [], method: null, color };
+
+  // Capítulo de afuera de un par al que la regla de un grupo le manda partidas.
+  if (method && chapterNo !== null) {
+    for (const g of groups) {
+      if (g.chapters.includes(chapterNo) || !redirectTargets(g).includes(chapterNo)) continue;
+      if (color && color !== g.color) continue;
+      for (const game of games) {
+        if (game.color !== g.color || !ecoMatches(g.eco, game.eco) || linked.some(l => sameGame(l, game))) continue;
+        const outcome = classifyGame(game.pgn, g);
+        if (outcome.kind === 'chapter' && outcome.chapter === chapterNo) linked = [...linked, game];
+      }
+    }
+  }
+
+  const result: ChapterGamesLink = { games: linked, method, color, noPgn, unassigned };
+  if (tiebreakGroup) result.tiebreakGroup = tiebreakGroup;
+  return result;
 };
 
 export interface LineScore {

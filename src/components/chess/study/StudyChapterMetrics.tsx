@@ -40,6 +40,10 @@ const StudyChapterMetrics = ({ chapter, games, moves, movesError, now }: StudyCh
     '—'
   );
 
+  const extras =
+    (link.noPgn.length ? ` · ${link.noPgn.length} sin PGN` : '') +
+    (link.unassigned.length ? ` · ${link.unassigned.length} sin asignar` : '');
+
   const lineSubtitle = score.total ? (
     <>
       <span className="font-mono tabular-nums">{score.pct}%</span>
@@ -49,13 +53,14 @@ const StudyChapterMetrics = ({ chapter, games, moves, movesError, now }: StudyCh
         <span className="text-loss">−{score.losses}</span>
       </span>
       {link.color && ` · ${COLOR_LABEL[link.color]}`}
+      {extras}
     </>
   ) : link.method === null ? (
     'Sin partidas vinculadas: el capítulo no trae ECO ni apertura'
   ) : (
     `Sin partidas vinculadas${link.color ? ` ${COLOR_LABEL[link.color]}` : ''} en ${
-      link.method === 'eco' ? chapter.header.eco : 'esta apertura'
-    }`
+      link.method === 'opening' ? 'esta apertura' : chapter.header.eco
+    }${link.method === 'tiebreak' ? ' (desempate por jugadas)' : ''}${extras}`
   );
 
   let reviewValue: ReactNode = '—';
