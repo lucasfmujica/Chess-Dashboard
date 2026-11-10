@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
 import {
-  StarIcon,
   PlusIcon,
   XMarkIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { ecoNames } from '../../../../constants/ecoNames';
 import { useRepertoireLines } from '../../../../context/RepertoireLinesContext';
@@ -45,8 +43,7 @@ interface GalleryEntry {
 }
 
 const AVATAR_PALETTE = [
-  'bg-rose-500', 'bg-amber-500', 'bg-emerald-500', 'bg-sky-500',
-  'bg-violet-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500',
+  'bg-cat-1', 'bg-cat-2', 'bg-cat-3', 'bg-cat-4', 'bg-cat-5', 'bg-cat-6',
 ];
 
 /** Deterministic avatar color so the same name always looks the same. */
@@ -60,7 +57,7 @@ const initials = (name: string) =>
   name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
 
 const Avatar = ({ name }: { name: string }) => (
-  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white ${avatarColor(name)}`}>
+  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full font-mono text-[10px] font-medium text-surface ${avatarColor(name)}`}>
     {initials(name) || '?'}
   </span>
 );
@@ -200,13 +197,14 @@ const OpeningHeroesGallery = ({
   };
 
   const HeroPill = ({ eco, hero }: { eco: string; hero: string }) => (
-    <span className="group inline-flex items-center gap-1.5 pl-1 pr-2 py-1 bg-surface border border-hairline text-fg text-xs rounded-full">
+    <span className="group inline-flex items-center gap-1.5 pl-1 pr-2 py-1 bg-surface border border-hairline text-fg text-xs rounded-sm">
       <Avatar name={hero} />
       {hero}
       <button
         onClick={() => removeHero(eco, hero)}
-        className="text-fg-subtle hover:text-loss transition-colors"
-        title="Remove"
+        className="text-fg-subtle hover:text-loss transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+        title="Quitar"
+        aria-label={`Quitar a ${hero}`}
       >
         <XMarkIcon className="w-3 h-3" />
       </button>
@@ -215,21 +213,21 @@ const OpeningHeroesGallery = ({
 
   const OpeningCardTile = ({ eco, heroes, name, color, stats, chapters }: GalleryEntry) => (
     <div
-      className={`border rounded-lg p-4 transition-colors ${
+      className={`rounded border p-4 transition-colors ${
         color !== null && heroes.length === 0
-          ? 'border-draw/40 bg-draw/5 hover:bg-draw/10'
-          : 'border-hairline bg-surface-2/40 hover:bg-surface-2'
+          ? 'border-dashed border-hairline bg-app'
+          : 'border-hairline bg-surface hover:border-fg-subtle/60'
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             {color && <PieceGlyph color={color} />}
-            <p className="font-semibold text-sm text-fg truncate">{name}</p>
+            <p className="truncate font-serif text-[15px] font-semibold text-fg">{name}</p>
           </div>
-          <p className="text-xs text-fg-muted tabular-nums">
+          <p className="font-mono text-xs tabular-nums text-fg-muted">
             {eco}
-            {stats && ` · ${stats.games} game${stats.games === 1 ? '' : 's'} · ${stats.winRate}% wins`}
+            {stats && ` · ${stats.games} partida${stats.games === 1 ? '' : 's'} · ${stats.winRate}%`}
           </p>
           {/* An ECO is not unique per chapter — nine of them cover two. Naming
               the second one stops the card from looking like it covers less
@@ -242,9 +240,9 @@ const OpeningHeroesGallery = ({
         </div>
         <button
           onClick={() => setAddingFor(addingFor === eco ? null : eco)}
-          className="shrink-0 text-xs px-2 py-1 border border-hairline bg-surface hover:bg-surface-2 text-fg rounded transition-colors"
+          className="shrink-0 rounded-sm border border-hairline bg-surface px-2 py-1 text-xs text-fg transition-colors hover:border-fg-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
         >
-          {addingFor === eco ? 'Cancel' : '+ Hero'}
+          {addingFor === eco ? 'Cancelar' : '+ Jugador'}
         </button>
       </div>
 
@@ -254,16 +252,16 @@ const OpeningHeroesGallery = ({
             type="text"
             value={newHeroName}
             onChange={e => setNewHeroName(e.target.value)}
-            placeholder="Enter player name..."
+            placeholder="Nombre del jugador"
             onKeyDown={e => e.key === 'Enter' && addHero(eco)}
             autoFocus
             className="flex-1 text-xs px-2 py-1 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
           />
           <button
             onClick={() => addHero(eco)}
-            className="text-xs px-3 py-1 bg-fg text-app rounded hover:opacity-90 transition-opacity"
+            className="rounded bg-accent px-3 py-1 text-xs text-accent-fg transition-colors hover:bg-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
-            Add
+            Agregar
           </button>
         </div>
       )}
@@ -272,9 +270,8 @@ const OpeningHeroesGallery = ({
         {heroes.length > 0 ? (
           heroes.map(hero => <HeroPill key={hero} eco={eco} hero={hero} />)
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-xs text-draw">
-            <ExclamationTriangleIcon className="w-3.5 h-3.5" />
-            Sin héroe — nadie a quien estudiar acá
+          <span className="text-xs text-fg-muted">
+            Sin referente: nadie a quien estudiar acá
           </span>
         )}
       </div>
@@ -290,23 +287,20 @@ const OpeningHeroesGallery = ({
   return (
     <Card>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-        <h3 className="flex items-center text-h3 text-fg">
-          <StarIcon className="w-5 h-5 mr-2 text-accent" />
-          Opening Heroes
-        </h3>
+        <h3 className="font-serif text-xl font-semibold leading-tight text-fg">Referentes por apertura</h3>
         <div className="flex items-center gap-2">
           <SegmentedControl
-            aria-label="Heroes view"
+            aria-label="Vista de referentes"
             size="sm"
             value={view}
             onChange={setView}
             options={[
-              { value: 'opening', label: 'By opening' },
-              { value: 'player', label: 'By player' },
+              { value: 'opening', label: 'Por apertura' },
+              { value: 'player', label: 'Por jugador' },
             ]}
           />
           <Button variant="secondary" size="sm" icon={PlusIcon} onClick={() => setShowAddOpening(o => !o)}>
-            New opening
+            Nueva apertura
           </Button>
         </div>
       </div>
@@ -319,8 +313,8 @@ const OpeningHeroesGallery = ({
             {gaps.length > 0 && (
               <>
                 {' · '}
-                <span className="text-draw font-medium">
-                  {gaps.length} de tu repertorio sin héroe
+                <span className="font-medium text-fg">
+                  {gaps.length} de tu repertorio sin referente
                 </span>
               </>
             )}
@@ -331,19 +325,19 @@ const OpeningHeroesGallery = ({
       </p>
 
       {showAddOpening && (
-        <div className="mb-5 p-3 rounded-lg bg-surface-2 border border-hairline">
+        <div className="mb-5 rounded border border-hairline bg-surface-2 p-3">
           <div className="flex flex-wrap items-end gap-2">
             <div className="flex-1 min-w-[200px] relative">
-              <label className="text-label mb-1 block">Opening</label>
+              <label className="text-label mb-1 block">Apertura</label>
               <input
                 type="text"
                 value={ecoQuery}
                 onChange={e => { setEcoQuery(e.target.value); setSelectedEco(''); }}
-                placeholder="Search by name, e.g. Najdorf…"
+                placeholder="Buscá por nombre, por ejemplo Najdorf"
                 className="w-full text-xs px-2 py-1.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
               />
               {matches.length > 0 && !selectedEco && (
-                <div className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-md border border-hairline bg-surface shadow-lg">
+                <div className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded border border-hairline-strong bg-surface">
                   {matches.map(o => (
                     <button
                       key={o.eco}
@@ -358,40 +352,40 @@ const OpeningHeroesGallery = ({
               )}
             </div>
             <div className="flex-1 min-w-[140px]">
-              <label className="text-label mb-1 block">Player name</label>
+              <label className="text-label mb-1 block">Jugador</label>
               <input
                 type="text"
                 value={newOpeningHero}
                 onChange={e => setNewOpeningHero(e.target.value)}
-                placeholder="Enter player name..."
+                placeholder="Nombre del jugador"
                 onKeyDown={e => e.key === 'Enter' && addNewOpening()}
                 className="w-full text-xs px-2 py-1.5 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent"
               />
             </div>
             <Button variant="primary" size="sm" onClick={addNewOpening} disabled={!selectedEco || !newOpeningHero.trim()}>
-              Add
+              Agregar
             </Button>
           </div>
         </div>
       )}
 
       {entries.length === 0 ? (
-        <p className="text-sm text-fg-muted">No heroes tracked yet. Add one with "New opening" above.</p>
+        <p className="text-sm text-fg-muted">Todavía no cargaste referentes. Sumá uno con "Nueva apertura".</p>
       ) : view === 'player' ? (
         <div className="space-y-3">
           {byPlayer.map(([player, openings]) => (
-            <div key={player} className="border border-hairline rounded-lg p-4 bg-surface-2/40">
+            <div key={player} className="rounded border border-hairline bg-surface p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Avatar name={player} />
-                <p className="font-semibold text-sm text-fg">{player}</p>
-                <span className="text-xs text-fg-subtle">· {openings.length} opening{openings.length === 1 ? '' : 's'}</span>
+                <p className="font-serif text-[15px] font-semibold text-fg">{player}</p>
+                <span className="text-xs text-fg-subtle">· {openings.length} apertura{openings.length === 1 ? '' : 's'}</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {openings.map(o => (
-                  <span key={o.eco} className="inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-hairline text-fg text-xs rounded-full">
+                  <span key={o.eco} className="inline-flex items-center gap-1.5 px-2 py-1 bg-surface border border-hairline text-fg text-xs rounded-sm">
                     {o.color && <PieceGlyph color={o.color} size={10} />}
                     {o.name}
-                    <span className="text-fg-subtle tabular-nums">{o.eco}</span>
+                    <span className="font-mono text-fg-subtle tabular-nums">{o.eco}</span>
                   </span>
                 ))}
               </div>
@@ -402,13 +396,13 @@ const OpeningHeroesGallery = ({
         <div className="space-y-6">
           {grouped.W.length > 0 && (
             <div>
-              <SectionHeading className="mb-3"><span className="inline-flex items-center gap-2"><PieceGlyph color="W" /> White</span></SectionHeading>
+              <SectionHeading className="mb-3"><span className="inline-flex items-center gap-2"><PieceGlyph color="W" /> Blancas</span></SectionHeading>
               <OpeningGrid list={grouped.W} />
             </div>
           )}
           {grouped.B.length > 0 && (
             <div>
-              <SectionHeading className="mb-3"><span className="inline-flex items-center gap-2"><PieceGlyph color="B" /> Black</span></SectionHeading>
+              <SectionHeading className="mb-3"><span className="inline-flex items-center gap-2"><PieceGlyph color="B" /> Negras</span></SectionHeading>
               <OpeningGrid list={grouped.B} />
             </div>
           )}

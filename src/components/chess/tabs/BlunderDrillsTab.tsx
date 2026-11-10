@@ -3,22 +3,15 @@ import { Chessboard } from 'react-chessboard';
 import { boardSquareStyles } from '../boardTheme';
 import BoardFrame from '../BoardFrame';
 import { Chess } from 'chess.js';
-import {
-  ExclamationTriangleIcon,
-  ClockIcon,
-  SparklesIcon,
-  ArrowPathIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  FireIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useBlunderDrills } from '../../../hooks/useBlunderDrills';
 import { isDue, nextReviewAt } from '../../../utils/srs';
 import { Card } from '../../ui/Card';
-import Badge, { resultTone } from '../../ui/Badge';
+import Badge from '../../ui/Badge';
+import ResultMark from '../../ui/ResultMark';
 import Button from '../../ui/Button';
 import SegmentedControl from '../../ui/SegmentedControl';
-import StatCard from '../../ui/StatCard';
+import StatCard, { ClockBar } from '../../ui/StatCard';
 import { PieceLabel } from '../../ui/PieceGlyph';
 import { ecoNames } from '../../../constants/ecoNames';
 import { isEngineOnly } from '../../../constants/maia';
@@ -208,71 +201,61 @@ const BlunderDrillsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <Card>
+      <div>
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-surface-2 rounded-lg">
-              <ExclamationTriangleIcon className="w-7 h-7 text-accent" />
-            </div>
-            <div>
-              <h2 className="text-h2 text-fg">Blunder Drills</h2>
-              <p className="text-sm text-fg-muted">Drill the mistakes from your own analyzed games</p>
-            </div>
-          </div>
+          <p className="text-sm text-fg-muted">Posiciones de tus propias partidas analizadas, donde se te escapó la jugada.</p>
           {batch ? (
             <div className="flex items-center gap-3">
-              <div className="w-32 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+              <div className="w-32 h-1.5 rounded-sm bg-surface-2 overflow-hidden">
                 <div
                   className="h-full bg-accent transition-all"
                   style={{ width: `${Math.round((batch.done / batch.total) * 100)}%` }}
                 />
               </div>
-              <span className="text-xs text-fg-muted tabular-nums">
-                Analyzing {batch.done}/{batch.total} · {batch.name}
+              <span className="font-mono text-xs text-fg-muted tabular-nums">
+                Analizando {batch.done}/{batch.total} · {batch.name}
               </span>
-              <Button variant="secondary" size="sm" onClick={cancelBatch}>Cancel</Button>
+              <Button variant="secondary" size="sm" onClick={cancelBatch}>Cancelar</Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               {pendingAnalysisCount > 0 && (
                 <Button variant="secondary" onClick={() => void mine()} disabled={mining}>
-                  {mining ? 'Scanning…' : 'Scan already-analyzed'}
+                  {mining ? 'Buscando…' : 'Revisar las ya analizadas'}
                 </Button>
               )}
               <Button variant="secondary" icon={ArrowPathIcon} onClick={() => void analyzeAndMine()} disabled={mining}>
                 {mining
-                  ? 'Scanning…'
+                  ? 'Buscando…'
                   : pendingAnalysisCount > 0
-                    ? `Analyze & scan (${pendingAnalysisCount})`
-                    : 'Scan for new blunders'}
+                    ? `Analizar y buscar (${pendingAnalysisCount})`
+                    : 'Buscar blunders nuevos'}
               </Button>
             </div>
           )}
         </div>
         {batch && (
           <p className="mt-3 text-xs text-fg-subtle">
-            Running Stockfish over your unanalyzed games first — this can take a while for a large batch.
+            Primero corre Stockfish sobre las partidas sin analizar: con muchas partidas tarda un rato.
           </p>
         )}
         {error && <p className="mt-3 text-sm text-loss">{error}</p>}
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard title="Total Drills" value={stats.total} icon={ExclamationTriangleIcon} />
-        <StatCard title="Due Now" value={stats.due} icon={ClockIcon} />
-        <StatCard title="Mastered" value={stats.mastered} icon={SparklesIcon} subtitle="Confidence 5/5" />
-        <StatCard title="Avg Confidence" value={`${stats.avgConfidence}/5`} />
       </div>
 
+      <ClockBar>
+        <StatCard title="Para hoy" value={stats.due} subtitle="vencidos" trend={stats.due > 0 ? 'down' : undefined} />
+        <StatCard title="En la cola" value={stats.total} subtitle="de partidas analizadas" />
+        <StatCard title="Dominados" value={stats.mastered} subtitle="confianza 5 de 5" />
+        <StatCard title="Confianza media" value={stats.avgConfidence} subtitle="de 5" />
+      </ClockBar>
+
       {/* Filters */}
-      <Card>
-        <div className="flex flex-wrap items-end gap-6">
+      <div className="border-b border-hairline pb-4">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
           <div>
-            <p className="text-label mb-2">Mode</p>
+            <p className="text-label mb-2">Modo</p>
             <SegmentedControl
-              aria-label="Drill mode"
+              aria-label="Modo de ejercicio"
               value={mode}
               onChange={setMode}
               options={[
@@ -283,21 +266,21 @@ const BlunderDrillsTab = () => {
             />
           </div>
           <div>
-            <p className="text-label mb-2">Queue</p>
+            <p className="text-label mb-2">Cola</p>
             <SegmentedControl
-              aria-label="Queue filter"
+              aria-label="Filtro de cola"
               value={listFilter}
               onChange={setListFilter}
               options={[
-                { value: 'due', label: `Due (${stats.due})` },
-                { value: 'all', label: 'All' },
+                { value: 'due', label: `Para hoy (${stats.due})` },
+                { value: 'all', label: 'Todos' },
               ]}
             />
           </div>
           <div>
             <p className="text-label mb-2">Encontrable</p>
             <SegmentedControl
-              aria-label="Findability filter"
+              aria-label="Filtro por encontrable"
               value={findFilter}
               onChange={setFindFilter}
               options={[
@@ -310,44 +293,43 @@ const BlunderDrillsTab = () => {
           <div>
             <p className="text-label mb-2">Color</p>
             <SegmentedControl
-              aria-label="Color filter"
+              aria-label="Filtro de color"
               value={colorFilter}
               onChange={setColorFilter}
               options={[
-                { value: 'all', label: 'All' },
+                { value: 'all', label: 'Ambos' },
                 { value: 'W', label: <PieceLabel color="W" /> },
                 { value: 'B', label: <PieceLabel color="B" /> },
               ]}
             />
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Drill */}
       {loading ? (
-        <Card className="p-12 text-center text-fg-muted">Loading…</Card>
+        <Card className="text-center text-fg-muted">Cargando…</Card>
       ) : filtered.length > 0 && current ? (
         <Card flush className="overflow-hidden">
-          <div className="px-6 py-3 bg-surface-2 border-b border-hairline">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-fg">
-                {currentIndex + 1} of {filtered.length}
+          <div className="px-5 py-3 bg-surface-2 border-b border-hairline sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-sm tabular-nums text-fg-muted">
+                ejercicio {currentIndex + 1} de {filtered.length}
               </span>
               <div className="flex items-center gap-4">
                 {mode !== 'review' && streak > 0 && (
-                  <span className="flex items-center gap-1 text-sm font-semibold text-accent">
-                    <FireIcon className="w-4 h-4" />
-                    <span className="tabular-nums">{streak}</span>
+                  <span className="text-sm text-fg-muted">
+                    Racha <span className="font-mono font-medium tabular-nums text-accent">{streak}</span>
                   </span>
                 )}
                 <span className="text-sm text-fg-muted">
-                  Confidence: <span className="font-bold text-accent tabular-nums">{current.confidence ?? '—'}/5</span>
+                  Confianza: <span className="font-mono font-medium text-accent tabular-nums">{current.confidence ?? '—'}/5</span>
                 </span>
               </div>
             </div>
-            <div className="mt-2 h-1.5 bg-surface rounded-full overflow-hidden">
+            <div className="mt-2 h-1.5 bg-surface rounded-sm overflow-hidden">
               <div
-                className="h-full bg-accent rounded-full transition-all duration-300"
+                className="h-full bg-accent transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / filtered.length) * 100}%` }}
               />
             </div>
@@ -357,7 +339,7 @@ const BlunderDrillsTab = () => {
               absorbs whatever is left, so a height-limited board never leaves
               dead space beside it. See index.css. */}
           <div
-            className="p-6 grid gap-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(360px,1fr)]"
+            className="p-4 grid gap-6 sm:p-6 xl:grid-cols-[minmax(0,var(--board-user,var(--board-fit)))_minmax(360px,1fr)]"
             style={{ '--board-fit': 'calc(100dvh - 240px)' } as CSSProperties}
           >
             <div className="min-w-0">
@@ -437,90 +419,75 @@ const BlunderDrillsTab = () => {
             <div className="min-w-0 space-y-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone="neutral"><PieceLabel color={current.game.color} /></Badge>
-                {current.game.eco && <Badge tone="neutral">{current.game.eco}</Badge>}
-                <Badge tone={resultTone(current.game.result)}>{current.game.result}</Badge>
+                {current.game.eco && <Badge tone="neutral"><span className="font-mono">{current.game.eco}</span></Badge>}
+                <Badge tone="alert">Blunder · −{(current.cpLoss / 100).toFixed(1)}</Badge>
+                <ResultMark result={current.game.result} outline />
               </div>
-              <h3 className="text-h3 text-fg">{drillTitle(current)}</h3>
-              <p className="text-sm text-fg-muted">
+              <h3 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-fg text-balance">{drillTitle(current)}</h3>
+              <p className="font-serif text-base text-fg-muted">
                 vs {current.game.opponent}
                 {current.game.playedDate && ` · ${current.game.playedDate}`}
               </p>
 
               {mode === 'review' && !showAnswer && (
-                <div className="p-6 bg-surface-2 rounded-lg border border-hairline">
-                  <p className="text-base font-semibold text-fg mb-1">What went wrong here?</p>
-                  <p className="text-sm text-fg-muted">Find the best move in your head, then reveal.</p>
+                <div className="rounded border border-hairline bg-surface-2 p-5">
+                  <p className="mb-1 font-serif text-lg font-semibold text-fg">¿Qué jugarías?</p>
+                  <p className="text-sm text-fg-muted">Buscá la jugada en la cabeza y después mostrala.</p>
                 </div>
               )}
 
               {mode === 'review' && showAnswer && (
-                <div className="space-y-3 animate-slideUp">
-                  <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
-                    <p className="text-label mb-2">You played</p>
-                    <p className="text-lg font-bold text-loss font-mono">{current.playedSan}</p>
-                  </div>
-                  <div className="p-5 bg-surface-2 rounded-lg border border-hairline">
-                    <p className="text-label mb-2">Eval swing</p>
-                    <p className="text-sm text-fg tabular-nums">
+                <div className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-2 border-t border-hairline pt-3 animate-slideUp">
+                    <p className="text-label">Jugaste</p>
+                    <p className="font-serif text-base text-loss">{current.playedSan}</p>
+                    <p className="text-label">Evaluación</p>
+                    <p className="font-mono text-sm text-fg tabular-nums">
                       {fmtEval(current.evalBefore)} → {fmtEval(current.evalAfter)}{' '}
                       <span className="text-loss">(−{(current.cpLoss / 100).toFixed(1)})</span>
                     </p>
-                  </div>
                 </div>
               )}
 
               {mode === 'review' && (
                 <div className="flex gap-3">
                   {!showAnswer ? (
-                    <button
-                      onClick={() => setShowAnswer(true)}
-                      className="flex-1 px-6 py-4 text-base font-bold text-app bg-fg rounded-lg hover:opacity-90 transition-all"
-                    >
-                      Show answer
-                    </button>
+                    <Button variant="primary" onClick={() => setShowAnswer(true)} className="h-11 flex-1">
+                      Mostrar la mejor jugada
+                    </Button>
                   ) : (
                     <>
-                      <button
-                        onClick={() => void handleReview(false)}
-                        className="flex-1 px-6 py-4 text-base font-bold text-app bg-loss rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                      >
-                        <XCircleIcon className="w-5 h-5" /> Missed it
-                      </button>
-                      <button
-                        onClick={() => void handleReview(true)}
-                        className="flex-1 px-6 py-4 text-base font-bold text-app bg-win rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
-                      >
-                        <CheckCircleIcon className="w-5 h-5" /> Got it
-                      </button>
+                      <Button variant="danger" onClick={() => void handleReview(false)} className="h-11 flex-1">
+                        No la veía
+                      </Button>
+                      <Button variant="primary" onClick={() => void handleReview(true)} className="h-11 flex-1">
+                        La veía
+                      </Button>
                     </>
                   )}
                 </div>
               )}
 
               <div className="flex gap-3">
-                <Button variant="secondary" onClick={goPrev}>← Previous</Button>
-                <Button variant="secondary" onClick={goNext}>Next →</Button>
+                <Button variant="secondary" onClick={goPrev}>← Anterior</Button>
+                <Button variant="secondary" onClick={goNext}>Siguiente →</Button>
               </div>
             </div>
           </div>
         </Card>
       ) : (
-        <Card className="p-12 text-center">
-          <div className="p-4 bg-surface-2 rounded-full inline-block mb-4">
-            <CheckCircleIcon className="w-12 h-12 text-win" />
-          </div>
+        <Card className="text-center">
           {drills.length === 0 ? (
             <>
-              <h3 className="text-h3 text-fg mb-2">No blunder drills yet</h3>
+              <h3 className="mb-2 font-serif text-xl font-semibold text-fg">Todavía no hay ejercicios</h3>
               <p className="text-fg-muted">
-                Click <span className="font-semibold text-fg">"Analyze &amp; scan"</span> above to run Stockfish over
-                your games and pull out your blunders — no need to analyze them one by one first.
+                Tocá <span className="font-semibold text-fg">"Analizar y buscar"</span> arriba: Stockfish recorre tus
+                partidas y saca los blunders, sin tener que analizarlas una por una.
               </p>
             </>
           ) : (
             <>
-              <h3 className="text-h3 text-fg mb-2">All caught up!</h3>
-              <p className="text-fg-muted">No drills due for review. Switch to "All" to keep practicing.</p>
+              <h3 className="mb-2 font-serif text-xl font-semibold text-fg">Repaso al día</h3>
+              <p className="text-fg-muted">No hay ejercicios vencidos. Pasá a "Todos" para seguir practicando.</p>
             </>
           )}
         </Card>

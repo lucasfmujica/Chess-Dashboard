@@ -22,7 +22,7 @@ const StudyMoveList = ({ nodes, ancestorFrames, activePath, onSelect, isVariatio
   const activeFrame = activePath[depth];
 
   return (
-    <span className={`inline-flex flex-wrap items-baseline gap-x-1 gap-y-1 ${isVariation ? 'text-fg-muted italic text-[13px]' : 'text-sm'}`}>
+    <span className={`inline-flex flex-wrap items-baseline gap-x-1 gap-y-1 font-serif ${isVariation ? 'text-fg-muted italic text-sm' : 'text-[15px] leading-6'}`}>
       {isVariation && <span className="text-fg-subtle">(</span>}
       {nodes.map((node, i) => {
         const isActive = activeFrame?.nodes === nodes && activeFrame.index === i;
@@ -32,18 +32,19 @@ const StudyMoveList = ({ nodes, ancestorFrames, activePath, onSelect, isVariatio
 
         return (
           <span key={i} className="inline-flex flex-wrap items-baseline gap-x-1">
-            {label && <span className="text-fg-subtle tabular-nums">{label}</span>}
+            {label && <span className="font-mono text-xs text-fg-subtle tabular-nums">{label}</span>}
             <button
               onClick={() => onSelect(path)}
-              className={`rounded px-1 font-medium transition-colors ${
-                isActive ? 'bg-accent/15 text-accent' : 'hover:bg-surface-2 text-fg'
+              aria-current={isActive ? 'true' : undefined}
+              className={`rounded-sm px-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+                isActive ? 'bg-carbon text-fg font-semibold' : 'hover:bg-surface-2 text-fg'
               }`}
             >
               {node.san}
             </button>
 
             {node.comment && (
-              <span className="basis-full w-full block whitespace-pre-wrap rounded-md bg-surface-2 px-2.5 py-2 my-1 text-xs leading-relaxed text-fg-muted not-italic">
+              <span className="basis-full w-full block whitespace-pre-wrap pl-3 py-1 my-1.5 font-serif text-[15px] leading-6 text-fg not-italic">
                 {node.comment}
               </span>
             )}

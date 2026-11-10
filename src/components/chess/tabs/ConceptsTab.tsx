@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PlusIcon, TrashIcon, PencilIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import {
   fetchConcepts,
   postConcept,
@@ -23,7 +23,8 @@ import {
   TR,
   TH,
   TD,
-  PageHeader,
+  StatCard,
+  ClockBar,
   type Segment,
 } from '../../ui';
 import {
@@ -90,7 +91,7 @@ const BOOK_STATUSES: { value: BookStatus; label: string }[] = [
 ];
 
 const INPUT_CLASS =
-  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded-lg focus:border-accent focus:ring-1 focus:ring-accent text-sm';
+  'w-full px-3 py-2 bg-surface border border-hairline text-fg placeholder-fg-subtle rounded focus:border-accent focus:ring-1 focus:ring-accent text-sm';
 
 const emptyConcept = (): Partial<Concept> => ({
   name: '',
@@ -242,13 +243,12 @@ const ConceptsTab = () => {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Concepts & Books"
-        subtitle="Un concepto que no está ligado a una partida tuya no lo aprendiste, lo leíste."
-      />
+      <p className="text-sm text-fg-muted">
+        Un concepto que no está ligado a una partida tuya no lo aprendiste, lo leíste.
+      </p>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <SegmentedControl options={VIEWS} value={view} onChange={setView} />
+        <SegmentedControl options={VIEWS} value={view} onChange={setView} aria-label="Conceptos o libros" />
         {view === 'concepts' && (
           <Button
             icon={PlusIcon}
@@ -270,27 +270,19 @@ const ConceptsTab = () => {
 
       {view === 'concepts' ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card>
-              <div className="text-label">Conceptos</div>
-              <div className="text-h2 text-fg nums mt-1">{concepts.length}</div>
-            </Card>
-            <Card>
-              <div className="text-label">Con partida propia</div>
-              <div className="text-h2 text-fg nums mt-1">
-                {appliedCount}
-                <span className="text-fg-subtle text-base"> / {concepts.length}</span>
-              </div>
-            </Card>
-            <Card>
-              <div className="text-label">Libros</div>
-              <div className="text-h2 text-fg nums mt-1">{books.length}</div>
-            </Card>
-          </div>
+          <ClockBar>
+            <StatCard title="Conceptos" value={concepts.length} subtitle="cargados" />
+            <StatCard
+              title="Con partida propia"
+              value={`${appliedCount} / ${concepts.length}`}
+              subtitle="aprendidos, no solo leídos"
+            />
+            <StatCard title="Libros" value={books.length} subtitle={`${activeBooks.length} activos`} />
+          </ClockBar>
 
           {draft && (
             <Card>
-              <h3 className="text-h3 text-fg mb-4">
+              <h3 className="mb-4 font-serif text-xl font-semibold text-fg">
                 {editingId ? 'Editar concepto' : 'Nuevo concepto'}
               </h3>
               <div className="space-y-4">
@@ -473,31 +465,16 @@ const ConceptsTab = () => {
             </Card>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setCategoryFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-sm ${
-                categoryFilter === 'all'
-                  ? 'bg-surface-2 text-fg'
-                  : 'text-fg-muted hover:bg-surface-2'
-              }`}
-            >
-              Todas
-            </button>
-            {CATEGORIES.map(c => (
-              <button
-                key={c.value}
-                onClick={() => setCategoryFilter(c.value)}
-                className={`px-3 py-1.5 rounded-lg text-sm ${
-                  categoryFilter === c.value
-                    ? 'bg-surface-2 text-fg'
-                    : 'text-fg-muted hover:bg-surface-2'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="sm"
+            aria-label="Filtrar por categoría"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { value: 'all', label: 'Todas' },
+              ...CATEGORIES.map(c => ({ value: c.value, label: c.label })),
+            ]}
+          />
 
           {visibleConcepts.length === 0 ? (
             <Card>
@@ -507,85 +484,112 @@ const ConceptsTab = () => {
               </p>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {visibleConcepts.map(concept => {
-                const unlearned = concept.gameIds.length === 0;
-                const book = books.find(b => b.id === concept.bookId);
-                return (
-                  <Card key={concept.id}>
-                    <div className={unlearned ? 'opacity-60' : ''}>
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-h3 text-fg">{concept.name}</h3>
-                        <div className="flex gap-1 shrink-0">
-                          <button
-                            onClick={() => {
-                              setDraft(concept);
-                              setEditingId(concept.id);
-                            }}
-                            className="p-1.5 text-accent hover:bg-surface-2 rounded-lg"
-                            aria-label="Editar"
-                          >
-                            <PencilIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => void removeConcept(concept)}
-                            className="p-1.5 text-loss hover:bg-loss/10 rounded-lg"
-                            aria-label="Borrar"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2 mt-2">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Concepto</TH>
+                  <TH>Categoría</TH>
+                  <TH>Fuente</TH>
+                  <TH>Partida propia</TH>
+                  <TH>Confianza</TH>
+                  <TH align="right">
+                    <span className="sr-only">Acciones</span>
+                  </TH>
+                </TR>
+              </THead>
+              <TBody>
+                {visibleConcepts.map(concept => {
+                  const unlearned = concept.gameIds.length === 0;
+                  const book = books.find(b => b.id === concept.bookId);
+                  const confidence = concept.confidence ?? 0;
+                  return (
+                    <TR key={concept.id} className="align-top">
+                      <TD className="min-w-[220px]">
+                        <p className="font-serif text-[15px] font-semibold leading-snug text-fg">{concept.name}</p>
+                        {concept.summary && (
+                          <p className="mt-1 max-w-prose font-serif text-sm leading-snug text-fg-muted">
+                            {concept.summary}
+                          </p>
+                        )}
+                        <p className="mt-1 text-xs text-fg-subtle">
+                          {STATUSES.find(st => st.value === concept.status)?.label ?? concept.status}
+                        </p>
+                      </TD>
+                      <TD>
                         <Badge>
                           {CATEGORIES.find(c => c.value === concept.category)?.label ??
                             concept.category}
                         </Badge>
-                        <Badge tone={concept.status === 'mastered' ? 'win' : 'neutral'}>
-                          {STATUSES.find(s => s.value === concept.status)?.label ??
-                            concept.status}
-                        </Badge>
-                      </div>
-
-                      {concept.summary && (
-                        <p className="text-sm text-fg-muted mt-3">{concept.summary}</p>
-                      )}
-
-                      {(book || concept.sourceChapter) && (
-                        <p className="text-xs text-fg-subtle mt-2">
-                          {book?.title}
-                          {book && concept.sourceChapter ? ' · ' : ''}
-                          {concept.sourceChapter}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-3 border-t border-hairline pt-2">
-                      {unlearned ? (
-                        <span className="text-xs text-loss">
-                          Leído, no aprendido — sin partida propia vinculada
+                      </TD>
+                      <TD muted className="min-w-[140px]">
+                        {book || concept.sourceChapter ? (
+                          <>
+                            {book?.title}
+                            {book && concept.sourceChapter ? ' · ' : ''}
+                            {concept.sourceChapter}
+                          </>
+                        ) : (
+                          SOURCE_TYPES.find(st => st.value === concept.sourceType)?.label ?? '—'
+                        )}
+                      </TD>
+                      <TD className="whitespace-nowrap">
+                        {unlearned ? (
+                          <span className="text-xs text-fg-subtle" title="Sin partida propia vinculada">
+                            Leído, no aprendido
+                          </span>
+                        ) : (
+                          <Badge tone="accent">
+                            <span className="font-mono tabular-nums">{concept.gameIds.length}</span>
+                            {concept.gameIds.length > 1 ? ' partidas' : ' partida'}
+                          </Badge>
+                        )}
+                      </TD>
+                      <TD>
+                        <span
+                          className="inline-flex gap-[3px] pt-1"
+                          role="img"
+                          aria-label={concept.confidence ? `Confianza ${confidence} de 5` : 'Sin confianza cargada'}
+                        >
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <i
+                              key={n}
+                              className={`h-2 w-2 rounded-[1px] border ${
+                                n <= confidence ? 'border-fg bg-fg' : 'border-fg-subtle'
+                              }`}
+                            />
+                          ))}
                         </span>
-                      ) : (
-                        <span className="text-xs text-win nums">
-                          {concept.gameIds.length} partida
-                          {concept.gameIds.length > 1 ? 's' : ''} propias
-                        </span>
-                      )}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+                      </TD>
+                      <TD align="right" className="whitespace-nowrap">
+                        <button
+                          onClick={() => {
+                            setDraft(concept);
+                            setEditingId(concept.id);
+                          }}
+                          className="rounded p-1.5 text-accent hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                          aria-label={`Editar ${concept.name}`}
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => void removeConcept(concept)}
+                          className="rounded p-1.5 text-loss hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                          aria-label={`Borrar ${concept.name}`}
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </TD>
+                    </TR>
+                  );
+                })}
+              </TBody>
+            </Table>
           )}
         </>
       ) : (
         <>
           <Card>
-            <h3 className="text-h3 text-fg flex items-center gap-2">
-              <BookOpenIcon className="w-5 h-5 text-accent" />
-              Importar tu biblioteca
-            </h3>
+            <h3 className="font-serif text-xl font-semibold text-fg">Importar tu biblioteca</h3>
             <p className="text-sm text-fg-muted mt-1">
               Una línea por libro:{' '}
               <span className="font-mono text-xs">
@@ -606,7 +610,7 @@ const ConceptsTab = () => {
             />
 
             {bulkPreview.length > 0 && (
-              <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+              <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
                 <div className="text-label">
                   Vista previa · {bulkPreview.length} libro
                   {bulkPreview.length > 1 ? 's' : ''}
@@ -614,7 +618,7 @@ const ConceptsTab = () => {
                 <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
                   {bulkPreview.slice(0, 8).map((b, i) => (
                     <div key={i} className="text-xs text-fg-muted">
-                      <span className="text-fg">{b.title}</span>
+                      <span className="font-serif text-sm text-fg">{b.title}</span>
                       {b.author ? ` · ${b.author}` : ''} ·{' '}
                       <span
                         className={b.status === 'activo' ? 'text-accent' : ''}
@@ -651,7 +655,7 @@ const ConceptsTab = () => {
           <Card>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-label">Libros activos</div>
+                <h3 className="font-serif text-xl font-semibold text-fg">Libros activos</h3>
                 <p className="text-sm text-fg-muted mt-1">
                   Nada nuevo hasta que algo llegue al 100%. El tope es por fuente: 2 de
                   Chessable y 1 curso de video. Los PDF de partidas no cuentan.
@@ -661,7 +665,7 @@ const ConceptsTab = () => {
                 {activeBySource.map(({ source, limit, books: sourceBooks }) => (
                   <div key={source} className="text-right">
                     <div
-                      className={`text-h2 nums ${
+                      className={`font-mono text-2xl tabular-nums ${
                         sourceBooks.length > limit ? 'text-loss' : 'text-fg'
                       }`}
                     >
@@ -674,21 +678,28 @@ const ConceptsTab = () => {
               </div>
             </div>
             {activeBooks.length > 0 && (
-              <ul className="mt-4 space-y-3 border-t border-hairline pt-4">
+              <ul className="mt-4 divide-y divide-hairline border-t border-hairline">
                 {activeBooks.map(book => {
                   const pct = bookProgressPct(book);
                   return (
-                    <li key={book.id}>
-                      <div className="flex items-baseline justify-between gap-3 text-sm">
-                        <span className="text-fg">{book.title}</span>
-                        <span className="text-fg-muted nums shrink-0">
+                    <li key={book.id} className="py-4">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block font-serif text-base font-semibold leading-snug text-fg">{book.title}</span>
+                          {(book.author || book.block) && (
+                            <span className="text-xs text-fg-subtle">
+                              {[book.author, book.progressTotal ? book.block : undefined].filter(Boolean).join(' · ')}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0 font-mono text-[13px] tabular-nums text-fg-muted">
                           {book.progressTotal
                             ? `${book.progressDone ?? 0}/${book.progressTotal} · ${pct}%`
                             : book.block ?? ''}
                         </span>
                       </div>
                       {pct !== undefined && (
-                        <div className="mt-1 h-1.5 rounded-full bg-surface-2 overflow-hidden">
+                        <div className="mt-2 h-1.5 rounded-[1px] bg-surface-2 overflow-hidden">
                           <div
                             className="h-full bg-accent"
                             style={{ width: `${Math.min(100, pct)}%` }}
@@ -723,12 +734,13 @@ const ConceptsTab = () => {
                       const pct = bookProgressPct(book);
                       return (
                         <TR key={book.id}>
-                          <TD>{book.title}</TD>
+                          <TD className="font-serif">{book.title}</TD>
                           <TD muted>{book.author ?? '—'}</TD>
                           <TD muted>{book.source ?? '—'}</TD>
                           <TD>
                             <select
-                              className="bg-transparent text-sm text-fg border border-hairline rounded px-2 py-1"
+                              aria-label={`Estado de ${book.title}`}
+                              className="rounded border border-hairline bg-transparent px-2 py-1 text-sm text-fg focus:border-accent focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                               value={book.status}
                               onChange={e =>
                                 void changeBookStatus(book, e.target.value as BookStatus)
@@ -741,20 +753,20 @@ const ConceptsTab = () => {
                               ))}
                             </select>
                           </TD>
-                          <TD align="right" muted>
+                          <TD align="right" muted className="whitespace-nowrap font-mono">
                             {book.progressTotal
                               ? `${book.progressDone ?? 0}/${book.progressTotal} · ${pct}%`
                               : '—'}
                           </TD>
                           <TD muted>{book.block ?? book.notes ?? '—'}</TD>
-                          <TD align="right">
+                          <TD align="right" className="font-mono">
                             {concepts.filter(c => c.bookId === book.id).length}
                           </TD>
                           <TD align="right">
                             <button
                               onClick={() => void removeBook(book)}
-                              className="p-1.5 text-loss hover:bg-loss/10 rounded-lg"
-                              aria-label="Borrar libro"
+                              className="rounded p-1.5 text-loss hover:bg-carbon-pink/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                              aria-label={`Borrar ${book.title}`}
                             >
                               <TrashIcon className="w-4 h-4" />
                             </button>

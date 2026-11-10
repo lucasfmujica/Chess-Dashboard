@@ -1,11 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  CheckCircleIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline';
-import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import {
   fetchTrainingSessions,
   fetchAnnotations,
@@ -23,7 +17,7 @@ import { useGames } from '../../../../context/GamesContext';
 import { useUI } from '../../../../context/UIContext';
 import { unanalyzedGames } from '../../../../utils/annotationMatching';
 import { gameLabel } from '../../../../utils/gameMapping';
-import { Card, Badge, Button } from '../../../ui';
+import { Card, Badge, Button, ClockBar, StatCard } from '../../../ui';
 import ReflectionHistory from './ReflectionHistory';
 import type { TrainingBlock, TrainingSession } from '../../../../types/training';
 import type { AnnotatedGame } from '../../../../types/chess';
@@ -208,220 +202,220 @@ const WeekProgram = ({ dailyNotes, updateDailyNote }: WeekProgramProps) => {
   // Same key the old planner wrote, so past reflections are still here.
   const summaryKey = `${weekStart}-summary`;
 
+  const weekLabel = dateFromKey(weekStart).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+
   return (
     <div className="space-y-6">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setWeekStart(w => shiftWeek(w, -1))}
-                aria-label="Semana anterior"
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-              </Button>
-              <div className="text-label nums">Semana del {weekStart}</div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setWeekStart(w => shiftWeek(w, 1))}
-                aria-label="Semana siguiente"
-              >
-                <ChevronRightIcon className="w-4 h-4" />
-              </Button>
-              {!isCurrentWeek && (
-                <Button size="sm" variant="ghost" onClick={() => setWeekStart(thisMonday)}>
-                  Hoy
-                </Button>
-              )}
-            </div>
-            <h2 className="text-h2 text-fg mt-1">Plan contra real</h2>
-            <p className="text-xs text-fg-muted mt-1">
-              Tocá un bloque para marcarlo como hecho. Los que registró la cola de ejercicios
-              quedan fijos.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-8">
-            {/* Blocks first: it is the metric the plan actually grades on. */}
-            <div className="text-right">
-              <div
-                className={`text-h2 nums ${
-                  blocksDone >= 5 ? 'text-win' : blocksDone >= 3 ? 'text-fg' : 'text-loss'
-                }`}
-              >
-                {blocksDone}
-                <span className="text-fg-subtle text-base"> / {weeklyBlockTarget}</span>
-              </div>
-              <div className="text-xs text-fg-muted">bloques · objetivo 5</div>
-            </div>
-            <div className="text-right">
-              <div
-                className={`text-h2 nums ${
-                  annotationsThisWeek >= WEEKLY_ANNOTATION_TARGET ? 'text-win' : 'text-loss'
-                }`}
-              >
-                {annotationsThisWeek}
-                <span className="text-fg-subtle text-base"> / {WEEKLY_ANNOTATION_TARGET}</span>
-              </div>
-              <div className="text-xs text-fg-muted">partidas analizadas</div>
-            </div>
-            <div className="text-right">
-              <div className="text-h2 text-fg nums">
-                {doneMinutes}
-                <span className="text-fg-subtle text-base"> / {plannedTotal}</span>
-              </div>
-              <div className="text-xs text-fg-muted">minutos</div>
-            </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setWeekStart(w => shiftWeek(w, -1))}
+            aria-label="Semana anterior"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </Button>
+          <span className="text-label">Semana del {weekLabel}</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setWeekStart(w => shiftWeek(w, 1))}
+            aria-label="Semana siguiente"
+          >
+            <ChevronRightIcon className="w-4 h-4" />
+          </Button>
+          {!isCurrentWeek && (
+            <Button size="sm" variant="ghost" onClick={() => setWeekStart(thisMonday)}>
+              Hoy
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-fg-muted">
+          Tocá un bloque para marcarlo como hecho. Los que registró la cola de ejercicios quedan fijos.
+        </p>
+      </div>
+
+      {/* Blocks first: it is the metric the plan actually grades on. */}
+      <ClockBar>
+        <StatCard
+          title="Bloques"
+          value={`${blocksDone} / ${weeklyBlockTarget}`}
+          subtitle="días con algo hecho · objetivo 5"
+          trend={blocksDone >= 5 ? 'up' : undefined}
+        />
+        <StatCard
+          title="Partidas analizadas"
+          value={`${annotationsThisWeek} / ${WEEKLY_ANNOTATION_TARGET}`}
+          subtitle="esta semana"
+          trend={annotationsThisWeek >= WEEKLY_ANNOTATION_TARGET ? 'up' : undefined}
+        />
+        <StatCard title="Minutos" value={`${doneMinutes} / ${plannedTotal}`} subtitle="hecho contra plan" />
+      </ClockBar>
+
+      {unanalyzed.length > 0 && (
+        <Card>
+          <h3 className="font-serif text-lg font-semibold text-fg">
+            {unanalyzed.length} partida{unanalyzed.length > 1 ? 's' : ''} sin analizar
+          </h3>
+          <p className="text-sm text-fg-muted mt-1">
+            Una partida no cuenta como jugada hasta que tiene su fila en la biblioteca de partidas.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {unanalyzed.slice(0, 5).map(g => (
+              <li key={g.id ?? `${g.opp}-${g.date}`}>
+                <button
+                  onClick={() => {
+                    if (g.id) setPendingAnnotationGameId(g.id);
+                    setActiveTab('annotations');
+                  }}
+                  className="w-full text-left px-2 py-1 -mx-2 rounded text-sm text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors flex items-center justify-between gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                >
+                  <span>{gameLabel(g)}</span>
+                  <span className="text-xs text-accent shrink-0">Analizar →</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {/* The week as a seven-column sheet, like a printed planner. Scrolls
+          sideways inside its own frame on narrow screens. */}
+      <Card flush>
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-hairline px-5 py-4">
+          <h2 className="font-serif text-xl font-semibold text-fg">Plan contra real</h2>
+          <span className="text-xs text-fg-subtle">Semana del {weekLabel}</span>
+        </div>
+        <div className="overflow-x-auto">
+          <div className="grid min-w-[1050px] grid-cols-[repeat(7,minmax(150px,1fr))]">
+            {weekPrograms.map((day, dayIndex) => {
+              const dateKey = weekDays[dayIndex];
+              const isToday = dateKey === todayKey;
+              const isPast = dateKey < todayKey;
+              const daySessions = weekSessions.filter(s => s.sessionDate === dateKey);
+              const doneBlocks = new Set(daySessions.map(s => s.block));
+              // The row backing each tick, so the toggle knows what to delete and
+              // whether it may (only `source: 'manual'` rows are removable here).
+              const sessionByBlock = new Map(daySessions.map(s => [s.block, s]));
+              // A session row is per (day, block), but a day can prescribe the same
+              // block twice — Miércoles has two `endgame` entries. Ticking either
+              // one logs the block's whole planned time for the day, so the minutes
+              // don't come out short.
+              const blockMinutes = day.blocks.reduce<Record<string, number>>((acc, b) => {
+                acc[b.block] = (acc[b.block] ?? 0) + b.minutes;
+                return acc;
+              }, {});
+              const required = blocksForDay(day);
+              // Vacuously true on the rest day, which is the wanted reading:
+              // nothing was required, so nothing is outstanding.
+              const complete = required.every(b => doneBlocks.has(b));
+              const dayMinutes = daySessions.reduce((sum, s) => sum + s.minutes, 0);
+
+              return (
+                <section
+                  key={dateKey}
+                  aria-label={`${day.dayName} ${dateKey}`}
+                  aria-current={isToday ? 'date' : undefined}
+                  className={`flex flex-col border-r border-hairline last:border-r-0 ${isToday ? 'bg-carbon' : ''}`}
+                >
+                  <div
+                    className={`flex items-baseline justify-between gap-2 border-b border-hairline-strong px-3 py-2.5 ${
+                      isToday ? 'bg-carbon' : 'bg-surface-2'
+                    }`}
+                  >
+                    <span className={`text-[11px] font-semibold uppercase tracking-[0.08em] ${isToday ? 'text-fg' : 'text-fg-muted'}`}>
+                      {day.dayName}
+                      {isToday && <span className="sr-only"> (hoy)</span>}
+                    </span>
+                    <span className="font-mono text-xs tabular-nums text-fg-muted">
+                      {plannedMinutes(day)}′
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 px-3 pt-2 text-xs">
+                    <span className="font-mono tabular-nums text-fg-subtle">{dateKey.slice(5)}</span>
+                    {complete ? (
+                      <span className="text-win">hecho</span>
+                    ) : isPast ? (
+                      <Badge tone="alert">sin hacer</Badge>
+                    ) : null}
+                  </div>
+
+                  {day.focus && <p className="px-3 pt-1 text-xs text-accent">{day.focus}</p>}
+
+                  <ul className="mt-1">
+                    {day.blocks.map((block, i) => {
+                      const session = sessionByBlock.get(block.block);
+                      const isDone = session !== undefined;
+                      // A queue session is evidence of exercises actually resolved;
+                      // it is shown as done but cannot be unticked from here.
+                      const locked = isDone && session.source !== 'manual';
+                      const busy = togglingBlock === `${dateKey}:${block.block}`;
+                      return (
+                        <li key={i} className="border-b border-hairline">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void toggleBlock(dateKey, block.block, blockMinutes[block.block], session)
+                            }
+                            disabled={locked || busy}
+                            aria-pressed={isDone}
+                            title={
+                              locked
+                                ? 'Registrado por la cola de ejercicios'
+                                : isDone
+                                  ? 'Desmarcar este bloque'
+                                  : 'Marcar este bloque como hecho'
+                            }
+                            className={`flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:-outline-offset-2 ${
+                              locked ? 'cursor-default' : isToday ? 'hover:bg-fg/5' : 'hover:bg-app'
+                            } ${busy ? 'opacity-50' : ''}`}
+                          >
+                            <span
+                              className={`font-serif text-[15px] leading-5 text-fg ${
+                                isDone ? 'line-through decoration-accent decoration-2' : ''
+                              }`}
+                            >
+                              {block.label}
+                            </span>
+                            <span className={`font-mono text-xs tabular-nums ${isToday ? 'text-fg-muted' : 'text-fg-subtle'}`}>
+                              {block.minutes} min{isDone ? ' · hecho' : ''}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <div className="mt-auto px-3 pb-3 pt-2">
+                    {dayMinutes > 0 && (
+                      <p className="mb-2 font-mono text-xs tabular-nums text-fg-muted">{dayMinutes} min registrados</p>
+                    )}
+                    {/* Per-day note, carried over from the planner's day cards. */}
+                    <textarea
+                      aria-label={`Nota del ${day.dayName}`}
+                      className="w-full rounded border border-hairline bg-surface px-2 py-1.5 font-serif text-sm text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+                      rows={WEEKDAY_NOTE_ROWS}
+                      placeholder="Nota del día…"
+                      value={dailyNotes[dateKey] ?? ''}
+                      onChange={e => updateDailyNote(dateKey, e.target.value)}
+                    />
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </div>
       </Card>
 
-      {unanalyzed.length > 0 && (
-        <Card>
-          <div className="flex gap-3">
-            <ExclamationTriangleIcon className="w-5 h-5 text-loss shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-fg font-medium">
-                {unanalyzed.length} partida{unanalyzed.length > 1 ? 's' : ''} sin analizar
-              </h3>
-              <p className="text-sm text-fg-muted mt-1">
-                Una partida no cuenta como jugada hasta que tiene su fila en Game Library.
-              </p>
-              <ul className="mt-2 space-y-1">
-                {unanalyzed.slice(0, 5).map(g => (
-                  <li key={g.id ?? `${g.opp}-${g.date}`}>
-                    <button
-                      onClick={() => {
-                        if (g.id) setPendingAnnotationGameId(g.id);
-                        setActiveTab('annotations');
-                      }}
-                      className="w-full text-left px-2 py-1 -mx-2 rounded-md text-sm text-fg-muted hover:bg-surface-2 hover:text-fg transition-colors flex items-center justify-between gap-2"
-                    >
-                      <span>{gameLabel(g)}</span>
-                      <span className="text-xs text-accent shrink-0">Analizar →</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {weekPrograms.map((day, dayIndex) => {
-          const dateKey = weekDays[dayIndex];
-          const isToday = dateKey === todayKey;
-          const isPast = dateKey < todayKey;
-          const daySessions = weekSessions.filter(s => s.sessionDate === dateKey);
-          const doneBlocks = new Set(daySessions.map(s => s.block));
-          // The row backing each tick, so the toggle knows what to delete and
-          // whether it may (only `source: 'manual'` rows are removable here).
-          const sessionByBlock = new Map(daySessions.map(s => [s.block, s]));
-          // A session row is per (day, block), but a day can prescribe the same
-          // block twice — Miércoles has two `endgame` entries. Ticking either
-          // one logs the block's whole planned time for the day, so the minutes
-          // don't come out short.
-          const blockMinutes = day.blocks.reduce<Record<string, number>>((acc, b) => {
-            acc[b.block] = (acc[b.block] ?? 0) + b.minutes;
-            return acc;
-          }, {});
-          const required = blocksForDay(day);
-          // Vacuously true on the rest day, which is the wanted reading:
-          // nothing was required, so nothing is outstanding.
-          const complete = required.every(b => doneBlocks.has(b));
-          const dayMinutes = daySessions.reduce((sum, s) => sum + s.minutes, 0);
-
-          return (
-            <Card key={dateKey}>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-h3 text-fg">{day.dayName}</h3>
-                    {isToday && <Badge tone="accent">Hoy</Badge>}
-                  </div>
-                  <p className="text-xs text-fg-subtle nums">{dateKey}</p>
-                </div>
-                {complete ? (
-                  <CheckCircleIcon className="w-5 h-5 text-win shrink-0" />
-                ) : isPast ? (
-                  <span className="text-xs text-loss shrink-0">sin hacer</span>
-                ) : null}
-              </div>
-
-              <p className="text-sm text-accent mt-2">{day.focus}</p>
-
-              <ul className="mt-3 space-y-1">
-                {day.blocks.map((block, i) => {
-                  const session = sessionByBlock.get(block.block);
-                  const isDone = session !== undefined;
-                  // A queue session is evidence of exercises actually resolved;
-                  // it is shown as done but cannot be unticked from here.
-                  const locked = isDone && session.source !== 'manual';
-                  const busy = togglingBlock === `${dateKey}:${block.block}`;
-                  return (
-                    <li key={i}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void toggleBlock(dateKey, block.block, blockMinutes[block.block], session)
-                        }
-                        disabled={locked || busy}
-                        aria-pressed={isDone}
-                        title={
-                          locked
-                            ? 'Registrado por la cola de ejercicios'
-                            : isDone
-                              ? 'Desmarcar este bloque'
-                              : 'Marcar este bloque como hecho'
-                        }
-                        className={`flex w-full items-start gap-2 rounded-md px-1.5 py-1 -mx-1.5 text-left text-sm transition-colors ${
-                          locked ? 'cursor-default' : 'hover:bg-surface-2'
-                        } ${busy ? 'opacity-50' : ''}`}
-                      >
-                        {isDone ? (
-                          <CheckCircleIconSolid className="mt-0.5 w-4 h-4 shrink-0 text-win" />
-                        ) : (
-                          <span className="mt-0.5 w-4 h-4 shrink-0 rounded-[4px] border border-hairline" />
-                        )}
-                        <span className={`shrink-0 nums w-10 ${isDone ? 'text-win' : 'text-fg-subtle'}`}>
-                          {block.minutes}m
-                        </span>
-                        <span className={isDone ? 'text-fg' : 'text-fg-muted'}>{block.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {dayMinutes > 0 && (
-                <p className="mt-3 border-t border-hairline pt-2 text-xs text-fg-muted nums">
-                  {dayMinutes} min registrados
-                </p>
-              )}
-
-              {/* Per-day note, carried over from the planner's day cards. */}
-              <textarea
-                className="mt-3 w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
-                rows={WEEKDAY_NOTE_ROWS}
-                placeholder="Nota del día…"
-                value={dailyNotes[dateKey] ?? ''}
-                onChange={e => updateDailyNote(dateKey, e.target.value)}
-              />
-            </Card>
-          );
-        })}
-      </div>
-
       <Card>
-        <h3 className="text-h3 text-fg">Reflexión de la semana</h3>
+        <h3 className="font-serif text-xl font-semibold text-fg">Reflexión de la semana</h3>
         <p className="text-sm text-fg-muted mt-1">
           ¿Qué funcionó, qué no, y qué cambia la semana que viene?
         </p>
         <textarea
-          className="mt-3 w-full resize-none rounded-lg border border-hairline bg-surface px-4 py-3 text-sm text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
+          className="mt-3 w-full resize-none rounded border border-hairline bg-surface px-4 py-3 font-serif text-[15px] leading-6 text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
           rows={6}
           placeholder="Cómo fue la semana, qué salió bien, qué hay que corregir…"
           value={dailyNotes[summaryKey] ?? ''}

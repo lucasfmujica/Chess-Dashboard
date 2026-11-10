@@ -11,7 +11,6 @@ import {
   ArrowUturnLeftIcon,
 } from '@heroicons/react/24/solid';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
-import Badge from '../../ui/Badge';
 import { useStudyLineNavigation } from '../../../hooks/useStudyLineNavigation';
 import { useLocalEngine } from '../../../hooks/useLocalEngine';
 import { useEngineSettings } from '../../../hooks/useEngineSettings';
@@ -42,9 +41,9 @@ const ControlButton = ({
     disabled={disabled}
     aria-label={label}
     title={label}
-    className={`flex items-center justify-center w-10 h-9 rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+    className={`flex items-center justify-center w-10 h-9 rounded border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-40 disabled:cursor-not-allowed ${
       active
-        ? 'border-accent/40 bg-accent/15 text-accent'
+        ? 'border-transparent bg-accent/10 text-accent'
         : 'border-hairline bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg'
     }`}
   >
@@ -87,11 +86,30 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
        page padding, the chapter list and the gaps added up by hand — so the
        board never grew when the sidebar was collapsed, and the notes column
        was whatever happened to be left (~224px on most screens). */
+    <div className="flex flex-col gap-5 xl:h-full">
+      <header className="flex-shrink-0">
+        <p className="text-label">
+          {[header.opening, header.eco].filter(Boolean).join(' · ') || header.studyName}
+        </p>
+        <h2 className="mt-1.5 font-serif text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-fg text-balance sm:text-[40px]">
+          {header.chapterName}
+        </h2>
+        {header.chapterUrl && (
+          <a
+            href={header.chapterUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-sm text-accent hover:underline underline-offset-4"
+          >
+            Ver en Lichess <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </header>
     <div
-      className="flex flex-col gap-5 xl:grid xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(340px,1fr)] xl:h-full"
+      className="flex flex-col gap-5 xl:grid xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,calc(var(--board-user,var(--board-fit))+var(--board-gutter)))_minmax(340px,1fr)] "
       style={
         {
-          '--board-fit': 'calc(100dvh - 240px)',
+          '--board-fit': 'calc(100dvh - 340px)',
           // Widen the track by the eval bar only while it is on screen, so
           // toggling the engine moves the bar in beside the board instead of
           // resizing the board itself.
@@ -105,20 +123,20 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
               column glued to the board that said nothing. */}
           {engineOn && (
             <div
-              className="relative w-7 rounded-md overflow-hidden border border-hairline bg-zinc-900 flex-shrink-0"
+              className="relative w-7 rounded-sm overflow-hidden border border-hairline bg-board-dark flex-shrink-0"
               title={
                 evalAvailable
-                  ? `Evaluation ${formatEval(currentEval)} (White's perspective)`
-                  : 'Waiting for the engine…'
+                  ? `Evaluación ${formatEval(currentEval)} (desde Blancas)`
+                  : 'Esperando al motor…'
               }
             >
               <div
-                className="absolute left-0 right-0 bg-zinc-100 transition-all duration-200"
+                className="absolute left-0 right-0 bg-board-light transition-all duration-200"
                 style={flipped ? { top: 0, height: `${whiteFraction * 100}%` } : { bottom: 0, height: `${whiteFraction * 100}%` }}
               />
               {evalAvailable && (
                 <span
-                  className={`absolute left-0 right-0 text-center text-[10px] font-bold tabular-nums leading-none ${whiteWinning ? 'text-zinc-900' : 'text-zinc-100'}`}
+                  className={`absolute left-0 right-0 text-center font-mono text-[10px] font-medium tabular-nums leading-none ${whiteWinning ? 'text-board-dark' : 'text-board-light'}`}
                   style={labelAtBottom ? { bottom: 3 } : { top: 3 }}
                 >
                   {evalLabel}
@@ -142,50 +160,32 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
         </div>
 
         <div className="mt-3 flex-shrink-0 flex items-center justify-center gap-2">
-          <ControlButton onClick={() => setFlipped(f => !f)} label="Flip board">
+          <ControlButton onClick={() => setFlipped(f => !f)} label="Girar tablero">
             <ArrowsUpDownIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={nav.resetToMainlineStart} disabled={nav.atStart} label="First move">
+          <ControlButton onClick={nav.resetToMainlineStart} disabled={nav.atStart} label="Primera jugada">
             <ChevronDoubleLeftIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={nav.stepBack} disabled={nav.atStart} label="Previous move">
+          <ControlButton onClick={nav.stepBack} disabled={nav.atStart} label="Jugada anterior">
             <ChevronLeftIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={nav.stepForward} disabled={nav.atEnd} label="Next move">
+          <ControlButton onClick={nav.stepForward} disabled={nav.atEnd} label="Jugada siguiente">
             <ChevronRightIcon className="w-4 h-4" />
           </ControlButton>
-          <ControlButton onClick={nav.jumpToLineEnd} disabled={nav.atEnd} label="End of line">
+          <ControlButton onClick={nav.jumpToLineEnd} disabled={nav.atEnd} label="Final de la línea">
             <ChevronDoubleRightIcon className="w-4 h-4" />
           </ControlButton>
           {nav.insideVariation && (
-            <ControlButton onClick={nav.resetToMainlineStart} label="Back to mainline">
+            <ControlButton onClick={nav.resetToMainlineStart} label="Volver a la línea principal">
               <ArrowUturnLeftIcon className="w-4 h-4" />
             </ControlButton>
           )}
         </div>
-        <p className="mt-2 text-center text-xs text-fg-subtle">Use ← → to step, Home/End to jump</p>
+        <p className="mt-2 text-center text-xs text-fg-subtle">← → para avanzar, Inicio/Fin para saltar</p>
       </div>
 
       <div className="min-w-0 flex flex-col xl:h-full">
         <div className="flex-shrink-0">
-          <h3 className="text-h3 text-fg">{header.chapterName}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
-            {header.eco && <Badge tone="accent">{header.eco}</Badge>}
-            {header.opening && <span>{header.opening}</span>}
-            {header.chapterUrl && (
-              <a
-                href={header.chapterUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-fg-subtle hover:text-fg"
-              >
-                View on Lichess <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3 flex-shrink-0">
           <EngineLines
             state={engineState}
             enabled={engineOn}
@@ -195,10 +195,14 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
           />
         </div>
 
-        <div className="mt-3 flex-1 xl:min-h-0 overflow-y-auto rounded-lg border border-hairline bg-surface p-3">
+        <div className="mt-3 flex-1 xl:min-h-0 overflow-y-auto rounded border border-hairline bg-surface shadow-[0_1px_0_rgb(var(--fg)/0.06)]">
+          <p className="border-b border-hairline px-4 py-3 font-serif text-base font-semibold text-fg">Jugadas e ideas</p>
+          <div className="p-4">
           <StudyMoveList nodes={chapter.mainline} ancestorFrames={[]} activePath={nav.path} onSelect={nav.goToPath} />
+          </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

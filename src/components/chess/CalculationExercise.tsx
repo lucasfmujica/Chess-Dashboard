@@ -3,7 +3,6 @@ import { Chessboard } from 'react-chessboard';
 import { boardSquareStyles } from './boardTheme';
 import BoardFrame from './BoardFrame';
 import {
-  PencilSquareIcon,
   CheckCircleIcon,
   XCircleIcon,
   ArrowRightIcon,
@@ -137,8 +136,7 @@ const CalculationExercise = ({
         <ThinkTimer startedAt={startedAt} />
 
         <div>
-          <label className="text-label flex items-center gap-1.5" htmlFor="drill-candidates">
-            <PencilSquareIcon className="w-4 h-4" />
+          <label className="text-label block" htmlFor="drill-candidates">
             Tus candidatos, antes de mover
           </label>
           <textarea
@@ -146,12 +144,12 @@ const CalculationExercise = ({
             value={candidates}
             onChange={e => setCandidates(e.target.value)}
             rows={5}
-            placeholder="Ej: Nf3, Bb5+, d5 — y una evaluación en una palabra al final de cada línea"
-            className="mt-2 w-full rounded-lg border border-hairline bg-surface-2 p-3 text-sm text-fg placeholder:text-fg-subtle focus:outline-none focus:ring-1 focus:ring-accent"
+            placeholder="Ej: Nf3, Bb5+, d5, y una evaluación en una palabra al final de cada línea"
+            className="mt-2 w-full rounded border border-hairline bg-app p-3 font-serif text-[15px] italic leading-6 text-fg placeholder:not-italic placeholder:font-sans placeholder:text-sm placeholder:text-fg-subtle focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           <p className="text-xs text-fg-subtle mt-2">
             Anotalos en papel y copialos acá, o escribilos directamente. Una lista mental se
-            puede corregir después de ver la respuesta — una escrita, no.
+            puede corregir después de ver la respuesta; una escrita, no.
           </p>
           <Button className="mt-3" disabled={!candidates.trim()} onClick={reveal}>
             Listo, ahora juego
@@ -172,18 +170,18 @@ const CalculationExercise = ({
         footer={footer}
       />
 
-      <div className="rounded-lg border border-hairline bg-surface-2 p-3">
+      <div className="rounded border border-hairline bg-surface-2 p-3">
         <p className="text-xs text-fg-subtle">
-          Pensaste <span className="nums font-semibold text-fg">{formatDuration(thinkSeconds ?? 0)}</span>
+          Pensaste <span className="font-mono font-medium tabular-nums text-fg">{formatDuration(thinkSeconds ?? 0)}</span>
         </p>
         <p className="mt-1 text-sm text-fg-muted">
-          Tus candidatos: <span className="text-fg">{candidates}</span>
+          Tus candidatos: <span className="font-serif italic text-fg">{candidates}</span>
         </p>
       </div>
 
       {pendingMiss && (
-        <div className="rounded-lg border border-hairline bg-surface-2 p-4">
-          <h4 className="text-fg font-medium">¿La jugada correcta estaba en tu lista?</h4>
+        <div className="rounded border border-hairline bg-surface-2 p-4">
+          <h4 className="font-serif text-base font-semibold text-fg">¿La jugada correcta estaba en tu lista?</h4>
           <p className="text-xs text-fg-muted mt-1">
             Es la única pregunta que separa un fallo de barrido de uno de cálculo.
           </p>

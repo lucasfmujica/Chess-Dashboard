@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { BookOpenIcon, ClockIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon } from '@heroicons/react/24/outline';
 import { useRepertoireMoves, type ChapterMoves } from '../../../../hooks/useRepertoireMoves';
 import { buildLines } from '../../../../utils/repertoireMoves';
 import { isDue } from '../../../../utils/srs';
-import { Card, StatCard } from '../../../ui';
+import { Card, ClockBar, StatCard } from '../../../ui';
 import { PieceLabel } from '../../../ui/PieceGlyph';
 import { LoadingSpinner } from '../../../LoadingSkeleton';
 import LineTrainerBoard from './LineTrainerBoard';
@@ -18,7 +18,7 @@ import type { RepertoireMove } from '../../../../types/chess';
  */
 
 const SELECT_CLASS =
-  'w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm text-fg focus:border-accent focus:ring-1 focus:ring-accent';
+  'w-full rounded border border-hairline bg-surface px-3 py-2 text-sm text-fg focus:border-accent focus:ring-1 focus:ring-accent';
 
 interface PlayableLine {
   moves: RepertoireMove[];
@@ -159,18 +159,18 @@ const MoveTrainerPanel = () => {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface p-5 text-sm text-loss">{error}</div>
+      <div className="rounded border border-hairline bg-surface p-5 text-sm text-loss">{error}</div>
     );
   }
 
   if (stats.total === 0) {
     return (
       <Card>
-        <h3 className="text-h3 text-fg">Todavía no hay jugadas cargadas</h3>
+        <h3 className="font-serif text-xl font-semibold text-fg">Todavía no hay jugadas cargadas</h3>
         <p className="mt-2 text-sm text-fg-muted">
           Las jugadas salen del PGN del estudio. Corré el importador:
         </p>
-        <pre className="mt-3 overflow-x-auto rounded-lg border border-hairline bg-surface-2 p-3 text-xs text-fg">
+        <pre className="mt-3 overflow-x-auto rounded border border-hairline bg-surface-2 p-3 text-xs text-fg">
           npx tsx --env-file=.env.local scripts/import-repertoire-moves.mts --apply
         </pre>
       </Card>
@@ -179,12 +179,12 @@ const MoveTrainerPanel = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard title="Jugadas" value={stats.total} icon={BookOpenIcon} />
-        <StatCard title="Para hoy" value={stats.due} icon={ClockIcon} />
-        <StatCard title="Dominadas" value={stats.mastered} icon={SparklesIcon} subtitle="Confianza 5/5" />
+      <ClockBar>
+        <StatCard title="Jugadas" value={stats.total} subtitle="en el estudio" />
+        <StatCard title="Repaso" value={stats.due} subtitle="vencidas hoy" trend={stats.due > 0 ? 'down' : undefined} />
+        <StatCard title="Dominadas" value={stats.mastered} subtitle="confianza 5/5" />
         <StatCard title="Confianza media" value={`${stats.avgConfidence}/5`} />
-      </div>
+      </ClockBar>
 
       {/* The BOARD's column carries the size limit, not the board — the same
           `minmax(0, var(--board-user, var(--board-fit)))` track every other
@@ -199,9 +199,9 @@ const MoveTrainerPanel = () => {
       >
         <div className="min-w-0 order-1 space-y-4">
           {sessionComplete && (
-            <div className="rounded-lg border border-win/30 bg-win/10 px-4 py-3">
-              <p className="text-sm font-semibold text-fg">
-                Capítulo al día — {dueLineCount} línea{dueLineCount === 1 ? '' : 's'} completada
+            <div className="rounded border border-hairline bg-surface px-4 py-3">
+              <p className="font-serif text-base font-semibold text-fg">
+                Capítulo al día: {dueLineCount} línea{dueLineCount === 1 ? '' : 's'} completada
                 {dueLineCount === 1 ? '' : 's'}.
               </p>
               <p className="mt-0.5 text-xs text-fg-muted">
@@ -214,15 +214,15 @@ const MoveTrainerPanel = () => {
             {chapter && activeLine ? (
               <>
                 <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-h3 text-fg">{chapter.chapterName}</h3>
+                  <h3 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-fg text-balance">{chapter.chapterName}</h3>
                   {dueLineCount > 0 && (
-                    <span className="text-xs text-fg-subtle tabular-nums">
+                    <span className="font-mono text-xs text-fg-subtle tabular-nums">
                       Línea {Math.min(dueLineCount - pending.length + 1, dueLineCount)} de{' '}
                       {dueLineCount} para hoy
                     </span>
                   )}
                 </div>
-                <p className="mb-4 text-xs text-fg-subtle">
+                <p className="mb-4 font-serif text-sm text-fg-muted">
                   {activeLine.moves[0]?.pathSan
                     ? `Desde: ${activeLine.moves[0].pathSan}`
                     : 'Desde la posición inicial'}
@@ -266,7 +266,7 @@ const MoveTrainerPanel = () => {
             {chapter && (
               <p className="mt-2 flex items-center gap-2 text-xs text-fg-subtle">
                 <PieceLabel color={chapter.color} />
-                {chapter.eco && <span>{chapter.eco}</span>}
+                {chapter.eco && <span className="font-mono">{chapter.eco}</span>}
                 <span>· {chapter.main.length} jugadas</span>
               </p>
             )}
@@ -283,10 +283,10 @@ const MoveTrainerPanel = () => {
                     <button
                       onClick={() => selectLine(i)}
                       aria-current={active ? 'true' : undefined}
-                      className={`w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
+                      className={`w-full rounded border px-3 py-2 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
                         active
-                          ? 'border-accent bg-accent/10 text-fg'
-                          : 'border-hairline bg-surface text-fg-muted hover:border-accent/50'
+                          ? 'border-transparent bg-accent/10 text-accent'
+                          : 'border-hairline bg-surface text-fg-muted hover:border-fg-subtle'
                       }`}
                     >
                       <span className="flex items-center justify-between gap-2">

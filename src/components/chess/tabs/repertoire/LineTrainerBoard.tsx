@@ -332,7 +332,7 @@ const LineTrainerBoard = ({
 
   if (line.length === 0) {
     return (
-      <div className="rounded-lg border border-hairline bg-surface p-5 text-sm text-fg-muted">
+      <div className="rounded border border-hairline bg-surface p-5 text-sm text-fg-muted">
         Esta línea no tiene jugadas tuyas.
       </div>
     );
@@ -343,16 +343,16 @@ const LineTrainerBoard = ({
       {!compact && (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold text-fg">
+            <span className="font-mono text-sm tabular-nums text-fg">
               Jugada {Math.min(index + 1, line.length)} de {line.length}
             </span>
             <span className="text-xs text-fg-subtle">
               {current?.isMainline ? 'Línea principal' : 'Variante'}
             </span>
           </div>
-          <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
+          <div className="mb-3 h-1.5 overflow-hidden rounded-sm bg-surface-2">
             <div
-              className="h-full rounded-full bg-accent transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{
                 width: `${((phase === 'done' ? line.length : index) / line.length) * 100}%`,
               }}
@@ -382,7 +382,7 @@ const LineTrainerBoard = ({
       </BoardFrame>
 
       {pendingPromotion && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
           <p className="text-label mb-2">¿Con qué pieza coronás?</p>
           <div className="flex gap-2">
             {PROMOTION_PIECES.map(code => (
@@ -393,7 +393,7 @@ const LineTrainerBoard = ({
                   setPendingPromotion(null);
                   submit(from, to, code);
                 }}
-                className="flex h-12 w-12 items-center justify-center rounded-lg border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent"
+                className="flex h-12 w-12 items-center justify-center rounded border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 aria-label={code}
               >
                 {GLYPHS[code][sideToMove]}
@@ -404,7 +404,7 @@ const LineTrainerBoard = ({
       )}
 
       {phase === 'thinking' && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 px-3 py-2">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 px-3 py-2">
           <p className="text-sm font-medium text-fg">
             {revealed
               ? `Tu jugada preparada es ${current?.expectedSan}. Jugala para seguir.`
@@ -419,27 +419,25 @@ const LineTrainerBoard = ({
 
       {feedback && phase === 'right' && (
         <div
-          className={`mt-3 rounded-lg border px-3 py-2 ${
-            feedback.alt ? 'border-draw/30 bg-draw/10' : 'border-win/30 bg-win/10'
-          }`}
+          className="mt-3 rounded border border-hairline bg-surface px-3 py-2"
         >
-          <p className="flex items-center gap-2 text-sm font-semibold text-fg">
-            <CheckCircleIcon className={`h-5 w-5 ${feedback.alt ? 'text-draw' : 'text-win'}`} />
+          <p className="flex items-center gap-2 font-serif text-base font-semibold text-fg">
+            <CheckCircleIcon className={`h-5 w-5 ${feedback.alt ? 'text-fg-muted' : 'text-win'}`} />
             {feedback.playedSan}
             {current?.replySan && (
-              <span className="font-normal text-fg-muted">— responde {current.replySan}</span>
+              <span className="font-normal text-fg-muted">· responde {current.replySan}</span>
             )}
           </p>
-          {feedback.note && <p className="mt-1.5 whitespace-pre-line text-sm text-fg">{feedback.note}</p>}
+          {feedback.note && <p className="mt-1.5 whitespace-pre-line font-serif text-[15px] leading-6 text-fg">{feedback.note}</p>}
         </div>
       )}
 
       {feedback && phase === 'wrong' && (
-        <div className="mt-3 rounded-lg border border-loss/30 bg-loss/10 px-3 py-2">
-          <p className="flex items-center gap-2 text-sm font-semibold text-fg">
+        <div className="mt-3 rounded border border-transparent bg-carbon-pink px-3 py-2">
+          <p className="flex items-center gap-2 font-serif text-base font-semibold text-fg">
             <XCircleIcon className="h-5 w-5 text-loss" />
             {feedback.playedSan}
-            {feedback.trap && <span className="font-normal text-fg-muted">— está en tu estudio</span>}
+            {feedback.trap && <span className="font-normal text-fg-muted">· está en tu estudio</span>}
           </p>
           <p className="mt-1.5 whitespace-pre-line text-sm text-fg">
             {feedback.note ?? 'No es tu línea preparada acá.'}
@@ -448,17 +446,17 @@ const LineTrainerBoard = ({
       )}
 
       {phase === 'done' && !compact && (
-        <div className="mt-3 rounded-lg border border-win/30 bg-win/10 px-3 py-2">
-          <p className="text-sm font-semibold text-fg">Línea completa.</p>
+        <div className="mt-3 rounded border border-hairline bg-surface px-3 py-2">
+          <p className="font-serif text-base font-semibold text-win">Línea completa.</p>
         </div>
       )}
 
       {/* Survives advancing, unlike the verdict above it — this is where a
           golden rule stays readable while you play the next move. */}
       {note && phase !== 'wrong' && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 px-3 py-2">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 px-3 py-2">
           <p className="text-label mb-1">Nota del estudio · tras {note.san}</p>
-          <p className="whitespace-pre-line text-sm text-fg">{note.text}</p>
+          <p className="whitespace-pre-line font-serif text-[15px] leading-6 text-fg">{note.text}</p>
         </div>
       )}
 

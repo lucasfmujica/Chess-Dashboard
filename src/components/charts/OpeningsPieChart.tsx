@@ -1,6 +1,7 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Card, CardHeader } from '../ui';
 
-const COLORS = ['rgb(var(--win))', 'rgb(var(--draw))', 'rgb(var(--loss))', 'rgb(var(--cat-2))', 'rgb(var(--cat-4))'];
+const COLORS = ['rgb(var(--cat-1))', 'rgb(var(--cat-2))', 'rgb(var(--cat-3))', 'rgb(var(--cat-4))', 'rgb(var(--cat-5))', 'rgb(var(--cat-6))'];
 
 interface OpeningSlice {
   name: string;
@@ -12,10 +13,10 @@ interface OpeningsPieChartProps {
   title?: string;
 }
 
-const OpeningsPieChart = ({ data, title = "Opening Distribution" }: OpeningsPieChartProps) => {
+const OpeningsPieChart = ({ data, title = "Distribución de aperturas" }: OpeningsPieChartProps) => {
   return (
-    <div className="p-6 bg-surface rounded-lg border border-hairline">
-      <h3 className="mb-4 text-lg font-semibold text-fg">{title}</h3>
+    <Card>
+      <CardHeader title={title} className="mb-4" />
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -32,11 +33,18 @@ const OpeningsPieChart = ({ data, title = "Opening Distribution" }: OpeningsPieC
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              background: 'rgb(var(--surface))',
+              border: '1px solid rgb(var(--border))',
+              borderRadius: 4,
+              color: 'rgb(var(--fg))',
+            }}
+          />
           <Legend />
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </Card>
   );
 };
 

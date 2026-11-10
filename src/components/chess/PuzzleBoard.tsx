@@ -88,16 +88,16 @@ const GLYPHS: Record<string, { w: string; b: string }> = {
 const VERDICT_STYLE: Record<Verdict, { cls: string; label: string; Icon: typeof CheckCircleIcon }> =
   {
     correcta: {
-      cls: 'border-win/30 bg-win/10 text-win',
+      cls: 'border-hairline bg-surface text-win',
       label: 'Correcta',
       Icon: CheckCircleIcon,
     },
     imprecisa: {
-      cls: 'border-draw/30 bg-draw/10 text-draw',
+      cls: 'border-hairline bg-surface text-fg-muted',
       label: 'Imprecisa',
       Icon: ExclamationTriangleIcon,
     },
-    mala: { cls: 'border-loss/30 bg-loss/10 text-loss', label: 'Mala', Icon: XCircleIcon },
+    mala: { cls: 'border-transparent bg-carbon-pink text-loss', label: 'Mala', Icon: XCircleIcon },
   };
 
 const uciSquares = (uci: string) => ({ from: uci.slice(0, 2), to: uci.slice(2, 4) });
@@ -558,7 +558,7 @@ const PuzzleBoard = ({
       )}
 
       {pendingPromotion && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 p-3">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 p-3">
           <p className="text-label mb-2">¿Con qué pieza coronás?</p>
           <div className="flex gap-2">
             {PROMOTION_PIECES.map(code => (
@@ -570,7 +570,7 @@ const PuzzleBoard = ({
                   if (phase === 'thinking') void commit(from, to, code);
                   else void explore(from, to, code);
                 }}
-                className="flex h-12 w-12 items-center justify-center rounded-lg border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent"
+                className="flex h-12 w-12 items-center justify-center rounded border border-hairline bg-surface text-3xl leading-none text-fg hover:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                 aria-label={code}
               >
                 {GLYPHS[code][sideToMove]}
@@ -583,10 +583,10 @@ const PuzzleBoard = ({
       {/* The prompt. A puzzle board with no prompt reads as a static diagram —
           which is exactly how this board was being misread. */}
       {phase === 'thinking' && (
-        <div className="mt-3 rounded-lg border border-hairline bg-surface-2 px-3 py-2">
-          <p className="text-sm font-medium text-fg">
+        <div className="mt-3 rounded border border-hairline bg-surface-2 px-3 py-2">
+          <p className="font-serif text-base font-semibold text-fg">
             {solverMoves === 0
-              ? `Jugás con ${solverSide === 'w' ? 'blancas' : 'negras'} — encontrá la mejor jugada.`
+              ? `Juegan las ${solverSide === 'w' ? 'Blancas' : 'Negras'}: encontrá la mejor jugada.`
               : `Bien. Seguí la línea: te ${remaining === 1 ? 'queda 1 jugada' : `quedan ${remaining} jugadas`}.`}
           </p>
           <p className="mt-0.5 text-xs text-fg-subtle">
@@ -600,34 +600,34 @@ const PuzzleBoard = ({
       {error && <p className="mt-3 text-sm text-loss">{error}</p>}
 
       {solvedCorrectly && (
-        <div className="mt-3 rounded-lg border border-win/30 bg-win/10 p-3 text-win">
+        <div className="mt-3 rounded border border-hairline bg-surface p-3 text-win">
           <div className="flex items-center gap-2 text-sm font-medium">
             <TrophyIcon className="w-5 h-5 shrink-0" />
             Resuelto
             {attempts > 1 && (
-              <span className="nums font-normal opacity-75">· {attempts} intentos</span>
+              <span className="font-mono font-normal tabular-nums text-fg-muted">· {attempts} intentos</span>
             )}
           </div>
         </div>
       )}
 
       {(phase === 'wrong' || phase === 'exploring') && grade && style && (
-        <div className={`mt-3 rounded-lg border p-3 ${style.cls}`}>
+        <div className={`mt-3 rounded border p-3 ${style.cls}`}>
           <div className="flex items-center gap-2 text-sm font-medium">
             <style.Icon className="w-5 h-5 shrink-0" />
             {style.label}
             {grade.cpLoss > 0 && (
-              <span className="nums font-normal">· {formatCpLoss(grade.cpLoss)}</span>
+              <span className="font-mono font-normal tabular-nums">· {formatCpLoss(grade.cpLoss)}</span>
             )}
           </div>
           {replyUci && (
-            <p className="text-xs mt-1 opacity-90">
+            <p className="text-xs mt-1 text-fg">
               La respuesta del rival está en el tablero. Seguí jugando la línea para ver cómo
               sigue, o volvé a intentar.
             </p>
           )}
           {attempts > 1 && solverMoves === 0 && (
-            <p className="text-xs mt-1 opacity-75 nums">
+            <p className="text-xs mt-1 text-fg-muted tabular-nums">
               Intento {attempts} · sólo cuenta el primero para la estadística
             </p>
           )}
@@ -637,17 +637,17 @@ const PuzzleBoard = ({
       {/* The line you have built, so a three-move puzzle reads as a line and
           not as three disconnected verdicts. */}
       {line.length > 0 && (
-        <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+        <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-serif text-[15px]">
           {line.map((m, i) => (
             <span
               key={i}
-              className={`nums font-mono ${
+              className={`${
                 m.by === 'rival'
                   ? 'text-fg-subtle'
                   : m.verdict === 'mala'
                     ? 'text-loss'
                     : m.verdict === 'imprecisa'
-                      ? 'text-draw'
+                      ? 'text-fg-muted'
                       : 'text-fg'
               }`}
             >

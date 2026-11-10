@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { OPENING_THRESHOLDS } from '../../constants/chessConstants';
 import { getChartHeight } from '../../utils/chartUtils';
+import { Card, CardHeader, SegmentedControl, type Segment } from '../ui';
 
 interface AnalyzedOpening {
   eco: string;
@@ -23,6 +24,12 @@ interface OpeningComparisonChartProps {
 type ColorScope = 'white' | 'black' | 'both';
 type SortMode = 'winRate' | 'games' | 'alphabetical';
 
+const SCOPES: Segment<ColorScope>[] = [
+  { value: 'both', label: 'Ambos' },
+  { value: 'white', label: 'Blancas' },
+  { value: 'black', label: 'Negras' },
+];
+
 interface Row {
   key: string;
   label: string;
@@ -38,7 +45,7 @@ interface Row {
 const toRows = (openings: AnalyzedOpening[], color: 'white' | 'black'): Row[] =>
   openings.map(o => ({
     key: `${color}-${o.eco}`,
-    label: `${color === 'white' ? '⚪' : '⚫'} ${o.name}`,
+    label: `${color === 'white' ? 'B' : 'N'} · ${o.name}`,
     color,
     eco: o.eco,
     games: o.games,
@@ -68,50 +75,41 @@ const OpeningComparisonChart = ({ white, black }: OpeningComparisonChartProps) =
   }, [white, black, scope, sortMode, minGames]);
 
   return (
-    <div className="p-6 bg-surface rounded-lg border border-hairline">
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h3 className="text-lg font-semibold text-fg">Opening Comparison</h3>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface p-1">
-            {(['both', 'white', 'black'] as ColorScope[]).map(s => (
-              <button
-                key={s}
-                onClick={() => setScope(s)}
-                aria-pressed={scope === s}
-                className={`px-2.5 py-1.5 rounded text-xs font-medium capitalize transition-colors ${
-                  scope === s ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-          <select
-            value={sortMode}
-            onChange={e => setSortMode(e.target.value as SortMode)}
-            className="rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent"
-            aria-label="Sort by"
-          >
-            <option value="winRate">Sort: win rate</option>
-            <option value="games">Sort: games played</option>
-            <option value="alphabetical">Sort: A–Z</option>
-          </select>
-          <label className="flex items-center gap-1.5 text-xs text-fg-muted">
-            Min games
-            <input
-              type="number"
-              min={1}
-              value={minGames}
-              onChange={e => setMinGames(Math.max(1, Number(e.target.value) || 1))}
-              className="w-14 rounded-md border border-hairline bg-surface text-fg text-xs px-2 py-1.5 focus:border-accent focus:ring-1 focus:ring-accent"
-            />
-          </label>
-        </div>
-      </div>
+    <Card>
+      <CardHeader
+        title="Comparación de aperturas"
+        subtitle="Puntaje por apertura, B = Blancas · N = Negras"
+        className="mb-4"
+        actions={
+          <>
+            <SegmentedControl options={SCOPES} value={scope} onChange={setScope} size="sm" aria-label="Color" />
+            <select
+              value={sortMode}
+              onChange={e => setSortMode(e.target.value as SortMode)}
+              className="h-8 rounded border border-hairline bg-surface px-2 text-xs text-fg focus:border-accent focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              aria-label="Ordenar por"
+            >
+              <option value="winRate">Ordenar: puntaje</option>
+              <option value="games">Ordenar: partidas</option>
+              <option value="alphabetical">Ordenar: A–Z</option>
+            </select>
+            <label className="flex items-center gap-1.5 text-xs text-fg-muted">
+              Mín. partidas
+              <input
+                type="number"
+                min={1}
+                value={minGames}
+                onChange={e => setMinGames(Math.max(1, Number(e.target.value) || 1))}
+                className="h-8 w-14 rounded border border-hairline bg-surface px-2 font-mono text-xs tabular-nums text-fg focus:border-accent focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+              />
+            </label>
+          </>
+        }
+      />
 
       {rows.length === 0 ? (
-        <p className="text-sm text-fg-muted py-8 text-center">
-          No openings with at least {minGames} game{minGames === 1 ? '' : 's'} yet.
+        <p className="py-8 text-center text-sm text-fg-muted">
+          Todavía no hay aperturas con al menos {minGames} partida{minGames === 1 ? '' : 's'}.
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={Math.max(getChartHeight('small'), rows.length * 32)}>
@@ -131,15 +129,15 @@ const OpeningComparisonChart = ({ white, black }: OpeningComparisonChartProps) =
                 if (!active || !payload || !payload.length) return null;
                 const r = payload[0].payload as Row;
                 return (
-                  <div className="p-3 bg-surface border border-hairline rounded shadow text-sm">
-                    <p className="font-semibold text-fg">{r.label}</p>
-                    <p className="text-fg-muted">{r.eco} · {r.games} games</p>
-                    <p className="text-fg">{r.wins}W {r.draws}D {r.losses}L · {r.winRate}% win rate</p>
+                  <div className="rounded border border-hairline bg-surface p-3 text-sm">
+                    <p className="font-serif font-semibold text-fg">{r.label}</p>
+                    <p className="text-fg-muted">{r.eco} · {r.games} partidas</p>
+                    <p className="font-mono tabular-nums text-fg">+{r.wins} ={r.draws} −{r.losses} · {r.winRate}%</p>
                   </div>
                 );
               }}
             />
-            <Bar dataKey="winRate" radius={[0, 4, 4, 0]}>
+            <Bar dataKey="winRate" radius={[0, 2, 2, 0]}>
               {rows.map(r => (
                 <Cell key={r.key} fill={r.winRate >= 50 ? 'rgb(var(--win))' : 'rgb(var(--loss))'} />
               ))}
@@ -147,7 +145,7 @@ const OpeningComparisonChart = ({ white, black }: OpeningComparisonChartProps) =
           </BarChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </Card>
   );
 };
 
