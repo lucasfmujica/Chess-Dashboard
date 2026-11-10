@@ -96,24 +96,24 @@ export const useGoalsAndAchievements = (
 
     // Win streaks
     if (streaks.longestWin >= ACHIEVEMENT_THRESHOLDS.WIN_STREAK_MIN) {
-      badges.push({ name: `${streaks.longestWin}-Game Win Streak`, icon: '🔥', earned: true });
+      badges.push({ name: `${streaks.longestWin} victorias seguidas`, icon: '', earned: true });
     }
 
     // Beat higher rated opponents
     const beatenHigher = ratedGames.filter(g => g.result === 'W' && g.opp_elo > g.elo + 100).length;
     if (beatenHigher >= ACHIEVEMENT_THRESHOLDS.GIANT_SLAYER_WINS) {
-      badges.push({ name: `Giant Slayer (${beatenHigher} wins vs +100)`, icon: '⚔️', earned: true });
+      badges.push({ name: `${beatenHigher} victorias contra rivales 100+ más fuertes`, icon: '', earned: true });
     }
 
     // Performance milestones
     if (overallStats.performanceRating >= 1900) {
-      badges.push({ name: '1900+ Performance Rating', icon: '🎯', earned: true });
+      badges.push({ name: 'Rendimiento de 1900 o más', icon: '', earned: true });
     }
 
     // Tournament success
     const tournamentWins = tournamentStats.filter(t => t.wins > t.losses).length;
     if (tournamentWins >= ACHIEVEMENT_THRESHOLDS.POSITIVE_TOURNAMENTS_MIN) {
-      badges.push({ name: `${tournamentWins} Positive Tournaments`, icon: '🏆', earned: true });
+      badges.push({ name: `${tournamentWins} torneos con más victorias que derrotas`, icon: '', earned: true });
     }
 
     // Opening mastery
@@ -124,8 +124,8 @@ export const useGoalsAndAchievements = (
     ).length;
     if (masterOpenings >= ACHIEVEMENT_THRESHOLDS.MASTER_OPENINGS_MIN) {
       badges.push({
-        name: `${masterOpenings} Mastered Openings (60%+ in 5+)`,
-        icon: '📚',
+        name: `${masterOpenings} aperturas dominadas (60% o más en 5+ partidas)`,
+        icon: '',
         earned: true,
       });
     }
@@ -133,8 +133,8 @@ export const useGoalsAndAchievements = (
     // Unbeaten streak
     if (streaks.longestUnbeaten >= ACHIEVEMENT_THRESHOLDS.UNBEATEN_STREAK_MIN) {
       badges.push({
-        name: `${streaks.longestUnbeaten}-Game Unbeaten Streak`,
-        icon: '🛡️',
+        name: `${streaks.longestUnbeaten} partidas sin perder`,
+        icon: '',
         earned: true,
       });
     }
@@ -149,7 +149,7 @@ export const useGoalsAndAchievements = (
     // ELO milestones
     const nextEloMilestone = Math.ceil(playerInfo.current_elo / 50) * 50;
     milestones.push({
-      title: `Reach ${nextEloMilestone} ELO`,
+      title: `Llegar a ${nextEloMilestone} de ELO`,
       current: playerInfo.current_elo,
       target: nextEloMilestone,
       progress: ((playerInfo.current_elo / nextEloMilestone) * 100).toFixed(1),
@@ -159,7 +159,7 @@ export const useGoalsAndAchievements = (
     const currentWinRate = parseFloat(overallStats.winRate);
     const nextWinMilestone = Math.ceil(currentWinRate / 5) * 5;
     milestones.push({
-      title: `${nextWinMilestone}% Win Rate`,
+      title: `${nextWinMilestone}% de victorias`,
       current: currentWinRate.toFixed(1),
       target: nextWinMilestone,
       progress: ((currentWinRate / nextWinMilestone) * 100).toFixed(1),
@@ -168,7 +168,7 @@ export const useGoalsAndAchievements = (
     // Games played milestone
     const nextGamesMilestone = Math.ceil(ratedGames.length / 10) * 10;
     milestones.push({
-      title: `${nextGamesMilestone} Rated Games`,
+      title: `${nextGamesMilestone} partidas válidas`,
       current: ratedGames.length,
       target: nextGamesMilestone,
       progress: ((ratedGames.length / nextGamesMilestone) * 100).toFixed(1),
