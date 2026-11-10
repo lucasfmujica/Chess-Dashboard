@@ -1,3 +1,5 @@
+import { Card, CardHeader } from '../../../ui';
+
 interface CalendarDay {
   date: string;
   games: number;
@@ -16,7 +18,7 @@ const LEVEL_CLASS = [
   'bg-accent',
 ];
 
-const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+const DAY_LABELS = ['', 'Lun', '', 'Mié', '', 'Vie', ''];
 
 const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
   // Chunk the day-major series into weeks (columns), GitHub-style.
@@ -29,22 +31,22 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
   const activeDays = calendar.filter(d => d.games > 0).length;
 
   return (
-    <div className="bg-surface rounded-lg border border-hairline p-6">
-      <div className="mb-5 flex items-end justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold text-fg">Activity Calendar</h3>
-          <p className="text-sm text-fg-muted">Your playing activity over the last 12 weeks</p>
-        </div>
-        <p className="text-sm text-fg-muted tabular-nums">
-          {totalGames} games · {activeDays} active days
-        </p>
-      </div>
+    <Card>
+      <CardHeader
+        title="Días de juego"
+        subtitle={
+          <span className="tabular-nums">
+            Últimas 12 semanas · {totalGames} partidas · {activeDays} días con partidas
+          </span>
+        }
+        className="mb-5"
+      />
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex gap-1 overflow-x-auto pb-1">
         {/* Day-of-week labels */}
         <div className="flex flex-col gap-1 pr-1">
           {DAY_LABELS.map((label, i) => (
-            <div key={i} className="h-3.5 text-[10px] leading-[14px] text-fg-subtle">{label}</div>
+            <div key={i} className="h-3.5 font-mono text-[10px] leading-[14px] text-fg-subtle">{label}</div>
           ))}
         </div>
 
@@ -54,8 +56,8 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
             {week.map((day, di) => (
               <div
                 key={di}
-                className={`w-3.5 h-3.5 rounded-[3px] ${LEVEL_CLASS[day.level] ?? 'bg-surface-2'} hover:ring-1 hover:ring-accent transition-shadow`}
-                title={`${day.date}: ${day.games} game${day.games !== 1 ? 's' : ''}`}
+                className={`h-3.5 w-3.5 rounded-[1px] ${LEVEL_CLASS[day.level] ?? 'bg-surface-2'}`}
+                title={`${day.date}: ${day.games} partida${day.games !== 1 ? 's' : ''}`}
               />
             ))}
           </div>
@@ -64,13 +66,13 @@ const ActivityCalendar = ({ calendar }: ActivityCalendarProps) => {
 
       {/* Legend */}
       <div className="mt-4 flex items-center justify-end gap-1.5">
-        <span className="text-xs text-fg-muted">Less</span>
+        <span className="text-xs text-fg-muted">Menos</span>
         {LEVEL_CLASS.map((cls, i) => (
-          <div key={i} className={`w-3.5 h-3.5 rounded-[3px] ${cls}`} />
+          <div key={i} className={`h-3.5 w-3.5 rounded-[1px] ${cls}`} />
         ))}
-        <span className="text-xs text-fg-muted">More</span>
+        <span className="text-xs text-fg-muted">Más</span>
       </div>
-    </div>
+    </Card>
   );
 };
 

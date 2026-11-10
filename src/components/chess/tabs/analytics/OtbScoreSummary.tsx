@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { scoreByGameOfDay, scoreByRound } from '../../../../utils/otbScore';
+import ResultMark from '../../../ui/ResultMark';
 import type { Game } from '../../../../types/chess';
 
 interface OtbScoreSummaryProps {
@@ -24,32 +25,48 @@ const OtbScoreSummary = ({ games }: OtbScoreSummaryProps) => {
 
   if (rounds.length === 0 && day.length === 0) return null;
 
-  const symbol = { W: '1', D: '½', L: '0' } as const;
+  const fmt = (n: number) => {
+    const whole = Math.floor(n);
+    if (n - whole < 0.5) return String(whole);
+    return whole === 0 ? '½' : `${whole}½`;
+  };
 
   return (
-    <div className="p-4 border border-hairline rounded-lg bg-surface-2 space-y-3">
+    <div className="space-y-4 rounded border border-hairline bg-surface-2 p-4">
       {rounds.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-fg">
-            Puntaje por ronda · {rounds[0].tournament}
-          </h4>
-          <p className="mt-1 text-xs text-fg-muted nums">
-            {rounds.map(r => `R${r.round} ${symbol[r.result]}`).join(' · ')} —{' '}
-            <span className="font-medium text-fg">
-              {rounds[rounds.length - 1].total}/{rounds.length}
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h4 className="text-sm font-semibold text-fg">Puntaje por ronda · {rounds[0].tournament}</h4>
+            <span className="font-mono text-sm tabular-nums text-fg">
+              {fmt(rounds[rounds.length - 1].total)} / {rounds.length}
             </span>
-          </p>
+          </div>
+          <ol className="mt-2 flex flex-wrap gap-2">
+            {rounds.map((r, i) => (
+              <li key={i} className="flex items-center gap-1 font-mono text-xs tabular-nums text-fg-muted">
+                R{r.round}
+                <ResultMark result={r.result} outline />
+              </li>
+            ))}
+          </ol>
         </div>
       )}
       {day.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-fg">Partidas del día · {day[0].date}</h4>
-          <p className="mt-1 text-xs text-fg-muted nums">
-            {day.map(g => `#${g.gameNo} ${symbol[g.result]}`).join(' · ')} —{' '}
-            <span className="font-medium text-fg">
-              {day[day.length - 1].total}/{day.length}
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h4 className="text-sm font-semibold text-fg">Partidas del día · <span className="font-mono">{day[0].date}</span></h4>
+            <span className="font-mono text-sm tabular-nums text-fg">
+              {fmt(day[day.length - 1].total)} / {day.length}
             </span>
-          </p>
+          </div>
+          <ol className="mt-2 flex flex-wrap gap-2">
+            {day.map((g, i) => (
+              <li key={i} className="flex items-center gap-1 font-mono text-xs tabular-nums text-fg-muted">
+                #{g.gameNo}
+                <ResultMark result={g.result} outline />
+              </li>
+            ))}
+          </ol>
         </div>
       )}
     </div>
