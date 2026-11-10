@@ -51,6 +51,11 @@ interface PuzzleBoardProps {
   fen: string;
   /** The drill's stored best move for the FIRST move — a fast path around the engine. */
   bestMoveUci?: string;
+  /**
+   * Other first moves that count as correct without asking the engine (UCI,
+   * promotion suffix included). Same fast path as `bestMoveUci`.
+   */
+  acceptedUci?: string[];
   orientation: 'white' | 'black';
   /**
    * Fires once, on the FIRST graded attempt of the FIRST move, so retries and
@@ -127,6 +132,7 @@ const applyUci = (fen: string, uci: string): { fen: string; san: string } | null
 const PuzzleBoard = ({
   fen,
   bestMoveUci,
+  acceptedUci,
   orientation,
   onFirstResult,
   onSolved,
@@ -366,7 +372,7 @@ const PuzzleBoard = ({
       try {
         // The fast path only holds for the drill's own stored move, which
         // describes the starting position and nothing further into the line.
-        if (isFirstMove && bestMoveUci && uci === bestMoveUci) {
+        if (isFirstMove && (uci === bestMoveUci || acceptedUci?.includes(uci))) {
           const afterEval = await evaluate(afterFen);
           await settle({ cpLoss: 0, verdict: 'correcta' }, afterEval);
           return true;
@@ -388,6 +394,7 @@ const PuzzleBoard = ({
       stepFen,
       baseEval,
       bestMoveUci,
+      acceptedUci,
       attempts,
       solverMoves,
       maxSolverMoves,

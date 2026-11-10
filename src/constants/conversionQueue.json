@@ -1,0 +1,1449 @@
+{
+  "version": "2026-11",
+  "count": 90,
+  "items": [
+    {
+      "id": "conv-001",
+      "fen": "3r3r/1b2bpk1/pq1p1n1p/3PpQp1/1p2N3/1P1R3P/N1P1BPP1/4R1K1 w - - 10 26",
+      "color": "white",
+      "acceptedUci": [
+        "e4f6"
+      ],
+      "plan": "Mejor: Nxf6 (+6,95). En la partida se jugó Rf3 (-4,92).",
+      "evalBefore": 695,
+      "evalAfter": -492,
+      "ply": 50,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 376 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2021-05"
+    },
+    {
+      "id": "conv-002",
+      "fen": "8/1P5R/4p1kp/3pPp2/2PP4/2P3P1/5K1q/3Q4 w - - 0 33",
+      "color": "white",
+      "acceptedUci": [
+        "f2f1",
+        "f2e1",
+        "f2e3"
+      ],
+      "plan": "Mejor: Kf1 (+9,89). En la partida se jugó Kf3 (+0,00).",
+      "evalBefore": 989,
+      "evalAfter": 0,
+      "ply": 64,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 417 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2021-07"
+    },
+    {
+      "id": "conv-003",
+      "fen": "r2q1rk1/p5pp/2Q5/4pp2/4n3/2P2N2/PP4PP/R1B1K2R w - - 0 17",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Qc4+, +3,48). La que se jugó, Bg5, deja -1,11: buscá la que no le da nada al rival.",
+      "evalBefore": 348,
+      "evalAfter": -111,
+      "ply": 32,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 487 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2021-12"
+    },
+    {
+      "id": "conv-004",
+      "fen": "r1b1knQ1/1p3p1r/p2pp1pq/7B/3NPP2/2N5/PPP4P/2KR1R2 b q - 0 22",
+      "color": "black",
+      "acceptedUci": [
+        "h7h8",
+        "c8d7",
+        "h7g7"
+      ],
+      "plan": "Mejor: Rh8 (+2,46). En la partida se jugó Qxh5 (-0,08).",
+      "evalBefore": 246,
+      "evalAfter": -8,
+      "ply": 43,
+      "notes": "Tema: ahogado. Dificultad: media. Eval: SF19 prof. 22. Reloj: 774 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2023-05"
+    },
+    {
+      "id": "conv-005",
+      "fen": "r4k2/ppp2p2/3p1n1p/3P4/4PPnq/2P4P/P3Q1P1/R4RK1 b - - 0 20",
+      "color": "black",
+      "acceptedUci": [
+        "h4g3"
+      ],
+      "plan": "Mejor: Qg3 (+7,13). En la partida se jugó Nxe4 (-4,75).",
+      "evalBefore": 713,
+      "evalAfter": -475,
+      "ply": 39,
+      "notes": "Tema: cambio. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 236 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2023-08"
+    },
+    {
+      "id": "conv-006",
+      "fen": "6k1/1r1r1pp1/1p6/2p4n/2B3R1/PQP2R1P/1P3PPK/4q3 w - - 6 37",
+      "color": "white",
+      "acceptedUci": [
+        "g4g5",
+        "f3f5"
+      ],
+      "plan": "Mejor: Rg5 (+7,86). En la partida se jugó Bd5 (-4,90).",
+      "evalBefore": 786,
+      "evalAfter": -490,
+      "ply": 72,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 578 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-007",
+      "fen": "8/3k2r1/3p4/1pp1p3/3nP3/6qP/5R2/R4Q1K w - - 2 34",
+      "color": "white",
+      "acceptedUci": [
+        "f2f7"
+      ],
+      "plan": "Mejor: Rf7+ (+mate). En la partida se jugó Ra7+ (+0,63).",
+      "evalBefore": 100000,
+      "evalAfter": 63,
+      "ply": 66,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 45 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-008",
+      "fen": "8/4kp2/4p1p1/4K1P1/4BP2/8/8/2b5 b - - 22 63",
+      "color": "black",
+      "acceptedUci": [
+        "c1b2"
+      ],
+      "plan": "Mejor: Bb2# (+mate). En la partida se jugó Bd2 (+0,00).",
+      "evalBefore": 100000,
+      "evalAfter": 0,
+      "ply": 125,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 18 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-009",
+      "fen": "8/7r/p2bR2P/3p1pk1/3B4/6r1/5K2/4R3 w - - 0 44",
+      "color": "white",
+      "acceptedUci": [
+        "e6d6"
+      ],
+      "plan": "Mejor: Rxd6 (+5,78). En la partida se jugó Bf6+ (+0,00).",
+      "evalBefore": 578,
+      "evalAfter": 0,
+      "ply": 86,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 7 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-010",
+      "fen": "8/6p1/p4p1p/Pk6/5PP1/1K2B2P/2p5/8 w - - 6 50",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo f5, +6,73). La que se jugó, Bb6, deja -mate: buscá la que no le da nada al rival.",
+      "evalBefore": 673,
+      "evalAfter": -100000,
+      "ply": 98,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 43 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-011",
+      "fen": "8/8/4Bp1k/8/1b3P1r/2p1K3/3n4/2R5 b - - 2 57",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Kg7, +6,62). La que se jugó, Rh3+, deja -0,28: buscá la que no le da nada al rival.",
+      "evalBefore": 662,
+      "evalAfter": -28,
+      "ply": 113,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 170 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-012",
+      "fen": "5R2/P4R2/2ppk2p/2p5/8/1P5P/r5PK/2r5 w - - 7 40",
+      "color": "white",
+      "acceptedUci": [
+        "f7h7",
+        "f7f6"
+      ],
+      "plan": "Mejor: Rh7 (+6,01). En la partida se jugó a8=Q (+0,01).",
+      "evalBefore": 601,
+      "evalAfter": 1,
+      "ply": 78,
+      "notes": "Tema: dama colgada. Dificultad: media. Eval: SF19 prof. 22. Reloj: 319 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-09"
+    },
+    {
+      "id": "conv-013",
+      "fen": "5b2/pppr1pk1/2n4N/4p1P1/4B3/2P2R2/PPK2P2/8 w - - 7 29",
+      "color": "white",
+      "acceptedUci": [
+        "h6g4"
+      ],
+      "plan": "Mejor: Ng4 (+5,99). En la partida se jugó Bf5 (+1,84).",
+      "evalBefore": 599,
+      "evalAfter": 184,
+      "ply": 56,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 367 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-10"
+    },
+    {
+      "id": "conv-014",
+      "fen": "1r1r1b2/6k1/1p1N2pp/1P3p2/2NPP1n1/4P1Pb/2R4P/3R2KB w - - 1 36",
+      "color": "white",
+      "acceptedUci": [
+        "e4e5"
+      ],
+      "plan": "Mejor: e5 (+6,56). En la partida se jugó exf5 (-0,38).",
+      "evalBefore": 656,
+      "evalAfter": -38,
+      "ply": 70,
+      "notes": "Tema: cambio. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 48 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-10"
+    },
+    {
+      "id": "conv-015",
+      "fen": "8/3r1k1p/ppRP2p1/4K1P1/5P2/2b5/7P/8 w - - 1 45",
+      "color": "white",
+      "acceptedUci": [
+        "c6c3"
+      ],
+      "plan": "Mejor: Rxc3 (+7,38). En la partida se jugó Kd5 (-6,02).",
+      "evalBefore": 738,
+      "evalAfter": -602,
+      "ply": 88,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 42 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-016",
+      "fen": "1Q6/5pkp/3p1qp1/2p3b1/2PpPP2/N2P2PP/6B1/5K2 w - - 3 27",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Ke2, +6,08). La que se jugó, Nb5, deja +0,00: buscá la que no le da nada al rival.",
+      "evalBefore": 608,
+      "evalAfter": 0,
+      "ply": 52,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 249 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-017",
+      "fen": "Q7/3K4/2np2pk/4q2p/1p2P3/1P1B4/8/8 b - - 0 40",
+      "color": "black",
+      "acceptedUci": [
+        "c6a5",
+        "c6d4"
+      ],
+      "plan": "Mejor: Na5 (+5,82). En la partida se jugó Ne7 (-5,86).",
+      "evalBefore": 582,
+      "evalAfter": -586,
+      "ply": 79,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 188 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-018",
+      "fen": "5Q2/2p1r2k/1p1p3p/1P1P1R2/8/6qP/6P1/4rR1K b - - 4 39",
+      "color": "black",
+      "acceptedUci": [
+        "e7g7"
+      ],
+      "plan": "Mejor: Rg7 (+8,65). En la partida se jugó Rxf1+ (+0,00).",
+      "evalBefore": 865,
+      "evalAfter": 0,
+      "ply": 77,
+      "notes": "Tema: cambio. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 16 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-019",
+      "fen": "8/1p2q1k1/8/2p5/2P3P1/3B2K1/5R2/8 b - - 0 39",
+      "color": "black",
+      "acceptedUci": [
+        "e7d6"
+      ],
+      "plan": "Mejor: Qd6+ (+7,98). En la partida se jugó Qe3+ (+0,39).",
+      "evalBefore": 798,
+      "evalAfter": 39,
+      "ply": 77,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 47 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-020",
+      "fen": "8/1p2k3/p7/1bP2p2/8/3PP3/1Q2KRpq/8 w - - 0 45",
+      "color": "white",
+      "acceptedUci": [
+        "b2g7"
+      ],
+      "plan": "Mejor: Qg7+ (+6,92). En la partida se jugó Rxg2 (-mate).",
+      "evalBefore": 692,
+      "evalAfter": -100000,
+      "ply": 88,
+      "notes": "Tema: contrajuego. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 1 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-11"
+    },
+    {
+      "id": "conv-021",
+      "fen": "5k2/5p1p/1R4p1/2p5/2p1PnPB/4rP2/2K4P/rN1R4 w - - 1 35",
+      "color": "white",
+      "acceptedUci": [
+        "d1d8"
+      ],
+      "plan": "Mejor: Rd8+ (+7,88). En la partida se jugó Bg5 (+1,00).",
+      "evalBefore": 788,
+      "evalAfter": 100,
+      "ply": 68,
+      "notes": "Tema: contrajuego. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 34 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-12"
+    },
+    {
+      "id": "conv-022",
+      "fen": "5r2/kp5p/p3p3/3Pp2Q/8/1B4P1/PP3q1P/2bR3K b - - 1 29",
+      "color": "black",
+      "acceptedUci": [
+        "f2e3"
+      ],
+      "plan": "Mejor: Qe3 (+6,71). En la partida se jugó Rf5 (+0,00).",
+      "evalBefore": 671,
+      "evalAfter": 0,
+      "ply": 57,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 536 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-12"
+    },
+    {
+      "id": "conv-023",
+      "fen": "5k2/2PR4/6p1/5pP1/8/5K2/2rp4/8 w - - 0 55",
+      "color": "white",
+      "acceptedUci": [
+        "f3e2"
+      ],
+      "plan": "Mejor: Ke2 (+6,38). En la partida se jugó Rd8+ (+0,00).",
+      "evalBefore": 638,
+      "evalAfter": 0,
+      "ply": 108,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 7 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-12"
+    },
+    {
+      "id": "conv-024",
+      "fen": "8/6k1/8/1p4P1/1P1p1p2/P1r2R2/5PK1/8 b - - 1 45",
+      "color": "black",
+      "acceptedUci": [
+        "c3f3"
+      ],
+      "plan": "Mejor: Rxf3 (+7,87). En la partida se jugó Kg6 (-0,03).",
+      "evalBefore": 787,
+      "evalAfter": -3,
+      "ply": 89,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 25 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2023-12"
+    },
+    {
+      "id": "conv-025",
+      "fen": "3R4/1pp1P1pk/p6p/8/6P1/2r4K/7P/8 w - - 0 39",
+      "color": "white",
+      "acceptedUci": [
+        "h3g2"
+      ],
+      "plan": "Mejor: Kg2 (+6,16). En la partida se jugó Kh4 (-mate).",
+      "evalBefore": 616,
+      "evalAfter": -100000,
+      "ply": 76,
+      "notes": "Tema: contrajuego. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 186 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-026",
+      "fen": "5k2/R5pp/1r3p2/8/P7/1P4P1/5P1P/6K1 w - - 1 29",
+      "color": "white",
+      "acceptedUci": [
+        "h2h4"
+      ],
+      "plan": "Mejor: h4 (+4,87). En la partida se jugó Ra8+ (+0,30).",
+      "evalBefore": 487,
+      "evalAfter": 30,
+      "ply": 56,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 364 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-027",
+      "fen": "5rk1/3B1p2/6p1/6R1/1Q2Pp1p/1P1P1P2/2P1KP1q/r7 b - - 2 32",
+      "color": "black",
+      "acceptedUci": [
+        "h2h1"
+      ],
+      "plan": "Mejor: Qh1 (+7,08). En la partida se jugó h3 (-15,87).",
+      "evalBefore": 708,
+      "evalAfter": -1587,
+      "ply": 63,
+      "notes": "Tema: contrajuego. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 110 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-028",
+      "fen": "r1b2rk1/p1q1ppbp/2n3p1/1p2P3/3N2n1/6P1/PP3PBP/RNBQR1K1 b - - 2 13",
+      "color": "black",
+      "acceptedUci": [
+        "c6d4"
+      ],
+      "plan": "Mejor: Nxd4 (+3,58). En la partida se jugó Ngxe5 (+0,20).",
+      "evalBefore": 358,
+      "evalAfter": 20,
+      "ply": 25,
+      "notes": "Tema: cambio. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 440 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-029",
+      "fen": "8/2PR4/4N3/1n6/5rP1/7K/4k2P/2r5 b - - 6 45",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Re4, +4,53). La que se jugó, Rf6, deja +0,00: buscá la que no le da nada al rival.",
+      "evalBefore": 453,
+      "evalAfter": 0,
+      "ply": 89,
+      "notes": "Tema: reloj. Dificultad: media. Eval: SF19 prof. 22. Reloj: 12 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-030",
+      "fen": "6k1/5p2/1p2p1p1/2b5/4PP2/5QP1/1q4B1/3R3K w - - 1 31",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo e5, +7,70). La que se jugó, f5, deja -mate: buscá la que no le da nada al rival.",
+      "evalBefore": 770,
+      "evalAfter": -100000,
+      "ply": 60,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 229 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-01"
+    },
+    {
+      "id": "conv-031",
+      "fen": "r2q3r/pp1nnk2/3pb3/2p1pp2/QPP3p1/P1NP2P1/4P1BP/1RB2RK1 w - - 0 18",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Bxb7, +3,63). La que se jugó, Bg5, deja +1,33: buscá la que no le da nada al rival.",
+      "evalBefore": 363,
+      "evalAfter": 133,
+      "ply": 34,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 456 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-02"
+    },
+    {
+      "id": "conv-032",
+      "fen": "r4rk1/p3bppp/8/3pp2q/6n1/3B2Q1/PP1B1PPP/3R1RK1 b - - 1 25",
+      "color": "black",
+      "acceptedUci": [
+        "e7h4"
+      ],
+      "plan": "Mejor: Bh4 (+6,88). En la partida se jugó Bd6 (-4,83).",
+      "evalBefore": 688,
+      "evalAfter": -483,
+      "ply": 49,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 158 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-03"
+    },
+    {
+      "id": "conv-033",
+      "fen": "r5k1/p5pp/2p3n1/2P5/2PR4/P1Q3Pb/1B1Nqr1P/6RK w - - 2 23",
+      "color": "white",
+      "acceptedUci": [
+        "d4d8"
+      ],
+      "plan": "Mejor: Rd8+ (+mate). En la partida se jugó Nf3 (-7,38).",
+      "evalBefore": 100000,
+      "evalAfter": -738,
+      "ply": 44,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 549 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-03"
+    },
+    {
+      "id": "conv-034",
+      "fen": "8/5pkp/2NRp1p1/5b2/8/5PK1/r5PP/8 b - - 0 37",
+      "color": "black",
+      "acceptedUci": [
+        "a2a6"
+      ],
+      "plan": "Mejor: Ra6 (+5,23). En la partida se jugó Kf6 (+0,13).",
+      "evalBefore": 523,
+      "evalAfter": 13,
+      "ply": 73,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 51 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-04"
+    },
+    {
+      "id": "conv-035",
+      "fen": "6Q1/6p1/3R1pkp/2q1P3/2r1P3/P5P1/2r2PKP/8 w - - 0 39",
+      "color": "white",
+      "acceptedUci": [
+        "d6f6"
+      ],
+      "plan": "Mejor: Rxf6+ (+mate). En la partida se jugó Qe8+ (-6,81).",
+      "evalBefore": 100000,
+      "evalAfter": -681,
+      "ply": 76,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 89 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-04"
+    },
+    {
+      "id": "conv-036",
+      "fen": "1b6/5k1K/1P1p1p2/3Pp3/4P3/2N5/8/8 w - - 1 51",
+      "color": "white",
+      "acceptedUci": [
+        "c3d1"
+      ],
+      "plan": "Mejor: Nd1 (+7,36). En la partida se jugó Nb5 (+0,00).",
+      "evalBefore": 736,
+      "evalAfter": 0,
+      "ply": 100,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 63 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-04"
+    },
+    {
+      "id": "conv-037",
+      "fen": "8/8/1Q1r2p1/5p1b/8/PP2k3/2P4R/1K6 b - - 4 49",
+      "color": "black",
+      "acceptedUci": [
+        "d6b6"
+      ],
+      "plan": "Mejor: Rxb6 (+7,84). En la partida se jugó Rd4 (-mate).",
+      "evalBefore": 784,
+      "evalAfter": -100000,
+      "ply": 97,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 8 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-04"
+    },
+    {
+      "id": "conv-038",
+      "fen": "8/1k2PK2/8/8/8/8/8/q7 b - - 0 56",
+      "color": "black",
+      "acceptedUci": [
+        "a1f1",
+        "a1a2"
+      ],
+      "plan": "Mejor: Qf1+ (+mate). En la partida se jugó Qd4 (+0,00).",
+      "evalBefore": 100000,
+      "evalAfter": 0,
+      "ply": 111,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: tablebase. Reloj: 5 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-05"
+    },
+    {
+      "id": "conv-039",
+      "fen": "8/4p1k1/3pB1p1/2pQb3/1pP1P1P1/1P4q1/4K3/8 b - - 6 42",
+      "color": "black",
+      "acceptedUci": [
+        "g3g2",
+        "g3h2",
+        "e5d4"
+      ],
+      "plan": "Mejor: Qg2+ (+10,96). En la partida se jugó Qxg4+ (-10,78).",
+      "evalBefore": 1096,
+      "evalAfter": -1078,
+      "ply": 83,
+      "notes": "Tema: dama colgada. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 420 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-05"
+    },
+    {
+      "id": "conv-040",
+      "fen": "8/p2R4/P1r2kb1/2P3p1/3K4/5p1P/5P2/8 b - - 3 53",
+      "color": "black",
+      "acceptedUci": [
+        "c6a6"
+      ],
+      "plan": "Mejor: Rxa6 (+6,40). En la partida se jugó Be8 (+0,70).",
+      "evalBefore": 640,
+      "evalAfter": 70,
+      "ply": 105,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 11 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-05"
+    },
+    {
+      "id": "conv-041",
+      "fen": "5rk1/pp2q1bp/2pR4/4p3/N1P1np2/1P1Q2nP/PBB3P1/6K1 b - - 1 25",
+      "color": "black",
+      "acceptedUci": [
+        "e7d6",
+        "f4f3",
+        "e7g5",
+        "e7h4"
+      ],
+      "plan": "Mejor: Qxd6 (+8,29). En la partida se jugó Nxd6 (-0,22).",
+      "evalBefore": 829,
+      "evalAfter": -22,
+      "ply": 49,
+      "notes": "Tema: contrajuego. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 254 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-05"
+    },
+    {
+      "id": "conv-042",
+      "fen": "8/3q1p1k/p4Bp1/1p1pP1Qn/6bR/5P2/PPr5/5K2 b - - 2 37",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Qa7, +17,37). La que se jugó, Bh3+, deja -mate: buscá la que no le da nada al rival.",
+      "evalBefore": 1737,
+      "evalAfter": -100000,
+      "ply": 73,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 24 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-06"
+    },
+    {
+      "id": "conv-043",
+      "fen": "2r3k1/1r3p1p/6p1/3p2P1/1p1NnP2/1P1N3P/2P3K1/4R3 b - - 0 30",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Nc3, +3,05). La que se jugó, Ra7, deja +0,14: buscá la que no le da nada al rival.",
+      "evalBefore": 305,
+      "evalAfter": 14,
+      "ply": 59,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 158 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-06"
+    },
+    {
+      "id": "conv-044",
+      "fen": "rn1q1r2/pp1bb1k1/7p/1PpNnpp1/3Np3/1Q4P1/PB2PPBP/1R3RK1 w - - 0 18",
+      "color": "white",
+      "acceptedUci": [
+        "d4f5"
+      ],
+      "plan": "Mejor: Nxf5+ (+7,75). En la partida se jugó Ne6+ (-0,05).",
+      "evalBefore": 775,
+      "evalAfter": -5,
+      "ply": 34,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 225 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-06"
+    },
+    {
+      "id": "conv-045",
+      "fen": "3q2b1/6kp/3p4/5R1p/p2pP3/P2P3P/1PP5/1K3R2 b - - 5 34",
+      "color": "black",
+      "acceptedUci": [
+        "h5h4"
+      ],
+      "plan": "Mejor: h4 (+4,33). En la partida se jugó Kg6 (-6,51).",
+      "evalBefore": 433,
+      "evalAfter": -651,
+      "ply": 67,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 361 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-06"
+    },
+    {
+      "id": "conv-046",
+      "fen": "8/8/3k3p/1p3p1P/3Np3/2P3P1/pK3P2/1b6 b - - 13 52",
+      "color": "black",
+      "acceptedUci": [
+        "d6e5"
+      ],
+      "plan": "Mejor: Ke5 (+4,95). En la partida se jugó Kc5 (-4,76).",
+      "evalBefore": 495,
+      "evalAfter": -476,
+      "ply": 103,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 19 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-06"
+    },
+    {
+      "id": "conv-047",
+      "fen": "5n2/8/2b3BP/k3p1P1/4P3/2K2P2/8/8 w - - 1 55",
+      "color": "white",
+      "acceptedUci": [
+        "g6f7",
+        "g6h5"
+      ],
+      "plan": "Mejor: Bf7 (+9,91). En la partida se jugó h7 (-3,67).",
+      "evalBefore": 991,
+      "evalAfter": -367,
+      "ply": 108,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 86 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-07"
+    },
+    {
+      "id": "conv-048",
+      "fen": "6k1/5p1p/6p1/3P4/1pPQ2P1/6KP/2q5/8 b - - 3 37",
+      "color": "black",
+      "acceptedUci": [
+        "c2c3"
+      ],
+      "plan": "Mejor: Qc3+ (+9,29). En la partida se jugó b3 (-10,08).",
+      "evalBefore": 929,
+      "evalAfter": -1008,
+      "ply": 73,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 158 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-07"
+    },
+    {
+      "id": "conv-049",
+      "fen": "8/8/P6k/5pR1/5Pp1/7p/6r1/7K b - - 13 53",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Rc2, +7,23). La que se jugó, g3, deja +0,16: buscá la que no le da nada al rival.",
+      "evalBefore": 723,
+      "evalAfter": 16,
+      "ply": 105,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 80 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-07"
+    },
+    {
+      "id": "conv-050",
+      "fen": "Q7/2K5/6p1/8/8/5q1p/6k1/3R4 w - - 2 60",
+      "color": "white",
+      "acceptedUci": [
+        "d1g1",
+        "a8a2"
+      ],
+      "plan": "Mejor: Rg1+ (+mate). En la partida se jugó Rd2+ (+0,00).",
+      "evalBefore": 100000,
+      "evalAfter": 0,
+      "ply": 118,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: tablebase. Reloj: 30 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-09"
+    },
+    {
+      "id": "conv-051",
+      "fen": "1r3rk1/5p1p/1n1p1qpB/p7/P3Q3/1B6/1P3bPP/R3R2K b - - 1 20",
+      "color": "black",
+      "acceptedUci": [
+        "f2e1"
+      ],
+      "plan": "Mejor: Bxe1 (+5,12). En la partida se jugó Rfc8 (+0,00).",
+      "evalBefore": 512,
+      "evalAfter": 0,
+      "ply": 39,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 419 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-09"
+    },
+    {
+      "id": "conv-052",
+      "fen": "8/5p2/6p1/2pq3p/5PkP/1P4P1/5Q2/6K1 b - - 17 52",
+      "color": "black",
+      "acceptedUci": [
+        "d5b3",
+        "d5f3"
+      ],
+      "plan": "Mejor: Qxb3 (+6,68). En la partida se jugó Qd4 (-7,03).",
+      "evalBefore": 668,
+      "evalAfter": -703,
+      "ply": 103,
+      "notes": "Tema: dama colgada. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 12 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-09"
+    },
+    {
+      "id": "conv-053",
+      "fen": "3r2k1/p2r1pp1/5q1p/2n1p3/2Q1P3/P1N1PN1P/1P4P1/1R3K2 b - - 0 33",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Qb6, +3,14). La que se jugó, Ne6, deja +0,00: buscá la que no le da nada al rival.",
+      "evalBefore": 314,
+      "evalAfter": 0,
+      "ply": 65,
+      "notes": "Tema: reloj. Dificultad: media. Eval: SF19 prof. 22. Reloj: 18 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-11"
+    },
+    {
+      "id": "conv-054",
+      "fen": "7R/pppk1P2/2np2p1/8/2PPP3/8/r4K2/8 w - - 1 35",
+      "color": "white",
+      "acceptedUci": [
+        "f2g3",
+        "f2g1",
+        "f2e1",
+        "f2f1"
+      ],
+      "plan": "Mejor: Kg3 (+7,97). En la partida se jugó Kf3 (-4,71).",
+      "evalBefore": 797,
+      "evalAfter": -471,
+      "ply": 68,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 314 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-11"
+    },
+    {
+      "id": "conv-055",
+      "fen": "3q2k1/5pb1/2P2p1p/p2b4/5Q2/6P1/Pr3PBP/3R2K1 w - - 0 32",
+      "color": "white",
+      "acceptedUci": [
+        "g2d5",
+        "c6c7"
+      ],
+      "plan": "Mejor: Bxd5 (+9,81). En la partida se jugó Rxd5 (-7,87).",
+      "evalBefore": 981,
+      "evalAfter": -787,
+      "ply": 62,
+      "notes": "Tema: contrajuego. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 57 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-11"
+    },
+    {
+      "id": "conv-056",
+      "fen": "3r2k1/5pp1/pq2p2p/1pR1QP2/1n1P4/1P1R2P1/P6P/6K1 w - - 1 32",
+      "color": "white",
+      "acceptedUci": [
+        "d3c3"
+      ],
+      "plan": "Mejor: Rdc3 (+4,46). En la partida se jugó Rd2 (+1,05).",
+      "evalBefore": 446,
+      "evalAfter": 105,
+      "ply": 62,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 210 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2024-12"
+    },
+    {
+      "id": "conv-057",
+      "fen": "8/8/8/1K6/pP6/2k5/8/1b6 b - - 0 68",
+      "color": "black",
+      "acceptedUci": [
+        "a4a3",
+        "b1c2",
+        "c3b3"
+      ],
+      "plan": "Mejor: a3 (+mate). En la partida se jugó Bd3+ (+0,00).",
+      "evalBefore": 100000,
+      "evalAfter": 0,
+      "ply": 135,
+      "notes": "Tema: mate. Dificultad: media. Eval: tablebase. Reloj: 11 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-12"
+    },
+    {
+      "id": "conv-058",
+      "fen": "1R6/p1r2k1p/B2K2p1/5pB1/1p5P/6P1/2r2P2/8 w - - 6 46",
+      "color": "white",
+      "acceptedUci": [
+        "a6b7"
+      ],
+      "plan": "Mejor: Bb7 (+6,77). En la partida se jugó Rxb4 (-5,44).",
+      "evalBefore": 677,
+      "evalAfter": -544,
+      "ply": 90,
+      "notes": "Tema: contrajuego. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 74 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-12"
+    },
+    {
+      "id": "conv-059",
+      "fen": "4r1k1/p6p/3p2p1/2pN1p1n/3b1P1P/2PP2P1/PP5K/R1B5 b - - 0 20",
+      "color": "black",
+      "acceptedUci": [
+        "e8e2"
+      ],
+      "plan": "Mejor: Re2+ (+mate). En la partida se jugó Bg7 (-0,32).",
+      "evalBefore": 100000,
+      "evalAfter": -32,
+      "ply": 39,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 530 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2024-12"
+    },
+    {
+      "id": "conv-060",
+      "fen": "8/1p3k2/1P6/7p/3n1Pp1/2rPR1P1/1R3K2/8 w - - 2 43",
+      "color": "white",
+      "acceptedUci": [
+        "e3e5"
+      ],
+      "plan": "Mejor: Re5 (+5,75). En la partida se jugó Ke1 (+1,31).",
+      "evalBefore": 575,
+      "evalAfter": 131,
+      "ply": 84,
+      "notes": "Tema: contrajuego. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 278 s.",
+      "gameId": "6ef0ca34-45da-487c-b990-566f34116fbb",
+      "source": "lichess",
+      "date": "2025-01"
+    },
+    {
+      "id": "conv-061",
+      "fen": "8/1b6/p3r1Bp/1p2k2P/5R2/1P2P3/P4P2/6K1 w - - 5 44",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo f3, +6,03). La que se jugó, Re4+, deja -7,33: buscá la que no le da nada al rival.",
+      "evalBefore": 603,
+      "evalAfter": -733,
+      "ply": 86,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 63 s.",
+      "gameId": "d9010d84-0e1f-424a-9aff-f5dbc48c6a31",
+      "source": "lichess",
+      "date": "2025-01"
+    },
+    {
+      "id": "conv-062",
+      "fen": "1rr2k2/p3ppbp/3p2p1/3N4/2b5/4P1P1/PP3PBP/1RB2RK1 w - - 0 17",
+      "color": "white",
+      "acceptedUci": [
+        "f1e1",
+        "f1d1"
+      ],
+      "plan": "Mejor: Re1 (+3,87). En la partida se jugó Nc3 (-4,38).",
+      "evalBefore": 387,
+      "evalAfter": -438,
+      "ply": 32,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 475 s.",
+      "gameId": "dd5730a1-8875-45ca-8010-054af012780f",
+      "source": "lichess",
+      "date": "2025-01"
+    },
+    {
+      "id": "conv-063",
+      "fen": "r5k1/p3q1b1/3p2pp/1npPpp2/8/P2PP1P1/5P1P/R1BQ1RK1 w - - 0 20",
+      "color": "white",
+      "acceptedUci": [
+        "d1b3",
+        "c1d2",
+        "c1b2"
+      ],
+      "plan": "Mejor: Qb3 (+4,81). En la partida se jugó Rb1 (-0,53).",
+      "evalBefore": 481,
+      "evalAfter": -53,
+      "ply": 38,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 560 s.",
+      "gameId": "5ef2d92b-5a38-403a-893d-bf4164d98994",
+      "source": "lichess",
+      "date": "2025-01"
+    },
+    {
+      "id": "conv-064",
+      "fen": "6rk/5p2/p2R1qrp/1p3NnR/8/8/PbQ2PPP/6K1 b - - 11 34",
+      "color": "black",
+      "acceptedUci": [
+        "g8e8",
+        "g5e6"
+      ],
+      "plan": "Mejor: Re8 (+5,52). En la partida se jugó Nf3+ (-0,85).",
+      "evalBefore": 552,
+      "evalAfter": -85,
+      "ply": 67,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 286 s.",
+      "gameId": "b5258064-e305-432d-bf78-2acef3c22a85",
+      "source": "lichess",
+      "date": "2025-01"
+    },
+    {
+      "id": "conv-065",
+      "fen": "8/6k1/8/6P1/4B2K/6N1/7p/4r3 b - - 20 62",
+      "color": "black",
+      "acceptedUci": [
+        "e1e4"
+      ],
+      "plan": "Mejor: Rxe4+ (+6,61). En la partida se jugó Rg1 (+0,00).",
+      "evalBefore": 661,
+      "evalAfter": 0,
+      "ply": 123,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: tablebase. Reloj: 33 s.",
+      "gameId": "26c57ab9-0b1d-4fcd-b5f8-199e53e1822a",
+      "source": "lichess",
+      "date": "2025-02"
+    },
+    {
+      "id": "conv-066",
+      "fen": "2n3k1/4prbp/1q2p1p1/1P1p4/1Q6/N1rP2PB/4PP1P/1R3RK1 w - - 4 23",
+      "color": "white",
+      "acceptedUci": [
+        "e2e3",
+        "d3d4"
+      ],
+      "plan": "Mejor: e3 (+5,48). En la partida se jugó Rbc1 (+0,39).",
+      "evalBefore": 548,
+      "evalAfter": 39,
+      "ply": 44,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22.",
+      "gameId": "f8e1627d-b0c6-414d-996a-740e88b7dde9",
+      "source": "otb",
+      "date": "2025-02"
+    },
+    {
+      "id": "conv-067",
+      "fen": "8/n6p/1N1pPkp1/pP6/2P1P3/6P1/7P/5K2 w - - 1 32",
+      "color": "white",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Ke2, +6,13). La que se jugó, Nd7+, deja +0,45: buscá la que no le da nada al rival.",
+      "evalBefore": 613,
+      "evalAfter": 45,
+      "ply": 62,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 108 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2025-04"
+    },
+    {
+      "id": "conv-068",
+      "fen": "8/8/8/k3p3/4PpK1/3b1P2/8/8 b - - 7 55",
+      "color": "black",
+      "acceptedUci": [
+        "d3e4"
+      ],
+      "plan": "Mejor: Bxe4 (+6,97). En la partida se jugó Kb4 (+0,00).",
+      "evalBefore": 697,
+      "evalAfter": 0,
+      "ply": 109,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: tablebase. Reloj: 6 s.",
+      "gameId": "83b30d9d-788a-4067-aee6-aec683796cf3",
+      "source": "lichess",
+      "date": "2025-04"
+    },
+    {
+      "id": "conv-069",
+      "fen": "r3r1k1/ppp2ppp/2npb3/3N2q1/2PP4/P3P1P1/1P1Q2BP/R3K2R w KQ - 3 15",
+      "color": "white",
+      "acceptedUci": [
+        "d5c7"
+      ],
+      "plan": "Mejor: Nxc7 (+2,85). En la partida se jugó O-O (+0,36).",
+      "evalBefore": 285,
+      "evalAfter": 36,
+      "ply": 28,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 541 s.",
+      "gameId": "341e7e66-0276-45f6-82be-48e04f16106a",
+      "source": "lichess",
+      "date": "2025-05"
+    },
+    {
+      "id": "conv-070",
+      "fen": "r5k1/5p1p/pq2r1p1/1p1b4/3B2Q1/3B4/2PP2P1/5R1K b - - 4 27",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Qd6, +6,35). La que se jugó, f5, deja +0,12: buscá la que no le da nada al rival.",
+      "evalBefore": 635,
+      "evalAfter": 12,
+      "ply": 53,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 168 s.",
+      "gameId": "6cb58f0f-7e3f-49dd-b7aa-e18400be79c0",
+      "source": "lichess",
+      "date": "2025-05"
+    },
+    {
+      "id": "conv-071",
+      "fen": "6k1/8/2p4p/2R2pp1/2b1p1n1/1Q2P1PN/P4P1P/3r2K1 w - - 2 34",
+      "color": "white",
+      "acceptedUci": [
+        "b3d1"
+      ],
+      "plan": "Mejor: Qxd1 (+12,44). En la partida se jugó Kg2 (+0,00).",
+      "evalBefore": 1244,
+      "evalAfter": 0,
+      "ply": 66,
+      "notes": "Tema: dama colgada. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 77 s.",
+      "gameId": "51d1010c-7f85-4a5a-a73a-3635f88bc0db",
+      "source": "lichess",
+      "date": "2025-06"
+    },
+    {
+      "id": "conv-072",
+      "fen": "4k2r/1p2Ppb1/8/7n/1P1N2qn/2N3Pb/4PP2/Q3R1KB w k - 0 23",
+      "color": "white",
+      "acceptedUci": [
+        "a1a5"
+      ],
+      "plan": "Mejor: Qa5 (+6,47). En la partida se jugó Qa8+ (+0,00).",
+      "evalBefore": 647,
+      "evalAfter": 0,
+      "ply": 44,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 333 s.",
+      "gameId": "f6b33f84-7a92-48e1-973e-898a5e7b7774",
+      "source": "lichess",
+      "date": "2025-06"
+    },
+    {
+      "id": "conv-073",
+      "fen": "8/8/1k1r4/1p5P/6R1/2K5/8/8 w - - 5 62",
+      "color": "white",
+      "acceptedUci": [
+        "g4g6"
+      ],
+      "plan": "Mejor: Rg6 (+6,80). En la partida se jugó Kb4 (+0,00).",
+      "evalBefore": 680,
+      "evalAfter": 0,
+      "ply": 122,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: tablebase. Reloj: 12 s.",
+      "gameId": "7e9d5558-1197-406f-bd74-187e27a88703",
+      "source": "lichess",
+      "date": "2025-08"
+    },
+    {
+      "id": "conv-074",
+      "fen": "8/4nkpp/1nqbbp2/1p1Np3/pP2P3/P1rP2P1/1B3PBP/1Q3RK1 w - - 0 25",
+      "color": "white",
+      "acceptedUci": [
+        "d5c3"
+      ],
+      "plan": "Mejor: Nxc3 (+5,47). En la partida se jugó Bxc3 (+1,01).",
+      "evalBefore": 547,
+      "evalAfter": 101,
+      "ply": 48,
+      "notes": "Tema: cambio. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 402 s.",
+      "gameId": "fdc19484-c038-4295-af60-f6ed5e2ee666",
+      "source": "lichess",
+      "date": "2025-08"
+    },
+    {
+      "id": "conv-075",
+      "fen": "r1b2rk1/1p3pbp/p3p1p1/4n3/1P6/3PBNP1/q3PPBP/1R1Q1RK1 w - - 3 15",
+      "color": "white",
+      "acceptedUci": [
+        "f3d2"
+      ],
+      "plan": "Mejor: Nd2 (+3,12). En la partida se jugó Bc5 (+0,74).",
+      "evalBefore": 312,
+      "evalAfter": 74,
+      "ply": 28,
+      "notes": "Tema: ahogado. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 537 s.",
+      "gameId": "39657ed5-46a7-42c7-8c23-67466f1d04ae",
+      "source": "lichess",
+      "date": "2025-11"
+    },
+    {
+      "id": "conv-076",
+      "fen": "r4rk1/pb2pp2/1p4p1/2n4R/1q6/4Q1P1/PPBN1P2/3RK3 b - - 0 21",
+      "color": "black",
+      "acceptedUci": [
+        "b4b2",
+        "f8d8"
+      ],
+      "plan": "Mejor: Qxb2 (+5,44). En la partida se jugó Qg4 (+0,49).",
+      "evalBefore": 544,
+      "evalAfter": 49,
+      "ply": 41,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 261 s.",
+      "gameId": "eeb5a8c5-604a-4b7f-8004-7fc946abe15d",
+      "source": "lichess",
+      "date": "2025-11"
+    },
+    {
+      "id": "conv-077",
+      "fen": "8/8/8/4b1p1/1p4K1/1B4p1/Pk6/8 b - - 79 90",
+      "color": "black",
+      "acceptedUci": [
+        "g3g2"
+      ],
+      "plan": "Mejor: g2 (+9,11). En la partida se jugó Ka3 (+0,00).",
+      "evalBefore": 911,
+      "evalAfter": 0,
+      "ply": 179,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 5 s.",
+      "gameId": "a7ffef6d-dafc-4282-91cc-bdcc674a97b2",
+      "source": "lichess",
+      "date": "2026-01"
+    },
+    {
+      "id": "conv-078",
+      "fen": "6k1/4b1pp/4p3/Qb1qP3/8/3p2BP/2rN1PP1/R5K1 b - - 2 33",
+      "color": "black",
+      "acceptedUci": [
+        "e7d8"
+      ],
+      "plan": "Mejor: Bd8 (+6,83). En la partida se jugó Kf7 (+1,86).",
+      "evalBefore": 683,
+      "evalAfter": 186,
+      "ply": 65,
+      "notes": "Tema: reloj. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 29 s.",
+      "gameId": "6bda2e29-827e-4d93-ba28-d41a0550cea2",
+      "source": "lichess",
+      "date": "2026-01"
+    },
+    {
+      "id": "conv-079",
+      "fen": "8/3n1kpp/1p6/2pP4/4R3/5rP1/7P/1R4K1 w - - 0 42",
+      "color": "white",
+      "acceptedUci": [
+        "d5d6"
+      ],
+      "plan": "Mejor: d6 (+6,65). En la partida se jugó Kg2 (+0,23).",
+      "evalBefore": 665,
+      "evalAfter": 23,
+      "ply": 82,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 36 s.",
+      "gameId": "3ff91a35-53da-433b-b900-b679c5be4ccd",
+      "source": "lichess",
+      "date": "2026-01"
+    },
+    {
+      "id": "conv-080",
+      "fen": "4q1k1/5p2/6p1/5p1P/P7/1p1P1QP1/4PPK1/8 w - - 0 38",
+      "color": "white",
+      "acceptedUci": [
+        "h5g6"
+      ],
+      "plan": "Mejor: hxg6 (+4,59). En la partida se jugó Qb7 (+0,00).",
+      "evalBefore": 459,
+      "evalAfter": 0,
+      "ply": 74,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 8 s.",
+      "gameId": "246a781c-233b-4d74-8903-1c579a5825b0",
+      "source": "lichess",
+      "date": "2026-01"
+    },
+    {
+      "id": "conv-081",
+      "fen": "8/2b1k3/1n2ppp1/1P5p/2ppPP1P/rB1P2P1/3B4/1R1K4 w - - 0 45",
+      "color": "white",
+      "acceptedUci": [
+        "d2b4"
+      ],
+      "plan": "Mejor: Bb4+ (+6,41). En la partida se jugó dxc4 (+0,98).",
+      "evalBefore": 641,
+      "evalAfter": 98,
+      "ply": 88,
+      "notes": "Tema: cambio. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 79 s.",
+      "gameId": "af287284-8fec-4656-a6d2-429e4c761663",
+      "source": "lichess",
+      "date": "2026-01"
+    },
+    {
+      "id": "conv-082",
+      "fen": "2K5/2P3p1/2k4p/8/8/6PP/3R4/5r2 w - - 9 50",
+      "color": "white",
+      "acceptedUci": [
+        "c8d8",
+        "c8b8",
+        "d2c2"
+      ],
+      "plan": "Mejor: Kd8 (+7,65). En la partida se jugó Rd8 (+0,00).",
+      "evalBefore": 765,
+      "evalAfter": 0,
+      "ply": 98,
+      "notes": "Tema: reloj. Dificultad: media. Eval: SF19 prof. 22. Reloj: 13 s.",
+      "gameId": "346d46f0-d10a-4c4b-a38f-43dea262c964",
+      "source": "lichess",
+      "date": "2026-02"
+    },
+    {
+      "id": "conv-083",
+      "fen": "B7/7p/5k2/2b3p1/4K3/4P1P1/5P1P/8 w - - 0 35",
+      "color": "white",
+      "acceptedUci": [
+        "a8c6",
+        "e4d3"
+      ],
+      "plan": "Mejor: Bc6 (+3,99). En la partida se jugó Kd5 (+0,44).",
+      "evalBefore": 399,
+      "evalAfter": 44,
+      "ply": 68,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 304 s.",
+      "gameId": "0f3b4054-79c7-454f-907a-5a8040162a34",
+      "source": "lichess",
+      "date": "2026-03"
+    },
+    {
+      "id": "conv-084",
+      "fen": "8/8/4B3/p4Kp1/P5P1/1P2kP2/3b4/8 w - - 20 62",
+      "color": "white",
+      "acceptedUci": [
+        "f5g5"
+      ],
+      "plan": "Mejor: Kxg5 (+6,75). En la partida se jugó Bd5 (+0,00).",
+      "evalBefore": 675,
+      "evalAfter": 0,
+      "ply": 122,
+      "notes": "Tema: reloj. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 13 s.",
+      "gameId": "25ce3210-1ae4-47ee-b41a-cd0cc2ef0c51",
+      "source": "lichess",
+      "date": "2026-06"
+    },
+    {
+      "id": "conv-085",
+      "fen": "5K2/2k2p1p/6q1/6PP/8/8/8/8 b - - 0 58",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo Qxg5, +mate). La que se jugó, Kd7, deja -mate: buscá la que no le da nada al rival.",
+      "evalBefore": 100000,
+      "evalAfter": -100000,
+      "ply": 115,
+      "notes": "Tema: mate. Dificultad: fácil. Eval: tablebase. Reloj: 3 s.",
+      "gameId": "d7a3b87a-9d4f-47b9-a099-229a700a95be",
+      "source": "lichess",
+      "date": "2026-06"
+    },
+    {
+      "id": "conv-086",
+      "fen": "R7/pr3r1p/R5pk/P7/8/4P1PP/5PK1/8 w - - 1 39",
+      "color": "white",
+      "acceptedUci": [
+        "h3h4"
+      ],
+      "plan": "Mejor: h4 (+4,93). En la partida se jugó f4 (+0,00).",
+      "evalBefore": 493,
+      "evalAfter": 0,
+      "ply": 76,
+      "notes": "Tema: técnica. Dificultad: difícil. Eval: SF19 prof. 22. Reloj: 40 s.",
+      "gameId": "deaa3e96-8802-4378-97a7-ac99b0fe30e0",
+      "source": "lichess",
+      "date": "2026-07"
+    },
+    {
+      "id": "conv-087",
+      "fen": "8/5p1k/6p1/P4n1p/4Bb2/8/2Q4K/8 w - - 3 54",
+      "color": "white",
+      "acceptedUci": [
+        "h2h3",
+        "h2h1",
+        "h2g1"
+      ],
+      "plan": "Mejor: Kh3 (+8,82). En la partida se jugó Kg2 (+0,00).",
+      "evalBefore": 882,
+      "evalAfter": 0,
+      "ply": 106,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 2 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2026-09"
+    },
+    {
+      "id": "conv-088",
+      "fen": "1r1qr1kb/5p1p/2npp1p1/p7/3nP3/N2QB1PP/1P3PBK/RR6 b - - 3 21",
+      "color": "black",
+      "acceptedUci": [],
+      "plan": "Varias jugadas mantienen la ventaja (por ejemplo h5, +3,31). La que se jugó, Rb3, deja +0,83: buscá la que no le da nada al rival.",
+      "evalBefore": 331,
+      "evalAfter": 83,
+      "ply": 41,
+      "notes": "Tema: técnica. Dificultad: media. Eval: SF19 prof. 22. Reloj: 470 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2026-09"
+    },
+    {
+      "id": "conv-089",
+      "fen": "rnb2rk1/pp1p1pqp/4p3/2p4Q/2P1N3/1P1BP3/P2P1PP1/4K1N1 b - - 4 13",
+      "color": "black",
+      "acceptedUci": [
+        "f7f5",
+        "f7f6"
+      ],
+      "plan": "Mejor: f5 (+7,45). En la partida se jugó d5 (-6,90).",
+      "evalBefore": 745,
+      "evalAfter": -690,
+      "ply": 25,
+      "notes": "Tema: contrajuego. Dificultad: media. Eval: SF19 prof. 22. Reloj: 552 s.",
+      "gameId": null,
+      "source": "chesscom",
+      "date": "2026-09"
+    },
+    {
+      "id": "conv-090",
+      "fen": "rn2r1k1/5pb1/p2p1q1p/2pP3n/1p2P1bP/3B4/PPQ1N1P1/1NKRBR2 b - - 1 19",
+      "color": "black",
+      "acceptedUci": [
+        "f6f1",
+        "b4b3"
+      ],
+      "plan": "Mejor: Qxf1 (+7,75). En la partida se jugó Qe5 (+0,29).",
+      "evalBefore": 775,
+      "evalAfter": 29,
+      "ply": 37,
+      "notes": "Tema: técnica. Dificultad: fácil. Eval: SF19 prof. 22. Reloj: 403 s.",
+      "gameId": null,
+      "source": "lichess",
+      "date": "2026-09"
+    }
+  ]
+}

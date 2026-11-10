@@ -46,6 +46,16 @@ export default defineConfig({
   build: {
     // Keep the CRA output directory so existing deploy config keeps working.
     outDir: 'build',
+    rolldownOptions: {
+      output: {
+        // Las posiciones de la cola de conversión salen en un chunk propio,
+        // sin código de la app: scripts/assert-conversion-privacy.mjs lo
+        // revisa en el build y se queda con él por el id `conv-001`.
+        codeSplitting: {
+          groups: [{ name: 'conversion-data', test: /src[\\/]constants[\\/](conversionQueue|guideDrills)\.json$/ }],
+        },
+      },
+    },
   },
   test: {
     globals: true,
