@@ -191,7 +191,12 @@ export const fetchLichessUserRating = async (username: string): Promise<LichessU
       throw new Error(`Lichess API error: ${response.status}`);
     }
 
-    const userData = await response.json();
+    // Typed explicitly: under api/tsconfig (Node fetch types) json() is `unknown`.
+    const userData = (await response.json()) as {
+      id: string;
+      username: string;
+      perfs?: Partial<Record<'classical' | 'rapid' | 'blitz' | 'bullet', { rating?: number }>>;
+    };
 
     return {
       classical: userData.perfs?.classical?.rating || null,

@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { sql } from './_db.js';
 import { isUsableSecret, timingSafeEqualStr } from './_auth.js';
 import { refreshProfile } from './profile.js';
+import { syncLichess } from './_lichessSync.js';
+import type { GameSql } from './_gameInsert.js';
 import { rowToHomework, type HomeworkRow } from './_trainingMapper.js';
 import {
   EXTRACTION_SCHEMA,
@@ -131,12 +133,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     profile = { error: err instanceof Error ? err.message : 'Profile refresh failed' };
   }
 
+  // Also on its own, and before the Fathom checks below: a missing Fathom key
+  // or a Fathom outage returns early and must not cost the Lichess pull, nor
+  // the other way round. Nothing to sync (no stored Lichess games) is not an error.
+  let lichess: unknown;
+  try {
+    lichess = (await syncLichess(sql as unknown as GameSql & Parameters<typeof syncLichess>[0])) ?? {
+      since: null,
+      fetched: 0,
+      inserted: 0,
+      skippedExisting: 0,
+      badLines: 0,
+      truncated: false,
+    };
+  } catch (err) {
+    lichess = { error: err instanceof Error ? err.message : 'Lichess sync failed' };
+  }
+
   const fathomKey = process.env.FATHOM_API_KEY;
   if (!fathomKey) {
-    return res.status(500).json({ error: 'FATHOM_API_KEY is not set' });
+    return res.status(500).json({ error: 'FATHOM_API_KEY is not set', lichess });
   }
   if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not set' });
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not set', lichess });
   }
 
   // Resume from the newest assignment already stored, so a re-run never
@@ -162,7 +181,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     lessons = await fetchChessLessons(fathomKey, createdAfter);
   } catch (err) {
-    return res.status(502).json({ error: err instanceof Error ? err.message : 'Fathom failed' });
+    return res
+      .status(502)
+      .json({ error: err instanceof Error ? err.message : 'Fathom failed', lichess });
   }
 
   for (const meeting of lessons) {
@@ -226,6 +247,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.status(200).json({
     profile,
+    lichess,
     since: createdAfter,
     lessonsScanned: lessons.length,
     inserted: report.reduce((sum, r) => sum + r.inserted, 0),
