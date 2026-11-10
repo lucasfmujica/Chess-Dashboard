@@ -6,6 +6,7 @@ import { useUI } from './context/UIContext';
 import { useDiagnosticsQueue } from './hooks/useDiagnosticsQueue';
 import Sidebar from './components/Sidebar';
 import { APP_NAME } from './config/brand';
+import { ClockBar, SegmentedControl, StatCard } from './components/ui';
 import MobileHeader from './components/MobileHeader';
 import GameFilter from './components/GameFilter';
 import LichessSyncPanel from './components/chess/LichessSyncPanel';
@@ -401,24 +402,33 @@ const ChessDashboard = () => {
 
           {(activeTab === 'by-color' || activeTab === 'by-color-white' || activeTab === 'by-color-black') && (
             <div className="space-y-6">
-              <div className="inline-flex gap-1 rounded-lg border border-hairline bg-surface p-1">
-                <button
-                  onClick={() => setActiveTab('by-color-white')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab !== 'by-color-black' ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
-                  }`}
-                >
-                  ⚪ White Games
-                </button>
-                <button
-                  onClick={() => setActiveTab('by-color-black')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === 'by-color-black' ? 'bg-surface-2 text-fg' : 'text-fg-muted hover:bg-surface-2'
-                  }`}
-                >
-                  ⚫ Black Games
-                </button>
-              </div>
+              {/* Both colours side by side first, then the one being read. */}
+              <ClockBar>
+                <StatCard
+                  title="Blancas"
+                  value={`${whiteStats.total ? ((whiteStats.wins + whiteStats.draws / 2) / whiteStats.total * 100).toFixed(0) : '—'}%`}
+                  subtitle={`+${whiteStats.wins} =${whiteStats.draws} −${whiteStats.losses} · ${whiteStats.score}`}
+                />
+                <StatCard
+                  title="Negras"
+                  value={`${blackStats.total ? ((blackStats.wins + blackStats.draws / 2) / blackStats.total * 100).toFixed(0) : '—'}%`}
+                  subtitle={`+${blackStats.wins} =${blackStats.draws} −${blackStats.losses} · ${blackStats.score}`}
+                />
+                <StatCard
+                  title="Rendimiento"
+                  value={`${whiteStats.performanceRating || '—'} / ${blackStats.performanceRating || '—'}`}
+                  subtitle="blancas / negras"
+                />
+              </ClockBar>
+              <SegmentedControl
+                aria-label="Color"
+                value={activeTab === 'by-color-black' ? 'black' : 'white'}
+                onChange={v => setActiveTab(v === 'black' ? 'by-color-black' : 'by-color-white')}
+                options={[
+                  { value: 'white', label: 'Blancas' },
+                  { value: 'black', label: 'Negras' },
+                ]}
+              />
               {activeTab === 'by-color-black' ? (
                 <ColorGamesTab
                   color="B"
