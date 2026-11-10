@@ -6,6 +6,7 @@ import {
   linkGamesToChapter,
   scoreGames,
 } from '../../../utils/studyChapterLinks';
+import type { ChapterAssignmentResult } from '../../../utils/chapterRules';
 import type { StudyChapter } from '../../../utils/studyPgn';
 import type { Game, RepertoireMove } from '../../../types/chess';
 
@@ -13,6 +14,8 @@ interface StudyChapterMetricsProps {
   chapter: StudyChapter;
   /** Partidas propias, ya filtradas por la fuente del encabezado. */
   games: Game[];
+  /** Asignación por reglas de jugadas de esas mismas partidas; null mientras se calcula. */
+  assignment: ChapterAssignmentResult | null;
   /** Jugadas de repertorio; null mientras cargan o si la API falló. */
   moves: RepertoireMove[] | null;
   movesError?: string | null;
@@ -26,25 +29,29 @@ const COLOR_LABEL = { W: 'con blancas', B: 'con negras' } as const;
  * Las dos medidas del capítulo abierto, en la planilla: cómo te fue en tus
  * partidas con esta apertura y cuánto de su repertorio toca repasar hoy.
  */
-const StudyChapterMetrics = ({ chapter, games, moves, movesError, now }: StudyChapterMetricsProps) => {
-  const link = useMemo(() => linkGamesToChapter(chapter.header, games), [chapter, games]);
-  const score = useMemo(() => scoreGames(link.games), [link]);
+const StudyChapterMetrics = ({ chapter, games, assignment, moves, movesError, now }: StudyChapterMetricsProps) => {
+  const link = useMemo(
+    () => (assignment ? linkGamesToChapter(chapter.header, games, assignment) : null),
+    [chapter, games, assignment],
+  );
+  const score = useMemo(() => (link ? scoreGames(link.games) : null), [link]);
   const review = useMemo(() => (moves ? chapterReview(chapter, moves, now) : null), [chapter, moves, now]);
 
-  const lineValue = score.total ? (
-    <>
-      {formatPoints(score.points)}
-      <span className="text-fg-subtle">/{score.total}</span>
-    </>
-  ) : (
-    '—'
-  );
+  const lineValue =
+    score?.total ? (
+      <>
+        {formatPoints(score.points)}
+        <span className="text-fg-subtle">/{score.total}</span>
+      </>
+    ) : (
+      '—'
+    );
 
-  const extras =
-    (link.noPgn.length ? ` · ${link.noPgn.length} sin PGN` : '') +
-    (link.unassigned.length ? ` · ${link.unassigned.length} sin asignar` : '');
+  const extras = link?.unassigned.length ? ` · ${link.unassigned.length} sin capítulo` : '';
 
-  const lineSubtitle = score.total ? (
+  const lineSubtitle = !link || !score ? (
+    'Calculando capítulos…'
+  ) : score.total ? (
     <>
       <span className="font-mono tabular-nums">{score.pct}%</span>
       {' · '}
@@ -57,10 +64,12 @@ const StudyChapterMetrics = ({ chapter, games, moves, movesError, now }: StudyCh
     </>
   ) : link.method === null ? (
     'Sin partidas vinculadas: el capítulo no trae ECO ni apertura'
+  ) : link.method === 'rule' ? (
+    `Sin partidas vinculadas${link.color ? ` ${COLOR_LABEL[link.color]}` : ''} por regla de jugadas${extras}`
   ) : (
     `Sin partidas vinculadas${link.color ? ` ${COLOR_LABEL[link.color]}` : ''} en ${
       link.method === 'opening' ? 'esta apertura' : chapter.header.eco
-    }${link.method === 'tiebreak' ? ' (desempate por jugadas)' : ''}${extras}`
+    }`
   );
 
   let reviewValue: ReactNode = '—';
