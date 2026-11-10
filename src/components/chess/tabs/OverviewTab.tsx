@@ -233,7 +233,7 @@ const OverviewTab = ({
     const list = lastTournamentGames.filter(g => g.color === color);
     if (list.length === 0) return null;
     const pts = list.reduce((s, g) => s + (g.result === 'W' ? 1 : g.result === 'D' ? 0.5 : 0), 0);
-    return `con ${color === 'W' ? 'Blancas' : 'Negras'}, ${fmtPoints(pts)} de ${list.length}`;
+    return `Con ${color === 'W' ? 'blancas' : 'negras'}, ${fmtPoints(pts)} de ${list.length}`;
   };
   const reading = [colorLine('W'), colorLine('B')].filter(Boolean).join('. ');
 
@@ -321,143 +321,145 @@ const OverviewTab = ({
       </ClockBar>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        {/* Last tournament, round by round */}
-        <Card flush className="lg:col-span-2">
-          <div className="p-5 sm:p-6">
-            <CardHeader
-              title={lastTournament ? lastTournament.name : 'Último torneo'}
-              subtitle={
-                lastTournament
-                  ? `${fmtPoints(tournamentPoints)} de ${lastTournament.total} · rendimiento ${lastTournament.performanceRating}`
-                  : undefined
-              }
-              actions={<TabLink label="Ver en la biblioteca" onClick={() => onNavigate('annotations')} />}
-            />
-          </div>
-          {lastTournamentGames.length > 0 ? (
-            <>
-              <div className="px-5 sm:px-6">
-                <Table>
-                  <THead>
-                    <tr>
-                      <TH align="right">R</TH>
-                      <TH>Rival</TH>
-                      <TH align="right">ELO</TH>
-                      <TH>Color</TH>
-                      <TH>Apertura</TH>
-                      <TH align="right">Res.</TH>
-                      <TH align="right">Δ</TH>
-                    </tr>
-                  </THead>
-                  <TBody>
-                    {lastTournamentGames.map((g, i) => (
-                      <TR key={g.id ?? i}>
-                        <TD align="right" className="font-mono">{g.round ?? i + 1}</TD>
-                        <TD className="whitespace-nowrap">{g.opp}</TD>
-                        <TD align="right" muted className="font-mono">{g.opp_elo || '—'}</TD>
-                        <TD muted className="whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1.5">
-                            <PieceGlyph color={g.color} size={10} />
-                            {g.color === 'W' ? 'Blancas' : 'Negras'}
-                          </span>
-                        </TD>
-                        <TD className="whitespace-nowrap">
-                          {g.eco && <span className="mr-1.5 font-mono text-xs text-fg-muted">{g.eco}</span>}
-                          {g.opening && <span className="font-serif">{g.opening}</span>}
-                        </TD>
-                        <TD align="right">
-                          <ResultMark result={g.result} outline />
-                        </TD>
-                        <TD
-                          align="right"
-                          className={`font-mono ${
-                            g.eloChange == null ? '!text-fg-subtle' : g.eloChange > 0 ? '!text-win' : g.eloChange < 0 ? '!text-loss' : ''
-                          }`}
-                        >
-                          {g.eloChange == null ? '—' : signed(Math.round(g.eloChange * 10) / 10)}
-                        </TD>
-                      </TR>
-                    ))}
-                  </TBody>
-                </Table>
-              </div>
-              {reading && (
-                <p className="mt-5 border-t border-hairline px-5 py-4 font-serif text-[15px] leading-[22px] text-fg-muted sm:px-6">
-                  {reading.charAt(0).toUpperCase() + reading.slice(1)}.
-                </p>
-              )}
-            </>
-          ) : (
-            <p className="px-5 pb-6 text-sm text-fg-muted sm:px-6">Todavía no hay partidas de torneo cargadas.</p>
-          )}
-        </Card>
-
-        <div className="flex min-w-0 flex-col gap-6">
-          {/* What to do now: the only actionable sheet on the page. */}
-          <TodayStrip onNavigate={onNavigate} />
-
-          {/* Process numbers beside the outcome ones: what was actually done. */}
-          <Card>
-            <CardHeader title="Entrenamiento" subtitle={`Últimos ${SPLIT_WINDOW_DAYS} días`} />
-            <dl className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <dt className="text-label">Intentos esta semana</dt>
-                <dd className="mt-1 font-mono text-2xl tabular-nums text-fg">
-                  {pulse.loading ? '—' : pulse.attemptsThisWeek}
-                  <span className="text-sm text-fg-muted"> / {WEEKLY_QUEUE_TARGET}</span>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-label">Candidato perdido</dt>
-                <dd className="mt-1 font-mono text-2xl tabular-nums text-fg">
-                  {pulse.loading || pulse.split.asked === 0 ? '—' : `${pulse.split.missedPct}%`}
-                </dd>
-                {!pulse.loading && pulse.split.asked > 0 && (
-                  <dd className="mt-0.5 text-xs text-fg-muted tabular-nums">
-                    {pulse.split.missed} de {pulse.split.asked} fallos
-                  </dd>
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+          {/* Last tournament, round by round */}
+          <Card flush>
+            <div className="p-5 sm:p-6">
+              <CardHeader
+                title={lastTournament ? lastTournament.name : 'Último torneo'}
+                subtitle={
+                  lastTournament
+                    ? `${fmtPoints(tournamentPoints)} de ${lastTournament.total} · rendimiento ${lastTournament.performanceRating}`
+                    : undefined
+                }
+                actions={<TabLink label="Ver en la biblioteca" onClick={() => onNavigate('annotations')} />}
+              />
+            </div>
+            {lastTournamentGames.length > 0 ? (
+              <>
+                <div className="px-5 sm:px-6">
+                  <Table>
+                    <THead>
+                      <tr>
+                        <TH align="right">R</TH>
+                        <TH>Rival</TH>
+                        <TH align="right">ELO</TH>
+                        <TH>Color</TH>
+                        <TH>Apertura</TH>
+                        <TH align="right">Res.</TH>
+                        <TH align="right">Δ</TH>
+                      </tr>
+                    </THead>
+                    <TBody>
+                      {lastTournamentGames.map((g, i) => (
+                        <TR key={g.id ?? i}>
+                          <TD align="right" className="font-mono">{g.round ?? i + 1}</TD>
+                          <TD className="whitespace-nowrap">{g.opp}</TD>
+                          <TD align="right" muted className="font-mono">{g.opp_elo || '—'}</TD>
+                          <TD muted className="whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5">
+                              <PieceGlyph color={g.color} size={10} />
+                              {g.color === 'W' ? 'Blancas' : 'Negras'}
+                            </span>
+                          </TD>
+                          <TD className="whitespace-nowrap">
+                            {g.eco && <span className="mr-1.5 font-mono text-xs text-fg-muted">{g.eco}</span>}
+                            {g.opening && <span className="font-serif">{g.opening}</span>}
+                          </TD>
+                          <TD align="right">
+                            <ResultMark result={g.result} outline />
+                          </TD>
+                          <TD
+                            align="right"
+                            className={`font-mono ${
+                              g.eloChange == null ? '!text-fg-subtle' : g.eloChange > 0 ? '!text-win' : g.eloChange < 0 ? '!text-loss' : ''
+                            }`}
+                          >
+                            {g.eloChange == null ? '—' : signed(Math.round(g.eloChange * 10) / 10)}
+                          </TD>
+                        </TR>
+                      ))}
+                    </TBody>
+                  </Table>
+                </div>
+                {reading && (
+                  <p className="mt-5 border-t border-hairline px-5 py-4 font-serif text-[15px] leading-[22px] text-fg-muted sm:px-6">
+                    {reading.charAt(0).toUpperCase() + reading.slice(1)}.
+                  </p>
                 )}
-              </div>
-            </dl>
-            {!pulse.loading && pulse.attemptsThisWeek === 0 && (
-              <p className="mt-3 text-xs text-fg-muted">
-                {pulse.daysSinceLastSession === null
-                  ? 'Sin intentos registrados todavía. '
-                  : `Hace ${pulse.daysSinceLastSession} día${pulse.daysSinceLastSession === 1 ? '' : 's'} del último registro. `}
-                <TabLink label="Entrenar" onClick={() => onNavigate('training')} />
-              </p>
-            )}
-            {!pulse.loading && (
-              <div className="mt-3 border-t border-hairline pt-3">
-                <MomentSplitSummary split={pulse.momentSplit} />
-              </div>
+              </>
+            ) : (
+              <p className="px-5 pb-6 text-sm text-fg-muted sm:px-6">Todavía no hay partidas de torneo cargadas.</p>
             )}
           </Card>
 
-          {lastGame && (
+          <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2">
+            {/* Process numbers beside the outcome ones: what was actually done. */}
             <Card>
-              <CardHeader title="Última partida" actions={<ResultMark result={lastGame.result} />} />
-              <div className="mt-3">
-                <p className="font-serif text-base leading-6 text-fg">
-                  {lastGame.color === 'W' ? 'Blancas' : 'Negras'} contra {lastGame.opp}
-                  {lastGame.opp_elo ? <span className="font-mono text-sm text-fg-muted"> ({lastGame.opp_elo})</span> : null}
+              <CardHeader title="Entrenamiento" subtitle={`Últimos ${SPLIT_WINDOW_DAYS} días`} />
+              <dl className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <dt className="text-label">Intentos esta semana</dt>
+                  <dd className="mt-1 font-mono text-2xl tabular-nums text-fg">
+                    {pulse.loading ? '—' : pulse.attemptsThisWeek}
+                    <span className="text-sm text-fg-muted"> / {WEEKLY_QUEUE_TARGET}</span>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-label">Candidato perdido</dt>
+                  <dd className="mt-1 font-mono text-2xl tabular-nums text-fg">
+                    {pulse.loading || pulse.split.asked === 0 ? '—' : `${pulse.split.missedPct}%`}
+                  </dd>
+                  {!pulse.loading && pulse.split.asked > 0 && (
+                    <dd className="mt-0.5 text-xs text-fg-muted tabular-nums">
+                      {pulse.split.missed} de {pulse.split.asked} fallos
+                    </dd>
+                  )}
+                </div>
+              </dl>
+              {!pulse.loading && pulse.attemptsThisWeek === 0 && (
+                <p className="mt-3 text-xs text-fg-muted">
+                  {pulse.daysSinceLastSession === null
+                    ? 'Sin intentos registrados todavía. '
+                    : `Hace ${pulse.daysSinceLastSession} día${pulse.daysSinceLastSession === 1 ? '' : 's'} del último registro. `}
+                  <TabLink label="Entrenar" onClick={() => onNavigate('training')} />
                 </p>
-                <p className="mt-0.5 text-xs text-fg-subtle">
-                  {[
-                    lastGame.tournament,
-                    lastGame.round ? `R${lastGame.round}` : null,
-                    [lastGame.opening, lastGame.eco].filter(Boolean).join(' '),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </p>
-              </div>
-              <Button className="mt-4 w-full" onClick={() => onNavigate('analysis-board')}>
-                Abrir en el tablero
-              </Button>
+              )}
+              {!pulse.loading && (
+                <div className="mt-3 border-t border-hairline pt-3">
+                  <MomentSplitSummary split={pulse.momentSplit} />
+                </div>
+              )}
             </Card>
-          )}
+
+            {lastGame && (
+              <Card>
+                <CardHeader title="Última partida" actions={<ResultMark result={lastGame.result} />} />
+                <div className="mt-3">
+                  <p className="font-serif text-base leading-6 text-fg">
+                    {lastGame.color === 'W' ? 'Blancas' : 'Negras'} contra {lastGame.opp}
+                    {lastGame.opp_elo ? <span className="font-mono text-sm text-fg-muted"> ({lastGame.opp_elo})</span> : null}
+                  </p>
+                  <p className="mt-0.5 text-xs text-fg-subtle">
+                    {[
+                      lastGame.tournament,
+                      lastGame.round ? `R${lastGame.round}` : null,
+                      [lastGame.opening, lastGame.eco].filter(Boolean).join(' '),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                </div>
+                <Button className="mt-4 w-full" onClick={() => onNavigate('analysis-board')}>
+                  Abrir en el tablero
+                </Button>
+              </Card>
+            )}
+          </div>
         </div>
+
+        {/* What to do now: the only actionable sheet on the page. */}
+        <TodayStrip onNavigate={onNavigate} />
       </div>
 
       {/* At-a-glance signals: what happened recently & what's next */}
