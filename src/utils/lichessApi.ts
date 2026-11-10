@@ -7,9 +7,24 @@ import type { Game, GameResult, LichessSpeed } from '../types/chess';
 
 const LICHESS_API_BASE = 'https://lichess.org/api';
 
-/** Browsers ignore this header; it identifies us when the sync ever runs server-side. */
+/**
+ * Identifying User-Agent, sent ONLY when the code runs outside a browser (Node/server).
+ * In a browser it must NOT be set: Firefox sends it, which triggers a CORS preflight, and
+ * Lichess's Access-Control-Allow-Headers does not list user-agent, so the request would fail.
+ */
 const USER_AGENT =
   'Chess-Dashboard/1.0 (github.com/lucasfmujica/Chess-Dashboard; contact via GitHub issues)';
+
+/**
+ * Request headers for Lichess. Browser: only Accept (CORS-safelisted, no preflight).
+ * Server (no `window`): also the identifying User-Agent. fetchLichessGames currently only
+ * runs in the browser; the server branch is ready for when a sync moves server-side.
+ */
+const lichessHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = { Accept: 'application/x-ndjson' };
+  if (typeof window === 'undefined') headers['User-Agent'] = USER_AGENT;
+  return headers;
+};
 
 export interface FetchLichessOptions {
   /** Max games to fetch. Pass null/undefined for no limit (streams everything matching the filters). */
@@ -88,10 +103,7 @@ export const fetchLichessGames = async (
     const response = await fetch(
       `${LICHESS_API_BASE}/games/user/${username}?${params.toString()}`,
       {
-        headers: {
-          Accept: 'application/x-ndjson',
-          'User-Agent': USER_AGENT,
-        },
+        headers: lichessHeaders(),
       }
     );
 
