@@ -8,8 +8,19 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['Geist Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['"Source Serif 4"', 'Georgia', 'serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
+      borderRadius: {
+        // Planilla is paper: nearly square. Only the clock panels are rounder.
+        sm: '2px',
+        DEFAULT: '4px',
+        md: '4px',
+        lg: '4px',
+        xl: '6px',
+        '2xl': '8px',
+        '3xl': '8px',
       },
       colors: {
         // Semantic, theme-aware tokens (see src/index.css for values).
@@ -23,12 +34,27 @@ export default {
           muted: 'rgb(var(--fg-muted) / <alpha-value>)',
           subtle: 'rgb(var(--fg-subtle) / <alpha-value>)',
         },
-        hairline: 'rgb(var(--border) / <alpha-value>)',
+        hairline: {
+          DEFAULT: 'rgb(var(--border) / <alpha-value>)',
+          strong: 'rgb(var(--border-strong) / <alpha-value>)',
+        },
         accent: {
           DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
           strong: 'rgb(var(--accent-strong) / <alpha-value>)',
           fg: 'rgb(var(--accent-fg) / <alpha-value>)',
           soft: 'rgb(var(--accent-soft) / <alpha-value>)',
+        },
+        carbon: {
+          DEFAULT: 'rgb(var(--carbon) / <alpha-value>)',
+          pink: 'rgb(var(--carbon-pink) / <alpha-value>)',
+        },
+        clock: {
+          DEFAULT: 'rgb(var(--clock) / <alpha-value>)',
+          2: 'rgb(var(--clock-2) / <alpha-value>)',
+          fg: 'rgb(var(--clock-fg) / <alpha-value>)',
+          muted: 'rgb(var(--clock-muted) / <alpha-value>)',
+          lit: 'rgb(var(--clock-lit) / <alpha-value>)',
+          flag: 'rgb(var(--clock-flag) / <alpha-value>)',
         },
         win: 'rgb(var(--win) / <alpha-value>)',
         draw: 'rgb(var(--draw) / <alpha-value>)',
