@@ -1,0 +1,12 @@
+-- No static SQL here on purpose.
+--
+-- repertoire_lines.lichess_url still points at the old study export
+-- (iPk8Xex1, HTTP 404). The live study is DPH7PV7i. The per-chapter URLs live in
+-- public/data/repertoire-study.pgn, and scripts/fix-repertoire-study-urls.mts is
+-- the source of truth for copying them onto the rows (matched on the NN prefix
+-- of line_name). Dry-run first, then re-run with --apply once approved:
+--
+--   npx tsx --env-file=.env.local scripts/fix-repertoire-study-urls.mts
+--   npx tsx --env-file=.env.local scripts/fix-repertoire-study-urls.mts --apply
+--
+-- NOT applied by the PR.

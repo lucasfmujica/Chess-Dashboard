@@ -11,7 +11,7 @@ export type GameResult = 'W' | 'D' | 'L';
 export type PlayerColor = 'W' | 'B';
 
 /** Where a game came from. */
-export type GameSource = 'otb' | 'lichess';
+export type GameSource = 'otb' | 'lichess' | 'chesscom';
 
 /** Lichess time-control family. */
 export type LichessSpeed = 'bullet' | 'blitz' | 'rapid' | 'classical' | 'correspondence';
@@ -43,7 +43,7 @@ export interface Game {
   /** K-factor used for this game (40 or 20). */
   kFactor?: number;
 
-  // Lichess-specific fields (present when source === 'lichess')
+  // Online fields (present when source === 'lichess' | 'chesscom'; gameId is the site's id)
   gameId?: string;
   speed?: LichessSpeed;
   /** e.g. '10+0'. */
@@ -53,6 +53,13 @@ export interface Game {
 
   /** SAN movetext / PGN moves, when available (enables board replay). */
   pgn?: string;
+
+  /** OTB round, free-form ('3', '5.2'). */
+  round?: string;
+  /** Player's remaining clock after move 20 / 30 / 40, free-form ('1:12:05'). */
+  clock20?: string;
+  clock30?: string;
+  clock40?: string;
 
   // Optional location metadata (used by the geography feature)
   city?: string;
@@ -204,6 +211,12 @@ export interface KeyMoment {
    * columns — the countable ones.
    */
   critical?: boolean;
+  /**
+   * Answer to "¿la viste y la descartaste o no se te ocurrió?", asked after an
+   * OTB game. `rejected` = it was on the list and I discarded it; `missed` =
+   * it never occurred to me. Absent on online games and older rows.
+   */
+  candidateFate?: 'missed' | 'rejected';
 }
 
 /** A user-saved annotated game. */

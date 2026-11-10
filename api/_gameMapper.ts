@@ -21,6 +21,10 @@ export interface GameRow {
   elo_change: number | null;
   k_factor: number | null;
   pgn: string | null;
+  round: string | null;
+  clock_20: string | null;
+  clock_30: string | null;
+  clock_40: string | null;
   city: string | null;
   country: string | null;
   // Which prepared line the game actually followed, and the ply it left book.
@@ -50,6 +54,10 @@ export interface GameInput {
   timeControl?: string;
   opening?: string;
   pgn?: string;
+  round?: string;
+  clock20?: string;
+  clock30?: string;
+  clock40?: string;
   city?: string;
   country?: string;
   affectsElo?: boolean;
@@ -77,6 +85,10 @@ export const rowToGame = (row: GameRow) => ({
   timeControl: row.time_control ?? undefined,
   opening: row.opening_name ?? undefined,
   pgn: row.pgn ?? undefined,
+  round: row.round ?? undefined,
+  clock20: row.clock_20 ?? undefined,
+  clock30: row.clock_30 ?? undefined,
+  clock40: row.clock_40 ?? undefined,
   city: row.city ?? undefined,
   country: row.country ?? undefined,
   repertoireLineId: row.repertoire_line_id ?? undefined,

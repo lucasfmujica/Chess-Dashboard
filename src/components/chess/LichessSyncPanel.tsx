@@ -5,6 +5,12 @@ import type { Game } from '../../types/chess';
 /** Where the username is kept between visits, so the field isn't retyped every sync. */
 const USERNAME_KEY = 'lichess-username';
 
+/** Suggested when nothing is stored yet. */
+const DEFAULT_USERNAME = 'lmujica24';
+
+/** Rapid + classical: what the dashboard tracks. Blitz and bullet are opt-in. */
+const DEFAULT_PERF_TYPE = 'rapid,classical';
+
 type SyncStatusType = 'loading' | 'success' | 'warning' | 'error';
 
 interface SyncStatus {
@@ -20,12 +26,12 @@ interface LichessSyncPanelProps {
 const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) => {
   const { games } = useGames();
   const [lichessUsername, setLichessUsername] = useState(
-    () => localStorage.getItem(USERNAME_KEY) ?? ''
+    () => localStorage.getItem(USERNAME_KEY) ?? DEFAULT_USERNAME
   );
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [maxGames, setMaxGames] = useState(50);
-  const [perfType, setPerfType] = useState('classical,rapid,blitz');
+  const [perfType, setPerfType] = useState(DEFAULT_PERF_TYPE);
   const [sinceDate, setSinceDate] = useState('');
   const [untilDate, setUntilDate] = useState('');
 
@@ -204,6 +210,7 @@ const LichessSyncPanel = ({ onSyncComplete, onError }: LichessSyncPanelProps) =>
               className="w-full px-4 py-2 rounded-md border border-hairline bg-surface text-fg placeholder-fg-subtle focus:border-accent focus:ring-1 focus:ring-accent"
               disabled={isSyncing}
             >
+              <option value="rapid,classical">Rapid + Classical</option>
               <option value="classical,rapid,blitz">All (Classical, Rapid, Blitz)</option>
               <option value="classical">Classical only</option>
               <option value="rapid">Rapid only</option>

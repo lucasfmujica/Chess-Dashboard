@@ -90,11 +90,11 @@ const addDays = (from: string, offset: number): string => {
  *
  * OTB only. Prep is for classical over-the-board play, and the online games
  * outnumber them roughly five to one — leaving them in would let a blitz
- * habit decide which chapters get the study time. Tested against 'lichess'
- * rather than for 'otb' so a row with no source recorded is treated as OTB,
+ * habit decide which chapters get the study time. Tested against the online
+ * sources ('lichess', 'chesscom') rather than for 'otb' so a row with no source recorded is treated as OTB,
  * which is what the column defaults to.
  */
-export const isOtb = (game: Game): boolean => game.source !== 'lichess';
+export const isOtb = (game: Game): boolean => game.source !== 'lichess' && game.source !== 'chesscom';
 
 /**
  * Score per game by ECO over the games handed in.

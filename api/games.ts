@@ -2,7 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { sql } from './_db.js';
 import { requireSession } from './_auth.js';
 import { rowToGame, type GameRow, type GameInput } from './_gameMapper.js';
-import { parsePgnDate, openingNameForEco } from './_pgnMeta.js';
+import { parsePgnDate } from './_pgnMeta.js';
+import { insertGames, MigrationRequiredError, type GameSql } from './_gameInsert.js';
 
 interface GamePatch {
   pgn?: string | null;
@@ -64,39 +65,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Batch imports (e.g. a full date-range Lichess sync) can be hundreds of rows;
     // pipeline them as one transaction instead of awaiting each insert sequentially
     // so a large sync doesn't risk hitting the serverless function's time limit.
-    const CHUNK_SIZE = 200;
-    for (let i = 0; i < games.length; i += CHUNK_SIZE) {
-      const chunk = games.slice(i, i + CHUNK_SIZE);
-      const queries = chunk.map((game) => {
-        const playedDate = game.date ?? parsePgnDate(game.pgn);
-        const openingName = game.opening ?? openingNameForEco(game.eco);
-        return sql`
-          INSERT INTO games (
-            lichess_game_id, source, color, result, elo, opponent, opponent_elo,
-            eco, opening_name, tournament, rated, played_date, played_time,
-            speed, time_control, elo_change, k_factor, pgn, city, country, affects_elo
-          ) VALUES (
-            ${game.gameId ?? null}, ${game.source ?? 'otb'}, ${game.color}, ${game.result},
-            ${game.elo}, ${game.opp}, ${game.opp_elo ?? null}, ${game.eco ?? null},
-            ${openingName}, ${game.tournament ?? null}, ${game.rated},
-            ${playedDate}, ${game.time ?? null}, ${game.speed ?? null},
-            ${game.timeControl ?? null}, ${game.eloChange ?? null}, ${game.kFactor ?? null},
-            ${game.pgn ?? null}, ${game.city ?? null}, ${game.country ?? null},
-            ${game.affectsElo ?? true}
-          )
-          ON CONFLICT (lichess_game_id) DO UPDATE SET
-            source = EXCLUDED.source, color = EXCLUDED.color, result = EXCLUDED.result,
-            elo = EXCLUDED.elo, opponent = EXCLUDED.opponent, opponent_elo = EXCLUDED.opponent_elo,
-            eco = EXCLUDED.eco, opening_name = EXCLUDED.opening_name, tournament = EXCLUDED.tournament,
-            rated = EXCLUDED.rated, played_date = EXCLUDED.played_date, played_time = EXCLUDED.played_time,
-            speed = EXCLUDED.speed, time_control = EXCLUDED.time_control, elo_change = EXCLUDED.elo_change,
-            k_factor = EXCLUDED.k_factor, pgn = EXCLUDED.pgn, city = EXCLUDED.city, country = EXCLUDED.country,
-            affects_elo = EXCLUDED.affects_elo
-        `;
-      });
-      if (queries.length > 0) {
-        await sql.transaction(queries as Parameters<typeof sql.transaction>[0]);
+    try {
+      await insertGames(sql as unknown as GameSql, games);
+    } catch (err) {
+      if (err instanceof MigrationRequiredError) {
+        return res.status(400).json({ error: err.message });
       }
+      throw err;
     }
 
     return res.status(201).json({ inserted: games.length });

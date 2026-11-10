@@ -18,6 +18,8 @@ export interface EndgameDrillRow {
   opening_name: string | null;
   color: string;
   result: string;
+  source: string | null;
+  speed: string | null;
 }
 
 export const rowToEndgameDrill = (row: EndgameDrillRow) => ({
@@ -40,5 +42,7 @@ export const rowToEndgameDrill = (row: EndgameDrillRow) => ({
     openingName: row.opening_name ?? undefined,
     color: row.color as 'W' | 'B',
     result: row.result as 'W' | 'D' | 'L',
+    source: row.source ?? undefined,
+    speed: row.speed ?? undefined,
   },
 });

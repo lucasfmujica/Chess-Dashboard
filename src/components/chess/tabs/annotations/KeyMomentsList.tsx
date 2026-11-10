@@ -3,6 +3,7 @@ import { StarIcon as StarSolid } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutline } from '@heroicons/react/24/outline';
 import { Button } from '../../../ui';
 import { NOTATION_SYMBOLS } from './annotationMeta';
+import { CANDIDATE_FATE_QUESTION } from './moments';
 import type { KeyMoment } from '../../../../types/chess';
 
 interface KeyMomentsListProps {
@@ -13,7 +14,14 @@ interface KeyMomentsListProps {
   onAddBlank: () => void;
   /** Jump the board to a moment. Absent when the annotation has no board. */
   onGoTo?: (ply: number) => void;
+  /** OTB games: put the candidate question on every moment. */
+  askCandidateFate?: boolean;
 }
+
+const FATE_OPTIONS: { value: NonNullable<KeyMoment['candidateFate']>; label: string }[] = [
+  { value: 'rejected', label: 'La descarté' },
+  { value: 'missed', label: 'No se me ocurrió' },
+];
 
 /**
  * Every point the game turned, in board order.
@@ -29,6 +37,7 @@ const KeyMomentsList = ({
   onSetCritical,
   onAddBlank,
   onGoTo,
+  askCandidateFate = false,
 }: KeyMomentsListProps) => (
   <div className="rounded-lg border border-hairline bg-surface-2 p-4 space-y-3">
     <div>
@@ -124,6 +133,37 @@ const KeyMomentsList = ({
                 </button>
               </div>
             </div>
+
+            {askCandidateFate && (
+              <fieldset className="flex flex-wrap items-center gap-2">
+                <legend className="sr-only">{CANDIDATE_FATE_QUESTION}</legend>
+                <span className="text-xs text-fg-muted" aria-hidden="true">
+                  {CANDIDATE_FATE_QUESTION}
+                </span>
+                <div className="inline-flex gap-1 rounded-md border border-hairline bg-surface p-1">
+                  {FATE_OPTIONS.map(opt => (
+                    <label
+                      key={opt.value}
+                      className={`px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent ${
+                        moment.candidateFate === opt.value
+                          ? 'bg-accent text-accent-fg'
+                          : 'text-fg-muted hover:bg-surface-2'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`candidate-fate-${idx}`}
+                        value={opt.value}
+                        checked={moment.candidateFate === opt.value}
+                        onChange={() => onUpdate(idx, { candidateFate: opt.value })}
+                        className="sr-only"
+                      />
+                      {opt.label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             <input
               type="text"

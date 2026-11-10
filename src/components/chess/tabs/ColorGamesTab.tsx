@@ -60,12 +60,18 @@ const ColorGamesTab = ({
     setDateTo,
     resultFilter,
     setResultFilter,
+    sourceFilter,
+    setSourceFilter,
+    speedFilter,
+    setSpeedFilter,
     hasActiveFilters,
     clearFilters,
     filteredItems: colorGames,
   } = useGameFilters(colorGamesAll, {
     date: g => g.date,
     result: g => g.result,
+    source: g => g.source,
+    speed: g => g.speed,
     searchText: g => `${g.opp} ${ecoNames[g.eco] || g.eco} ${g.tournament}`,
   });
   return (
@@ -108,6 +114,10 @@ const ColorGamesTab = ({
             onDateToChange={setDateTo}
             resultFilter={resultFilter}
             onResultFilterChange={setResultFilter}
+            sourceFilter={sourceFilter}
+            onSourceFilterChange={setSourceFilter}
+            speedFilter={speedFilter}
+            onSpeedFilterChange={setSpeedFilter}
             hasActiveFilters={hasActiveFilters}
             onClear={clearFilters}
           />

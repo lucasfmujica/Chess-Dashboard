@@ -1,6 +1,7 @@
 import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { Badge, Button, Card, resultTone } from '../../../ui';
 import { gameLabel } from '../../../../utils/gameMapping';
+import { isOtbGame, REQUIRED_OTB_MOMENTS, CANDIDATE_FATE_QUESTION } from './moments';
 import type { Game } from '../../../../types/chess';
 
 interface UnanalyzedQueueProps {
@@ -52,6 +53,11 @@ const UnanalyzedQueue = ({ games, onAnalyze }: UnanalyzedQueueProps) => {
           >
             <div className="min-w-0">
               <p className="text-sm text-fg truncate">{gameLabel(game)}</p>
+              {isOtbGame(game) && (
+                <p className="text-xs text-fg-muted mt-0.5">
+                  OTB: anotá {REQUIRED_OTB_MOMENTS} momentos y respondé «{CANDIDATE_FATE_QUESTION}»
+                </p>
+              )}
               {!game.pgn && (
                 <p className="text-xs text-fg-subtle mt-0.5">
                   Sin jugadas guardadas — se puede anotar igual, pero sin tablero.

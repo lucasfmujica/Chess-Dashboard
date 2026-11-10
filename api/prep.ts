@@ -85,7 +85,7 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
         WHERE id = ${id}
       `;
       const rows = (await sql`
-        SELECT bd.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result
+        SELECT bd.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result, g.source, g.speed
         FROM blunder_drills bd JOIN games g ON g.id = bd.game_id WHERE bd.id = ${id}
       `) as BlunderDrillRow[];
       if (rows.length === 0) {
@@ -107,7 +107,7 @@ const blunderDrills = async (req: VercelRequest, res: VercelResponse, id: string
 
   if (req.method === 'GET') {
     const rows = (await sql`
-      SELECT bd.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result
+      SELECT bd.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result, g.source, g.speed
       FROM blunder_drills bd
       JOIN games g ON g.id = bd.game_id
       WHERE bd.archived = false
@@ -228,7 +228,7 @@ const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string
         WHERE id = ${id}
       `;
       const rows = (await sql`
-        SELECT ed.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result
+        SELECT ed.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result, g.source, g.speed
         FROM endgame_drills ed JOIN games g ON g.id = ed.game_id WHERE ed.id = ${id}
       `) as EndgameDrillRow[];
       if (rows.length === 0) {
@@ -250,7 +250,7 @@ const endgameDrills = async (req: VercelRequest, res: VercelResponse, id: string
 
   if (req.method === 'GET') {
     const rows = (await sql`
-      SELECT ed.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result
+      SELECT ed.*, g.opponent, g.played_date, g.eco, g.opening_name, g.color, g.result, g.source, g.speed
       FROM endgame_drills ed
       JOIN games g ON g.id = ed.game_id
       WHERE ed.archived = false
