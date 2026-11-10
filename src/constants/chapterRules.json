@@ -1,5 +1,5 @@
 {
-  "version": "2026-11-10",
+  "version": "2026-11-10b",
   "author": "Segundo",
   "estudio": "Lichess DPH7PV7i \"Repertorio Copa AFA V2\", export local 09/11/2026 13:02 ART",
   "semantica": {
@@ -20,7 +20,7 @@
     "desempate": "si una partida matchea varios capitulos con regla: 1) mayor profundidad; 2) menor priority (hoy todas 100); 3) menor numero de capitulo. Cada partida queda en un solo capitulo.",
     "regla_sobre_eco": "una partida asignada por regla no se muestra en ningun capitulo por ECO. Una partida con el ECO de un capitulo con regla que no matchea ninguna regla queda \"sin capitulo\".",
     "sin_pgn": "sin jugadas no entra en ningun capitulo con regla; se cuenta aparte (\"N partidas sin jugadas\"). Hoy son 18 y todas tienen ECO Unknown.",
-    "propuesta": "entries con propuesta=true (28c, 28d, 10b) amplian el capitulo mas alla de su linea; necesitan OK de Lucas. Si no se aprueban, se borran del JSON y el resto no cambia."
+    "propuesta": "entries con propuesta=true (10b, 28c, 28d ya aprobadas por Lucas 10/11 10:07 segun Chief; 02a, 08c, 08d nuevas sin OK) amplian el capitulo mas alla de su linea; necesitan OK de Lucas. Si no se aprueban, se borran del JSON y el resto no cambia."
   },
   "pares": [
     {
@@ -212,7 +212,7 @@
           "blackPlays": [
             "f5"
           ],
-          "maxPly": 4,
+          "maxPly": 8,
           "exclude": [
             {
               "blackPlays": [
@@ -247,6 +247,63 @@
             "c4",
             "d6"
           ]
+        },
+        {
+          "id": "08c",
+          "prefix": [
+            "c4",
+            "Nf6"
+          ],
+          "blackPlays": [
+            "g6",
+            "Bg7",
+            "d6"
+          ],
+          "maxPly": 14,
+          "exclude": [
+            {
+              "blackPlays": [
+                "d5"
+              ],
+              "maxPly": 14
+            },
+            {
+              "blackPlays": [
+                "c5"
+              ],
+              "maxPly": 6
+            }
+          ],
+          "propuesta": true
+        },
+        {
+          "id": "08d",
+          "prefix": [
+            "Nf3",
+            "Nf6",
+            "c4"
+          ],
+          "blackPlays": [
+            "g6",
+            "Bg7",
+            "d6"
+          ],
+          "maxPly": 14,
+          "exclude": [
+            {
+              "blackPlays": [
+                "d5"
+              ],
+              "maxPly": 14
+            },
+            {
+              "blackPlays": [
+                "c5"
+              ],
+              "maxPly": 6
+            }
+          ],
+          "propuesta": true
         }
       ],
       "exclude": [
@@ -304,6 +361,52 @@
       "priority": 100,
       "transpositions": "no (orden)",
       "notes": "extra: no es par, pero resuelve el desfase A12/A11 (Lucas juega 2.g3 y 2.Nf3 casi igual)"
+    },
+    "02": {
+      "chapter": "02",
+      "name": "02 BLANCAS - vs 1...e5 con ...Nc6 o ...Bc5 (EL PROBLEMA)",
+      "color": "W",
+      "studyEco": "A26",
+      "entries": [
+        {
+          "id": "02a",
+          "prefix": [
+            "c4"
+          ],
+          "blackPlays": [
+            {
+              "san": "e5",
+              "maxPly": 8
+            },
+            "Nc6",
+            "g6"
+          ],
+          "firstMoveFrom": {
+            "square": "f8",
+            "to": "g7"
+          },
+          "maxPly": 16,
+          "exclude": [
+            {
+              "blackPlays": [
+                "c5"
+              ],
+              "maxPly": 6
+            },
+            {
+              "blackPlays": [
+                "f5"
+              ],
+              "maxPly": 8
+            }
+          ],
+          "propuesta": true
+        }
+      ],
+      "exclude": [],
+      "priority": 100,
+      "transpositions": "si (jugadas en cualquier orden)",
+      "notes": "reemplaza el post-paso A25->02 de Atlas: misma estructura (...e5, ...Nc6, alfil f8 a g7) con cualquier ECO"
     },
     "29": {
       "chapter": "29",

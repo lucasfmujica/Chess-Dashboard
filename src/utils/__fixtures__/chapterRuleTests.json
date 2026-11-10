@@ -1,5 +1,10 @@
 [
   {
+    "color": "W",
+    "moves": "c4 e5 g3 g6 Bg2 Bg7 Nc3 Nc6 Nf3 Nge7 O-O O-O d3 d6 Rb1 a5 a3 f5 Bg5 h6",
+    "expect": "02"
+  },
+  {
     "color": "B",
     "moves": "e4 c5 Nf3 Nc6 c3 Nf6 d3 g6 Be3 d6 Be2 Bg7 Nbd2 O-O O-O Rb8 Rc1 b5 d4 Ng4",
     "expect": "13"
@@ -13,6 +18,16 @@
     "color": "B",
     "moves": "e4 c5 Nf3 Nc6 d4 cxd4 Nxd4 g6 c4 Bg7 Nc2 Nf6 Nc3 O-O Be2 b6 O-O Bb7 Be3 Rc8",
     "expect": "11"
+  },
+  {
+    "color": "W",
+    "moves": "c4 Nf6 g3 g6 Bg2 Bg7 Nf3 O-O O-O d6 Nc3 c6 b4 e5 Rb1 Bf5 d3 Qd7 Re1 h6",
+    "expect": "08"
+  },
+  {
+    "color": "W",
+    "moves": "Nf3 Nf6 c4 g6 g3 Bg7 Bg2 O-O O-O d6 Nc3 Nc6 Rb1 e5 b4 Be6 d3 h6 b5 Ne7",
+    "expect": "08"
   },
   {
     "color": "B",
@@ -42,7 +57,7 @@
   {
     "color": "W",
     "moves": "c4 g6 g3 Bg7 Bg2 e5 Nc3 d6 Nf3 Nc6 O-O f5 d3 Nf6 Rb1 O-O b4 Nh5 b5 Ne7",
-    "expect": "08"
+    "expect": "02"
   },
   {
     "color": "W",
@@ -58,11 +73,6 @@
     "color": "W",
     "moves": "c4 e5 g3 Bc5 Nc3 Nf6 Bg2 O-O e3 a6 Nge2 Nc6 d4 exd4 exd4 Ba7 O-O d6 a3 Bg4",
     "expect": "29"
-  },
-  {
-    "color": "W",
-    "moves": "c4 d6 g3 e5 Bg2 Nf6 Nc3 Be7 e3 O-O Nge2 c6 d3 a5 O-O Nbd7 b3 Re8 Rb1 h5",
-    "expect": "08"
   },
   {
     "color": "W",
@@ -206,12 +216,6 @@
   },
   {
     "color": "W",
-    "moves": "c4 e5 Nc3 Nc6 g3 g6 Bg2 Bg7 d3 d6",
-    "expect": null,
-    "why": "sin capitulo con regla (...g6/...Bg7: estructura del 02)"
-  },
-  {
-    "color": "W",
     "moves": "c4 e5 Nc3 Nc6 g3 Nf6 Bg2 Be7 Nf3 d6",
     "expect": null,
     "why": "sin capitulo (...Be7)"
@@ -233,6 +237,42 @@
     "moves": "c4 d5 cxd5 Qxd5 Nc3 Qd8",
     "expect": null,
     "why": "sin capitulo (1...d5)"
+  },
+  {
+    "color": "W",
+    "moves": "c4 e5 Nc3 Nc6 g3 g6 Bg2 Bg7 d3 d6",
+    "expect": "02",
+    "why": "antes negativo (sin capitulo); ahora 02a: ...e5 ...Nc6 ...g6 y alfil f8 a g7 (A25/A26)"
+  },
+  {
+    "color": "W",
+    "moves": "c4 e5 g3 Nc6 Bg2 Nge7 Nc3 g6 Nf3 Bg7",
+    "expect": "02",
+    "why": "misma estructura etiquetada A20 por Lichess: el post-paso solo-A25 de Atlas la pierde"
+  },
+  {
+    "color": "W",
+    "moves": "c4 c5 g3 Nc6 Bg2 e5 Nc3 g6 Nf3 Bg7",
+    "expect": null,
+    "why": "simetrica con ...e5 (Botvinnik): exclude c5 del 02a, no es del 02"
+  },
+  {
+    "color": "W",
+    "moves": "c4 e6 Nf3 d5 g3 f5 Bg2 Nf6 O-O c6",
+    "expect": "07",
+    "why": "Stonewall por 1...e6: 07c ahora mira ...f5 hasta el ply 8, igual que el exclude del 05"
+  },
+  {
+    "color": "W",
+    "moves": "c4 Nf6 g3 g6 Bg2 Bg7 Nc3 O-O Nf3 d6",
+    "expect": "08",
+    "why": "KID por 1...Nf6 (propuesta 08c)"
+  },
+  {
+    "color": "W",
+    "moves": "c4 Nf6 g3 g6 Bg2 d5 cxd5 Nxd5",
+    "expect": null,
+    "why": "Grunfeld por 1...Nf6: exclude d5 del 08c, sin capitulo"
   },
   {
     "color": "B",

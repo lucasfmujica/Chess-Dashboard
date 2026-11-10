@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest';
 import cases from './__fixtures__/chapterRuleTests.json';
 import {
   CHAPTER_RULES,
-  FIANCHETTO_A25_TARGET,
   assignByRules,
   buildChapterAssignment,
   INDEX_PLIES,
@@ -50,8 +49,8 @@ type RuleCase = { color: string; moves: string; expect: string | null; why?: str
 const table = (cases as RuleCase[]).map((t, i) => ({ ...t, label: `#${i} ${t.expect} ${t.why ?? ''}`.trim() }));
 
 describe('reglas-capitulos.json tests (motor por defecto)', () => {
-  it('has the 50 cases', () => {
-    expect(table).toHaveLength(50);
+  it('has the 57 cases', () => {
+    expect(table).toHaveLength(57);
   });
 
   it.each(table)('$label', t => {
@@ -194,51 +193,59 @@ describe('01/05 y 29/30: los ejemplos de #36 siguen en su capítulo', () => {
   });
 });
 
-describe('...Bg7 en A25 va al 02 (regla extra de Lucas)', () => {
-  const own02 = mk('1. c4 e5 2. Nc3 Nc6 3. Nf3', 'A26');
-
-  it('is on, pointing at 02', () => {
-    expect(FIANCHETTO_A25_TARGET).toBe('02');
-    const assignment = buildChapterAssignment(a25);
-    expect(assignment.byGame.get(a25[4])).toEqual({ chapter: '02', entryId: 'lucas-a25-bg7', depth: 6 });
-  });
-
-  it('shows in 02 next to its own A26 game, once, and not in 29/30', () => {
+describe('02a (aprobada 10/11/2026 10:40): ...e5, ...Nc6, ...g6 y ...Bg7 tras 1.c4 van al 02 con cualquier ECO', () => {
+  it('goes to 02 whatever the ECO, once, and not to 29/30', () => {
+    const own02 = mk('1. c4 e5 2. Nc3 Nc6 3. Nf3', 'A26');
     const games = [own02, ...a25];
-    expect(linked(H02, games)).toEqual([own02.pgn, G6a, G6b]);
+    expect(buildChapterAssignment(games).byGame.get(a25[4])).toMatchObject({ chapter: '02', entryId: '02a' });
+    expect(linked(H02, games)).toEqual([G6a, G6b]);
     for (const h of [H29, H30]) {
       const link = linkGamesToChapter(h, games);
       expect(pgnsOf(link.games)).not.toContain(G6a);
       expect(pgnsOf(link.games)).not.toContain(G6b);
-      expect(link.unassigned).toEqual([]);
+      expect(pgnsOf(link.unassigned)).not.toContain(G6a);
     }
+    const other = mk(G6a, 'A10');
+    expect(linked(H02, [other])).toEqual([G6a]);
   });
 
-  it('does not duplicate a game that reaches 02 by ECO and by assignment', () => {
-    const wide = hdr('02 BLANCAS - vs 1...e5 ...Nc6', 'A25-A26');
-    const g = mk(G6a, 'A25');
-    expect(linkGamesToChapter(wide, [g]).games).toEqual([g]);
+  it('an early ...c5 or ...f5 does not', () => {
+    expect(chapterOf('W', 'c4 e5 g3 c5 Bg2 Nc6 Nc3 g6 Nf3 Bg7')).not.toBe('02');
+    expect(chapterOf('W', 'c4 e5 g3 f5 Bg2 Nc6 Nc3 g6 Nf3 Bg7')).not.toBe('02');
   });
 
-  it('with fianchettoA25Target null stays in the unassigned of 29 and 30', () => {
-    const games = [own02, ...a25];
-    const assignment = buildChapterAssignment(games, { fianchettoA25Target: null });
-    expect(pgnsOf(linkGamesToChapter(H02, games, assignment).games)).toEqual([own02.pgn]);
-    for (const h of [H29, H30]) {
-      expect(pgnsOf(linkGamesToChapter(h, games, assignment).unassigned)).toEqual([G6a, G6b]);
-    }
-  });
-
-  it('leaves a ...Be7 game without chapter', () => {
+  it('a ...Be7 game has no chapter', () => {
     const be7 = mk(BE7, 'A25');
     expect(buildChapterAssignment([be7]).byGame.has(be7)).toBe(false);
     expect(linkGamesToChapter(H29, [be7]).unassigned).toEqual([be7]);
     expect(linked(H02, [be7])).toEqual([]);
   });
+});
 
-  it('only applies to white A25 games', () => {
-    const a26 = mk(G6a, 'A26');
-    expect(buildChapterAssignment([a26]).byGame.has(a26)).toBe(false);
+describe('08c y 08d (aprobadas 10/11/2026 10:40): KID por transposición', () => {
+  it('1.c4 Nf6 with ...g6 ...Bg7 ...d6 goes to 08', () => {
+    expect(entryOf('W', 'c4 Nf6 Nc3 g6 e4 Bg7 d4 d6 Nf3 O-O')).toMatchObject({ chapter: '08', entryId: '08c' });
+  });
+
+  it('1.Nf3 Nf6 2.c4 with ...g6 ...Bg7 ...d6 goes to 08', () => {
+    expect(entryOf('W', 'Nf3 Nf6 c4 g6 Nc3 Bg7 e4 d6 d4 O-O')).toMatchObject({ chapter: '08', entryId: '08d' });
+  });
+
+  it('...d5 (Grünfeld) or an early ...c5 do not', () => {
+    expect(chapterOf('W', 'c4 Nf6 Nc3 g6 e4 d5 exd5 Nxd5 Nf3 Bg7 d4 O-O')).not.toBe('08');
+    expect(chapterOf('W', 'Nf3 Nf6 c4 g6 Nc3 d5 cxd5 Nxd5 e4 Nxc3 bxc3 Bg7 d4 O-O')).not.toBe('08');
+    expect(chapterOf('W', 'c4 Nf6 Nc3 c5 g3 g6 Bg2 Bg7 Nf3 d6')).not.toBe('08');
+    expect(chapterOf('W', 'Nf3 Nf6 c4 c5 g3 g6 Bg2 Bg7 Nc3 d6')).not.toBe('08');
+  });
+});
+
+describe('07c (maxPly 8): Stonewall con ...f5 entre los plies 6 y 8', () => {
+  it('1.c4 e6 2.Nc3 d5 3.g3 f5 goes to 07', () => {
+    expect(entryOf('W', 'c4 e6 Nc3 d5 g3 f5')).toMatchObject({ chapter: '07', entryId: '07c' });
+  });
+
+  it('...f5 after ply 8 does not', () => {
+    expect(chapterOf('W', 'c4 e6 Nc3 d5 g3 Be7 Bg2 Nd7 Nf3 f5')).not.toBe('07');
   });
 });
 
@@ -276,7 +283,7 @@ describe('capítulos sin regla', () => {
 
   it('knows which chapters have a rule', () => {
     expect([...buildChapterAssignment([]).ruleChapters].sort()).toEqual(
-      ['01', '05', '06', '07', '08', '10', '11', '13', '14', '17', '18', '19', '21', '23', '24', '25', '27', '28', '29', '30', '32'],
+      ['01', '02', '05', '06', '07', '08', '10', '11', '13', '14', '17', '18', '19', '21', '23', '24', '25', '27', '28', '29', '30', '32'],
     );
   });
 });

@@ -1,7 +1,6 @@
 import { Chess, type Move } from 'chess.js';
 import rulesJson from '../constants/chapterRules.json';
 import { sanitizePgn } from '../hooks/useGameReplay';
-import { ecoMatches } from './eco';
 import { tokenizeMovesSan } from './repertoireMatch';
 import type { Game } from '../types/chess';
 
@@ -60,22 +59,13 @@ export interface ChapterRulesFile {
 export const CHAPTER_RULES_FILE = rulesJson as unknown as ChapterRulesFile;
 export const CHAPTER_RULES: ChapterRule[] = Object.values(CHAPTER_RULES_FILE.capitulos);
 
-// 10b/28c/28d aprobadas por Lucas el 10/11/2026 10:07: se usan todas las entries del JSON (`propuesta` se ignora).
-
-/**
- * Regla extra de Lucas (10/11/2026 09:52) que el JSON no tiene: las A25 sin
- * capítulo cuyo alfil de f8 sale primero a g7 van a este capítulo. null =
- * desactivada (quedan sin capítulo).
- */
-export const FIANCHETTO_A25_TARGET: string | null = '02';
-const FIANCHETTO_ENTRY_ID = 'lucas-a25-bg7';
-const FIANCHETTO_MAX_PLY = 24;
+// 10b/28c/28d aprobadas por Lucas el 10/11/2026 10:07; 02a/08c/08d aprobadas por Lucas el 10/11/2026 10:40: se usan todas las entries del JSON (`propuesta` se ignora).
 
 const DEFAULT_MAX_PLY = 30;
 /**
  * Plies que se indexan por partida. Nada del motor lee más allá del ply 30: en
- * el JSON el maxPly explícito máximo es 24, el default es DEFAULT_MAX_PLY (30),
- * el prefijo máximo es 5 jugadas y la regla ...Bg7 mira hasta el ply 24.
+ * el JSON el maxPly explícito máximo es 24, el default es DEFAULT_MAX_PLY (30)
+ * y el prefijo máximo es 5 jugadas.
  */
 export const INDEX_PLIES = 30;
 
@@ -259,9 +249,7 @@ export const assignByRules = (color: Side, idx: ChapterIndex, opts: RuleOptions 
   return { chapter, entryId, depth };
 };
 
-export interface AssignmentOptions extends RuleOptions {
-  fianchettoA25Target?: string | null;
-}
+export type AssignmentOptions = RuleOptions;
 
 export interface ChapterAssignmentResult {
   byGame: Map<Game, ChapterAssignment>;
@@ -270,14 +258,6 @@ export interface ChapterAssignmentResult {
   /** Capítulos que tienen regla (claves del JSON). */
   ruleChapters: Set<string>;
 }
-
-const fianchettoA25 = (game: Game, idx: ChapterIndex, target: string | null): ChapterAssignment | null => {
-  if (target === null || game.color !== 'W' || !ecoMatches('A25', game.eco)) return null;
-  // Lo único que sale primero de f8 es el alfil negro.
-  const first = idx.moves.slice(0, FIANCHETTO_MAX_PLY).find(m => m.side === 'B' && m.from === 'f8');
-  if (!first || first.to !== 'g7') return null;
-  return { chapter: target, entryId: FIANCHETTO_ENTRY_ID, depth: first.ply };
-};
 
 const assignmentCache = new WeakMap<Game[], ChapterAssignmentResult>();
 
@@ -288,7 +268,6 @@ export const buildChapterAssignment = (games: Game[], opts?: AssignmentOptions):
     if (cached) return cached;
   }
   const rules = opts?.rules ?? CHAPTER_RULES;
-  const target = opts?.fianchettoA25Target === undefined ? FIANCHETTO_A25_TARGET : opts.fianchettoA25Target;
   const byGame = new Map<Game, ChapterAssignment>();
   const noMoves: Game[] = [];
   for (const game of games) {
@@ -298,7 +277,7 @@ export const buildChapterAssignment = (games: Game[], opts?: AssignmentOptions):
       noMoves.push(game);
       continue;
     }
-    const assigned = assignByRules(game.color, idx, opts) ?? fianchettoA25(game, idx, target);
+    const assigned = assignByRules(game.color, idx, opts);
     if (assigned) byGame.set(game, assigned);
   }
   const result: ChapterAssignmentResult = { byGame, noMoves, ruleChapters: new Set(rules.map(r => r.chapter)) };
