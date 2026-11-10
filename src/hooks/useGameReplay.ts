@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
+import { extractPgnComments } from '../utils/pgnComments';
 
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -32,6 +33,13 @@ export interface GameReplay {
   isVariation: boolean;
   /** First ply index where the line diverges from the loaded game. */
   variationStart: number;
+  /**
+   * PGN comments of the current line, indexed like `fens`: index 0 is the
+   * comment before the first move, index i the comment after ply i. `null`
+   * where there is none (machine annotations like [%clk] are dropped), and
+   * for plies of a line the user branched off into.
+   */
+  comments: (string | null)[];
 }
 
 interface ReplayState {
@@ -104,6 +112,7 @@ export const parsePgn = (pgn?: string): ParsedReplay => {
  */
 export const useGameReplay = (pgn?: string): GameReplay => {
   const parsed = useMemo(() => parsePgn(pgn), [pgn]);
+  const originalComments = useMemo(() => extractPgnComments(pgn), [pgn]);
   const originalRef = useRef(parsed);
   const [state, setState] = useState<ReplayState>(() => ({ ...parsed, ply: 0 }));
 
@@ -167,6 +176,12 @@ export const useGameReplay = (pgn?: string): GameReplay => {
   }
   const isVariation = !(sans.length === original.length && variationStart === sans.length);
 
+  // Comments belong to the loaded game: keep them only up to where the line diverges.
+  const comments = useMemo(
+    () => fens.map((_f, i) => (i <= variationStart ? originalComments[i] ?? null : null)),
+    [fens, variationStart, originalComments]
+  );
+
   return {
     fens,
     sans,
@@ -184,5 +199,6 @@ export const useGameReplay = (pgn?: string): GameReplay => {
     reset,
     isVariation,
     variationStart,
+    comments,
   };
 };

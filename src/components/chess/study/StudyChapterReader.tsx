@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { boardSquareStyles } from '../boardTheme';
 import BoardFrame from '../BoardFrame';
@@ -21,6 +21,8 @@ import type { StudyChapter } from '../../../utils/studyPgn';
 
 interface StudyChapterReaderProps {
   chapter: StudyChapter;
+  /** Métricas del capítulo, al lado del tablero sobre el motor. */
+  metrics?: ReactNode;
 }
 
 const ControlButton = ({
@@ -51,7 +53,7 @@ const ControlButton = ({
   </button>
 );
 
-const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
+const StudyChapterReader = ({ chapter, metrics }: StudyChapterReaderProps) => {
   const nav = useStudyLineNavigation(chapter.mainline);
   const [flipped, setFlipped] = useState(false);
   const [settings, setSettings] = useEngineSettings();
@@ -185,6 +187,7 @@ const StudyChapterReader = ({ chapter }: StudyChapterReaderProps) => {
       </div>
 
       <div className="min-w-0 flex flex-col xl:h-full">
+        {metrics && <div className="mb-3 flex-shrink-0">{metrics}</div>}
         <div className="flex-shrink-0">
           <EngineLines
             state={engineState}

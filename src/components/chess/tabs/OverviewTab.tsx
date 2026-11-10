@@ -17,6 +17,9 @@ import Button from '../../ui/Button';
 import ResultMark from '../../ui/ResultMark';
 import { Table, THead, TBody, TR, TH, TD } from '../../ui/Table';
 import { PieceGlyph } from '../../ui/PieceGlyph';
+import { Chessboard } from 'react-chessboard';
+import { boardSquareStyles } from '../boardTheme';
+import { finalPositionFromPgn } from '../../../utils/finalPosition';
 import ManualGameEntry from './analytics/ManualGameEntry';
 import PgnImport from './analytics/PgnImport';
 import OtbScoreSummary from './analytics/OtbScoreSummary';
@@ -240,6 +243,10 @@ const OverviewTab = ({
   const lastGame = lastTournamentGames.length > 0
     ? lastTournamentGames[lastTournamentGames.length - 1]
     : games.length > 0 ? games[games.length - 1] : null;
+  // Final position of that game, when its PGN can be read (null otherwise:
+  // the sheet then stays text-only).
+  const lastGamePgn = lastGame?.pgn;
+  const lastGameFinal = useMemo(() => finalPositionFromPgn(lastGamePgn), [lastGamePgn]);
 
   // --- At-a-glance signals -------------------------------------------------
   const form = formStats.last5;
@@ -450,6 +457,24 @@ const OverviewTab = ({
                       .join(' · ')}
                   </p>
                 </div>
+                {lastGame && lastGameFinal && (
+                  <div className="board-frame mt-4 aspect-square w-full">
+                    <Chessboard
+                      options={{
+                        id: 'overview-last-game',
+                        position: lastGameFinal.fen,
+                        boardOrientation: lastGame.color === 'B' ? 'black' : 'white',
+                        allowDragging: false,
+                        showNotation: false,
+                        squareStyles: {
+                          [lastGameFinal.lastMove.from]: { backgroundColor: 'rgb(var(--board-highlight) / 0.75)' },
+                          [lastGameFinal.lastMove.to]: { backgroundColor: 'rgb(var(--board-highlight) / 0.75)' },
+                        },
+                        ...boardSquareStyles,
+                      }}
+                    />
+                  </div>
+                )}
                 <Button className="mt-4 w-full" onClick={() => onNavigate('analysis-board')}>
                   Abrir en el tablero
                 </Button>

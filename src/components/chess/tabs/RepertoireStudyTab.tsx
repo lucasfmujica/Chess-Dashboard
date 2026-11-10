@@ -5,11 +5,18 @@ import { useLocalStorage } from '../../../hooks/useLocalStorage';
 import { LoadingSpinner } from '../../LoadingSkeleton';
 import StudyChapterList from '../study/StudyChapterList';
 import StudyChapterReader from '../study/StudyChapterReader';
+import StudyChapterMetrics from '../study/StudyChapterMetrics';
+import { useSourceFilteredGames } from '../../../context/GamesContext';
+import { useRepertoireMoves } from '../../../hooks/useRepertoireMoves';
 
 const RepertoireStudyTab = () => {
   const { chapters, loading, error } = useStudyChapters();
   const [selectedIndex, setSelectedIndex] = useLocalStorage('chess-dashboard-repertoire-study-chapter', 0);
   const [mobileListOpen, setMobileListOpen] = useState(false);
+  const games = useSourceFilteredGames();
+  // Para el panel "Repaso": las jugadas del entrenador, con su vencimiento.
+  const { moves, loading: movesLoading, error: movesError } = useRepertoireMoves();
+  const [now] = useState(() => Date.now());
 
   if (loading) {
     return (
@@ -70,7 +77,18 @@ const RepertoireStudyTab = () => {
       </div>
 
       <div className="min-w-0 xl:h-full">
-        <StudyChapterReader chapter={chapter} />
+        <StudyChapterReader
+          chapter={chapter}
+          metrics={
+            <StudyChapterMetrics
+              chapter={chapter}
+              games={games}
+              moves={movesLoading ? null : moves}
+              movesError={movesError}
+              now={now}
+            />
+          }
+        />
       </div>
     </div>
   );

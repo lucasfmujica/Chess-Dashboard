@@ -161,7 +161,7 @@ const GameViewer = ({
   const replay = useGameReplay(pgn);
   const {
     fen, fens, sans, ply, totalPlies, isValid, error,
-    goTo, next, prev, first, last, playMove, reset, isVariation, variationStart,
+    goTo, next, prev, first, last, playMove, reset, isVariation, variationStart, comments,
   } = replay;
   const { analysis, analyzing, progress, error: analysisError, analyze, cancel } = useGameAnalysis(pgn, fens);
   const explorable = showExplorer || showEngine;
@@ -438,6 +438,17 @@ const GameViewer = ({
     );
   };
 
+  /** A PGN comment, spanning the whole sheet below the row of its move. */
+  const noteRow = (text: string | null | undefined, key: string) =>
+    text ? (
+      <p
+        key={key}
+        className="col-span-3 border-b border-hairline py-1 pl-[52px] pr-3 font-serif text-[14px] italic leading-[21px] text-accent"
+      >
+        {text}
+      </p>
+    ) : null;
+
   const whiteName = white;
   const blackName = black;
   const topSide: 'white' | 'black' = boardOrientation === 'white' ? 'black' : 'white';
@@ -693,6 +704,7 @@ const GameViewer = ({
               </span>
             </header>
             <div ref={moveListRef} className="grid max-h-[320px] grid-cols-[40px_1fr_1fr] overflow-auto">
+              {noteRow(comments[0], 'note-0')}
               {rows.map(row => {
                 const whitePly = (row.num - 1) * 2 + 1;
                 const blackPly = whitePly + 1;
@@ -703,6 +715,8 @@ const GameViewer = ({
                     </span>
                     {moveCell(row.white, whitePly)}
                     {moveCell(row.black, blackPly)}
+                    {noteRow(comments[whitePly], `note-${whitePly}`)}
+                    {noteRow(comments[blackPly], `note-${blackPly}`)}
                   </Fragment>
                 );
               })}

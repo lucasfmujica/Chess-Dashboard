@@ -3,8 +3,9 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { getChartHeight } from '../../../utils/chartUtils';
 import TimeOfDayPerformance from './analytics/TimeOfDayPerformance';
 import TournamentComparison from './analytics/TournamentComparison';
-import { Badge, Button, Card, CardHeader, ClockBar, ResultMark, StatCard, Table, TBody, TD, TH, THead, TR } from '../../ui';
+import { Badge, Button, Card, CardHeader, ClockBar, ResultMark, SegmentedControl, StatCard, Table, TBody, TD, TH, THead, TR, type Segment } from '../../ui';
 import type { Game } from '../../../types/chess';
+import { groupByOpponentElo, summarizeBracket, type BracketStats } from '../../../utils/opponentEloBands';
 
 /** Per time-of-day-slot aggregate row. */
 interface TimeOfDayStat {
@@ -33,24 +34,15 @@ interface TournamentComparisonEntry {
   otb?: boolean;
 }
 
-/** Per-bracket aggregate computed from rated games. */
-interface BracketAnalysis {
-  label: string;
-  minDiff: number;
-  maxDiff: number;
-  color: string;
-  games: number;
-  bracketGames: Game[];
-  wins: number;
-  draws: number;
-  losses: number;
-  score: string;
-  winRate: number;
-  scorePercentage: number;
-  avgEloDiff: number;
-  expectedPercentage: number;
-  performance: number;
-}
+/** Per-bracket aggregate computed from rated games (either grouping mode). */
+type BracketAnalysis = BracketStats & { label: string; color: string };
+
+type GroupingMode = 'diff' | 'abs';
+
+const GROUPING_OPTIONS: Segment<GroupingMode>[] = [
+  { value: 'diff', label: 'Diferencia de ELO' },
+  { value: 'abs', label: 'ELO del rival' },
+];
 
 interface SortConfig {
   key: 'date' | 'opp_elo' | 'eloDiff' | 'result';
@@ -79,6 +71,7 @@ const fmtPts = (p: number) => {
 
 const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: OpponentStrengthTabProps) => {
   const [selectedBracket, setSelectedBracket] = useState<BracketAnalysis | null>(null);
+  const [grouping, setGrouping] = useState<GroupingMode>('diff');
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'desc' });
   const strengthAnalysis = useMemo<BracketAnalysis[]>(() => {
     const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
@@ -92,55 +85,22 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
       { label: 'Rival 200+ por encima', minDiff: 200, maxDiff: Infinity, color: 'rgb(var(--cat-5))' },
     ];
 
-    const analysis = brackets.map(bracket => {
-      // Filter games based on rating difference at time of game
-      const bracketGames = ratedGames.filter(g => {
-        const diff = g.opp_elo - g.elo;
-        return diff >= bracket.minDiff && diff <= bracket.maxDiff;
-      });
-
-      const wins = bracketGames.filter(g => g.result === 'W').length;
-      const draws = bracketGames.filter(g => g.result === 'D').length;
-      const losses = bracketGames.filter(g => g.result === 'L').length;
-      const total = bracketGames.length;
-      const score = wins + draws * 0.5;
-      const winRate = total > 0 ? ((wins / total) * 100).toFixed(1) : 0;
-      const scorePercentage = total > 0 ? ((score / total) * 100).toFixed(1) : 0;
-
-      // Calculate average ELO difference using player's ELO at time of each game
-      const avgEloDiff = total > 0
-        ? (bracketGames.reduce((sum, g) => sum + (g.opp_elo - g.elo), 0) / total).toFixed(0)
-        : 0;
-
-      // Calculate expected score using player's ELO at time of each game
-      const expectedScore = bracketGames.reduce((sum, g) => {
-        const ratingDiff = g.opp_elo - g.elo;
-        const expected = 1 / (1 + Math.pow(10, ratingDiff / 400));
-        return sum + expected;
-      }, 0);
-      const expectedPercentage = total > 0 ? ((expectedScore / total) * 100).toFixed(1) : 0;
-
-      // Performance vs expected
-      const performance = total > 0 ? (parseFloat(String(scorePercentage)) - parseFloat(String(expectedPercentage))).toFixed(1) : 0;
-
-      return {
-        ...bracket,
-        games: total,
-        bracketGames, // Include actual games for detail view
-        wins,
-        draws,
-        losses,
-        score: score.toFixed(1),
-        winRate: parseFloat(String(winRate)),
-        scorePercentage: parseFloat(String(scorePercentage)),
-        avgEloDiff: parseInt(String(avgEloDiff)),
-        expectedPercentage: parseFloat(String(expectedPercentage)),
-        performance: parseFloat(String(performance)),
-      };
-    });
-
-    return analysis;
+    return brackets.map(bracket => ({
+      ...bracket,
+      ...summarizeBracket(
+        ratedGames.filter(g => {
+          const diff = g.opp_elo - g.elo;
+          return diff >= bracket.minDiff && diff <= bracket.maxDiff;
+        })
+      ),
+    }));
   }, [games]);
+
+  // Absolute opponent-ELO bands; games without opponent ELO are left out and counted.
+  const bandAnalysis = useMemo(
+    () => groupByOpponentElo(games.filter(g => g.rated && g.elo > 0)),
+    [games]
+  );
 
   const strengthTrend = useMemo(() => {
     const ratedGames = games.filter(g => g.rated && g.opp_elo > 0 && g.elo > 0);
@@ -202,8 +162,17 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
   const toggleBracket = (bracket: BracketAnalysis) =>
     setSelectedBracket(selectedBracket?.label === bracket.label ? null : bracket);
 
-  const activeBrackets = strengthAnalysis.filter(b => b.games > 0);
-  const readings = strengthAnalysis.filter(b => b.games >= 5 && Math.abs(b.performance) > 5);
+  const changeGrouping = (mode: GroupingMode) => {
+    setGrouping(mode);
+    setSelectedBracket(null);
+  };
+
+  const groupRows: BracketAnalysis[] = grouping === 'diff' ? strengthAnalysis : bandAnalysis.bands;
+  const activeBrackets = groupRows.filter(b => b.games > 0);
+  const readings = groupRows.filter(b => b.games >= 5 && Math.abs(b.performance) > 5);
+  /** How a bracket is named at the start of a "Lectura" sentence. */
+  const readingLabel = (label: string) =>
+    grouping === 'diff' ? label : `Contra rivales de ${label.charAt(0).toLowerCase()}${label.slice(1)}`;
   const diffPts = summary.all.pts - summary.all.exp;
 
   return (
@@ -241,11 +210,25 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
+          <SegmentedControl
+            options={GROUPING_OPTIONS}
+            value={grouping}
+            onChange={changeGrouping}
+            size="sm"
+            aria-label="Agrupar partidas por"
+            className="mb-4"
+          />
           <CardHeader
-            title="Por diferencia de ELO"
+            title={grouping === 'diff' ? 'Por diferencia de ELO' : 'Por ELO del rival'}
             subtitle="barra: puntaje · línea: esperado · tocá una franja para ver sus partidas"
             className="mb-2"
           />
+          {grouping === 'abs' && bandAnalysis.excluded > 0 && (
+            <p className="mb-2 text-xs text-fg-subtle">
+              <span className="font-mono tabular-nums">{bandAnalysis.excluded}</span>{' '}
+              {bandAnalysis.excluded === 1 ? 'partida quedó afuera' : 'partidas quedaron afuera'} por no tener ELO del rival.
+            </p>
+          )}
           {activeBrackets.length === 0 ? (
             <p className="py-6 text-sm text-fg-muted">Todavía no hay partidas con ELO para comparar.</p>
           ) : (
@@ -293,21 +276,21 @@ const OpponentStrengthTab = ({ games, timeOfDayStats, tournamentComparison }: Op
           <CardHeader title="Lectura" subtitle="franjas con 5 partidas o más" className="mb-4" />
           {readings.length === 0 ? (
             <p className="font-serif text-base leading-6 text-fg-muted">
-              En ninguna franja te alejás más de 5 puntos de lo que marca el ELO: rendís lo esperado.
+              En ninguna franja te alejás más de 5 puntos porcentuales de lo que marca el ELO: rendís lo esperado.
             </p>
           ) : (
             <div className="space-y-4 font-serif text-base leading-6 text-fg">
               {readings.map(bracket =>
                 bracket.performance > 0 ? (
                   <p key={bracket.label}>
-                    {bracket.label}: hacés {Math.round(bracket.scorePercentage)}% cuando el ELO espera{' '}
-                    {Math.round(bracket.expectedPercentage)}%. Rendís {bracket.performance.toFixed(1)} puntos por encima, en{' '}
+                    {readingLabel(bracket.label)}: hacés {Math.round(bracket.scorePercentage)}% cuando el ELO espera{' '}
+                    {Math.round(bracket.expectedPercentage)}%: {Math.round(bracket.scorePercentage) - Math.round(bracket.expectedPercentage)} puntos porcentuales por encima, en{' '}
                     {bracket.games} partidas.
                   </p>
                 ) : (
                   <p key={bracket.label}>
-                    {bracket.label}: hacés {Math.round(bracket.scorePercentage)}% contra un esperado de{' '}
-                    {Math.round(bracket.expectedPercentage)}%. Quedás {Math.abs(bracket.performance).toFixed(1)} puntos abajo: ahí
+                    {readingLabel(bracket.label)}: hacés {Math.round(bracket.scorePercentage)}% contra un esperado de{' '}
+                    {Math.round(bracket.expectedPercentage)}%. Quedás {Math.round(bracket.expectedPercentage) - Math.round(bracket.scorePercentage)} puntos porcentuales abajo: ahí
                     está el trabajo.
                   </p>
                 )
