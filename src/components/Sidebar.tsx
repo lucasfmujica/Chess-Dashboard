@@ -75,17 +75,17 @@ const Sidebar = ({
 
         {/* The ELO as a chess-clock readout */}
         {isSidebarCollapsed ? (
-          <div className="mt-4 hidden lg:block rounded-2xl bg-clock px-1 py-2 text-center font-mono text-sm font-medium tabular-nums text-clock-fg" title={`ELO ${playerInfo.current_elo}`}>
+          <div className="mt-4 hidden lg:block rounded-sm border border-hairline border-t-[3px] border-t-hairline-strong bg-surface px-1 py-2 text-center font-mono text-sm font-medium tabular-nums text-fg" title={`ELO ${playerInfo.current_elo}`}>
             {playerInfo.current_elo}
           </div>
         ) : null}
-        <div className={`mt-4 rounded-2xl bg-clock px-4 py-3 ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-clock-muted">ELO FIDE</p>
-          <p className="mt-0.5 font-mono text-[28px] font-medium leading-8 tabular-nums text-clock-fg">{playerInfo.current_elo}</p>
-          <p className={`font-mono text-xs tabular-nums ${delta >= 0 ? 'text-clock-lit' : 'text-clock-flag'}`}>
+        <div className={`mt-4 rounded-sm border border-hairline border-t-[3px] border-t-hairline-strong bg-app px-4 py-3 ${isSidebarCollapsed ? 'lg:hidden' : ''}`}>
+          <p className="text-label !text-fg-muted">ELO FIDE</p>
+          <p className="mt-0.5 font-mono text-[28px] font-medium leading-8 tabular-nums text-fg">{playerInfo.current_elo}</p>
+          <p className={`font-mono text-xs tabular-nums ${delta >= 0 ? 'text-win' : 'text-loss'}`}>
             {delta >= 0 ? '▲ +' : '▼ −'}{Math.abs(delta)} · {playerInfo.last_tournament}
           </p>
-          <p className="mt-1 text-xs text-clock-muted tabular-nums">{filteredGames.length} partidas</p>
+          <p className="mt-1 text-xs text-fg-subtle tabular-nums">{filteredGames.length} partidas</p>
         </div>
 
         <div className={`mt-3 gap-2 ${isSidebarCollapsed ? 'flex flex-col lg:items-stretch' : 'flex'}`}>
