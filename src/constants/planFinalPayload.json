@@ -193,40 +193,40 @@
           "id": "final-4v3",
           "minutes": 15,
           "label": "Torre y 4 contra 3 (negras a empatar)",
-          "details": "Cierra la tarea de Toto: 4 de 4."
+          "details": "15 min de finales. Cierra la tarea de Toto: 4 de 4."
         },
         {
           "id": "repaso-caps",
           "minutes": 15,
           "label": "Primeras jugadas · caps. 01, 05 y 09",
-          "details": "De memoria. Nada nuevo."
+          "details": "15 min de aperturas, de memoria. Nada nuevo."
         }
       ],
       "2026-11-21": [
         {
           "id": "torneo-r1",
-          "minutes": 60,
-          "label": "Torneo R1 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R1 · 14:00–18:00 ART",
           "details": "60+30, FIDE. Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r2",
-          "minutes": 60,
-          "label": "Torneo R2 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R2 · 18:00–22:00 ART",
           "details": "Reloj anotado en 20 y 30. Sin motor entre rondas."
         }
       ],
       "2026-11-22": [
         {
           "id": "torneo-r3",
-          "minutes": 60,
-          "label": "Torneo R3 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R3 · 14:00–18:00 ART",
           "details": "Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r4",
-          "minutes": 60,
-          "label": "Torneo R4 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R4 · 18:00–22:00 ART",
           "details": "Chequeo de seguridad explícito en cada jugada. Último bye posible."
         }
       ]
@@ -235,14 +235,14 @@
       "2026-11-23": [
         {
           "id": "torneo-r5",
-          "minutes": 60,
-          "label": "Torneo R5 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R5 · 14:00–18:00 ART",
           "details": "Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r6",
-          "minutes": 60,
-          "label": "Torneo R6 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R6 · 18:00–22:00 ART",
           "details": "Reloj anotado en 20 y 30."
         }
       ],
@@ -580,69 +580,69 @@
           "id": "final-4v3",
           "minutes": 15,
           "label": "Torre y 4 contra 3 (negras a empatar)",
-          "details": "Cierra la tarea de Toto: 4 de 4."
+          "details": "15 min de finales. Cierra la tarea de Toto: 4 de 4."
         },
         {
           "id": "repaso-caps",
           "minutes": 15,
           "label": "Primeras jugadas · caps. 01, 05 y 09",
-          "details": "De memoria. Nada nuevo."
+          "details": "15 min de aperturas, de memoria. Nada nuevo."
         }
       ]
     },
     "2026-11-21": {
       "tipo": "Torneo",
-      "minutes": 120,
+      "minutes": 480,
       "note": "TORNEO · IRT Sub-2400 Soberanía Nacional, R1 y R2 a las 14:00 y 18:00 ART (Club Argentino de Ajedrez, 60+30, válido FIDE), con reloj anotado en las jugadas 20 y 30. Sin análisis con motor entre rondas. Romano (rival de la Final) está inscripto: repertorio normal, sin mostrar preparación específica de la Final.",
       "activities": [
         {
           "id": "torneo-r1",
-          "minutes": 60,
-          "label": "Torneo R1 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R1 · 14:00–18:00 ART",
           "details": "60+30, FIDE. Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r2",
-          "minutes": 60,
-          "label": "Torneo R2 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R2 · 18:00–22:00 ART",
           "details": "Reloj anotado en 20 y 30. Sin motor entre rondas."
         }
       ]
     },
     "2026-11-22": {
       "tipo": "Torneo",
-      "minutes": 120,
+      "minutes": 480,
       "note": "TORNEO · R3 y R4 a las 14:00 y 18:00 ART. En la segunda, chequeo de seguridad explícito en cada jugada. Comida y descanso como en la Final. Si el cansancio pesa, la R4 es el último bye posible (torneo/byes.md).",
       "activities": [
         {
           "id": "torneo-r3",
-          "minutes": 60,
-          "label": "Torneo R3 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R3 · 14:00–18:00 ART",
           "details": "Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r4",
-          "minutes": 60,
-          "label": "Torneo R4 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R4 · 18:00–22:00 ART",
           "details": "Chequeo de seguridad explícito en cada jugada. Último bye posible."
         }
       ]
     },
     "2026-11-23": {
       "tipo": "Torneo (feriado)",
-      "minutes": 120,
+      "minutes": 480,
       "note": "TORNEO (feriado) · R5 y R6 a las 14:00 y 18:00 ART, con reloj anotado.",
       "activities": [
         {
           "id": "torneo-r5",
-          "minutes": 60,
-          "label": "Torneo R5 · 14:00 ART",
+          "minutes": 240,
+          "label": "Torneo R5 · 14:00–18:00 ART",
           "details": "Reloj anotado en 20 y 30."
         },
         {
           "id": "torneo-r6",
-          "minutes": 60,
-          "label": "Torneo R6 · 18:00 ART",
+          "minutes": 240,
+          "label": "Torneo R6 · 18:00–22:00 ART",
           "details": "Reloj anotado en 20 y 30."
         }
       ]

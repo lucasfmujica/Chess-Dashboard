@@ -123,13 +123,29 @@ describe('tournament weekend (20–26/11)', () => {
     expect(day.quota.blunder).toBe(0);
     expect(day.quota.endgame).toBe(1);
     expect(day.quota.repertoire).toBe(1);
+    // 15 min of endgames (4 v 3 with Black) + 15 min of openings (caps. 01, 05, 09).
+    expect(day.blocks.map(b => [b.block, b.minutes])).toEqual([['endgame', 15], ['repertoire', 15]]);
+    expect(day.blocks[1].label).toContain('caps. 01, 05 y 09');
+  });
+
+  it('week totals add up with the 240-min rounds', () => {
+    const sum = (keys: string[]) => keys.reduce((s, k) => s + plannedMinutes(programForDate(k)), 0);
+    const w2 = ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'];
+    const w3 = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'];
+    // 55 + 50 + 50 + 55 + 30 + 480 + 480
+    expect(sum(w2)).toBe(1200);
+    // 480 + 55 + 55 + 50 + 50 + 60 + 20
+    expect(sum(w3)).toBe(770);
   });
 
   it.each(['2026-11-21', '2026-11-22', '2026-11-23'])('%s has two play blocks and no queue', key => {
     const day = programForDate(key);
     expect(day.blocks.map(b => b.block)).toEqual(['play', 'play']);
-    expect(day.blocks[0].label).toContain('14:00 ART');
-    expect(day.blocks[1].label).toContain('18:00 ART');
+    expect(day.blocks[0].label).toContain('14:00–18:00 ART');
+    expect(day.blocks[1].label).toContain('18:00–22:00 ART');
+    // A 60+30 round is a 4-hour slot, so each round is planned as 240 min.
+    expect(day.blocks.map(b => b.minutes)).toEqual([240, 240]);
+    expect(plannedMinutes(day)).toBe(480);
     expect(quotaTotal(day.quota)).toBe(0);
     expect(day.isTrainingDay).toBe(true);
   });
