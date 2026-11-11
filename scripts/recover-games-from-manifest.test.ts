@@ -20,6 +20,8 @@ import {
   BATCH_SIZE,
   LICHESS_IDS_ENDPOINT,
   PREVIEW_BRANCH_ID,
+  PROD_BRANCH_ID,
+  PROD_MANIFEST_SHA256,
   USER_AGENT,
   preflightSchema,
   redact,
@@ -42,6 +44,8 @@ const FROM = '2026-07-30';
 const TO = '2026-11-11';
 const LICHESS_DATE = '2026-08-01';
 const CHESSCOM_DATE = '2026-09-21';
+const PROD_URL = 'postgresql://u:p@ep-falling-thunder-af9y8mpb-pooler.us-east-1.aws.neon.tech/db';
+const BACKUP_BRANCH = 'br-fixture-backup-000000';
 const PREVIEW_URL = 'postgresql://u:p@ep-damp-cake-afjuq6h8-pooler.us-east-1.aws.neon.tech/db';
 
 const range = (n: number): number[] => Array.from({ length: n }, (_, i) => i);
@@ -273,6 +277,7 @@ const argvOf = (options: CliOptions): string[] => {
   if (options.write) argv.push('--write');
   if (options.target) argv.push('--target', options.target);
   if (options.confirmTarget) argv.push('--confirm-target', options.confirmTarget);
+  if (options.confirmBackupBranch) argv.push('--confirm-backup-branch', options.confirmBackupBranch);
   if (options.pgliteDir) argv.push('--pglite-dir', options.pgliteDir);
   if (options.out) argv.push('--out', options.out);
   return argv;
@@ -727,7 +732,7 @@ describe('redaction', () => {
 
 describe('target guard', () => {
   const guardCases: [string, Partial<CliOptions>, Record<string, string | undefined>, RegExp][] = [
-    ['--write with no target', { write: true, target: undefined, confirmTarget: undefined }, {}, /--target must be preview or local/],
+    ['--write with no target', { write: true, target: undefined, confirmTarget: undefined }, {}, /--target must be preview, local or prod/],
     ['--write with no --confirm-target', { write: true, target: 'preview', confirmTarget: undefined }, {}, /--confirm-target is required/],
     ['the prod branch id', { write: true, target: 'preview', confirmTarget: 'br-royal-pond-afkmp27d' }, {}, /production branch or endpoint/],
     ['a URL on the prod endpoint', { write: true, target: 'preview', confirmTarget: PREVIEW_BRANCH_ID },
@@ -740,7 +745,8 @@ describe('target guard', () => {
       /host must be the br-wispy-meadow/],
     ['preview confirmed as another branch', { write: true, target: 'preview', confirmTarget: 'br-some-other-branch' },
       { RECOVERY_DATABASE_URL: PREVIEW_URL, RECOVERY_ALLOW_PREVIEW_WRITE: '1' }, /requires --confirm-target br-wispy-meadow/],
-    ['a prod target', { write: true, target: 'prod', confirmTarget: 'whatever' }, {}, /no prod target/],
+    ['a prod target confirmed as something else', { write: true, target: 'prod', confirmTarget: 'whatever' }, {},
+      /--target prod requires --confirm-target br-royal-pond/],
     ['local given a connection string', { write: true, target: 'local', confirmTarget: 'local' },
       { RECOVERY_DATABASE_URL: 'postgresql://u:p@db.example.com/db' }, /does not take RECOVERY_DATABASE_URL/],
     ['local without --pglite-dir', { write: true, target: 'local', confirmTarget: 'local', pgliteDir: undefined }, {},
@@ -1027,5 +1033,216 @@ describe('column alignment', () => {
     expect(gameColumnValues(sample)).toHaveLength(GAME_COLUMNS.length);
     expect(GAME_COLUMNS.slice(0, 2)).toEqual(['lichess_game_id', 'source']);
     expect(GAME_COLUMNS.slice(-4)).toEqual(['round', 'clock_20', 'clock_30', 'clock_40']);
+  });
+});
+
+describe('database close failures', () => {
+  const closingBadly = (): { handle: AdapterHandle; closed: () => number } => {
+    let calls = 0;
+    return {
+      handle: {
+        adapter: pgliteAdapter(),
+        close: async () => {
+          calls++;
+          throw new Error('close exploded postgresql://u:secret@ep-xyz.neon.tech/db');
+        },
+      },
+      closed: () => calls,
+    };
+  };
+
+  it('still writes the ledger with the inserted ids and logs them, then rethrows', async () => {
+    const written: string[] = [];
+    const { handle, closed } = closingBadly();
+    const { options, deps, logs } = harness({ cli: { write: true, out: '/private/r.json' } });
+    deps.createAdapter = async () => handle;
+    deps.openOut = async () => ({
+      write: async body => {
+        written.push(body);
+      },
+      close: async () => {},
+    });
+
+    await expect(runRecovery(options, deps)).rejects.toThrow(/close exploded/);
+    expect(closed()).toBe(1);
+    const stored = await storedIds();
+    expect(stored).toHaveLength(5);
+    expect(written).toHaveLength(1);
+    const report = JSON.parse(written[0]);
+    expect(report.status).toBe('failed');
+    expect(new Set(report.insertedIds)).toEqual(new Set(stored));
+    const line = logs.find(message => message.startsWith('inserted ids: '));
+    expect(new Set(line?.slice('inserted ids: '.length).split(', '))).toEqual(new Set(stored));
+    expect(logs.join('\n')).not.toContain('secret');
+    expect(written[0]).not.toContain('secret');
+  });
+
+  it('logs the ids even without --out', async () => {
+    const { handle } = closingBadly();
+    const { options, deps, logs } = harness({ cli: { write: true } });
+    deps.createAdapter = async () => handle;
+    await expect(runRecovery(options, deps)).rejects.toThrow(/close exploded/);
+    expect(logs.some(message => message.startsWith('inserted ids: '))).toBe(true);
+  });
+
+  it('keeps the earlier failure when the close fails too', async () => {
+    const { handle } = closingBadly();
+    const { options, deps } = harness({ cli: { write: true, out: '/private/r.json' } });
+    deps.createAdapter = async () => ({
+      adapter: {
+        query: async (text, params) => {
+          if (text.startsWith('INSERT')) throw new Error('connection terminated unexpectedly');
+          return handle.adapter.query(text, params);
+        },
+      },
+      close: handle.close,
+    });
+    deps.openOut = async () => ({ write: async () => {}, close: async () => {} });
+    await expect(runRecovery(options, deps)).rejects.toThrow(/Batch failed twice/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Prod target: pinned to this one manifest, branch and endpoint
+// ---------------------------------------------------------------------------
+
+describe('prod target', () => {
+  const PROD_ENV = { RECOVERY_DATABASE_URL: PROD_URL };
+  const WRITE_ENV = { ...PROD_ENV, RECOVERY_ALLOW_PROD_WRITE: '1' };
+  const prodCli = (over: Partial<CliOptions> = {}): Partial<CliOptions> => ({
+    target: 'prod',
+    confirmTarget: PROD_BRANCH_ID,
+    ...over,
+  });
+  const writeCli = (over: Partial<CliOptions> = {}): Partial<CliOptions> =>
+    prodCli({ write: true, out: '/private/r.json', confirmBackupBranch: BACKUP_BRANCH, ...over });
+
+  /** A synthetic manifest that "hashes" to the pin only through the test-only digest hook. */
+  const pinned = (cli: Partial<CliOptions>, env: Record<string, string | undefined>) => {
+    const h = harness({ cli: { expectSha256: PROD_MANIFEST_SHA256, ...cli }, env });
+    h.options.expectSha256 = PROD_MANIFEST_SHA256;
+    h.deps.digestSha256 = () => PROD_MANIFEST_SHA256;
+    h.deps.openOut = async () => ({ write: async () => {}, close: async () => {} });
+    return h;
+  };
+
+  it('a valid write reaches the adapter with the prod decision, via the real argv', async () => {
+    const h = pinned(writeCli(), WRITE_ENV);
+    const code = await runCli(argvOf(h.options), h.deps);
+    expect(code).toBe(0);
+    expect(h.createAdapter).toHaveBeenCalledWith({ target: 'prod', driver: 'neon', url: PROD_URL });
+    expect(await gameCount()).toBe(5);
+    expect(h.queries.every(text => text.startsWith('SELECT') || text.startsWith('INSERT'))).toBe(true);
+  });
+
+  it('a valid dry run reaches the adapter and issues no INSERT, without any write flag', async () => {
+    const h = pinned(prodCli(), PROD_ENV);
+    const result = await runRecovery(h.options, h.deps);
+    expect(h.createAdapter).toHaveBeenCalledWith({ target: 'prod', driver: 'neon', url: PROD_URL });
+    expect(result.mode).toBe('dry-run');
+    expect(result.target).toBe('prod');
+    expect(h.queries.length).toBeGreaterThan(0);
+    expect(h.queries.every(text => text.startsWith('SELECT'))).toBe(true);
+    expect(await gameCount()).toBe(0);
+  });
+
+  it('a second write is idempotent', async () => {
+    const first = pinned(writeCli(), WRITE_ENV);
+    await runRecovery(first.options, first.deps);
+    const second = pinned(writeCli(), WRITE_ENV);
+    const result = await runRecovery(second.options, second.deps);
+    expect(result.inserted).toBe(0);
+    expect(result.alreadyPresent).toBe(5);
+    expect(await gameCount()).toBe(5);
+  });
+
+  it('pins the literal branch, endpoint and hash of this recovery', () => {
+    expect(PROD_BRANCH_ID).toBe('br-royal-pond-afkmp27d');
+    expect(PROD_MANIFEST_SHA256).toBe('f75fdd7c306665ac0f9826adeb50724583905d676c071e1684b7df610461319d');
+    expect(PROD_URL).toContain('ep-falling-thunder-af9y8mpb');
+  });
+
+  const OTHER_HASH = 'b'.repeat(64);
+  const rejections: [string, Partial<CliOptions>, Record<string, string | undefined>, RegExp][] = [
+    ['the wrong branch', writeCli({ confirmTarget: PREVIEW_BRANCH_ID }), WRITE_ENV, /--target prod requires --confirm-target/],
+    ['no --confirm-target', writeCli({ confirmTarget: undefined }), WRITE_ENV, /--confirm-target is required/],
+    ['a host that is not the prod endpoint', writeCli(),
+      { ...WRITE_ENV, RECOVERY_DATABASE_URL: 'postgresql://u:p@ep-other-endpoint.aws.neon.tech/db' }, /host must be the br-royal-pond/],
+    ['the preview endpoint', writeCli(), { ...WRITE_ENV, RECOVERY_DATABASE_URL: PREVIEW_URL }, /host must be the br-royal-pond/],
+    ['prod text only in the path of another host', writeCli(),
+      { ...WRITE_ENV, RECOVERY_DATABASE_URL: 'postgresql://u:p@ep-other.aws.neon.tech/ep-falling-thunder-af9y8mpb' }, /host must be the br-royal-pond/],
+    ['no RECOVERY_DATABASE_URL', writeCli(), { RECOVERY_ALLOW_PROD_WRITE: '1' }, /RECOVERY_DATABASE_URL is not set/],
+    ['an ambient DATABASE_URL', writeCli(), { ...WRITE_ENV, DATABASE_URL: 'postgresql://u:p@x/db' }, /ambient DATABASE_URL/],
+    ['an ambient DATABASE_URL on a dry run', prodCli(), { ...PROD_ENV, DATABASE_URL: 'postgresql://u:p@x/db' }, /ambient DATABASE_URL/],
+    ['a write without RECOVERY_ALLOW_PROD_WRITE', writeCli(), PROD_ENV, /RECOVERY_ALLOW_PROD_WRITE=1/],
+    ['a write with only the preview write flag', writeCli(), { ...PROD_ENV, RECOVERY_ALLOW_PREVIEW_WRITE: '1' }, /RECOVERY_ALLOW_PROD_WRITE=1/],
+    ['a write without --out', writeCli({ out: undefined }), WRITE_ENV, /requires --out/],
+    ['a write without --confirm-backup-branch', writeCli({ confirmBackupBranch: undefined }), WRITE_ENV, /requires --confirm-backup-branch/],
+    ['a backup branch that is not a branch id', writeCli({ confirmBackupBranch: 'my-backup' }), WRITE_ENV, /look like a Neon branch id/],
+    ['the prod branch as backup', writeCli({ confirmBackupBranch: PROD_BRANCH_ID }), WRITE_ENV, /not the prod or preview branch/],
+    ['the preview branch as backup', writeCli({ confirmBackupBranch: PREVIEW_BRANCH_ID }), WRITE_ENV, /not the prod or preview branch/],
+    ['--pglite-dir', writeCli({ pgliteDir: 'memory://' }), WRITE_ENV, /only valid with --target local/],
+    ['--expect-sha256 that is not the pin', writeCli({ expectSha256: OTHER_HASH }), WRITE_ENV, /is not its hash/],
+    ['--expect-sha256 that is not the pin on a dry run', prodCli({ expectSha256: OTHER_HASH }), PROD_ENV, /is not its hash/],
+  ];
+
+  it.each(rejections)('aborts without connecting on %s', async (_name, cli, env, expected) => {
+    const h = harness({ cli, env });
+    h.options.expectSha256 = cli.expectSha256 ?? PROD_MANIFEST_SHA256;
+    h.deps.digestSha256 = () => PROD_MANIFEST_SHA256;
+    await expect(runRecovery(h.options, h.deps)).rejects.toThrow(expected);
+    expect(h.createAdapter).not.toHaveBeenCalled();
+    expect(h.fetchMock.calls).toHaveLength(0);
+    expect(await gameCount()).toBe(0);
+  });
+
+  it('rejects a file that does not hash to the pin even when --expect-sha256 is the pin', async () => {
+    const h = harness({ cli: writeCli(), env: WRITE_ENV });
+    h.options.expectSha256 = PROD_MANIFEST_SHA256;
+    await expect(runRecovery(h.options, h.deps)).rejects.toThrow(/does not match --expect-sha256/);
+    expect(h.createAdapter).not.toHaveBeenCalled();
+    expect(h.fetchMock.calls).toHaveLength(0);
+  });
+
+  it('rejects an alternative 78-game manifest with another real sha256, even if --expect-sha256 names it', async () => {
+    const alternative = manifestFor(43, 35);
+    const bytes = Buffer.from(JSON.stringify(alternative));
+    const own = sha256(bytes);
+    expect(own).not.toBe(PROD_MANIFEST_SHA256);
+    const h = harness({ manifest: alternative, bytes, hash: own, cli: writeCli(), env: WRITE_ENV });
+    await expect(runRecovery(h.options, h.deps)).rejects.toThrow(/is not its hash/);
+    expect(h.createAdapter).not.toHaveBeenCalled();
+    expect(h.fetchMock.calls).toHaveLength(0);
+    expect(await gameCount()).toBe(0);
+  });
+
+  it('rejects the pin as --expect-sha256 over bytes that do not hash to it (no hook)', async () => {
+    const alternative = manifestFor(43, 35);
+    const bytes = Buffer.from(JSON.stringify(alternative));
+    const h = harness({ manifest: alternative, bytes, hash: PROD_MANIFEST_SHA256, cli: writeCli(), env: WRITE_ENV });
+    await expect(runRecovery(h.options, h.deps)).rejects.toThrow(/does not match --expect-sha256/);
+    expect(h.createAdapter).not.toHaveBeenCalled();
+  });
+
+  it('still denies prod branch and endpoint to preview and local targets', async () => {
+    const preview = harness({
+      cli: { write: true, target: 'preview', confirmTarget: PREVIEW_BRANCH_ID },
+      env: { RECOVERY_DATABASE_URL: PROD_URL, RECOVERY_ALLOW_PREVIEW_WRITE: '1' },
+    });
+    await expect(runRecovery(preview.options, preview.deps)).rejects.toThrow(/production branch or endpoint/);
+    const previewBranch = harness({ cli: { write: true, target: 'preview', confirmTarget: PROD_BRANCH_ID }, env: {} });
+    await expect(runRecovery(previewBranch.options, previewBranch.deps)).rejects.toThrow(/production branch or endpoint/);
+    const local = harness({ cli: { target: 'local', confirmTarget: 'local', pgliteDir: `./${PROD_BRANCH_ID}` } });
+    await expect(runRecovery(local.options, local.deps)).rejects.toThrow(/production branch or endpoint/);
+    expect(preview.createAdapter).not.toHaveBeenCalled();
+  });
+
+  it('keeps the ledger reservation before connecting on a prod write', async () => {
+    const h = pinned(writeCli(), WRITE_ENV);
+    h.deps.openOut = async () => {
+      throw new Error('EEXIST');
+    };
+    await expect(runRecovery(h.options, h.deps)).rejects.toThrow(/Cannot reserve --out/);
+    expect(h.createAdapter).not.toHaveBeenCalled();
   });
 });
