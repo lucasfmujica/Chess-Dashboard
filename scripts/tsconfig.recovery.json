@@ -1,0 +1,11 @@
+{
+  "extends": "../api/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "lib/recoverGames.ts",
+    "recover-games-from-manifest.mts",
+    "recover-games-from-manifest.test.ts"
+  ]
+}

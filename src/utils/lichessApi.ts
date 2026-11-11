@@ -17,12 +17,17 @@ const USER_AGENT =
 
 /**
  * Request headers for Lichess. Browser: only Accept (CORS-safelisted, no preflight).
- * Server (no `window`): also the identifying User-Agent. fetchLichessGames currently only
- * runs in the browser; the server branch is ready for when a sync moves server-side.
+ * Server (no `window`): also the identifying User-Agent. fetchLichessGames itself runs in
+ * the browser today; server code (api/_lichessSync.ts, scripts/) imports this module for its
+ * transforms and does its own fetching.
  */
 const lichessHeaders = (): Record<string, string> => {
   const headers: Record<string, string> = { Accept: 'application/x-ndjson' };
-  if (typeof window === 'undefined') headers['User-Agent'] = USER_AGENT;
+  // Read off globalThis: this module is also pulled in under api/tsconfig.json,
+  // whose lib has no DOM, so a bare `window` does not typecheck there.
+  if (typeof (globalThis as { window?: unknown }).window === 'undefined') {
+    headers['User-Agent'] = USER_AGENT;
+  }
   return headers;
 };
 

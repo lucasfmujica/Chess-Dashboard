@@ -34,7 +34,7 @@
     "assert:conversion-privacy": "node scripts/assert-conversion-privacy.mjs",
     "assert:no-third-party-names": "node scripts/assert-no-third-party-names.mjs",
     "build:conversion-queue": "node scripts/build-conversion-queue.mjs",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p api/tsconfig.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p api/tsconfig.json && tsc --noEmit -p scripts/tsconfig.recovery.json",
     "typecheck:api": "tsc --noEmit -p api/tsconfig.json",
     "test": "vitest run && npm run test:py",
     "test:watch": "vitest",
@@ -62,6 +62,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
+    "@electric-sql/pglite": "^0.5.16",
     "@eslint/js": "^9.39.5",
     "@playwright/test": "^1.56.1",
     "@storybook/addon-essentials": "^8.6.14",
