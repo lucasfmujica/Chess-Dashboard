@@ -53,3 +53,7 @@ concept-candidates.json
 # Pesos de motores para scripts/position_diagnostics.py (binarios, se bajan aparte)
 engines/
 __pycache__/
+
+# Datos de ensayo del importador (PGlite local)
+.rehearsal-db
+.rehearsal-db/

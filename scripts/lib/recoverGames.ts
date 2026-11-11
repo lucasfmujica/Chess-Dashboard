@@ -15,9 +15,11 @@
  * Postgres with a mocked fetch and never reach the network or Neon.
 
  *
- * The target guard is by flags, environment and a host pin (preview endpoint
- * id; prod branch and endpoint denylisted). It does not ask Neon which branch
- * it is connected to: that needs API access the importer deliberately lacks.
+ * The target guard is by flags, environment and a host pin (preview or prod
+ * endpoint id; prod is denylisted for every other target). `--target prod` is
+ * additionally pinned to this one manifest's SHA-256 and to a named backup
+ * branch. It does not ask Neon which branch it is connected to: that needs API
+ * access the importer deliberately lacks.
  * Before any write a read-only preflight checks the destination schema.
  */
 import { createHash } from 'node:crypto';
@@ -54,6 +56,11 @@ export const BATCH_SIZE = 25;
 
 /** Prod branch and endpoint. Never a valid destination for this importer. */
 export const PROD_DENYLIST = ['br-royal-pond-afkmp27d', 'ep-falling-thunder-af9y8mpb'];
+/** The one Neon branch `--target prod` may point at, and its endpoint. */
+export const PROD_BRANCH_ID = 'br-royal-pond-afkmp27d';
+export const PROD_ENDPOINT_PREFIX = 'ep-falling-thunder-af9y8mpb';
+/** `--target prod` only runs this manifest: the hash is not configurable. */
+export const PROD_MANIFEST_SHA256 = 'f75fdd7c306665ac0f9826adeb50724583905d676c071e1684b7df610461319d';
 /** The one Neon branch `--target preview` may point at. */
 export const PREVIEW_BRANCH_ID = 'br-wispy-meadow-af1r6nk7';
 /** Its endpoint: the host has to match the confirmed branch, not just any preview. */
@@ -116,7 +123,8 @@ export interface AdapterHandle {
 
 export type TargetDecision =
   | { target: 'local'; driver: 'pglite'; dataDir: string }
-  | { target: 'preview'; driver: 'neon'; url: string };
+  | { target: 'preview'; driver: 'neon'; url: string }
+  | { target: 'prod'; driver: 'neon'; url: string };
 
 export interface CliOptions {
   manifest?: string;
@@ -124,6 +132,7 @@ export interface CliOptions {
   write: boolean;
   target?: string;
   confirmTarget?: string;
+  confirmBackupBranch?: string;
   pgliteDir?: string;
   out?: string;
 }
@@ -139,6 +148,8 @@ export interface RecoverDeps {
   openOut?: (path: string) => Promise<ReportSink>;
   now?: () => Date;
   chesscomDelayMs?: number;
+  /** Tests only: replaces the manifest digest so a synthetic file can hash to the prod pin. */
+  digestSha256?: (bytes: Buffer | Uint8Array) => string;
 }
 
 /** A reserved --out file: the report is written to it once, at the end of the run. */
@@ -149,7 +160,7 @@ export interface ReportSink {
 
 export interface RecoverResult {
   mode: 'dry-run' | 'write';
-  target: 'local' | 'preview' | null;
+  target: 'local' | 'preview' | 'prod' | null;
   requested: number;
   /** Manifest ids already in `games` before this run. Null when offline. */
   alreadyPresent: number | null;
@@ -230,6 +241,7 @@ const VALUE_FLAGS: Record<string, keyof CliOptions> = {
   '--expect-sha256': 'expectSha256',
   '--target': 'target',
   '--confirm-target': 'confirmTarget',
+  '--confirm-backup-branch': 'confirmBackupBranch',
   '--pglite-dir': 'pgliteDir',
   '--out': 'out',
 };
@@ -373,6 +385,8 @@ export function parseManifest(bytes: Buffer | Uint8Array): Manifest {
 // Target guard
 // ---------------------------------------------------------------------------
 
+const BRANCH_ID_RE = /^br-[a-z0-9]+(?:-[a-z0-9]+)+$/;
+
 const hostOf = (url: string): string => {
   try {
     return new URL(url).hostname;
@@ -392,8 +406,8 @@ export function resolveTarget(
   env: Record<string, string | undefined>
 ): TargetDecision {
   const { target, confirmTarget, pgliteDir } = options;
-  if (target !== 'preview' && target !== 'local') {
-    return fail('--target must be preview or local (there is no prod target)');
+  if (target !== 'preview' && target !== 'local' && target !== 'prod') {
+    return fail('--target must be preview, local or prod');
   }
   if (!confirmTarget) return fail('--confirm-target is required');
   if (env.DATABASE_URL) {
@@ -401,6 +415,31 @@ export function resolveTarget(
   }
 
   const recoveryUrl = env.RECOVERY_DATABASE_URL ?? '';
+
+  if (target === 'prod') {
+    // The denylist does not apply here: the pins below are stricter than it.
+    if (pgliteDir) return fail('--pglite-dir is only valid with --target local');
+    if (confirmTarget !== PROD_BRANCH_ID) {
+      return fail(`--target prod requires --confirm-target ${PROD_BRANCH_ID}`);
+    }
+    if (!recoveryUrl) return fail('RECOVERY_DATABASE_URL is not set');
+    if (!hostOf(recoveryUrl).startsWith(PROD_ENDPOINT_PREFIX)) {
+      return fail(`RECOVERY_DATABASE_URL host must be the ${PROD_BRANCH_ID} endpoint`);
+    }
+    if (options.write) {
+      if (env.RECOVERY_ALLOW_PROD_WRITE !== '1') {
+        return fail('Writing to prod additionally needs RECOVERY_ALLOW_PROD_WRITE=1');
+      }
+      if (!options.out) return fail('Writing to prod requires --out <private path> (the rollback ledger)');
+      const backup = options.confirmBackupBranch;
+      if (!backup) return fail('Writing to prod requires --confirm-backup-branch <br-...> (an existing Neon backup branch)');
+      if (!BRANCH_ID_RE.test(backup)) return fail('--confirm-backup-branch must look like a Neon branch id (br-...)');
+      if (backup === PROD_BRANCH_ID || backup === PREVIEW_BRANCH_ID) {
+        return fail('--confirm-backup-branch must be a backup branch, not the prod or preview branch');
+      }
+    }
+    return { target: 'prod', driver: 'neon', url: recoveryUrl };
+  }
   for (const denied of PROD_DENYLIST) {
     if (confirmTarget.includes(denied) || recoveryUrl.includes(denied) || (pgliteDir ?? '').includes(denied)) {
       return fail(`Refusing to run against the production branch or endpoint (${denied})`);
@@ -808,12 +847,18 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   if (!options.manifest) fail('--manifest is required');
   if (!options.expectSha256) fail('--expect-sha256 is required');
   if (!SHA256_RE.test(options.expectSha256)) fail('--expect-sha256 must be 64 hex characters');
+  if (decision?.target === 'prod' && options.expectSha256.toLowerCase() !== PROD_MANIFEST_SHA256) {
+    fail('--target prod only runs the pinned manifest: --expect-sha256 is not its hash');
+  }
 
   const readManifest = deps.readManifest ?? (path => readFile(path));
   const bytes = await readManifest(options.manifest);
-  const actualHash = sha256(bytes);
+  const actualHash = (deps.digestSha256 ?? sha256)(bytes);
   if (actualHash !== options.expectSha256.toLowerCase()) {
     fail(`Manifest sha256 ${actualHash} does not match --expect-sha256`);
+  }
+  if (decision?.target === 'prod' && actualHash !== PROD_MANIFEST_SHA256) {
+    fail('--target prod only runs the pinned manifest: the file does not hash to it');
   }
   const manifest = parseManifest(bytes);
   log(`Manifest verified: ${manifest.total} games (${JSON.stringify(manifest.counts)})`);
@@ -874,6 +919,7 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   let recoveredAfterError: string[] = [];
   let pendingCount = games.length;
   let failure: unknown = null;
+  let closeError: unknown = null;
   try {
     if (decision) {
       handle = await (deps.createAdapter ?? defaultCreateAdapter)(decision);
@@ -906,7 +952,15 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   } catch (err) {
     failure = err;
   } finally {
-    if (handle) await handle.close();
+    // A close that throws must not skip the ledger below: it is rethrown after.
+    if (handle) {
+      try {
+        await handle.close();
+      } catch (err) {
+        closeError = err;
+        log(`Could not close the database connection: ${redact(err, secrets)}`);
+      }
+    }
   }
 
   const writing = options.write && Boolean(decision);
@@ -921,18 +975,19 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
     skippedConflict: writing && !failure ? pendingCount - insertedIds.length : 0,
     insertedIds,
     recoveredAfterError,
-    status: failure ? 'failed' : 'ok',
+    status: failure || closeError ? 'failed' : 'ok',
     startedAt,
     finishedAt: now().toISOString(),
   };
 
   // The report is the rollback ledger: it is written on failure too.
+  const reportedError = failure ?? closeError;
   let reportError: unknown = null;
   if (report) {
     const body = JSON.stringify(
       {
         status: result.status,
-        error: failure ? redact(failure instanceof Error ? failure.message : failure, secrets) : undefined,
+        error: reportedError ? redact(reportedError instanceof Error ? reportedError.message : reportedError, secrets) : undefined,
         startedAt: result.startedAt,
         finishedAt: result.finishedAt,
         requested: result.requested,
@@ -971,6 +1026,10 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
 
   if (failure) throw failure;
   if (reportError) throw reportError;
+  if (closeError) {
+    if (result.insertedIds.length > 0) log(`inserted ids: ${result.insertedIds.join(', ')}`);
+    throw closeError;
+  }
 
   log(
     `requested=${result.requested} alreadyPresent=${result.alreadyPresent ?? 'unknown'} ` +

@@ -8,8 +8,9 @@
 // to it by SHA-256: if the bytes do not hash to --expect-sha256, nothing is
 // parsed, fetched or written.
 //
-// By default it only reports. Writing needs an explicitly confirmed non-prod
-// destination, and the connection string is read from RECOVERY_DATABASE_URL
+// By default it only reports. Writing needs an explicitly confirmed
+// destination (local, the Neon preview branch, or prod pinned to this one
+// manifest's hash), and the connection string is read from RECOVERY_DATABASE_URL
 // alone — an ambient DATABASE_URL stops the run.
 //
 // Usage:
@@ -32,8 +33,18 @@
 //     --target preview --confirm-target br-wispy-meadow-af1r6nk7 --write \
 //     --out <private path>.json
 //
-// Flags: --manifest, --expect-sha256, --write, --target preview|local,
-// --confirm-target, --pglite-dir, --out.
+//   # prod: only this manifest's pinned hash, only its pinned branch/endpoint.
+//   # Dry run (SELECTs only; needs no write flags):
+//   RECOVERY_DATABASE_URL=... \
+//     npx tsx scripts/recover-games-from-manifest.mts \
+//     --manifest <private path> --expect-sha256 <the pinned hash> \
+//     --target prod --confirm-target br-royal-pond-afkmp27d
+//   # Write: add RECOVERY_ALLOW_PROD_WRITE=1, --write, --out <new private path>
+//   # and --confirm-backup-branch <br-... of an existing Neon backup branch>.
+//   # The script does not create the backup; it only demands that one be named.
+//
+// Flags: --manifest, --expect-sha256, --write, --target preview|local|prod,
+// --confirm-target, --confirm-backup-branch, --pglite-dir, --out.
 import { runCli } from './lib/recoverGames.js';
 
 process.exitCode = await runCli(process.argv.slice(2));
