@@ -135,9 +135,16 @@ export interface RecoverDeps {
   sleep?: (ms: number) => Promise<void>;
   createAdapter?: (decision: TargetDecision) => Promise<AdapterHandle>;
   readManifest?: (path: string) => Promise<Buffer>;
-  writeOut?: (path: string, body: string) => Promise<void>;
+  /** Reserves the --out file before the run touches the database. Must fail if the path exists. */
+  openOut?: (path: string) => Promise<ReportSink>;
   now?: () => Date;
   chesscomDelayMs?: number;
+}
+
+/** A reserved --out file: the report is written to it once, at the end of the run. */
+export interface ReportSink {
+  write: (body: string) => Promise<void>;
+  close: () => Promise<void>;
 }
 
 export interface RecoverResult {
@@ -849,6 +856,18 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   const games = mapGames(manifest, lichessRaw, chesscomRaw);
   log(`Validated and mapped ${games.length} games`);
 
+  // The report is the rollback ledger, so its file is claimed before the run
+  // connects: an existing --out (a previous run's ledger) or an unwritable
+  // path stops the run with nothing written to the database.
+  let report: ReportSink | null = null;
+  if (options.out) {
+    try {
+      report = await (deps.openOut ?? reserveOwnerOnly)(options.out);
+    } catch (err) {
+      fail(`Cannot reserve --out ${options.out}: ${(err as Error).message}`);
+    }
+  }
+
   let handle: AdapterHandle | null = null;
   let alreadyPresentIds: string[] = [];
   let insertedIds: string[] = [];
@@ -908,7 +927,8 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   };
 
   // The report is the rollback ledger: it is written on failure too.
-  if (options.out) {
+  let reportError: unknown = null;
+  if (report) {
     const body = JSON.stringify(
       {
         status: result.status,
@@ -927,11 +947,30 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
       null,
       2
     );
-    await (deps.writeOut ?? writeOwnerOnly)(options.out, body);
-    log(`Report written to ${options.out}`);
+    try {
+      await report.write(body);
+    } catch (err) {
+      reportError = err;
+    }
+    try {
+      await report.close();
+    } catch (err) {
+      reportError ??= err;
+    }
+    if (reportError) {
+      // Without the ledger these lines are the only record of what to undo.
+      log(`Could not write report to ${options.out}: ${(reportError as Error).message}`);
+      log(`inserted ids: ${result.insertedIds.join(', ') || '(none)'}`);
+      if (result.recoveredAfterError.length > 0) {
+        log(`recovered after error: ${result.recoveredAfterError.join(', ')}`);
+      }
+    } else {
+      log(`Report written to ${options.out}`);
+    }
   }
 
   if (failure) throw failure;
+  if (reportError) throw reportError;
 
   log(
     `requested=${result.requested} alreadyPresent=${result.alreadyPresent ?? 'unknown'} ` +
@@ -944,15 +983,22 @@ export async function runRecovery(options: CliOptions, deps: RecoverDeps = {}): 
   return result;
 }
 
-/** Report file, readable only by the user running the importer. */
-async function writeOwnerOnly(path: string, body: string): Promise<void> {
-  const handle = await open(path, 'w', 0o600);
+/**
+ * Report file, readable only by the user running the importer. Created with
+ * 'wx' so it never replaces an earlier run's ledger.
+ */
+async function reserveOwnerOnly(path: string): Promise<ReportSink> {
+  const handle = await open(path, 'wx', 0o600);
   try {
-    await handle.writeFile(body, 'utf8');
     await handle.chmod(0o600);
-  } finally {
+  } catch (err) {
     await handle.close();
+    throw err;
   }
+  return {
+    write: body => handle.writeFile(body, 'utf8'),
+    close: () => handle.close(),
+  };
 }
 
 /**

@@ -3,13 +3,17 @@
  *
  * Integration tests for the closed-manifest importer. They run against an
  * ephemeral in-process Postgres (pglite, in memory) loaded from the real
- * db/schema.sql, with fetch mocked: no network, no Neon, no temporary files.
+ * db/schema.sql, with fetch mocked: no network, no Neon. The only files touched
+ * are --out reports in a per-test temporary directory.
  *
  * Every id, user and opponent here is synthetic. The real manifest is private
  * and never appears in this repository.
  */
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { PGlite } from '@electric-sql/pglite';
 
 import {
@@ -807,9 +811,12 @@ describe('dry run', () => {
   it('writes a report of ids, counts and timestamps only', async () => {
     const written: { path: string; body: string }[] = [];
     const { options, deps } = harness({ cli: { write: true, out: '/private/report.json' } });
-    deps.writeOut = async (path, body) => {
-      written.push({ path, body });
-    };
+    deps.openOut = async path => ({
+      write: async body => {
+        written.push({ path, body });
+      },
+      close: async () => {},
+    });
     await runRecovery(options, deps);
 
     expect(written).toHaveLength(1);
@@ -899,15 +906,107 @@ describe('failure ledger', () => {
     };
     const written: string[] = [];
     const { options, deps } = harness({ manifest, adapter: broken, cli: { write: true, out: '/private/r.json' } });
-    deps.writeOut = async (_path, body) => {
-      written.push(body);
-    };
+    deps.openOut = async () => ({
+      write: async body => {
+        written.push(body);
+      },
+      close: async () => {},
+    });
     await expect(runRecovery(options, deps)).rejects.toThrow(/Batch failed twice/);
     expect(written).toHaveLength(1);
     const report = JSON.parse(written[0]);
     expect(report.status).toBe('failed');
     expect(report.inserted).toBe(BATCH_SIZE);
     expect(new Set(report.insertedIds)).toEqual(new Set(await storedIds()));
+  });
+});
+
+describe('--out reservation', () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'recover-out-'));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('writes the report to a fresh owner-only file', async () => {
+    const out = join(dir, 'report.json');
+    const { options, deps } = harness({ cli: { write: true, out } });
+    await runRecovery(options, deps);
+
+    expect(JSON.parse(await readFile(out, 'utf8')).insertedIds).toHaveLength(5);
+    expect((await stat(out)).mode & 0o777).toBe(0o600);
+  });
+
+  it('refuses an existing --out before any INSERT and leaves the old ledger intact', async () => {
+    const out = join(dir, 'report.json');
+    await writeFile(out, 'previous ledger');
+    const { options, deps, queries, createAdapter } = harness({ cli: { write: true, out } });
+
+    await expect(runRecovery(options, deps)).rejects.toThrow(/Cannot reserve --out .*EEXIST/);
+    expect(createAdapter).not.toHaveBeenCalled();
+    expect(queries.some(text => text.startsWith('INSERT'))).toBe(false);
+    expect(await gameCount()).toBe(0);
+    expect(await readFile(out, 'utf8')).toBe('previous ledger');
+  });
+
+  it('refuses an --out in a missing directory before any INSERT', async () => {
+    const out = join(dir, 'missing', 'report.json');
+    const { options, deps, queries, createAdapter } = harness({ cli: { write: true, out } });
+
+    await expect(runRecovery(options, deps)).rejects.toThrow(/Cannot reserve --out .*ENOENT/);
+    expect(createAdapter).not.toHaveBeenCalled();
+    expect(queries.some(text => text.startsWith('INSERT'))).toBe(false);
+    expect(await gameCount()).toBe(0);
+  });
+
+  it('prints the inserted ids when the final report write fails', async () => {
+    const { options, deps, logs } = harness({ cli: { write: true, out: '/private/r.json' } });
+    deps.openOut = async () => ({
+      write: async () => {
+        throw new Error('ENOSPC: no space left on device');
+      },
+      close: async () => {},
+    });
+
+    await expect(runRecovery(options, deps)).rejects.toThrow(/ENOSPC/);
+    const stored = await storedIds();
+    expect(stored).toHaveLength(5);
+    const line = logs.find(message => message.startsWith('inserted ids: '));
+    expect(new Set(line?.slice('inserted ids: '.length).split(', '))).toEqual(new Set(stored));
+  });
+
+  it('keeps the original error when both the run and the report write fail', async () => {
+    const manifest = manifestFor(BATCH_SIZE + 5, 0);
+    const base = pgliteAdapter();
+    let inserts = 0;
+    const broken: SqlAdapter = {
+      query: async (text, params) => {
+        if (!text.startsWith('INSERT')) return base.query(text, params);
+        inserts++;
+        if (inserts === 1) return base.query(text, params);
+        throw new Error('connection terminated unexpectedly');
+      },
+    };
+    const { options, deps, logs } = harness({ manifest, adapter: broken, cli: { write: true, out: '/private/r.json' } });
+    deps.openOut = async () => ({
+      write: async () => {
+        throw new Error('EIO: i/o error, write');
+      },
+      close: async () => {},
+    });
+
+    const code = await runCli(argvOf(options), deps);
+    expect(code).toBe(1);
+    expect(logs.some(message => /Batch failed twice/.test(message))).toBe(true);
+    expect(logs.some(message => /Could not write report .*EIO/.test(message))).toBe(true);
+    const line = logs.find(message => message.startsWith('inserted ids: '));
+    const stored = await storedIds();
+    expect(stored).toHaveLength(BATCH_SIZE);
+    expect(new Set(line?.slice('inserted ids: '.length).split(', '))).toEqual(new Set(stored));
   });
 });
 
