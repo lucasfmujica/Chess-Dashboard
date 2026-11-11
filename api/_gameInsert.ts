@@ -29,10 +29,25 @@ export const isSourceCheckViolation = (err: unknown): boolean => {
   return constraint === 'games_source_check' || (message ?? '').includes('games_source_check');
 };
 
-function buildQuery(sql: GameSql, game: GameInput, legacy: boolean) {
+/**
+ * The `games` columns this module writes, in the order `gameColumnValues`
+ * returns them. The last four are migration 010's; everything before them is
+ * the legacy shape. Exported so a one-off importer can build its own statement
+ * against exactly these columns without going through `insertGames` (which
+ * upserts).
+ */
+export const GAME_COLUMNS = [
+  'lichess_game_id', 'source', 'color', 'result', 'elo', 'opponent', 'opponent_elo',
+  'eco', 'opening_name', 'tournament', 'rated', 'played_date', 'played_time',
+  'speed', 'time_control', 'elo_change', 'k_factor', 'pgn', 'city', 'country', 'affects_elo',
+  'round', 'clock_20', 'clock_30', 'clock_40',
+] as const;
+
+/** A game's values for GAME_COLUMNS, in the same order. */
+export function gameColumnValues(game: GameInput): unknown[] {
   const playedDate = game.date ?? parsePgnDate(game.pgn);
   const openingName = game.opening ?? openingNameForEco(game.eco);
-  const base = [
+  return [
     game.gameId ?? null, game.source ?? 'otb', game.color, game.result,
     game.elo, game.opp, game.opp_elo ?? null, game.eco ?? null,
     openingName, game.tournament ?? null, game.rated,
@@ -40,7 +55,12 @@ function buildQuery(sql: GameSql, game: GameInput, legacy: boolean) {
     game.timeControl ?? null, game.eloChange ?? null, game.kFactor ?? null,
     game.pgn ?? null, game.city ?? null, game.country ?? null,
     game.affectsElo ?? true,
+    game.round ?? null, game.clock20 ?? null, game.clock30 ?? null, game.clock40 ?? null,
   ];
+}
+
+function buildQuery(sql: GameSql, game: GameInput, legacy: boolean) {
+  const base = gameColumnValues(game);
   if (legacy) {
     return sql`
       INSERT INTO games (
@@ -74,8 +94,8 @@ function buildQuery(sql: GameSql, game: GameInput, legacy: boolean) {
       ${base[7]}, ${base[8]}, ${base[9]}, ${base[10]}, ${base[11]}, ${base[12]},
       ${base[13]}, ${base[14]}, ${base[15]}, ${base[16]}, ${base[17]}, ${base[18]},
       ${base[19]}, ${base[20]},
-      ${game.round ?? null}, ${game.clock20 ?? null},
-      ${game.clock30 ?? null}, ${game.clock40 ?? null}
+      ${base[21]}, ${base[22]},
+      ${base[23]}, ${base[24]}
     )
     ON CONFLICT (lichess_game_id) DO UPDATE SET
       source = EXCLUDED.source, color = EXCLUDED.color, result = EXCLUDED.result,
