@@ -10,10 +10,10 @@
     "app": "https://chess-dashboard-alpha.vercel.app",
     "repo_types": "src/types/training.ts (TrainingActivity, DayPlan, WeekPlan, WeeklyPlans)",
     "reality_check": "Verificado 24/11/2026 en main e34f0e0: Hoy (TodayQueue, TodayStrip, OverviewTab) y Semana (WeekProgram) leen programForDate() de src/constants/trainingProgram.ts, armado desde planFinalPayload.json (days). weeklyPlans de localStorage ('chess-dashboard-weekly-plans') no lo consume la UI. dailyNotes de localStorage ('chess-dashboard-daily-notes') son notas editables, no el plan.",
-    "updated_at_art": "2026-11-24 ~10:00 ART",
-    "update_note": "Ajuste Final Sub-2000, 24/11 a 8/12. OK Lucas 24/11/2026 09:27 ART: «OK a todo». Reemplaza los días desde el 24/11; lo anterior no se borra. Fuente: /workspace/brain/segundo/torneo/final/ajuste-plan-la-plata-2026-11-24.md. En el bundle, el nombre de un profe se escribe como Clase / profe (mismo criterio que #44).",
+    "updated_at_art": "2026-11-24 20:30 ART",
+    "update_note": "Ajuste de la clase del 24/11, vigente desde el 25/11 hasta el 8/12. OK Lucas 24/11/2026 20:07 ART (chat de Segundo): aplicar los cambios de la clase al plan, Semana y Hoy. Reemplaza los días desde el 25/11; el 24/11 y lo anterior no se tocan. En el bundle, el nombre de un profe se escribe como Clase / idea de clase / profe (mismo criterio que #44).",
     "martes_fijos": "OK Lucas 10/11/2026 11:53 ART en el chat de Segundo: 'ok carga eso los martes'. Fuente plan-final.md § Martes fijos.",
-    "reloj": "Metas intermedias para La Plata: 55 min en la jugada 10 y 32 en la 20 (primer escalón). La Guía 2 sigue pidiendo 55 / 45 / 32 / 20. En el tramo 11-20, como máximo dos pensadas de 10 min. Para consultar con los profes."
+    "reloj": "Metas: 55 min en la jugada 10 y 32 en la 20 (primer escalón). Guía 2 sigue pidiendo 55 / 45 / 32 / 20. Tramo 11-20: como máximo dos pensadas de 10 min. Idea de clase, 24/11: «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, salvavidas de Juan Cruz."
   },
   "dailyNotes": {
     "2026-11-10": "T · Táctica y cálculo. 10 drills de la cola antes de las 19. Clase 19:00 a 20:00 ART. Clase de cálculo con Juan Cruz 22:00 a 23:00 ART. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
@@ -31,25 +31,25 @@
     "2026-11-22": "TORNEO · R3 y R4 a las 14:00 y 18:00 ART. En la segunda, chequeo de seguridad explícito en cada jugada. Comida y descanso como en la Final. Si el cansancio pesa, la R4 es el último bye posible (torneo/byes.md).",
     "2026-11-23": "TORNEO (feriado) · R5 y R6 a las 14:00 y 18:00 ART, con reloj anotado.",
     "2026-11-24": "J liviana · 30 a 40 min de repaso de los 6 informes ya escritos (un momento clave por partida) + 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART (reemplaza el cálculo con papel de hoy).",
-    "2026-11-25": "T · 45 a 60 min. 10 drills + cálculo con papel, tope de 8 a 10 min por posición. Posiciones del Soberanía (R1 22.Tde1 y 29.Dc3, R2 22.Tc2 y 30.Cxd4, R4 14...a5, R5 22.Cxc5, R6 13.Ah3 y 17.cxd5). Método de Juan Cruz. Cuando te trabes entre 2 o 3 candidatas, las escribís, elegís y cortás.",
-    "2026-11-26": "F · 45 a 60 min. 20 min de finales de torres (drills o 4 contra 3, lo que ya conocés). 20 a 25 min de planes de R2 (e4 primero y d4 después) y R6 (Ah3; contra ...Ce6, cxd5). 10 min de Guía 7 (convertir la ventaja). No caps. 09 y 32, salvo que el profe lo pida.",
-    "2026-11-27": "F · 45 a 60 min. Caps. 01 y 05 (los de la R5): primeras 8 a 10 jugadas de memoria (la previa del profe) y el plan. 10 min de dominación de columnas. Si sobra, cap. 04 (R1) o cap. 28 (R3, salió bien).",
-    "2026-11-28": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1 de la Final. Ritmo 30+20, 45+15 o 60+30. Sin motor ni consultas. Reloj anotado en la 10, 20, 30 y 40. Objetivo: como máximo dos pensadas de 10 min en el tramo 11-20, y llegar a la 20 con 32 min o más (primer escalón; la Guía 2 sigue pidiendo 45). Antes: 10 min de Hoja de torneo.",
-    "2026-11-29": "Descanso. Análisis corto (20 min) de la partida del sábado, sin motor primero. Nada más. El domingo de la Final son 3 rondas (11:00, 15:00 y 19:00 ART): hoy priorizá descanso.",
-    "2026-11-30": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel (de las del miércoles, o una de la simulación), tope de 8 a 10 min. Menos volumen (semana previa al torneo).",
-    "2026-12-01": "F liviana · 30 min a la tarde, antes de las 19: repaso de las primeras 8 a 10 jugadas de caps. 01, 05, 04, 06, 28 y 13. 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART. Lo que haya quedado abierto el 24, se lo llevás al profe.",
-    "2026-12-02": "T liviana · 30 min. 10 drills + 1 posición de cálculo con papel, mismo tope de 8 a 10 min.",
-    "2026-12-03": "F liviana · 30 min, no tarde: finales de torres que ya conocés. Sin nada nuevo. Empieza el taper de los últimos 2 días.",
-    "2026-12-04": "Descanso · Sin entrenamiento. Bolso, planilla, Hoja de torneo, Tarjeta de pensamiento, horarios. ÚLTIMO DÍA de inscripción online y del formulario de byes. Viaje a La Plata si no llegás el sábado temprano. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30 (FADA avisa que puede pasar a 45+30).",
+    "2026-11-25": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
+    "2026-11-26": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. Si aparece la estructura de la R2, idea de clase: h4 y el alfil a h3, y trasladar el caballo antes de quedarte esperando.",
+    "2026-11-27": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. Sin teoría nueva.",
+    "2026-11-28": "SIMULACIÓN · se mantiene a las 11:00 ART, como la R1 de la Final. Antes: 4 a 5 tácticas cortas y un final de 10 a 15 min. Reloj en 10, 20, 30 y 40. Objetivo: 55 en la 10, 32 o más en la 20, como máximo dos pensadas de 10 min en el tramo 11-20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión.",
+    "2026-11-29": "Día de partidas (ya no es descanso). 4 a 5 tácticas, un final de 10 a 15 min, y una o dos partidas largas o semilargas. Idea de clase, 24/11: en estas dos semanas, jugar la máxima cantidad de partidas.",
+    "2026-11-30": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
+    "2026-12-01": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. La partida, antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART.",
+    "2026-12-02": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
+    "2026-12-03": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. No tarde.",
+    "2026-12-04": "Liviano porque es viaje. 4 a 5 tácticas si hay tiempo, sin partida larga. Bolso, planilla, Hoja de torneo. ÚLTIMO DÍA de inscripción online y del formulario de byes. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30.",
     "2026-11-09-summary": "Semana 1 (arranque, desde mar 10): meta 40 drills · 2 cálculo con papel · 2 finales 4v3 · 1 partida larga con reloj · 4 posiciones OTB · 1 foto del cuaderno a Juan Cruz.",
     "2026-11-16-summary": "Semana 2 (carga + torneo Soberanía Nacional sáb 21 y dom 22): meta 35 drills · 2 cálculo · 2 finales 4v3 (cierra la tarea 4/4) · 4 partidas largas del torneo · 4 posiciones OTB · 3 caps · 1 foto.",
-    "2026-11-23-summary": "Semana 3 (cierre del Soberanía, afinar y simulación): meta ~20 drills (10 el 24 y 10 el 25) · 1 cálculo con papel (25) · 1 partida larga sáb 28 a las 11:00 · reposo dom 29. Ajuste 24/11, OK t180u.",
-    "2026-11-30-summary": "Semana 4 (taper + Final): 30 min lun 30 a jue 3 · 0 entrenamiento vie 4 · R1 sáb 5 11:00 · domingo 6 con 3 rondas (11, 15 y 19). Meta 20 drills (10 el 30 y 10 el 2) · 2 cálculo · 0 partidas largas de entrenamiento · 0 líneas nuevas.",
-    "2026-12-05": "Final Sub-2000 · R1 a las 11:00 ART. Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen (en la R4 del Soberanía arrancaste con 52′). Teléfono apagado y en el bolso. Prep del rival en menos de una hora, para leer en 2 min antes de entrar. Reloj: 55 en la 10 y 32 en la 20 como primer escalón; como máximo dos pensadas de 10 min en el tramo 11-20.",
-    "2026-12-06": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART (R2, R3 y R4). El día más cargado. Entre rondas: Hoja de torneo (3 momentos sin motor, comer, agua, caminar, prep corta). Si hay menos de 30 min, una sola línea de análisis. Prep del rival todavía más corta.",
-    "2026-12-07": "Final Sub-2000 · R5 a las 11:00 ART. Una sola ronda: más margen para la prep y para los 3 momentos.",
-    "2026-12-08": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Misma rutina de domingo corto. Las clases recurrentes (19:00 a 20:30) y de Juan Cruz (22:00 a 23:00) de este martes chocan con La Plata.",
-    "2026-12-07-summary": "Semana del cierre: lun 7 R5 11:00 · mar 8 R6 10:00 y R7 14:00, premios 17:30."
+    "2026-11-23-summary": "Desde el 25/11 rige el ajuste de la clase (24/11, OK Lucas 20:07 ART): jugar todos los días, 4 a 5 tácticas antes de cada partida, un final de los 100 por día. Simulación sáb 28 a las 11:00. Dom 29 es día de partidas.",
+    "2026-11-30-summary": "Semana de taper + Final. Lun 30 a jue 3: tácticas, un final y una partida por día. Vie 4 liviano (viaje). Sáb 5 R1 11:00. Dom 6 tres rondas (11, 15 y 19), 4 a 5 tácticas antes de cada una.",
+    "2026-12-05": "Final Sub-2000 · R1 a las 11:00 ART. Antes: 4 a 5 tácticas cortas (idea de clase, 24/11). Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen. Reloj: 55 en la 10 y 32 en la 20. Regla: jugá la que tenés que jugar y bancate esa decisión.",
+    "2026-12-06": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART. Antes de cada ronda, 4 a 5 tácticas cortas. El día más cargado. Entre rondas: Hoja de torneo, comida, agua, prep corta.",
+    "2026-12-07": "Final Sub-2000 · R5 a las 11:00 ART. Antes: 4 a 5 tácticas cortas. Una sola ronda.",
+    "2026-12-08": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Antes de cada ronda, 4 a 5 tácticas cortas. Las clases recurrentes y de Juan Cruz de este martes chocan con La Plata.",
+    "2026-12-07-summary": "Cierre: lun 7 R5 11:00 · mar 8 R6 10:00 y R7 14:00, premios 17:30. 4 a 5 tácticas antes de cada ronda."
   },
   "weeklyPlans": {
     "2026-11-09": {
@@ -287,141 +287,213 @@
       ],
       "2026-11-25": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills (errores)",
-          "details": "10 drills."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 45,
-          "label": "Cálculo con papel · posiciones del Soberanía",
-          "details": "Tope de 8 a 10 min por posición. Amenazas por escrito, candidatas, bote salvavidas, descarte y comparación."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-11-26": [
         {
-          "id": "finales-torres",
-          "minutes": 20,
-          "label": "Finales de torres",
-          "details": "Drills de la app o 4 contra 3, lo ya conocido."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "planes-r2-r6",
-          "minutes": 25,
-          "label": "Planes R2 y R6",
-          "details": "R2: centro móvil, e4 primero y d4 después. R6: Ah3; contra ...Ce6, cxd5. Para consultar con el profe."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
-          "id": "guia-7",
-          "minutes": 10,
-          "label": "Guía 7 · convertir la ventaja",
-          "details": "10 min. No caps. 09 y 32 salvo que el profe lo pida."
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-11-27": [
         {
-          "id": "cap-01-05",
-          "minutes": 35,
-          "label": "Caps. 01 y 05 (blancas, R5)",
-          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "dominacion",
-          "minutes": 10,
-          "label": "Dominación de columnas",
-          "details": "Capablanca y Panno, 10 min."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills",
-          "details": "Si entra en los 55 min."
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-11-28": [
         {
-          "id": "previa-hoja",
-          "minutes": 10,
-          "label": "Previa · Hoja de torneo",
-          "details": "Metas de reloj: 55 en la 10, 32 en la 20 como primer escalón."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
           "id": "sim-r1",
           "minutes": 60,
           "label": "Partida larga · 11:00 ART",
-          "details": "Como R1. Reloj en 10, 20, 30 y 40. Máximo dos pensadas de 10 min en 11-20."
+          "details": "Como R1. Reloj en 10, 20, 30 y 40. Sin motor ni consultas."
         }
       ],
       "2026-11-29": [
         {
-          "id": "analisis",
-          "minutes": 20,
-          "label": "Análisis corto de la simulación",
-          "details": "20 min, sin motor primero. Sin nada nuevo."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida-1",
+          "minutes": 60,
+          "label": "Partida 1 · larga o semilarga",
+          "details": "Reloj anotado. Misma regla de decisión."
+        },
+        {
+          "id": "partida-2",
+          "minutes": 60,
+          "label": "Partida 2 · si hay energía",
+          "details": "Opcional. Idea de clase: la máxima cantidad de partidas."
         }
       ]
     },
     "2026-11-30": {
       "2026-11-30": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills",
-          "details": "Cola de errores."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 20,
-          "label": "1 posición de cálculo con papel",
-          "details": "Tope de 8 a 10 min. Método de Juan Cruz, una sola."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-12-01": [
         {
-          "id": "repaso-caps",
-          "minutes": 30,
-          "label": "Repaso primeras 8 a 10 jugadas",
-          "details": "Caps. 01, 05, 04, 06, 28 y 13. Tarea del profe: la previa."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills antes de las 19",
-          "details": "Cola de errores. Martes fijos."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga · antes de las 19",
+          "details": "Misma regla de reloj y de decisión. Después: clases."
         }
       ],
       "2026-12-02": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills",
-          "details": "Cola."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 20,
-          "label": "Cálculo con papel",
-          "details": "1 posición, tope de 8 a 10 min."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-12-03": [
         {
-          "id": "finales-torres",
-          "minutes": 30,
-          "label": "Finales de torres conocidos",
-          "details": "Sin líneas nuevas."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ],
       "2026-12-04": [
         {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas (si hay tiempo)",
+          "details": "Sin partida larga. Día de viaje y logística."
+        },
+        {
           "id": "rutina-torneo",
           "minutes": 0,
-          "label": "Rutina de torneo (sin entrenamiento)",
-          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30 con el árbitro."
+          "label": "Rutina de torneo",
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30."
         }
       ],
       "2026-12-05": [
+        {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la ronda",
+          "details": "Idea de clase, 24/11."
+        },
         {
           "id": "r1",
           "minutes": 0,
@@ -431,16 +503,34 @@
       ],
       "2026-12-06": [
         {
+          "id": "tacticas-r2",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R2",
+          "details": "Idea de clase, 24/11."
+        },
+        {
           "id": "r2",
           "minutes": 0,
           "label": "R2 · 11:00 ART",
-          "details": "Misma rutina de reloj y de llegada."
+          "details": "Misma rutina de reloj y de decisión."
+        },
+        {
+          "id": "tacticas-r3",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R3",
+          "details": "Si hay margen entre rondas."
         },
         {
           "id": "r3",
           "minutes": 0,
           "label": "R3 · 15:00 ART",
           "details": "Entre rondas: 3 momentos, comida, agua, prep corta."
+        },
+        {
+          "id": "tacticas-r4",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R4",
+          "details": "Si hay margen. Si hay menos de 30 min, una sola línea de análisis y las tácticas que entren."
         },
         {
           "id": "r4",
@@ -453,6 +543,12 @@
     "2026-12-07": {
       "2026-12-07": [
         {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la ronda",
+          "details": "Idea de clase, 24/11."
+        },
+        {
           "id": "r5",
           "minutes": 0,
           "label": "R5 · 11:00 ART",
@@ -461,10 +557,22 @@
       ],
       "2026-12-08": [
         {
+          "id": "tacticas-r6",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R6",
+          "details": "Idea de clase, 24/11."
+        },
+        {
           "id": "r6",
           "minutes": 0,
           "label": "R6 · 10:00 ART",
           "details": "Llegar con margen. Reloj y Hoja de torneo."
+        },
+        {
+          "id": "tacticas-r7",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R7",
+          "details": "Si hay margen."
         },
         {
           "id": "r7",
@@ -780,194 +888,266 @@
       ]
     },
     "2026-11-25": {
-      "tipo": "T",
-      "minutes": 55,
-      "note": "T · 45 a 60 min. 10 drills + cálculo con papel, tope de 8 a 10 min por posición. Posiciones del Soberanía (R1 22.Tde1 y 29.Dc3, R2 22.Tc2 y 30.Cxd4, R4 14...a5, R5 22.Cxc5, R6 13.Ah3 y 17.cxd5). Método de Juan Cruz. Cuando te trabes entre 2 o 3 candidatas, las escribís, elegís y cortás.",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
       "activities": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills (errores)",
-          "details": "10 drills."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 45,
-          "label": "Cálculo con papel · posiciones del Soberanía",
-          "details": "Tope de 8 a 10 min por posición. Amenazas por escrito, candidatas, bote salvavidas, descarte y comparación."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-11-26": {
-      "tipo": "F",
-      "minutes": 55,
-      "note": "F · 45 a 60 min. 20 min de finales de torres (drills o 4 contra 3, lo que ya conocés). 20 a 25 min de planes de R2 (e4 primero y d4 después) y R6 (Ah3; contra ...Ce6, cxd5). 10 min de Guía 7 (convertir la ventaja). No caps. 09 y 32, salvo que el profe lo pida.",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. Si aparece la estructura de la R2, idea de clase: h4 y el alfil a h3, y trasladar el caballo antes de quedarte esperando.",
       "activities": [
         {
-          "id": "finales-torres",
-          "minutes": 20,
-          "label": "Finales de torres",
-          "details": "Drills de la app o 4 contra 3, lo ya conocido."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "planes-r2-r6",
-          "minutes": 25,
-          "label": "Planes R2 y R6",
-          "details": "R2: centro móvil, e4 primero y d4 después. R6: Ah3; contra ...Ce6, cxd5. Para consultar con el profe."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
-          "id": "guia-7",
-          "minutes": 10,
-          "label": "Guía 7 · convertir la ventaja",
-          "details": "10 min. No caps. 09 y 32 salvo que el profe lo pida."
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-11-27": {
-      "tipo": "F",
-      "minutes": 55,
-      "note": "F · 45 a 60 min. Caps. 01 y 05 (los de la R5): primeras 8 a 10 jugadas de memoria (la previa del profe) y el plan. 10 min de dominación de columnas. Si sobra, cap. 04 (R1) o cap. 28 (R3, salió bien).",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. Sin teoría nueva.",
       "activities": [
         {
-          "id": "cap-01-05",
-          "minutes": 35,
-          "label": "Caps. 01 y 05 (blancas, R5)",
-          "details": "Primeras 8 a 10 jugadas de memoria y el plan."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "dominacion",
-          "minutes": 10,
-          "label": "Dominación de columnas",
-          "details": "Capablanca y Panno, 10 min."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills",
-          "details": "Si entra en los 55 min."
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-11-28": {
       "tipo": "Simulación",
-      "minutes": 70,
-      "note": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1 de la Final. Ritmo 30+20, 45+15 o 60+30. Sin motor ni consultas. Reloj anotado en la 10, 20, 30 y 40. Objetivo: como máximo dos pensadas de 10 min en el tramo 11-20, y llegar a la 20 con 32 min o más (primer escalón; la Guía 2 sigue pidiendo 45). Antes: 10 min de Hoja de torneo.",
+      "minutes": 90,
+      "note": "SIMULACIÓN · se mantiene a las 11:00 ART, como la R1 de la Final. Antes: 4 a 5 tácticas cortas y un final de 10 a 15 min. Reloj en 10, 20, 30 y 40. Objetivo: 55 en la 10, 32 o más en la 20, como máximo dos pensadas de 10 min en el tramo 11-20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión.",
       "activities": [
         {
-          "id": "previa-hoja",
-          "minutes": 10,
-          "label": "Previa · Hoja de torneo",
-          "details": "Metas de reloj: 55 en la 10, 32 en la 20 como primer escalón."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
         },
         {
           "id": "sim-r1",
           "minutes": 60,
           "label": "Partida larga · 11:00 ART",
-          "details": "Como R1. Reloj en 10, 20, 30 y 40. Máximo dos pensadas de 10 min en 11-20."
+          "details": "Como R1. Reloj en 10, 20, 30 y 40. Sin motor ni consultas."
         }
       ]
     },
     "2026-11-29": {
-      "tipo": "descanso",
-      "minutes": 20,
-      "note": "Descanso. Análisis corto (20 min) de la partida del sábado, sin motor primero. Nada más. El domingo de la Final son 3 rondas (11:00, 15:00 y 19:00 ART): hoy priorizá descanso.",
+      "tipo": "Día de partidas",
+      "minutes": 150,
+      "note": "Día de partidas (ya no es descanso). 4 a 5 tácticas, un final de 10 a 15 min, y una o dos partidas largas o semilargas. Idea de clase, 24/11: en estas dos semanas, jugar la máxima cantidad de partidas.",
       "activities": [
         {
-          "id": "analisis",
-          "minutes": 20,
-          "label": "Análisis corto de la simulación",
-          "details": "20 min, sin motor primero. Sin nada nuevo."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida-1",
+          "minutes": 60,
+          "label": "Partida 1 · larga o semilarga",
+          "details": "Reloj anotado. Misma regla de decisión."
+        },
+        {
+          "id": "partida-2",
+          "minutes": 60,
+          "label": "Partida 2 · si hay energía",
+          "details": "Opcional. Idea de clase: la máxima cantidad de partidas."
         }
       ]
     },
     "2026-11-30": {
-      "tipo": "T liviana",
-      "minutes": 30,
-      "note": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel (de las del miércoles, o una de la simulación), tope de 8 a 10 min. Menos volumen (semana previa al torneo).",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
       "activities": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills",
-          "details": "Cola de errores."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 20,
-          "label": "1 posición de cálculo con papel",
-          "details": "Tope de 8 a 10 min. Método de Juan Cruz, una sola."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-12-01": {
-      "tipo": "F liviana + clases",
-      "minutes": 40,
-      "note": "F liviana · 30 min a la tarde, antes de las 19: repaso de las primeras 8 a 10 jugadas de caps. 01, 05, 04, 06, 28 y 13. 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART. Lo que haya quedado abierto el 24, se lo llevás al profe.",
+      "tipo": "Juego + táctica + clases",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. La partida, antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART.",
       "activities": [
         {
-          "id": "repaso-caps",
-          "minutes": 30,
-          "label": "Repaso primeras 8 a 10 jugadas",
-          "details": "Caps. 01, 05, 04, 06, 28 y 13. Tarea del profe: la previa."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills antes de las 19",
-          "details": "Cola de errores. Martes fijos."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga · antes de las 19",
+          "details": "Misma regla de reloj y de decisión. Después: clases."
         }
       ]
     },
     "2026-12-02": {
-      "tipo": "T liviana",
-      "minutes": 30,
-      "note": "T liviana · 30 min. 10 drills + 1 posición de cálculo con papel, mismo tope de 8 a 10 min.",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz.",
       "activities": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "10 drills",
-          "details": "Cola."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
         },
         {
-          "id": "calculo-papel",
-          "minutes": 20,
-          "label": "Cálculo con papel",
-          "details": "1 posición, tope de 8 a 10 min."
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-12-03": {
-      "tipo": "F liviana",
-      "minutes": 30,
-      "note": "F liviana · 30 min, no tarde: finales de torres que ya conocés. Sin nada nuevo. Empieza el taper de los últimos 2 días.",
+      "tipo": "Juego + táctica",
+      "minutes": 90,
+      "note": "4 a 5 tácticas cortas, un final de los 100 (10 a 15 min, cualquier orden) y una partida larga o semilarga online. Reloj: 55 en la 10 y 32 en la 20. Regla de clase (24/11): «jugá la que tenés que jugar y bancate esa decisión». Si en unos 7 min no aparece nada, el salvavidas de Juan Cruz. No tarde.",
       "activities": [
         {
-          "id": "finales-torres",
-          "minutes": 30,
-          "label": "Finales de torres conocidos",
-          "details": "Sin líneas nuevas."
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas",
+          "details": "Antes de la partida. Idea de clase, 24/11."
+        },
+        {
+          "id": "final-100",
+          "minutes": 15,
+          "label": "1 final de los 100",
+          "details": "De la Villa, 100 finales que hay que saber. 10 a 15 min, cualquier orden. Solo consultar, no lectura. Idea de clase, 24/11."
+        },
+        {
+          "id": "partida",
+          "minutes": 60,
+          "label": "Partida larga o semilarga online",
+          "details": "30+20, 45+15 o más. Sin motor ni consultas. Reloj en 10, 20, 30 y 40. Meta: 55 en la 10 y 32 en la 20. Regla de clase: jugá la que tenés que jugar y bancate esa decisión. Si en unos 7 min no aparece nada, salvavidas de Juan Cruz (jugada segura)."
         }
       ]
     },
     "2026-12-04": {
-      "tipo": "descanso",
-      "minutes": 0,
-      "note": "Descanso · Sin entrenamiento. Bolso, planilla, Hoja de torneo, Tarjeta de pensamiento, horarios. ÚLTIMO DÍA de inscripción online y del formulario de byes. Viaje a La Plata si no llegás el sábado temprano. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30 (FADA avisa que puede pasar a 45+30).",
+      "tipo": "Liviano / viaje",
+      "minutes": 15,
+      "note": "Liviano porque es viaje. 4 a 5 tácticas si hay tiempo, sin partida larga. Bolso, planilla, Hoja de torneo. ÚLTIMO DÍA de inscripción online y del formulario de byes. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30.",
       "activities": [
+        {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas cortas (si hay tiempo)",
+          "details": "Sin partida larga. Día de viaje y logística."
+        },
         {
           "id": "rutina-torneo",
           "minutes": 0,
-          "label": "Rutina de torneo (sin entrenamiento)",
-          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30 con el árbitro."
+          "label": "Rutina de torneo",
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30."
         }
       ]
     },
     "2026-12-05": {
       "tipo": "Torneo R1",
-      "minutes": 0,
-      "note": "Final Sub-2000 · R1 a las 11:00 ART. Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen (en la R4 del Soberanía arrancaste con 52′). Teléfono apagado y en el bolso. Prep del rival en menos de una hora, para leer en 2 min antes de entrar. Reloj: 55 en la 10 y 32 en la 20 como primer escalón; como máximo dos pensadas de 10 min en el tramo 11-20.",
+      "minutes": 15,
+      "note": "Final Sub-2000 · R1 a las 11:00 ART. Antes: 4 a 5 tácticas cortas (idea de clase, 24/11). Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen. Reloj: 55 en la 10 y 32 en la 20. Regla: jugá la que tenés que jugar y bancate esa decisión.",
       "activities": [
+        {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la ronda",
+          "details": "Idea de clase, 24/11."
+        },
         {
           "id": "r1",
           "minutes": 0,
@@ -978,20 +1158,38 @@
     },
     "2026-12-06": {
       "tipo": "Torneo R2-R4",
-      "minutes": 0,
-      "note": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART (R2, R3 y R4). El día más cargado. Entre rondas: Hoja de torneo (3 momentos sin motor, comer, agua, caminar, prep corta). Si hay menos de 30 min, una sola línea de análisis. Prep del rival todavía más corta.",
+      "minutes": 45,
+      "note": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART. Antes de cada ronda, 4 a 5 tácticas cortas. El día más cargado. Entre rondas: Hoja de torneo, comida, agua, prep corta.",
       "activities": [
+        {
+          "id": "tacticas-r2",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R2",
+          "details": "Idea de clase, 24/11."
+        },
         {
           "id": "r2",
           "minutes": 0,
           "label": "R2 · 11:00 ART",
-          "details": "Misma rutina de reloj y de llegada."
+          "details": "Misma rutina de reloj y de decisión."
+        },
+        {
+          "id": "tacticas-r3",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R3",
+          "details": "Si hay margen entre rondas."
         },
         {
           "id": "r3",
           "minutes": 0,
           "label": "R3 · 15:00 ART",
           "details": "Entre rondas: 3 momentos, comida, agua, prep corta."
+        },
+        {
+          "id": "tacticas-r4",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R4",
+          "details": "Si hay margen. Si hay menos de 30 min, una sola línea de análisis y las tácticas que entren."
         },
         {
           "id": "r4",
@@ -1003,9 +1201,15 @@
     },
     "2026-12-07": {
       "tipo": "Torneo R5",
-      "minutes": 0,
-      "note": "Final Sub-2000 · R5 a las 11:00 ART. Una sola ronda: más margen para la prep y para los 3 momentos.",
+      "minutes": 15,
+      "note": "Final Sub-2000 · R5 a las 11:00 ART. Antes: 4 a 5 tácticas cortas. Una sola ronda.",
       "activities": [
+        {
+          "id": "tacticas",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la ronda",
+          "details": "Idea de clase, 24/11."
+        },
         {
           "id": "r5",
           "minutes": 0,
@@ -1016,14 +1220,26 @@
     },
     "2026-12-08": {
       "tipo": "Torneo R6-R7",
-      "minutes": 0,
-      "note": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Misma rutina de domingo corto. Las clases recurrentes (19:00 a 20:30) y de Juan Cruz (22:00 a 23:00) de este martes chocan con La Plata.",
+      "minutes": 30,
+      "note": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Antes de cada ronda, 4 a 5 tácticas cortas. Las clases recurrentes y de Juan Cruz de este martes chocan con La Plata.",
       "activities": [
+        {
+          "id": "tacticas-r6",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R6",
+          "details": "Idea de clase, 24/11."
+        },
         {
           "id": "r6",
           "minutes": 0,
           "label": "R6 · 10:00 ART",
           "details": "Llegar con margen. Reloj y Hoja de torneo."
+        },
+        {
+          "id": "tacticas-r7",
+          "minutes": 15,
+          "label": "4 a 5 tácticas antes de la R7",
+          "details": "Si hay margen."
         },
         {
           "id": "r7",

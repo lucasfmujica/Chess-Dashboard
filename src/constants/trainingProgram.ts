@@ -280,9 +280,13 @@ const planFinalDays = planFinalPayload.days as Record<string, PlanFinalDay>;
  * drills, and nothing else in the app logs or serves a `tactics` block.
  */
 const planBlock = (id: string): TrainingBlock | null => {
-  if (id === 'drills' || id === 'calculo-papel') return 'calculation';
+  if (id === 'drills' || id === 'calculo-papel' || id === 'tacticas' || /^tacticas-r\d$/.test(id)) {
+    return 'calculation';
+  }
   if (id === 'clase-jc' || id === 'clase-profe') return 'lesson';
-  if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
+  if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres' || id === 'final-100') {
+    return 'endgame';
+  }
   if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion' || id === 'planes-r2-r6') {
     return 'repertoire';
   }
@@ -299,6 +303,8 @@ const planBlock = (id: string): TrainingBlock | null => {
   if (id === 'guia-7') return 'concept';
   if (
     id === 'partida-larga' ||
+    id === 'partida' ||
+    /^partida-\d$/.test(id) ||
     /^sim-r\d$/.test(id) ||
     /^torneo-r\d$/.test(id) ||
     /^r[1-7]$/.test(id)
@@ -323,7 +329,8 @@ const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|na
  * date so the focus of earlier days (e.g. the 10/11 and 17/11 Tuesdays)
  * stays exactly as it was.
  */
-const PLAN_FOCUS_KEEP_FROM_AJUSTE = /juan cruz|clase 19:00|el profe|al profe|premios|chocan/i;
+const PLAN_FOCUS_KEEP_FROM_AJUSTE =
+  /juan cruz|clase 19:00|el profe|al profe|premios|chocan|regla de clase|jugá la que tenés|estructura de la r2|sin teoría nueva|antes de las 19|no tarde|idea de clase|máxima cantidad de partidas/i;
 
 /**
  * The note's headline ("T · Táctica y cálculo"): its first sentence plus any
@@ -349,16 +356,20 @@ const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
   }
   const ids = day.activities.map(a => a.id);
   const hasDrills = ids.includes('drills');
+  const isTacticas = (id: string) => id === 'tacticas' || /^tacticas-r\d$/.test(id);
+  const tacticasCount = ids.filter(isTacticas).length;
   // ~10 drills on a normal day; 5 on rest days (drills only) and "liviana"
   // days so the queue stays light — unless the plan states the count: a
   // 10-minute drills block or a label/note saying "10 drills" (30/11, 2/12)
-  // wins over the lightness heuristic.
+  // wins over the lightness heuristic. From 25/11 the daily work is 4–5
+  // short tactics (one block per session, including one before each Final
+  // round), not the 10-drill queue.
   const drills = day.activities.find(a => a.id === 'drills');
   const statesTen = !!drills && (drills.minutes === 10 || /\b10 drills\b/i.test(`${drills.label} ${day.note}`));
   const light = !statesTen && (ids.every(id => id === 'drills') || day.tipo.includes('liviana'));
   const quota: QueueQuota = {
     ...NO_QUEUE,
-    blunder: hasDrills ? (light ? 5 : 10) : 0,
+    blunder: hasDrills ? (light ? 5 : 10) : tacticasCount ? 5 * tacticasCount : 0,
     endgame: blocks.some(b => b.block === 'endgame') ? 1 : 0,
     repertoire: blocks.some(b => b.block === 'repertoire') ? 1 : 0,
   };

@@ -42,13 +42,17 @@ describe('programForDate inside the window', () => {
     expect(day).not.toEqual(programForWeekday(weekdayIndex('2026-11-10')));
   });
 
-  it('serves the tournament-routine day on 2026-12-04 with nothing to tick', () => {
+  it('serves a light travel day on 2026-12-04 with 4–5 tactics and no long game', () => {
     const day = programForDate('2026-12-04');
-    expect(day.isTrainingDay).toBe(false);
-    expect(day.blocks).toEqual([]);
-    expect(quotaTotal(day.quota)).toBe(0);
-    expect(blocksForDay(day)).toEqual([]);
-    expect(day.focus).toContain('Sin entrenamiento');
+    expect(day.isTrainingDay).toBe(true);
+    expect(day.blocks.map(b => ({ block: b.block, minutes: b.minutes, label: b.label }))).toEqual([
+      { block: 'calculation', minutes: 15, label: '4 a 5 tácticas cortas (si hay tiempo)' },
+    ]);
+    expect(day.quota.blunder).toBe(5);
+    expect(day.quota.endgame).toBe(0);
+    expect(quotaTotal(day.quota)).toBe(5);
+    expect(blocksForDay(day)).toEqual(['calculation']);
+    expect(day.focus).toContain('Liviano porque es viaje');
   });
 
   it('shows the 4 Dec deadline notice in the focus', () => {
@@ -65,10 +69,10 @@ describe('programForDate inside the window', () => {
     expect(day.quota.blunder).toBe(0);
   });
 
-  it('honours the stated 10 drills on the light days', () => {
-    // 30/11 and 2/12 are "liviana" but the plan says "10 drills".
-    expect(programForDate('2026-11-30').quota.blunder).toBe(10);
-    expect(programForDate('2026-12-02').quota.blunder).toBe(10);
+  it('asks for 4–5 tactics (quota 5) on the daily game days', () => {
+    expect(programForDate('2026-11-30').quota.blunder).toBe(5);
+    expect(programForDate('2026-12-02').quota.blunder).toBe(5);
+    expect(programForDate('2026-12-06').quota.blunder).toBe(15);
   });
 
   it('covers every date in the window with a plan day', () => {
@@ -89,18 +93,19 @@ describe('plan focus keeps the text that matters', () => {
     return [d.focus, ...d.blocks.flatMap(b => [b.label, b.detail])].join(' | ');
   };
 
-  it('does not cut at the "Cap." abbreviation (27/11)', () => {
-    const day = programForDate('2026-11-27');
-    expect(day.focus).not.toMatch(/Cap$/);
-    expect(day.blocks.map(b => b.label).join(' ')).toContain('01 y 05');
+  it('does not cut at "caps." in a pre-25/11 focus (20/11)', () => {
+    const focus = programForDate('2026-11-20').focus;
+    expect(focus).not.toMatch(/caps?$/i);
+    expect(focus).toContain('caps. 01, 05 y 09');
   });
 
-  it('does not cut at "caps." and keeps the chapter list (1/12)', () => {
-    const focus = programForDate('2026-12-01').focus;
-    expect(focus).not.toMatch(/caps?$/i);
-    expect(focus).toContain('caps. 01, 05, 04, 06, 28 y 13');
-    expect(focus).toContain('Clase 19:00 a 20:30 ART');
-    expect(focus).toContain('Juan Cruz 22:00 a 23:00 ART');
+  it('keeps the 1/12 classes and the pre-19 game in the focus, not as lesson blocks', () => {
+    const day = programForDate('2026-12-01');
+    expect(day.focus).toContain('Clase 19:00 a 20:30 ART');
+    expect(day.focus).toContain('Juan Cruz 22:00 a 23:00 ART');
+    expect(day.focus).toContain('antes de las 19');
+    expect(day.blocks.some(b => b.block === 'lesson')).toBe(false);
+    expect(day.blocks.map(b => b.block)).toEqual(['calculation', 'endgame', 'play']);
   });
 
   it('shows the weekly summary time on 15/11', () => {
@@ -135,8 +140,8 @@ describe('tournament weekend (20–26/11)', () => {
     const w3 = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27', '2026-11-28', '2026-11-29'];
     // 55 + 180 + 50 + 55 + 30 + 480 + 480
     expect(sum(w2)).toBe(1330);
-    // 23/11 stays 480; from 24/11: 40 + 55 + 55 + 55 + 70 + 20
-    expect(sum(w3)).toBe(775);
+    // 23/11 stays 480; 24/11 stays 40; from 25/11: 90 + 90 + 90 + 90 + 150
+    expect(sum(w3)).toBe(1030);
   });
 
   it.each(['2026-11-21', '2026-11-22', '2026-11-23'])('%s has two play blocks and no queue', key => {
@@ -184,29 +189,44 @@ describe('tournament weekend (20–26/11)', () => {
     expect(day.quota.blunder).toBe(10);
   });
 
-  it('25/11 is a T day and 26/11 an endgame + repertoire + concept day', () => {
+  it('25/11 and 26/11 are game days (4–5 tactics, one endgame, one game)', () => {
     const t = programForDate('2026-11-25');
-    expect(t.focus).toMatch(/^T ·/);
-    expect(t.quota.blunder).toBe(10);
+    expect(t.quota.blunder).toBe(5);
+    expect(t.quota.endgame).toBe(1);
+    expect(t.blocks.map(b => [b.block, b.minutes, b.label])).toEqual([
+      ['calculation', 15, '4 a 5 tácticas cortas'],
+      ['endgame', 15, '1 final de los 100'],
+      ['play', 60, 'Partida larga o semilarga online'],
+    ]);
+    expect(t.focus).toContain('4 a 5 tácticas cortas');
+    expect(t.focus).toContain('jugá la que tenés que jugar');
     const f = programForDate('2026-11-26');
     expect(f.quota.endgame).toBe(1);
-    expect(f.quota.repertoire).toBe(1);
-    expect(f.quota.blunder).toBe(0);
-    expect(f.blocks.map(b => [b.block, b.minutes, b.label])).toEqual([
-      ['endgame', 20, 'Finales de torres'],
-      ['repertoire', 25, 'Planes R2 y R6'],
-      ['concept', 10, 'Guía 7 · convertir la ventaja'],
+    expect(f.quota.repertoire).toBe(0);
+    expect(f.quota.blunder).toBe(5);
+    expect(f.blocks.map(b => [b.block, b.minutes])).toEqual([
+      ['calculation', 15],
+      ['endgame', 15],
+      ['play', 60],
     ]);
+    expect(f.focus).toContain('estructura de la R2');
+    expect(f.focus).toContain('h4 y el alfil a h3');
   });
 
   it('keeps 28/11 as the 11:00 simulation', () => {
     const day = programForDate('2026-11-28');
     expect(plays('2026-11-28')).toHaveLength(1);
-    expect(day.blocks.map(b => b.block)).toEqual(['analysis', 'play']);
-    expect(`${day.focus} ${day.blocks.map(b => b.label).join(' ')}`).toContain('11:00');
+    expect(day.blocks.map(b => ({ block: b.block, minutes: b.minutes }))).toEqual([
+      { block: 'calculation', minutes: 15 },
+      { block: 'endgame', minutes: 15 },
+      { block: 'play', minutes: 60 },
+    ]);
+    expect(day.blocks[2].label).toContain('11:00');
+    expect(day.focus).toContain('11:00');
+    expect(day.focus).toMatch(/SIMULACIÓN/i);
   });
 
-  it('plans 8 long games between 10/11 and 4/12, plus the Final rounds after that', () => {
+  it('counts a play block for each planned game, including daily games from 25/11 and the Final rounds', () => {
     let total = 0;
     const perDay: Record<string, number> = {};
     for (let d = 10; d <= 30; d += 1) {
@@ -226,13 +246,21 @@ describe('tournament weekend (20–26/11)', () => {
       '2026-11-21': 2,
       '2026-11-22': 2,
       '2026-11-23': 2,
+      '2026-11-25': 1,
+      '2026-11-26': 1,
+      '2026-11-27': 1,
       '2026-11-28': 1,
+      '2026-11-29': 2,
+      '2026-11-30': 1,
+      '2026-12-01': 1,
+      '2026-12-02': 1,
+      '2026-12-03': 1,
       '2026-12-05': 1,
       '2026-12-06': 3,
       '2026-12-07': 1,
       '2026-12-08': 2,
     });
-    expect(total).toBe(15);
+    expect(total).toBe(24);
   });
 });
 
@@ -339,13 +367,61 @@ describe('ajuste 24/11–8/12', () => {
   it('8/12 shows the Final R6 and R7 from the payload', () => {
     const day = programForDate('2026-12-08');
     expect(blocksOf('2026-12-08')).toEqual([
+      { block: 'calculation', minutes: 15, label: '4 a 5 tácticas antes de la R6' },
       { block: 'play', minutes: 0, label: 'R6 · 10:00 ART' },
+      { block: 'calculation', minutes: 15, label: '4 a 5 tácticas antes de la R7' },
       { block: 'play', minutes: 0, label: 'R7 · 14:00 ART' },
     ]);
     expect(day.focus).toContain('R6 a las 10:00 ART');
     expect(day.focus).toContain('R7 a las 14:00 ART');
     expect(day.focus).toContain('chocan con La Plata');
+    expect(day.blocks.some(b => b.block === 'lesson')).toBe(false);
     expect(day).not.toEqual(programForWeekday(weekdayIndex('2026-12-08')));
+  });
+
+  it('29/11 is a game day with one or two long games, not a rest day', () => {
+    const day = programForDate('2026-11-29');
+    expect(day.blocks.map(b => ({ block: b.block, minutes: b.minutes, label: b.label }))).toEqual([
+      { block: 'calculation', minutes: 15, label: '4 a 5 tácticas cortas' },
+      { block: 'endgame', minutes: 15, label: '1 final de los 100' },
+      { block: 'play', minutes: 60, label: 'Partida 1 · larga o semilarga' },
+      { block: 'play', minutes: 60, label: 'Partida 2 · si hay energía' },
+    ]);
+    expect(day.focus).toContain('Día de partidas');
+    expect(day.focus).toContain('máxima cantidad de partidas');
+    expect(day.quota.blunder).toBe(5);
+    expect(day.quota.endgame).toBe(1);
+  });
+
+  it('27/11 keeps the no-new-theory sentence and 3/12 keeps “No tarde”', () => {
+    expect(programForDate('2026-11-27').focus).toContain('Sin teoría nueva');
+    expect(programForDate('2026-12-03').focus).toContain('No tarde');
+  });
+
+  it('5/12 and 6/12 show Final rounds as play with 0 min and tactics before each', () => {
+    const r1 = programForDate('2026-12-05');
+    expect(r1.blocks.map(b => ({ block: b.block, minutes: b.minutes }))).toEqual([
+      { block: 'calculation', minutes: 15 },
+      { block: 'play', minutes: 0 },
+    ]);
+    expect(r1.blocks[1].label).toContain('R1 · 11:00 ART');
+    const sunday = programForDate('2026-12-06');
+    expect(sunday.blocks.filter(b => b.block === 'play').map(b => b.label)).toEqual([
+      'R2 · 11:00 ART',
+      'R3 · 15:00 ART',
+      'R4 · 19:00 ART',
+    ]);
+    expect(sunday.blocks.filter(b => b.block === 'play').every(b => b.minutes === 0)).toBe(true);
+    expect(sunday.quota.blunder).toBe(15);
+  });
+
+  it('24/11 stays as it was in the previous adjustment (not covered by the 25/11 payload)', () => {
+    const day = programForDate('2026-11-24');
+    expect(blocksOf('2026-11-24')).toEqual([
+      { block: 'analysis', minutes: 30, label: 'Repaso de los 6 informes del Soberanía' },
+      { block: 'calculation', minutes: 10, label: '10 drills antes de las 19' },
+    ]);
+    expect(day.focus).toContain('Clase 19:00 a 20:30 ART');
   });
 
   it('20/11 stays as it was before the adjustment', () => {
