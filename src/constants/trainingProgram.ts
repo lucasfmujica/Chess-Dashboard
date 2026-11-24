@@ -257,7 +257,7 @@ export const programForWeekday = (weekday: number): ProgramDay =>
  * viewer's local day (ART for this app).
  */
 export const PLAN_FINAL_FROM = '2026-11-10';
-export const PLAN_FINAL_TO = '2026-12-04';
+export const PLAN_FINAL_TO = '2026-12-08';
 
 interface PlanFinalActivity {
   id: string;
@@ -280,12 +280,37 @@ const planFinalDays = planFinalPayload.days as Record<string, PlanFinalDay>;
  * drills, and nothing else in the app logs or serves a `tactics` block.
  */
 const planBlock = (id: string): TrainingBlock | null => {
-  if (id === 'drills' || id === 'calculo-papel') return 'calculation';
+  if (id === 'drills' || id === 'calculo-papel' || id === 'tacticas' || /^tacticas-r\d$/.test(id)) {
+    return 'calculation';
+  }
   if (id === 'clase-jc' || id === 'clase-profe') return 'lesson';
-  if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
-  if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
-  if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim' || id === 'analisis-torneo') return 'analysis';
-  if (id === 'partida-larga' || /^sim-r\d$/.test(id) || /^torneo-r\d$/.test(id)) return 'play';
+  if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres' || id === 'final-100') {
+    return 'endgame';
+  }
+  if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion' || id === 'planes-r2-r6') {
+    return 'repertoire';
+  }
+  if (
+    id === 'posiciones-otb' ||
+    id === 'analisis' ||
+    id === 'analisis-sim' ||
+    id === 'analisis-torneo' ||
+    id === 'repaso-informes' ||
+    id === 'previa-hoja'
+  ) {
+    return 'analysis';
+  }
+  if (id === 'guia-7') return 'concept';
+  if (
+    id === 'partida-larga' ||
+    id === 'partida' ||
+    /^partida-\d$/.test(id) ||
+    /^sim-r\d$/.test(id) ||
+    /^torneo-r\d$/.test(id) ||
+    /^r[1-7]$/.test(id)
+  ) {
+    return 'play';
+  }
   // rutina-torneo: no training to tick.
   return null;
 };
@@ -300,14 +325,26 @@ const WEEKDAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S�
 const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo|inscripción|sin análisis con motor|romano|chequeo de seguridad|martes fijos/i;
 
 /**
+ * Extra sentences kept only from the 24/11 adjustment onward. Applied by
+ * date so the focus of earlier days (e.g. the 10/11 and 17/11 Tuesdays)
+ * stays exactly as it was.
+ */
+const PLAN_FOCUS_KEEP_FROM_AJUSTE =
+  /juan cruz|clase 19:00|el profe|al profe|premios|chocan|regla de clase|jugá la que tenés|estructura de la r2|sin teoría nueva|antes de las 19|no tarde|idea de clase|máxima cantidad de partidas/i;
+
+/**
  * The note's headline ("T · Táctica y cálculo"): its first sentence plus any
  * trailing sentence that carries a deadline or instruction (PLAN_FOCUS_KEEP).
  * Splits on '. ' but not after the abbreviations "Cap." / "caps.", which are
  * not sentence ends ("F · Cap. 01 y 03 …").
  */
-const planFocus = (note: string): string => {
+const planFocus = (note: string, dateKey?: string): string => {
   const sentences = note.split(/(?<!\b[Cc]aps?)\.\s+/).map(s => s.replace(/\.$/, ''));
-  const kept = sentences.slice(1).filter(s => PLAN_FOCUS_KEEP.test(s));
+  const kept = sentences.slice(1).filter(
+    s =>
+      PLAN_FOCUS_KEEP.test(s) ||
+      (dateKey !== undefined && dateKey >= '2026-11-24' && PLAN_FOCUS_KEEP_FROM_AJUSTE.test(s))
+  );
   return [sentences[0], ...kept].join('. ');
 };
 
@@ -319,16 +356,20 @@ const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
   }
   const ids = day.activities.map(a => a.id);
   const hasDrills = ids.includes('drills');
+  const isTacticas = (id: string) => id === 'tacticas' || /^tacticas-r\d$/.test(id);
+  const tacticasCount = ids.filter(isTacticas).length;
   // ~10 drills on a normal day; 5 on rest days (drills only) and "liviana"
   // days so the queue stays light — unless the plan states the count: a
   // 10-minute drills block or a label/note saying "10 drills" (30/11, 2/12)
-  // wins over the lightness heuristic.
+  // wins over the lightness heuristic. From 25/11 the daily work is 4–5
+  // short tactics (one block per session, including one before each Final
+  // round), not the 10-drill queue.
   const drills = day.activities.find(a => a.id === 'drills');
   const statesTen = !!drills && (drills.minutes === 10 || /\b10 drills\b/i.test(`${drills.label} ${day.note}`));
   const light = !statesTen && (ids.every(id => id === 'drills') || day.tipo.includes('liviana'));
   const quota: QueueQuota = {
     ...NO_QUEUE,
-    blunder: hasDrills ? (light ? 5 : 10) : 0,
+    blunder: hasDrills ? (light ? 5 : 10) : tacticasCount ? 5 * tacticasCount : 0,
     endgame: blocks.some(b => b.block === 'endgame') ? 1 : 0,
     repertoire: blocks.some(b => b.block === 'repertoire') ? 1 : 0,
   };
@@ -336,7 +377,7 @@ const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
   return {
     weekday,
     dayName: WEEKDAY_NAMES[weekday],
-    focus: planFocus(day.note),
+    focus: planFocus(day.note, dateKey),
     blocks,
     quota,
     isTrainingDay: blocks.length > 0,
