@@ -5,14 +5,15 @@
     "prepared_at_art": "2026-11-09 13:52 ART",
     "range": {
       "from": "2026-11-10",
-      "to": "2026-12-04"
+      "to": "2026-12-08"
     },
     "app": "https://chess-dashboard-alpha.vercel.app",
     "repo_types": "src/types/training.ts (TrainingActivity, DayPlan, WeekPlan, WeeklyPlans)",
-    "reality_check": "Semana y Hoy NO leen WeeklyPlans ni ningún endpoint de plan. El programa que muestran es config estática en src/constants/trainingProgram.ts (indexado por día de la semana, no por fecha). Lo único editable por fecha en Semana son dailyNotes (localStorage 'chess-dashboard-daily-notes'). weeklyPlans ('chess-dashboard-weekly-plans') sigue en GamesContext pero ya no lo consume la UI (el Planificador libre se plegó a Semana).",
-    "updated_at_art": "2026-11-09 22:21 ART",
-    "update_note": "IRT Sub-2400 Soberanía Nacional 21-23/11 (Club Argentino, 6 rondas 60+30, FIDE) reemplaza la simulación del dom 22. OK Lucas 9/11 22:21 ART vía Chief.",
-    "martes_fijos": "OK Lucas 10/11/2026 11:53 ART en el chat de Segundo: 'ok carga eso los martes'. Fuente plan-final.md § Martes fijos."
+    "reality_check": "Verificado 24/11/2026 en main e34f0e0: Hoy (TodayQueue, TodayStrip, OverviewTab) y Semana (WeekProgram) leen programForDate() de src/constants/trainingProgram.ts, armado desde planFinalPayload.json (days). weeklyPlans de localStorage ('chess-dashboard-weekly-plans') no lo consume la UI. dailyNotes de localStorage ('chess-dashboard-daily-notes') son notas editables, no el plan.",
+    "updated_at_art": "2026-11-24 ~10:00 ART",
+    "update_note": "Ajuste Final Sub-2000, 24/11 a 8/12. OK Lucas 24/11/2026 09:27 ART: «OK a todo». Reemplaza los días desde el 24/11; lo anterior no se borra. Fuente: /workspace/brain/segundo/torneo/final/ajuste-plan-la-plata-2026-11-24.md. En el bundle, el nombre de un profe se escribe como Clase / profe (mismo criterio que #44).",
+    "martes_fijos": "OK Lucas 10/11/2026 11:53 ART en el chat de Segundo: 'ok carga eso los martes'. Fuente plan-final.md § Martes fijos.",
+    "reloj": "Metas intermedias para La Plata: 55 min en la jugada 10 y 32 en la 20 (primer escalón). La Guía 2 sigue pidiendo 55 / 45 / 32 / 20. En el tramo 11-20, como máximo dos pensadas de 10 min. Para consultar con los profes."
   },
   "dailyNotes": {
     "2026-11-10": "T · Táctica y cálculo. 10 drills de la cola antes de las 19. Clase 19:00 a 20:00 ART. Clase de cálculo con Juan Cruz 22:00 a 23:00 ART. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
@@ -29,21 +30,26 @@
     "2026-11-21": "TORNEO · IRT Sub-2400 Soberanía Nacional, R1 y R2 a las 14:00 y 18:00 ART (Club Argentino de Ajedrez, 60+30, válido FIDE), con reloj anotado en las jugadas 20 y 30. Sin análisis con motor entre rondas. Romano (rival de la Final) está inscripto: repertorio normal, sin mostrar preparación específica de la Final.",
     "2026-11-22": "TORNEO · R3 y R4 a las 14:00 y 18:00 ART. En la segunda, chequeo de seguridad explícito en cada jugada. Comida y descanso como en la Final. Si el cansancio pesa, la R4 es el último bye posible (torneo/byes.md).",
     "2026-11-23": "TORNEO (feriado) · R5 y R6 a las 14:00 y 18:00 ART, con reloj anotado.",
-    "2026-11-24": "J · Análisis de las 6 partidas del torneo, sin motor primero: un momento clave por partida y el reloj en las jugadas 20 y 30. Si hubo partida con Romano, anotar qué mostró cada uno. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
-    "2026-11-25": "T · Drills + cálculo con papel, con posiciones sacadas de los errores del torneo.",
-    "2026-11-26": "F · Drills de Finales de la app (torres primero). Cap. 09 y 32 (Dragón Acelerado), o el capítulo que más falló en el torneo.",
-    "2026-11-27": "F · Cap. 01 y 03 (tus blancas más frecuentes). 10 min de dominación de columnas.",
-    "2026-11-28": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1, con reloj anotado. Plan sólido de primera ronda.",
-    "2026-11-29": "Descanso. Análisis corto (20 min) de la partida del sábado.",
-    "2026-11-30": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel. Menos volumen (semana previa al torneo).",
-    "2026-12-01": "F liviana · 30 min: repaso de las primeras 8 a 10 jugadas de tus caps. más frecuentes con cada color. Nada nuevo. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
-    "2026-12-02": "T liviana · 30 min. Drills + cálculo corto.",
-    "2026-12-03": "F liviana · 30 min: finales de torres que ya conocés, sin nada nuevo.",
-    "2026-12-04": "Descanso · Rutina de torneo: bolso, planilla, horarios, viaje a La Plata. ÚLTIMO DÍA para inscripción y formulario de byes (vencen hoy).",
+    "2026-11-24": "J liviana · 30 a 40 min de repaso de los 6 informes ya escritos (un momento clave por partida) + 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART (reemplaza el cálculo con papel de hoy).",
+    "2026-11-25": "T · 45 a 60 min. 10 drills + cálculo con papel, tope de 8 a 10 min por posición. Posiciones del Soberanía (R1 22.Tde1 y 29.Dc3, R2 22.Tc2 y 30.Cxd4, R4 14...a5, R5 22.Cxc5, R6 13.Ah3 y 17.cxd5). Método de Juan Cruz. Cuando te trabes entre 2 o 3 candidatas, las escribís, elegís y cortás.",
+    "2026-11-26": "F · 45 a 60 min. 20 min de finales de torres (drills o 4 contra 3, lo que ya conocés). 20 a 25 min de planes de R2 (e4 primero y d4 después) y R6 (Ah3; contra ...Ce6, cxd5). 10 min de Guía 7 (convertir la ventaja). No caps. 09 y 32, salvo que el profe lo pida.",
+    "2026-11-27": "F · 45 a 60 min. Caps. 01 y 05 (los de la R5): primeras 8 a 10 jugadas de memoria (la previa del profe) y el plan. 10 min de dominación de columnas. Si sobra, cap. 04 (R1) o cap. 28 (R3, salió bien).",
+    "2026-11-28": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1 de la Final. Ritmo 30+20, 45+15 o 60+30. Sin motor ni consultas. Reloj anotado en la 10, 20, 30 y 40. Objetivo: como máximo dos pensadas de 10 min en el tramo 11-20, y llegar a la 20 con 32 min o más (primer escalón; la Guía 2 sigue pidiendo 45). Antes: 10 min de Hoja de torneo.",
+    "2026-11-29": "Descanso. Análisis corto (20 min) de la partida del sábado, sin motor primero. Nada más. El domingo de la Final son 3 rondas (11:00, 15:00 y 19:00 ART): hoy priorizá descanso.",
+    "2026-11-30": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel (de las del miércoles, o una de la simulación), tope de 8 a 10 min. Menos volumen (semana previa al torneo).",
+    "2026-12-01": "F liviana · 30 min a la tarde, antes de las 19: repaso de las primeras 8 a 10 jugadas de caps. 01, 05, 04, 06, 28 y 13. 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART. Lo que haya quedado abierto el 24, se lo llevás al profe.",
+    "2026-12-02": "T liviana · 30 min. 10 drills + 1 posición de cálculo con papel, mismo tope de 8 a 10 min.",
+    "2026-12-03": "F liviana · 30 min, no tarde: finales de torres que ya conocés. Sin nada nuevo. Empieza el taper de los últimos 2 días.",
+    "2026-12-04": "Descanso · Sin entrenamiento. Bolso, planilla, Hoja de torneo, Tarjeta de pensamiento, horarios. ÚLTIMO DÍA de inscripción online y del formulario de byes. Viaje a La Plata si no llegás el sábado temprano. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30 (FADA avisa que puede pasar a 45+30).",
     "2026-11-09-summary": "Semana 1 (arranque, desde mar 10): meta 40 drills · 2 cálculo con papel · 2 finales 4v3 · 1 partida larga con reloj · 4 posiciones OTB · 1 foto del cuaderno a Juan Cruz.",
     "2026-11-16-summary": "Semana 2 (carga + torneo Soberanía Nacional sáb 21 y dom 22): meta 35 drills · 2 cálculo · 2 finales 4v3 (cierra la tarea 4/4) · 4 partidas largas del torneo · 4 posiciones OTB · 3 caps · 1 foto.",
-    "2026-11-23-summary": "Semana 3 (cierre del torneo lun 23, análisis y afinar): meta 30 drills · 1 cálculo · 2 partidas largas del torneo (lun 23) + 1 simulación (sáb 28) · 6 partidas analizadas · 4 caps repasados. Total del plan: 8 partidas largas (1 + 6 del torneo + 1).",
-    "2026-11-30-summary": "Semana 4 (menos volumen, hasta vie 4/12): meta 25 drills · 2 cálculo · 0 partidas largas · 0 líneas nuevas. Vie 4: inscripción y byes vencen."
+    "2026-11-23-summary": "Semana 3 (cierre del Soberanía, afinar y simulación): meta ~20 drills (10 el 24 y 10 el 25) · 1 cálculo con papel (25) · 1 partida larga sáb 28 a las 11:00 · reposo dom 29. Ajuste 24/11, OK t180u.",
+    "2026-11-30-summary": "Semana 4 (taper + Final): 30 min lun 30 a jue 3 · 0 entrenamiento vie 4 · R1 sáb 5 11:00 · domingo 6 con 3 rondas (11, 15 y 19). Meta 20 drills (10 el 30 y 10 el 2) · 2 cálculo · 0 partidas largas de entrenamiento · 0 líneas nuevas.",
+    "2026-12-05": "Final Sub-2000 · R1 a las 11:00 ART. Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen (en la R4 del Soberanía arrancaste con 52′). Teléfono apagado y en el bolso. Prep del rival en menos de una hora, para leer en 2 min antes de entrar. Reloj: 55 en la 10 y 32 en la 20 como primer escalón; como máximo dos pensadas de 10 min en el tramo 11-20.",
+    "2026-12-06": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART (R2, R3 y R4). El día más cargado. Entre rondas: Hoja de torneo (3 momentos sin motor, comer, agua, caminar, prep corta). Si hay menos de 30 min, una sola línea de análisis. Prep del rival todavía más corta.",
+    "2026-12-07": "Final Sub-2000 · R5 a las 11:00 ART. Una sola ronda: más margen para la prep y para los 3 momentos.",
+    "2026-12-08": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Misma rutina de domingo corto. Las clases recurrentes (19:00 a 20:30) y de Juan Cruz (22:00 a 23:00) de este martes chocan con La Plata.",
+    "2026-12-07-summary": "Semana del cierre: lun 7 R5 11:00 · mar 8 R6 10:00 y R7 14:00, premios 17:30."
   },
   "weeklyPlans": {
     "2026-11-09": {
@@ -267,28 +273,16 @@
       ],
       "2026-11-24": [
         {
+          "id": "repaso-informes",
+          "minutes": 30,
+          "label": "Repaso de los 6 informes del Soberanía",
+          "details": "Un momento clave por partida. Reloj 11-20. Lista para el profe: 8.d4 vs 8.e3, 13.Ce5, estructura R6, 3...g6, Alapin 5.Ab5, metas de reloj."
+        },
+        {
           "id": "drills",
           "minutes": 10,
-          "label": "Cola de drills (antes de las 19)",
-          "details": "10 drills de la cola de la app, antes de las 19:00 ART."
-        },
-        {
-          "id": "analisis-torneo",
-          "minutes": 55,
-          "label": "Análisis de las 6 partidas del torneo",
-          "details": "Sin motor primero. Un momento clave por partida + reloj en 20 y 30."
-        },
-        {
-          "id": "clase-profe",
-          "minutes": 60,
-          "label": "Clase (19:00 a 20:00 ART)",
-          "details": "Clase fija de los martes, 19:00 a 20:00 ART."
-        },
-        {
-          "id": "clase-jc",
-          "minutes": 60,
-          "label": "Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)",
-          "details": "Clase fija de los martes, 22:00 a 23:00 ART. Reemplaza el cálculo con papel de este día."
+          "label": "10 drills antes de las 19",
+          "details": "Cola de errores. OK de Lucas 10/11 11:53 ART para los martes."
         }
       ],
       "2026-11-25": [
@@ -301,56 +295,62 @@
         {
           "id": "calculo-papel",
           "minutes": 45,
-          "label": "Cálculo con papel",
-          "details": "Posiciones de los errores del torneo. Método Juan Cruz."
+          "label": "Cálculo con papel · posiciones del Soberanía",
+          "details": "Tope de 8 a 10 min por posición. Amenazas por escrito, candidatas, bote salvavidas, descarte y comparación."
         }
       ],
       "2026-11-26": [
         {
-          "id": "finales-app",
+          "id": "finales-torres",
           "minutes": 20,
-          "label": "Drills de Finales (torres)",
-          "details": "Cola de finales de la app."
+          "label": "Finales de torres",
+          "details": "Drills de la app o 4 contra 3, lo ya conocido."
         },
         {
-          "id": "cap-09-32",
-          "minutes": 20,
-          "label": "Cap. 09 y 32 · Dragón Acelerado (o el que más falló en el torneo)",
-          "details": "O el capítulo que más falló en el torneo. Primeras 8 a 10 jugadas y el plan."
+          "id": "planes-r2-r6",
+          "minutes": 25,
+          "label": "Planes R2 y R6",
+          "details": "R2: centro móvil, e4 primero y d4 después. R6: Ah3; contra ...Ce6, cxd5. Para consultar con el profe."
         },
         {
-          "id": "dominacion",
+          "id": "guia-7",
           "minutes": 10,
-          "label": "Dominación de columnas",
-          "details": "10 min."
+          "label": "Guía 7 · convertir la ventaja",
+          "details": "10 min. No caps. 09 y 32 salvo que el profe lo pida."
         }
       ],
       "2026-11-27": [
         {
-          "id": "cap-01-03",
-          "minutes": 30,
-          "label": "Cap. 01 y 03 (blancas)",
+          "id": "cap-01-05",
+          "minutes": 35,
+          "label": "Caps. 01 y 05 (blancas, R5)",
           "details": "Primeras 8 a 10 jugadas de memoria y el plan."
         },
         {
           "id": "dominacion",
           "minutes": 10,
           "label": "Dominación de columnas",
-          "details": "10 min."
+          "details": "Capablanca y Panno, 10 min."
         },
         {
           "id": "drills",
           "minutes": 10,
           "label": "Cola de drills",
-          "details": "Si entra en los 50 min."
+          "details": "Si entra en los 55 min."
         }
       ],
       "2026-11-28": [
         {
+          "id": "previa-hoja",
+          "minutes": 10,
+          "label": "Previa · Hoja de torneo",
+          "details": "Metas de reloj: 55 en la 10, 32 en la 20 como primer escalón."
+        },
+        {
           "id": "sim-r1",
           "minutes": 60,
           "label": "Partida larga · 11:00 ART",
-          "details": "Como R1. Reloj en 20 y 30. Plan sólido."
+          "details": "Como R1. Reloj en 10, 20, 30 y 40. Máximo dos pensadas de 10 min en 11-20."
         }
       ],
       "2026-11-29": [
@@ -358,7 +358,7 @@
           "id": "analisis",
           "minutes": 20,
           "label": "Análisis corto de la simulación",
-          "details": "20 min. Sin nada nuevo."
+          "details": "20 min, sin motor primero. Sin nada nuevo."
         }
       ]
     },
@@ -374,33 +374,21 @@
           "id": "calculo-papel",
           "minutes": 20,
           "label": "1 posición de cálculo con papel",
-          "details": "Método Juan Cruz, una sola."
+          "details": "Tope de 8 a 10 min. Método de Juan Cruz, una sola."
         }
       ],
       "2026-12-01": [
         {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills (antes de las 19)",
-          "details": "10 drills de la cola de la app, antes de las 19:00 ART."
-        },
-        {
           "id": "repaso-caps",
           "minutes": 30,
           "label": "Repaso primeras 8 a 10 jugadas",
-          "details": "Caps. más frecuentes con cada color. Tarea del profe: la previa."
+          "details": "Caps. 01, 05, 04, 06, 28 y 13. Tarea del profe: la previa."
         },
         {
-          "id": "clase-profe",
-          "minutes": 60,
-          "label": "Clase (19:00 a 20:00 ART)",
-          "details": "Clase fija de los martes, 19:00 a 20:00 ART."
-        },
-        {
-          "id": "clase-jc",
-          "minutes": 60,
-          "label": "Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)",
-          "details": "Clase fija de los martes, 22:00 a 23:00 ART. Reemplaza el cálculo con papel de este día."
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills antes de las 19",
+          "details": "Cola de errores. Martes fijos."
         }
       ],
       "2026-12-02": [
@@ -414,7 +402,7 @@
           "id": "calculo-papel",
           "minutes": 20,
           "label": "Cálculo con papel",
-          "details": "1 posición."
+          "details": "1 posición, tope de 8 a 10 min."
         }
       ],
       "2026-12-03": [
@@ -430,7 +418,59 @@
           "id": "rutina-torneo",
           "minutes": 0,
           "label": "Rutina de torneo (sin entrenamiento)",
-          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están."
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30 con el árbitro."
+        }
+      ],
+      "2026-12-05": [
+        {
+          "id": "r1",
+          "minutes": 0,
+          "label": "R1 · 11:00 ART · Grand Brizo La Plata",
+          "details": "Llegar 30 min antes. Hoja de torneo. Prep corta del rival. Anotar reloj en 10, 20, 30 y 40."
+        }
+      ],
+      "2026-12-06": [
+        {
+          "id": "r2",
+          "minutes": 0,
+          "label": "R2 · 11:00 ART",
+          "details": "Misma rutina de reloj y de llegada."
+        },
+        {
+          "id": "r3",
+          "minutes": 0,
+          "label": "R3 · 15:00 ART",
+          "details": "Entre rondas: 3 momentos, comida, agua, prep corta."
+        },
+        {
+          "id": "r4",
+          "minutes": 0,
+          "label": "R4 · 19:00 ART",
+          "details": "Si hay menos de 30 min, una sola línea de análisis."
+        }
+      ]
+    },
+    "2026-12-07": {
+      "2026-12-07": [
+        {
+          "id": "r5",
+          "minutes": 0,
+          "label": "R5 · 11:00 ART",
+          "details": "Misma rutina de mañana. Una sola ronda."
+        }
+      ],
+      "2026-12-08": [
+        {
+          "id": "r6",
+          "minutes": 0,
+          "label": "R6 · 10:00 ART",
+          "details": "Llegar con margen. Reloj y Hoja de torneo."
+        },
+        {
+          "id": "r7",
+          "minutes": 0,
+          "label": "R7 · 14:00 ART",
+          "details": "Premios 17:30 ART."
         }
       ]
     }
@@ -721,40 +761,28 @@
       ]
     },
     "2026-11-24": {
-      "tipo": "J",
-      "minutes": 185,
-      "note": "J · Análisis de las 6 partidas del torneo, sin motor primero: un momento clave por partida y el reloj en las jugadas 20 y 30. Si hubo partida con Romano, anotar qué mostró cada uno. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
+      "tipo": "J liviana + clases",
+      "minutes": 40,
+      "note": "J liviana · 30 a 40 min de repaso de los 6 informes ya escritos (un momento clave por partida) + 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART (reemplaza el cálculo con papel de hoy).",
       "activities": [
+        {
+          "id": "repaso-informes",
+          "minutes": 30,
+          "label": "Repaso de los 6 informes del Soberanía",
+          "details": "Un momento clave por partida. Reloj 11-20. Lista para el profe: 8.d4 vs 8.e3, 13.Ce5, estructura R6, 3...g6, Alapin 5.Ab5, metas de reloj."
+        },
         {
           "id": "drills",
           "minutes": 10,
-          "label": "Cola de drills (antes de las 19)",
-          "details": "10 drills de la cola de la app, antes de las 19:00 ART."
-        },
-        {
-          "id": "analisis-torneo",
-          "minutes": 55,
-          "label": "Análisis de las 6 partidas del torneo",
-          "details": "Sin motor primero. Un momento clave por partida + reloj en 20 y 30."
-        },
-        {
-          "id": "clase-profe",
-          "minutes": 60,
-          "label": "Clase (19:00 a 20:00 ART)",
-          "details": "Clase fija de los martes, 19:00 a 20:00 ART."
-        },
-        {
-          "id": "clase-jc",
-          "minutes": 60,
-          "label": "Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)",
-          "details": "Clase fija de los martes, 22:00 a 23:00 ART. Reemplaza el cálculo con papel de este día."
+          "label": "10 drills antes de las 19",
+          "details": "Cola de errores. OK de Lucas 10/11 11:53 ART para los martes."
         }
       ]
     },
     "2026-11-25": {
       "tipo": "T",
       "minutes": 55,
-      "note": "T · Drills + cálculo con papel, con posiciones sacadas de los errores del torneo.",
+      "note": "T · 45 a 60 min. 10 drills + cálculo con papel, tope de 8 a 10 min por posición. Posiciones del Soberanía (R1 22.Tde1 y 29.Dc3, R2 22.Tc2 y 30.Cxd4, R4 14...a5, R5 22.Cxc5, R6 13.Ah3 y 17.cxd5). Método de Juan Cruz. Cuando te trabes entre 2 o 3 candidatas, las escribís, elegís y cortás.",
       "activities": [
         {
           "id": "drills",
@@ -765,91 +793,97 @@
         {
           "id": "calculo-papel",
           "minutes": 45,
-          "label": "Cálculo con papel",
-          "details": "Posiciones de los errores del torneo. Método Juan Cruz."
+          "label": "Cálculo con papel · posiciones del Soberanía",
+          "details": "Tope de 8 a 10 min por posición. Amenazas por escrito, candidatas, bote salvavidas, descarte y comparación."
         }
       ]
     },
     "2026-11-26": {
       "tipo": "F",
-      "minutes": 50,
-      "note": "F · Drills de Finales de la app (torres primero). Cap. 09 y 32 (Dragón Acelerado), o el capítulo que más falló en el torneo.",
+      "minutes": 55,
+      "note": "F · 45 a 60 min. 20 min de finales de torres (drills o 4 contra 3, lo que ya conocés). 20 a 25 min de planes de R2 (e4 primero y d4 después) y R6 (Ah3; contra ...Ce6, cxd5). 10 min de Guía 7 (convertir la ventaja). No caps. 09 y 32, salvo que el profe lo pida.",
       "activities": [
         {
-          "id": "finales-app",
+          "id": "finales-torres",
           "minutes": 20,
-          "label": "Drills de Finales (torres)",
-          "details": "Cola de finales de la app."
+          "label": "Finales de torres",
+          "details": "Drills de la app o 4 contra 3, lo ya conocido."
         },
         {
-          "id": "cap-09-32",
-          "minutes": 20,
-          "label": "Cap. 09 y 32 · Dragón Acelerado (o el que más falló en el torneo)",
-          "details": "O el capítulo que más falló en el torneo. Primeras 8 a 10 jugadas y el plan."
+          "id": "planes-r2-r6",
+          "minutes": 25,
+          "label": "Planes R2 y R6",
+          "details": "R2: centro móvil, e4 primero y d4 después. R6: Ah3; contra ...Ce6, cxd5. Para consultar con el profe."
         },
         {
-          "id": "dominacion",
+          "id": "guia-7",
           "minutes": 10,
-          "label": "Dominación de columnas",
-          "details": "10 min."
+          "label": "Guía 7 · convertir la ventaja",
+          "details": "10 min. No caps. 09 y 32 salvo que el profe lo pida."
         }
       ]
     },
     "2026-11-27": {
       "tipo": "F",
-      "minutes": 50,
-      "note": "F · Cap. 01 y 03 (tus blancas más frecuentes). 10 min de dominación de columnas.",
+      "minutes": 55,
+      "note": "F · 45 a 60 min. Caps. 01 y 05 (los de la R5): primeras 8 a 10 jugadas de memoria (la previa del profe) y el plan. 10 min de dominación de columnas. Si sobra, cap. 04 (R1) o cap. 28 (R3, salió bien).",
       "activities": [
         {
-          "id": "cap-01-03",
-          "minutes": 30,
-          "label": "Cap. 01 y 03 (blancas)",
+          "id": "cap-01-05",
+          "minutes": 35,
+          "label": "Caps. 01 y 05 (blancas, R5)",
           "details": "Primeras 8 a 10 jugadas de memoria y el plan."
         },
         {
           "id": "dominacion",
           "minutes": 10,
           "label": "Dominación de columnas",
-          "details": "10 min."
+          "details": "Capablanca y Panno, 10 min."
         },
         {
           "id": "drills",
           "minutes": 10,
           "label": "Cola de drills",
-          "details": "Si entra en los 50 min."
+          "details": "Si entra en los 55 min."
         }
       ]
     },
     "2026-11-28": {
       "tipo": "Simulación",
-      "minutes": 60,
-      "note": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1, con reloj anotado. Plan sólido de primera ronda.",
+      "minutes": 70,
+      "note": "SIMULACIÓN · Partida larga a las 11:00 ART, como la R1 de la Final. Ritmo 30+20, 45+15 o 60+30. Sin motor ni consultas. Reloj anotado en la 10, 20, 30 y 40. Objetivo: como máximo dos pensadas de 10 min en el tramo 11-20, y llegar a la 20 con 32 min o más (primer escalón; la Guía 2 sigue pidiendo 45). Antes: 10 min de Hoja de torneo.",
       "activities": [
+        {
+          "id": "previa-hoja",
+          "minutes": 10,
+          "label": "Previa · Hoja de torneo",
+          "details": "Metas de reloj: 55 en la 10, 32 en la 20 como primer escalón."
+        },
         {
           "id": "sim-r1",
           "minutes": 60,
           "label": "Partida larga · 11:00 ART",
-          "details": "Como R1. Reloj en 20 y 30. Plan sólido."
+          "details": "Como R1. Reloj en 10, 20, 30 y 40. Máximo dos pensadas de 10 min en 11-20."
         }
       ]
     },
     "2026-11-29": {
       "tipo": "descanso",
       "minutes": 20,
-      "note": "Descanso. Análisis corto (20 min) de la partida del sábado.",
+      "note": "Descanso. Análisis corto (20 min) de la partida del sábado, sin motor primero. Nada más. El domingo de la Final son 3 rondas (11:00, 15:00 y 19:00 ART): hoy priorizá descanso.",
       "activities": [
         {
           "id": "analisis",
           "minutes": 20,
           "label": "Análisis corto de la simulación",
-          "details": "20 min. Sin nada nuevo."
+          "details": "20 min, sin motor primero. Sin nada nuevo."
         }
       ]
     },
     "2026-11-30": {
       "tipo": "T liviana",
       "minutes": 30,
-      "note": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel. Menos volumen (semana previa al torneo).",
+      "note": "T liviana · 30 min: 10 drills + 1 posición de cálculo con papel (de las del miércoles, o una de la simulación), tope de 8 a 10 min. Menos volumen (semana previa al torneo).",
       "activities": [
         {
           "id": "drills",
@@ -861,45 +895,33 @@
           "id": "calculo-papel",
           "minutes": 20,
           "label": "1 posición de cálculo con papel",
-          "details": "Método Juan Cruz, una sola."
+          "details": "Tope de 8 a 10 min. Método de Juan Cruz, una sola."
         }
       ]
     },
     "2026-12-01": {
-      "tipo": "F liviana",
-      "minutes": 160,
-      "note": "F liviana · 30 min: repaso de las primeras 8 a 10 jugadas de tus caps. más frecuentes con cada color. Nada nuevo. Martes fijos: drills 10 min antes de las 19, clase 19:00 a 20:00 ART y clase de cálculo con Juan Cruz 22:00 a 23:00 ART.",
+      "tipo": "F liviana + clases",
+      "minutes": 40,
+      "note": "F liviana · 30 min a la tarde, antes de las 19: repaso de las primeras 8 a 10 jugadas de caps. 01, 05, 04, 06, 28 y 13. 10 drills antes de las 19. Clase 19:00 a 20:30 ART. Juan Cruz 22:00 a 23:00 ART. Lo que haya quedado abierto el 24, se lo llevás al profe.",
       "activities": [
-        {
-          "id": "drills",
-          "minutes": 10,
-          "label": "Cola de drills (antes de las 19)",
-          "details": "10 drills de la cola de la app, antes de las 19:00 ART."
-        },
         {
           "id": "repaso-caps",
           "minutes": 30,
           "label": "Repaso primeras 8 a 10 jugadas",
-          "details": "Caps. más frecuentes con cada color. Tarea del profe: la previa."
+          "details": "Caps. 01, 05, 04, 06, 28 y 13. Tarea del profe: la previa."
         },
         {
-          "id": "clase-profe",
-          "minutes": 60,
-          "label": "Clase (19:00 a 20:00 ART)",
-          "details": "Clase fija de los martes, 19:00 a 20:00 ART."
-        },
-        {
-          "id": "clase-jc",
-          "minutes": 60,
-          "label": "Clase de cálculo con Juan Cruz (22:00 a 23:00 ART)",
-          "details": "Clase fija de los martes, 22:00 a 23:00 ART. Reemplaza el cálculo con papel de este día."
+          "id": "drills",
+          "minutes": 10,
+          "label": "10 drills antes de las 19",
+          "details": "Cola de errores. Martes fijos."
         }
       ]
     },
     "2026-12-02": {
       "tipo": "T liviana",
       "minutes": 30,
-      "note": "T liviana · 30 min. Drills + cálculo corto.",
+      "note": "T liviana · 30 min. 10 drills + 1 posición de cálculo con papel, mismo tope de 8 a 10 min.",
       "activities": [
         {
           "id": "drills",
@@ -911,14 +933,14 @@
           "id": "calculo-papel",
           "minutes": 20,
           "label": "Cálculo con papel",
-          "details": "1 posición."
+          "details": "1 posición, tope de 8 a 10 min."
         }
       ]
     },
     "2026-12-03": {
       "tipo": "F liviana",
       "minutes": 30,
-      "note": "F liviana · 30 min: finales de torres que ya conocés, sin nada nuevo.",
+      "note": "F liviana · 30 min, no tarde: finales de torres que ya conocés. Sin nada nuevo. Empieza el taper de los últimos 2 días.",
       "activities": [
         {
           "id": "finales-torres",
@@ -931,13 +953,83 @@
     "2026-12-04": {
       "tipo": "descanso",
       "minutes": 0,
-      "note": "Descanso · Rutina de torneo: bolso, planilla, horarios, viaje a La Plata. ÚLTIMO DÍA para inscripción y formulario de byes (vencen hoy).",
+      "note": "Descanso · Sin entrenamiento. Bolso, planilla, Hoja de torneo, Tarjeta de pensamiento, horarios. ÚLTIMO DÍA de inscripción online y del formulario de byes. Viaje a La Plata si no llegás el sábado temprano. Confirmá con el árbitro, antes de la R1, que el ritmo sigue en 60+30 (FADA avisa que puede pasar a 45+30).",
       "activities": [
         {
           "id": "rutina-torneo",
           "minutes": 0,
           "label": "Rutina de torneo (sin entrenamiento)",
-          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están."
+          "details": "Bolso, planilla, horarios, viaje. Inscripción y byes si todavía no están. Confirmar ritmo 60+30 con el árbitro."
+        }
+      ]
+    },
+    "2026-12-05": {
+      "tipo": "Torneo R1",
+      "minutes": 0,
+      "note": "Final Sub-2000 · R1 a las 11:00 ART. Inscripciones cierran 10:00; acto 10:30. Llegá con 30 min de margen (en la R4 del Soberanía arrancaste con 52′). Teléfono apagado y en el bolso. Prep del rival en menos de una hora, para leer en 2 min antes de entrar. Reloj: 55 en la 10 y 32 en la 20 como primer escalón; como máximo dos pensadas de 10 min en el tramo 11-20.",
+      "activities": [
+        {
+          "id": "r1",
+          "minutes": 0,
+          "label": "R1 · 11:00 ART · Grand Brizo La Plata",
+          "details": "Llegar 30 min antes. Hoja de torneo. Prep corta del rival. Anotar reloj en 10, 20, 30 y 40."
+        }
+      ]
+    },
+    "2026-12-06": {
+      "tipo": "Torneo R2-R4",
+      "minutes": 0,
+      "note": "Final Sub-2000 · domingo de 3 rondas: 11:00, 15:00 y 19:00 ART (R2, R3 y R4). El día más cargado. Entre rondas: Hoja de torneo (3 momentos sin motor, comer, agua, caminar, prep corta). Si hay menos de 30 min, una sola línea de análisis. Prep del rival todavía más corta.",
+      "activities": [
+        {
+          "id": "r2",
+          "minutes": 0,
+          "label": "R2 · 11:00 ART",
+          "details": "Misma rutina de reloj y de llegada."
+        },
+        {
+          "id": "r3",
+          "minutes": 0,
+          "label": "R3 · 15:00 ART",
+          "details": "Entre rondas: 3 momentos, comida, agua, prep corta."
+        },
+        {
+          "id": "r4",
+          "minutes": 0,
+          "label": "R4 · 19:00 ART",
+          "details": "Si hay menos de 30 min, una sola línea de análisis."
+        }
+      ]
+    },
+    "2026-12-07": {
+      "tipo": "Torneo R5",
+      "minutes": 0,
+      "note": "Final Sub-2000 · R5 a las 11:00 ART. Una sola ronda: más margen para la prep y para los 3 momentos.",
+      "activities": [
+        {
+          "id": "r5",
+          "minutes": 0,
+          "label": "R5 · 11:00 ART",
+          "details": "Misma rutina de mañana. Una sola ronda."
+        }
+      ]
+    },
+    "2026-12-08": {
+      "tipo": "Torneo R6-R7",
+      "minutes": 0,
+      "note": "Final Sub-2000 · R6 a las 10:00 ART y R7 a las 14:00 ART. Premios 17:30. Misma rutina de domingo corto. Las clases recurrentes (19:00 a 20:30) y de Juan Cruz (22:00 a 23:00) de este martes chocan con La Plata.",
+      "activities": [
+        {
+          "id": "r6",
+          "minutes": 0,
+          "label": "R6 · 10:00 ART",
+          "details": "Llegar con margen. Reloj y Hoja de torneo."
+        },
+        {
+          "id": "r7",
+          "minutes": 0,
+          "label": "R7 · 14:00 ART",
+          "details": "Premios 17:30 ART."
         }
       ]
     }

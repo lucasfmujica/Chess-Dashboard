@@ -257,7 +257,7 @@ export const programForWeekday = (weekday: number): ProgramDay =>
  * viewer's local day (ART for this app).
  */
 export const PLAN_FINAL_FROM = '2026-11-10';
-export const PLAN_FINAL_TO = '2026-12-04';
+export const PLAN_FINAL_TO = '2026-12-08';
 
 interface PlanFinalActivity {
   id: string;
@@ -283,9 +283,28 @@ const planBlock = (id: string): TrainingBlock | null => {
   if (id === 'drills' || id === 'calculo-papel') return 'calculation';
   if (id === 'clase-jc' || id === 'clase-profe') return 'lesson';
   if (id === 'final-4v3' || id === 'finales-app' || id === 'finales-torres') return 'endgame';
-  if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion') return 'repertoire';
-  if (id === 'posiciones-otb' || id === 'analisis' || id === 'analisis-sim' || id === 'analisis-torneo') return 'analysis';
-  if (id === 'partida-larga' || /^sim-r\d$/.test(id) || /^torneo-r\d$/.test(id)) return 'play';
+  if (id.startsWith('cap-') || id === 'repaso-caps' || id === 'dominacion' || id === 'planes-r2-r6') {
+    return 'repertoire';
+  }
+  if (
+    id === 'posiciones-otb' ||
+    id === 'analisis' ||
+    id === 'analisis-sim' ||
+    id === 'analisis-torneo' ||
+    id === 'repaso-informes' ||
+    id === 'previa-hoja'
+  ) {
+    return 'analysis';
+  }
+  if (id === 'guia-7') return 'concept';
+  if (
+    id === 'partida-larga' ||
+    /^sim-r\d$/.test(id) ||
+    /^torneo-r\d$/.test(id) ||
+    /^r[1-7]$/.test(id)
+  ) {
+    return 'play';
+  }
   // rutina-torneo: no training to tick.
   return null;
 };
@@ -300,14 +319,25 @@ const WEEKDAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'S�
 const PLAN_FOCUS_KEEP = /resumen semanal|último día|\bbye|comida y descanso|nada nuevo|inscripción|sin análisis con motor|romano|chequeo de seguridad|martes fijos/i;
 
 /**
+ * Extra sentences kept only from the 24/11 adjustment onward. Applied by
+ * date so the focus of earlier days (e.g. the 10/11 and 17/11 Tuesdays)
+ * stays exactly as it was.
+ */
+const PLAN_FOCUS_KEEP_FROM_AJUSTE = /juan cruz|clase 19:00|el profe|al profe|premios|chocan/i;
+
+/**
  * The note's headline ("T · Táctica y cálculo"): its first sentence plus any
  * trailing sentence that carries a deadline or instruction (PLAN_FOCUS_KEEP).
  * Splits on '. ' but not after the abbreviations "Cap." / "caps.", which are
  * not sentence ends ("F · Cap. 01 y 03 …").
  */
-const planFocus = (note: string): string => {
+const planFocus = (note: string, dateKey?: string): string => {
   const sentences = note.split(/(?<!\b[Cc]aps?)\.\s+/).map(s => s.replace(/\.$/, ''));
-  const kept = sentences.slice(1).filter(s => PLAN_FOCUS_KEEP.test(s));
+  const kept = sentences.slice(1).filter(
+    s =>
+      PLAN_FOCUS_KEEP.test(s) ||
+      (dateKey !== undefined && dateKey >= '2026-11-24' && PLAN_FOCUS_KEEP_FROM_AJUSTE.test(s))
+  );
   return [sentences[0], ...kept].join('. ');
 };
 
@@ -336,7 +366,7 @@ const buildPlanDay = (dateKey: string, day: PlanFinalDay): ProgramDay => {
   return {
     weekday,
     dayName: WEEKDAY_NAMES[weekday],
-    focus: planFocus(day.note),
+    focus: planFocus(day.note, dateKey),
     blocks,
     quota,
     isTrainingDay: blocks.length > 0,
